@@ -75,12 +75,14 @@ public:
                     uint32_t threadGroupId,
                     DataIndex category = INVALID_UINT64,
                     DataIndex name = INVALID_UINT64);
-    void StartAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
-    void
+    size_t StartAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
+    size_t
         FinishAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
     void IrqHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet& args);
     void IrqHandlerExit(uint64_t timestamp, uint32_t cpu, ArgsSet args);
+    void IpiHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
+    void IpiHandlerExit(uint64_t timestamp, uint32_t cpu);
     void SoftIrqEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     void SoftIrqExit(uint64_t timestamp, uint32_t cpu, ArgsSet args);
     void Clear();
@@ -118,6 +120,7 @@ private:
         size_t row;
     };
     std::unordered_map<uint32_t, IrqRecords> irqEventMap_ = {};
+    std::unordered_map<uint32_t, IrqRecords> ipiEventMap_ = {};
     //  irq map, key1 is cpu, key2
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
@@ -138,6 +141,8 @@ private:
     std::unordered_map<FilterId, std::vector<SliceInfo>> argsSet_ = {};
     DataIndex asyncBeginCountId_ = traceDataCache_->GetDataIndex("legacy_unnestable_begin_count");
     DataIndex asyncBeginTsId_ = traceDataCache_->GetDataIndex("legacy_unnestable_last_begin_ts");
+    DataIndex ipiId_ = traceDataCache_->GetDataIndex("IPI");
+    DoubleMap<uint32_t, DataIndex, uint32_t> irqDataLinker_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

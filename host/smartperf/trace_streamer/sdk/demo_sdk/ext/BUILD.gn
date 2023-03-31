@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 config("sqlite_config") {
   include_dirs = [
-    "../../third_party/sqlite/include",
+    "//third_party/sqlite/include",
     "../include",
   ]
   cflags = [ "-Wno-writable-strings" ]

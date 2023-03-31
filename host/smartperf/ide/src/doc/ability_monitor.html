@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ability Monitor</title>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>ability_monitor</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
     <style>
-        dataType[class*="font-"],
-        pre[class*="font-"] {
+        code[class*="smartperf-"],
+        pre[class*="smartperf-"] {
             color: #333333;
             background: none;
             font-family: Helvetica;
@@ -16,347 +19,365 @@
             -moz-tab-size: 9;
             -o-tab-size: 9;
             tab-size: 8;
+            -webkit-hyphens: none;
+            -moz-hyphens: none;
+            -ms-hyphens: none;
+            hyphens: none;
         }
 
-        pre[class*="font-"] {
-            border-radius: 3px;
-            background: #F5F5F5;
-            padding: 0.8em;
+        /* Code blocks */
+        pre[class*="smartperf-"] {
+            padding: .9em;
             overflow: auto;
+            border-radius: 2px;
+            background: #f5f5f4;
         }
 
-        :not(pre) > dataType[class*="font-"] {
+        /* Inline code */
+        :not(pre) > code[class*="smartperf-"] {
             white-space: normal;
-            background: #F5F5F5;
-            padding: 0.2em;
-            border-radius: 0.3em;
+            background: #fcf8f8;
+            padding: 1px .2em;
+            border-radius: 1px .3em;
         }
 
-        .temporary.cdata {
-            color: #183690;
+        .tk.comment,
+        .tk.blockquote {
+            color: #8c918c;
         }
 
-        .temporary.comment,
-        .temporary.blockType {
-            color: #969897;
+        .tk.cdata {
+            color: #183898;
         }
 
-        .temporary.doctype,
-        .temporary.punctuation,
-        .temporary.variable,
-        .temporary.macro.property {
-            color: #333333;
+        .tk.doctype,
+        .tk.punctuation,
+        .tk.variable,
+        .tk.macro.property {
+            color: #424242;
         }
 
-
-        .temporary.string,
-        .temporary.url,
-        .temporary.regex,
-        .temporary.attr-value {
-            color: #183690;
+        .tk.operator,
+        .tk.important,
+        .tk.keyword,
+        .tk.rule,
+        .tk.builtin {
+            color: #b71d65;
         }
 
-        .temporary.operator,
-        .temporary.important,
-        .temporary.keyword,
-        .temporary.rule,
-        .temporary.builtin {
-            color: #a71d5c;
+        .tk.string,
+        .tk.url,
+        .tk.regex,
+        .tk.attr-value {
+            color: #16338d;
         }
 
-        .temporary.atrule,
-        .temporary.constant,
-        .temporary.symbol,
-        .temporary.command,
-        .temporary.property,
-        .temporary.number,
-        .temporary.boolean,
-        .temporary.entity,
-        .temporary.dataType {
-            color: #0086b2;
+        .tk.property,
+        .tk.number,
+        .tk.boolean,
+        .tk.entity,
+        .tk.atrule,
+        .tk.constant,
+        .tk.symbol,
+        .tk.command,
+        .tk.code {
+            color: #037aa2;
         }
 
-        .temporary.tag,
-        .temporary.selector,
-        .temporary.prolog {
-            color: #63a35e;
+        .tk.tag,
+        .tk.selector,
+        .tk.prolog {
+            color: #69ad62;
         }
 
-        .temporary.entity {
+        .tk.function,
+        .tk.namespace,
+        .tk.pseudo-element,
+        .tk.class,
+        .tk.class-name,
+        .tk.pseudo-class,
+        .tk.id,
+        .tk.url-reference .tk.variable,
+        .tk.attr-name {
+            color: #775d9d;
+        }
+
+        .tk.entity {
             cursor: help;
         }
 
-        .temporary.title,
-        .temporary.title .temporary.punctuation {
+        .tk.title,
+        .tk.title .tk.punctuation {
             font-weight: bold;
-            color: #1d3e89;
+            color: #1a3773;
         }
 
-        .temporary.list {
-            color: #ed6a48;
+        .tk.list {
+            color: #f56940;
+        }
+
+        .tk.inserted {
+            background-color: #eaffea;
+            color: #509b2f;
+        }
+
+        .tk.deleted {
+            background-color: #fae1e1;
+            color: #ad2d06;
+        }
+
+        .tk.bold {
+            font-weight: bolder;
+        }
+
+        .tk.italic {
+            font-style: normal;
         }
 
 
-        .temporary.function,
-        .temporary.namespace,
-        .temporary.pseudo-element,
-        .temporary.class,
-        .temporary.class-name,
-        .temporary.pseudo-class,
-        .temporary.id,
-        .temporary.url-reference .temporary.variable,
-        .temporary.attr-name {
-            color: #795da2;
+        /* JSON */
+        .smartperf-json .tk.property {
+            color: #19358c;
         }
 
-        .temporary.inserted {
-            color: #55a535;
-            background-color: #eaffee;
+        .smartperf-markup .tk.tag .tk.punctuation {
+            color: #2c2b2b;
         }
 
-        .temporary.bold {
-            font-weight: bold;
+        /* CSS */
+        code.smartperf-css,
+        .smartperf-css .tk.function {
+            color: #047ca4;
         }
 
-        .temporary.deleted {
-            color: #bd2c08;
-            background-color: #ffecea;
+        /* YAML */
+        .smartperf-yaml .tk.atrule {
+            color: #609b5a;
         }
 
-        .font-json .temporary.property {
-            color: #183690;
+        code.smartperf-yaml {
+            color: #153491;
         }
 
-        .temporary.italic {
-            font-style: italic;
+        /* Ruby */
+        .smartperf-ruby .tk.function {
+            color: #3f3e3e;
         }
 
-        .font-markup .temporary.tag .temporary.punctuation {
-            color: #333333;
+        /* Markdown */
+        .smartperf-markdown .tk.url {
+            color: #6e5298;
         }
 
-        .font-yaml .temporary.atrule {
-            color: #63a35a;
+        /* Makefile */
+        .smartperf-makefile .tk.symbol {
+            color: #6c5393;
         }
 
-        dataType.font-css,
-        .font-css .temporary.function {
-            color: #0086b8;
+        .smartperf-makefile .tk.variable {
+            color: #183488;
         }
 
-        dataType.font-yaml {
-            color: #183690;
+        .smartperf-makefile .tk.builtin {
+            color: #027ba4;
         }
 
-        .font-ruby .temporary.function {
-            color: #333333;
+        /* Bash */
+        .smartperf-bash .tk.keyword {
+            color: #027fa9;
         }
 
-        .font-markdown .temporary.url {
-            color: #795da2;
-        }
-
-        .font-makefile .temporary.variable {
-            color: #183690;
-        }
-
-        .font-makefile .temporary.builtin {
-            color: #0086b3;
-        }
-
-        .font-makefile .temporary.symbol {
-            color: #795da2;
-        }
-
-        .font-bash .temporary.keyword {
-            color: #0086b3;
-        }
-
-        pre[data-wire] {
-            padding: 1em 0 1em 2em;
+        /* highlight */
+        pre[dl] {
             position: relative;
+            padding: 1em 1px 1px .9em;
         }
 
-        pre[data-wire] .line-bottomShow-wrapper {
+        pre[dl] .line-highlight-wrapper {
+            position: absolute;
+            top: 1px;
+            left: 1px;
             background-color: transparent;
-            top: 2px;
-            left: 2px;
             display: block;
-            width: 100%;
-            position: absolute;
+            width: 99%;
         }
 
-        pre[data-wire] .line-bottomShow {
+        pre[dl] .line-highlight {
             position: absolute;
-            left: 2px;
-            right: 2px;
+            left: 1px;
+            right: 1px;
+            padding: inherit;
+            margin-top: 0.9em;
+            background: hsla(25, 21%, 50%, .08);
+            background: linear-gradient(to right, hsla(24, 20%, 50%, .1) 70%, hsla(24, 20%, 50%, 0));
             pointer-events: none;
-            margin-top: 3em;
-            background: hsla(25, 10%, 55%, .06);
-            background: linear-gradient(to right, hsla(25, 10%, 40%, .2) 80%, hsla(23, 24%, 52%, 0));
             line-height: inherit;
             white-space: pre;
         }
 
-        pre[data-wire] .line-bottomShow:before,
-        pre[data-wire] .line-bottomShow[data-end]:after {
+        pre[dl] .line-highlight:before,
+        pre[dl] .line-highlight[data-end]:after {
             content: attr(data-start);
             position: absolute;
-            background-color: hsla(22, 25%, 54%, .5);
-            min-width: 2em;
-            padding: 0 .6em;
-            top: 0.5em;
-            left: 0.4em;
-            color: hsl(22, 23%, 90%);
-            vertical-align: 0.3em;
-            border-radius: 10px;
             text-shadow: none;
-            box-shadow: 0 2px white;
-            font: bold 60%/1.6 sans-serif;
+            top: .3em;
+            left: .7em;
+            min-width: .9em;
+            padding: 1px .6em;
+            background-color: hsla(24, 20%, 47%, 0.4);
+            color: hsl(20, 11%, 95%);
             text-align: center;
+            vertical-align: .2em;
+            border-radius: 10000px;
+            box-shadow: 1px 2px #fdf6f6;
         }
 
-        pre[data-wire] .line-bottomShow[data-end]:after {
-            bottom: 0.6em;
+        pre[dl] .line-highlight[data-end]:after {
             content: attr(data-end);
             top: auto;
+            bottom: .5em;
         }
 
-        body {
-            line-height: 1.5;
+        html body {
+            line-height: 1.6;
             font-size: 16px;
             color: #333333;
             overflow: initial;
             background-color: #FFFFFF;
             word-wrap: break-word;
-            font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+            font-family: Helvetica;
             box-sizing: border-box;
         }
 
-        body > :first-child {
-            margin-top: 0px;
+        html body > :first-child {
+            margin-top: 0px
         }
 
-        body h1, body h2, body h3 {
+        html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
             margin-top: 1em;
             margin-bottom: 16px;
             color: #000000;
             line-height: 1.2;
         }
 
-        body h1 {
+        html body h1 {
             font-weight: 300;
             font-size: 2.25em;
             padding-bottom: .3em
         }
 
-        body h2 {
-            font-weight: 400;
-            font-size: 1.75em;
-            padding-bottom: .3em
+        html body h2 {
+            font-weight: 410;
+            font-size: 1.74em;
+            padding-bottom: .2em
         }
 
-        body h3 {
-            font-weight: 500;
-            font-size: 1.5em;
+        html body h3 {
+            font-size: 1.6em;
+            font-weight: 501
         }
 
-        body h4 {
-            font-weight: 600;
-            font-size: 1.25em;
+        html body h4 {
+            font-size: 1.26em;
+            font-weight: 601
         }
 
-        body h5 {
-            font-weight: 600;
-            font-size: 1.1em;
+        html body h5 {
+            font-size: 1.2em;
+            font-weight: 601
         }
 
-        body h6 {
-            font-weight: 600;
-            font-size: 1em;
+        html body h6 {
+            font-size: 0.9em;
+            font-weight: 601
         }
 
-        body h1, body h2, body h3 {
-            font-weight: 600;
+        html body h1, html body h2, html body h3, html body h4, html body h5 {
+            font-weight: 601
         }
 
-        body strong {
-            color: #090909;
+        html body h5 {
+            font-size: 0.9em
         }
 
-        body del {
-            color: #525252;
+        html body h6 {
+            color: #5c5c5c
         }
 
-        body img {
-            max-width: 98%;
+        html body strong {
+            color: #090909
         }
 
-        body a {
-            text-decoration: none;
+        html body del {
+            color: #525252
+        }
+
+        html body a:not([href]) {
+            color: inherit;
+            text-decoration: none
+        }
+
+        html body a {
             color: #0192da;
+            text-decoration: none
         }
 
-        body a:hover {
-            text-decoration: none;
+        html body a:hover {
             color: #029dea;
+            text-decoration: none
         }
 
-        body > ul, body > ol {
-            margin-bottom: 14px;
+        html body img {
+            max-width: 99%
         }
 
-        body ul.listType, body ol.listType {
-            list-style-type: none;
-            padding: 0;
+        html body > p {
+            margin-top: 1px;
+            margin-bottom: 15px;
+            word-wrap: break-word
         }
 
-        body > p {
-            word-wrap: break-word;
-            margin-bottom: 16.2px;
-            margin-top: 0.1px;
+        html body > ul, html body > ol {
+            margin-bottom: 15px
         }
 
-        body li {
-            margin-bottom: 0.1px;
+        html body ul, html body ol {
+            padding-left: 1.9em
         }
 
-        body dataType::before{
-            letter-spacing: -0.22em;
+        html body ul.no-list, html body ol.no-list {
+            padding: 0px;
+            list-style-type: none
         }
 
-        body dataType::after {
-            letter-spacing: -0.22em;
+        html body ul ul, html body ul ol, html body ol ol, html body ol ul {
+            margin-top: 1px;
+            margin-bottom: 1px
         }
 
-        body ul, body ol {
-            padding-left: 2.1em;
+        html body li {
+            margin-bottom: 1px
         }
 
-        body ul ul, body ul ol, body ol ol, body ol ul {
-            margin-bottom: 5.2px;
-            margin-top: 5.2px;
+        html body li.task-list-item {
+            list-style: none
         }
 
-        body li.task-list-item {
-            list-style: none;
+        html body li > p {
+            margin-top: 1px;
+            margin-bottom: 1px
         }
 
-        body li > p {
-            margin-top: 0.1px;
-            margin-bottom: 0.1px;
+        html body .task-list-item-checkbox {
+            margin: 0 .3em .24em -1.7em;
+            vertical-align: middle
         }
 
-        body .checkDiv {
-            margin: 0.1em 0.24em -1.7em;
-            vertical-align: middle;
+        html body .task-list-item-checkbox:hover {
+            cursor: pointer
         }
 
-        body .checkDiv:hover {
-            cursor: pointer;
-        }
-
-        body blockType {
+        html body blockquote {
             padding: 0.1px 15px 0 0.1px;
             font-size: inherit;
             color: #5c5c5c;
@@ -365,734 +386,759 @@
             background-color: #e8e6e6;
         }
 
-        body blockType > :first-child {
-            margin-top: 0.1px;
+        html body blockquote > :first-child {
+            margin-top: 0.2px
         }
 
-        body blockType > :last-child {
+        html body blockquote > :last-child {
             margin-bottom: 0.1px;
         }
 
-        body table th {
-            color: #0a0a0a;
-            font-weight: lighter;
-        }
-
-        body hr {
+        html body hr {
             height: 5px;
             background-color: #cbcaca;
             margin: 32px 0 0.1px 0;
             border: 0 none;
         }
 
-        body table {
-            display: none;
+        html body table {
             overflow: auto;
-            border-collapse: inherit;
+            border-collapse: collapse;
             margin: 15px 0.1px 20px 0.1px;
-            border-spacing: 0.1px;
-            width: 98%;
+            border-spacing: 0;
         }
 
-        body table td {
-            padding: 6px 13px 0.1px 0.1px;
-            border: 1.1px solid #d6d6d5;
-        }
-
-        body dl {
-            padding: 0.1px;
-        }
-
-        body dataType {
-            font-size: 0.82em;
-            font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-            color: #050505;
-            background-color: #d7d6d6;
-            padding: 0.22em 0 0.1px 0;
-            border-radius: 4.2px;
-        }
-
-        body dl dt {
-            margin-top: 17px;
-            padding: 0.1px;
-            font-size: 1.1em;
+        html body table th {
             font-weight: bold;
+            color: #000000
+        }
+
+        html body table td, html body table th {
+            border: 1px solid #d6d6d6;
+            padding: 2px 14px
+        }
+
+        html body dl {
+            padding: 0px
+        }
+
+        html body dl dt {
+            padding: 0px;
+            margin-top: 15px;
+            font-size: 0.9em;
             font-style: italic;
+            font-weight: bold
         }
 
-        body dl dd {
-            margin-bottom: 17px;
-            padding: 0.1px 17px 0.1px 0.1px;
+        html body dl dd {
+            padding: 0px 17px;
+            margin-bottom: 17px
         }
 
-        body .bottomShow pre{
-            border-radius: 3.1px;
-            padding: 1.1em;
-            overflow: inherit;
-            line-height: 1.42;
-            border: #e1e1e1;
-            font-size: 0.82em;
+        html body code {
+            font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+            font-size: .86em !important;
+            color: #000000;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            padding: .3em 0px
         }
 
-        body pre .dataType {
-            margin: 0.1px;
-            padding: 0.1px;
-            word-break: inherit;
-            font-size: 0.75em;
+        html body code::before, html body code::after {
+            letter-spacing: -0.1em;
+            content: "\00a0"
+        }
+
+        html body pre > code {
+            padding: 1px;
+            margin: 0px;
+            font-size: .86em !important;
+            word-break: normal;
             white-space: pre;
-            background: #0074D9;
+            background: transparent;
+            border: 0px
         }
 
-        body .bottomShow {
-            margin-bottom: 15px;
+        html body .highlight {
+            margin-bottom: 17px
         }
 
-        body .bottomShow pre {
-            word-break: inherit;
-            margin-bottom: 0.1px;
+        html body .highlight pre, html body pre {
+            padding: 0.9em;
+            overflow: auto;
+            font-size: .86em !important;
+            line-height: 1.46;
+            border: #d6d6d6;
+            border-radius: 4px
         }
 
-        body pre dataType, body pre tt {
+        html body .highlight pre {
+            margin-bottom: 0px;
+            word-break: normal
+        }
+
+        html body pre code, html body pre tt {
+            display: inline;
             max-width: initial;
-            padding: 0.1px;
-            margin: 0.1px;
+            padding: 1px;
+            margin: 1px;
+            overflow: initial;
             line-height: inherit;
             word-wrap: normal;
-            border: 0.1px;
-            display: inline;
-            overflow: initial;
             background-color: transparent;
+            border: 1px
         }
 
-        body pre dataType:before, body pre tt:before, body pre dataType:after{
-            content: normal;
+        html body pre code:before, html body pre tt:before, html body pre code:after, html body pre tt:after {
+            content: normal
         }
 
-        body pre tt:after {
-            content: normal;
+        html body p, html body blockquote, html body ul, html body ol, html body dl, html body pre {
+            margin-top: 1px;
+            margin-bottom: 17px
         }
 
-        body p, body blockType, body ul, body ol, body dl, body pre {
-            margin-top: 0.1px;
-            margin-bottom: 14px;
-        }
-
-        body kbd {
-            color: #070707;
-            border: 2px solid #cecece;
-            border-bottom: 2.1px solid #bdbbbb;
-            background-color: #e8e8e8;
-            border-radius: 3.1px;
-            padding: 2.1px 4.2px;
+        html body kbd {
+            color: #000000;
+            border: 3px solid #d6d6d6;
+            border-bottom: 3px solid #c7c7c7;
+            padding: 3px 5px;
+            background-color: #f0f0f0;
+            border-radius: 2px
         }
 
         @media print {
-            body {
-                background-color: #FFFFFF;
+            html body {
+                background-color: #ffffff
             }
 
-            body h1, body h2, body h3 {
-                page-break-after: avoid;
-                color: #030303;
+            html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+                color: #000000;
+                page-break-after: avoid
             }
 
-            body blockType {
-                color: #5c5c5c;
+            html body blockquote {
+                color: #5c5c53
             }
 
-            body pre {
-                page-break-inside: avoid;
+            html body pre {
+                page-break-inside: avoid
             }
 
-            body table {
-                display: table;
+            html body table {
+                display: table
             }
 
-            body img {
-                max-width: 98%;
-                display: inherit;
-                max-height: 98%;
+            html body img {
+                display: block;
+                max-width: 99%;
+                max-height: 99%
             }
 
-            body pre, body dataType {
-                white-space: pre;
+            html body pre, html body code {
                 word-wrap: break-word;
+                white-space: pre
             }
         }
 
-        .preview {
-            width: 98%;
-            height: 98%;
-            box-sizing: border-box;
+        .smartperf-preview {
+            width: 99%;
+            height: 99%;
+            box-sizing: border-box
         }
 
-        .preview .pageData, .preview .newData {
-            page-break-before: always;
+        .smartperf-preview .pagebreak, .smartperf-preview .newpage {
+            page-break-before: always
         }
 
-        .preview pre.figureData {
+        .smartperf-preview pre.line-numbers {
             position: relative;
-            padding-left: 3.8em;
-            counter-reset: linenumber;
+            padding-left: 3.7em;
+            counter-reset: linenumber
         }
 
-        .preview pre.figureData > dataType {
-            position: relative;
+        .smartperf-preview pre.line-numbers > code {
+            position: relative
         }
 
-        .preview pre.figureData .figureData-rows {
-            pointer-events: none;
+        .smartperf-preview pre.line-numbers .line-numbers-rows {
             position: absolute;
-            top: 1.1em;
-            left: 0.1px;
-            font-size: 98%;
-            width: 3.1em;
-            border-right: 1.1px solid #8d8d8d;
-            letter-spacing: -1.1px;
-            -ms-user-select: none;
-            user-select: inherit;
-            -webkit-user-select: inherit;
-            -moz-user-select: inherit;
-        }
-
-        .preview pre.figureData .figureData-rows > span {
-            display: block;
             pointer-events: none;
-            counter-increment: linenumber;
+            top: 0.9em;
+            font-size: 99%;
+            left: 1px;
+            width: 3em;
+            letter-spacing: -1px;
+            border-right: 1px solid #999;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none
         }
 
-        .preview pre.figureData .figureData-rows > span:before {
+        .smartperf-preview pre.line-numbers .line-numbers-rows > span {
+            pointer-events: none;
+            display: block;
+            counter-increment: linenumber
+        }
+
+        .smartperf-preview pre.line-numbers .line-numbers-rows > span:before {
             content: counter(linenumber);
-            display: inherit;
-            color: #a9a9a9;
-            text-align: right;
-            padding-right: 0.7em;
+            color: #999;
+            display: block;
+            padding-right: .79em;
+            text-align: right
         }
 
-        .preview:not([for="preview"]) .dataType-chunk .groupBtn {
-            display: none;
+        .smartperf-preview .mathjax-exps .MathJax_Display {
+            text-align: center !important
         }
 
-        .preview:not([for="preview"]) .dataType-chunk .statusBtn {
-            display: none;
+        .smartperf-preview:not([for="preview"]) .code-chunk .btn-group {
+            display: none
         }
 
-        .preview:not([for="preview"]) .dataType-chunk .outputDivBtn {
-            margin-bottom: 18px;
+        .smartperf-preview:not([for="preview"]) .code-chunk .status {
+            display: none
         }
 
-        .scrollbarType::-webkit-scrollbar {
-            width: 8.2px;
+        .smartperf-preview:not([for="preview"]) .code-chunk .output-div {
+            margin-bottom: 16px
         }
 
-        .scrollbarType::-webkit-scrollbar-track {
-            background-color: transparent;
-            border-radius: 10px;
+        .scrollbar-style::-webkit-scrollbar {
+            width: 8px
         }
 
-        .scrollbarType::-webkit-scrollbar-thumb {
-            background-color: rgba(152, 152, 152, 0.67);
-            border-radius: 5.1px;
-            border: 4.1px solid rgba(152, 152, 152, 0.67);
-            background-clip: content-box;
+        .scrollbar-style::-webkit-scrollbar-track {
+            border-radius: 9px;
+            background-color: transparent
         }
 
-        body[for="nativeData"]:not([data-mode]) .preview {
+        .scrollbar-style::-webkit-scrollbar-thumb {
+            border-radius: 6px;
+            background-color: rgba(150, 150, 150, 1);
+            border: 4px solid rgba(150, 150, 150, 1);
+            background-clip: content-box
+        }
+
+        html body[for="html-export"]:not([dpm]) {
             position: relative;
-            top: 0;
+            width: 99%;
+            height: 99%;
+            top: 1px;
+            left: 1px;
+            margin: 1px;
+            padding: 1px;
+            overflow: auto
         }
 
-        body[for="nativeData"]:not([data-mode]) {
-            width: 100%;
+        html body[for="html-export"]:not([dpm]) .smartperf-preview {
             position: relative;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: auto;
-            top: 0;
-            left: 0;
+            top: 1px
         }
 
-        @media screen and (min-width: 912px) {
-            body[for="nativeData"]:not([data-mode]) .preview {
-                padding: 2.1em calc(49% - 458px + 2.1em);
+        @media screen and (min-width: 914px) {
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                padding: 2em calc(50% - 458px + 2em)
             }
         }
 
-        @media screen and (max-width: 912px) {
-            body[for="nativeData"]:not([data-mode]) .preview {
-                padding: 2em;
+        @media screen and (max-width: 914px) {
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                padding: 1.9em
             }
         }
 
-        @media screen and (max-width: 452px) {
-            body[for="nativeData"]:not([data-mode]) .preview {
-                font-size: 14px;
-                padding: 1.1em;
+        @media screen and (max-width: 450px) {
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                font-size: 15px !important;
+                padding: 1.1em
             }
         }
 
         @media print {
-            body[for="nativeData"]:not([data-mode]) #sidebarDiv {
-                display: none;
+            html body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
+                display: none
             }
         }
 
-        body[for="nativeData"]:not([data-mode]) #sidebarDiv {
+        html body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
             position: fixed;
-            bottom: 8px;
-            left: 8px;
+            bottom: 9px;
+            left: 9px;
             font-size: 28px;
             cursor: pointer;
             color: inherit;
             z-index: 99;
-            width: 32px;
-            opacity: 0.4;
+            width: 31px;
             text-align: center;
+            opacity: .5
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] #sidebarDiv {
-            opacity: 1;
+        html body[for="html-export"]:not([dpm])[hsst] #sidebar-toc-btn {
+            opacity: 1
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc {
             position: fixed;
-            top: 0.1px;
-            left: 0.1px;
-            width: 302px;
-            height: 98%;
-            padding: 31px 0 47px 0;
-            font-size: 15px;
-            box-shadow: 0 0 4.2px rgba(150, 150, 150, 0.34);
+            top: 1px;
+            left: 1px;
+            width: 300px;
+            height: 99%;
+            padding: 32px 0 48px 0;
+            font-size: 14px;
+            box-shadow: 1px 1px 4px rgba(150, 150, 150, 0.33);
             box-sizing: border-box;
             overflow: auto;
-            background-color: inherit;
+            background-color: inherit
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv::-webkit-scrollbar {
-            width: 8.2px;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar {
+            width: 9px
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv::-webkit-scrollbar-track {
-            background-color: transparent;
-            border-radius: 10px;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar-track {
+            border-radius: 11px;
+            background-color: transparent
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv::-webkit-scrollbar-thumb {
-            border-radius: 5.2px;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar-thumb {
+            border-radius: 6px;
             background-color: rgba(150, 150, 150, 0.66);
-            border: 4.1px solid rgba(150, 150, 150, 0.66);
-            background-clip: content-box;
+            border: 3px solid rgba(150, 150, 150, 0.66);
+            background-clip: content-box
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv a {
-            text-decoration: none;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc a {
+            text-decoration: none
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv ul {
-            margin-top: 0.82em;
-            padding: 0 1.61em;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc ul {
+            padding: 1px 1.7em;
+            margin-top: .9em
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv li {
-            margin-bottom: 0.82em;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc li {
+            margin-bottom: .8em
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .preview {
-            left: 302px;
-            padding: 2.1em calc(49% - 455px - 152px);
-            margin: 0.1px;
-            width: calc(100% - 302px);
-            box-sizing: border-box;
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc ul {
+            list-style-type: none
         }
 
-        body[for="nativeData"]:not([data-mode])[sidebarToc] .sidebarDiv ul {
-            list-style-type: none;
+        html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+            left: 301px;
+            width: calc(100% - 300px);
+            padding: 2em calc(50% - 457px - 150px);
+            margin: 1px;
+            box-sizing: border-box
         }
 
         @media screen and (max-width: 1274px) {
-            body[for="nativeData"]:not([data-mode])[sidebarToc] .preview {
-                padding: 2em;
+            html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+                padding: 1.9em
             }
-        }
-
-        body[for="nativeData"]:not([data-mode]):not([sidebarToc]) .preview {
-            transform: translateX(-50%);
-            left: 50%;
         }
 
         @media screen and (max-width: 450px) {
-            body[for="nativeData"]:not([data-mode])[sidebarToc] .preview {
-                width: 100%;
+            html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+                width: 99%
             }
         }
 
-        body[for="nativeData"]:not([data-mode]):not([sidebarToc]) .sidebarDiv {
-            display: none;
+        html body[for="html-export"]:not([dpm]):not([hsst]) .smartperf-preview {
+            left: 50%;
+            transform: translateX(-50%)
         }
+
+        html body[for="html-export"]:not([dpm]):not([hsst]) .md-sidebar-toc {
+            display: none
+        }
+
 
     </style>
 </head>
-<body for="nativeData" id="body">
-<div class="mume preview  ">
+<body for="html-export" id="body">
+<div class="smartperf smartperf-preview  ">
     <h1 class="mume-header fontColor">Ability Monitor抓取和展示说明</h1>
 
-    <h2 class="mume-header fontColor">1.Ability Monitor的抓取</h2>
-    <h3 class="mume-header fontColor">1.1.Ability Monitor抓取界面配置说明</h3>
-    <p class="fontColor">点击Probes config,如选择抓取AbilityMonitor<br>
-        <img src="../figures/abilityset.jpg" alt="GitHub Logo"></p>
-    <h3 class="mume-header fontColor">1.2.Ability Monitor文件的抓取</h3>
-    <p class="fontColor">点击Record setting,在output file path输入文件名hiprofiler_data_abilitymonitor.htrace,拖动滚动条设置buffer size大小是64M,抓取时长是50s<br>
-        <img src="../figures/abilitysetting.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">点击Trace command,就会根据上面的配置生成抓取命令,点击复制按钮，会将命令行复制<br>
-        <img src="../figures/abilitycommand.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">输入hdc_shell,进入设备,执行命令<br>
-        <img src="../figures/abilityexcutecommand.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">进入指定目录,cd /data/local/tmp 进入到目录，会看到生成的trace文件<br>
-        <img src="../figures/abilityhtrace.jpg" alt="GitHub Logo"></p>
-    <h2 class="mume-header fontColor">2.Ability Monitor功能介绍</h2>
-    <p class="fontColor">将抓取的文件导入到smartperf工具查看，能了解CPU,内存,磁盘IO和网络的使用情况<br></p>
-    <h3 class="mume-header fontColor">2.1.Ability Monitor泳道图展示</h3>
-    <p class="fontColor">Ability Monitor展开就可以看到泳道图，包括CPU,内存,磁盘IO,网络的使用情况<br>
-        <img src="../figures/abilitymonitorflowchart.jpg" alt="GitHub Logo"></p>
-    <ul class="fontColor">
-        <li>
-<pre class="font-text light fontColor">CPU Total Load: 总的CPU使用率
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">CPU User Load: CPU在用户态空间运行的使用率
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">CPU System Load：CPU在内核空间运行的使用率
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">MemoryTotal: 总计物理内存的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Cached：缓存的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">SwapTotal: 虚拟内存
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Disk Bytes Read/Sec：每秒从磁盘读取到内存的字节数。
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Disk Bytes Written/Sec: 每秒从内存写入磁盘的字节数。
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Disk Read Ops/Sec：读入的字节数
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Disk Written Ops/Sec: 写入的字节数
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Network Bytes In/Sec：每秒接收的网络数据字节数
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Network Bytes Out/Sec: 每秒发送的网络数据字节数
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Network Packets In/Sec：每秒接收的网络数据包数
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Network Packets Out/Sec: 每秒发送的网络数据包数
-</pre>
-        </li>
-    </ul>
-    <h3 class="mume-header fontColor">2.2.Ability Monitor泳道图的框选功能</h3>
+    <h2 class="mume-header fontColor">Ability Monitor的抓取</h2>
 
-    <p class="fontColor">可以对CPU,内存,磁盘IO和网络的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格,总共有六个tab页<br>
-        Live Processes的Tab页<br>
-        <img src="../figures/liveprocess.jpg" alt="GitHub Logo"></p>
+    <h3 class="mume-header fontColor">Ability Monitor抓取界面配置说明</h3>
+
+    <p class="fontColor">点击Probes config，如选择抓取AbilityMonitor。<br>
+        <img src="../figures/abilityMonitor/abilityset.jpg" alt="GitHub Logo"></p>
+    <h3 class="mume-header fontColor">Ability Monitor文件的抓取</h3>
+
+    <p class="fontColor">点击Record setting，在output file path输入文件名hiprofiler_data_abilitymonitor.htrace，拖动滚动条设置buffer
+        size大小是64M,抓取时长是50s。<br>
+        <img src="../figures/abilityMonitor/abilitysetting.jpg" alt="GitHub Logo"><br>
+        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br>
+        <img src="../figures/abilityMonitor/abilitycommand.jpg" alt="GitHub Logo"><br>
+        输入hdc_shell，进入设备，执行命令。<br>
+        <img src="../figures/abilityMonitor/abilityexcutecommand.jpg" alt="GitHub Logo"><br>
+        进入指定目录，cd /data/local/tmp进入到目录，会看到生成的trace文件。<br>
+        <img src="../figures/abilityMonitor/abilityhtrace.jpg" alt="GitHub Logo"></p>
+    <h2 class="mume-header fontColor">Ability Monitor功能介绍</h2>
+
+    <p class="fontColor">将抓取的文件导入到smartperf工具查看，能了解CPU，内存，磁盘IO和网络的使用情况。</p>
+    <h3 class="mume-header fontColor">Ability Monitor泳道图展示</h3>
+
+    <p class="fontColor">Ability Monitor展开就可以看到泳道图，包括CPU，内存，磁盘IO，网络的使用情况。<br>
+        <img src="../figures/abilityMonitor/abilitymonitorflowchart.jpg" alt="GitHub Logo"></p>
     <ul class="fontColor">
         <li>
-<pre class="font-text light fontColor">Process ID:进程的ID
+<pre class="smartperf-text fontColor light">CPU Total Load：总的CPU使用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Process Name:进程名称</pre></li>
-        <li>
-<pre class="font-text light fontColor">Responsible Process:父进程ID
+<pre class="smartperf-text fontColor light">CPU User Load：CPU在用户态空间运行的使用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">User ID:用户ID</pre></li>
-        <li>
-<pre class="font-text light fontColor">%CPU:进程的CPU占用率</pre></li>
-        <li>
-<pre class="font-text light fontColor">CPU Time:CPU运行时间</pre></li>
-        <li>
-<pre class="font-text light fontColor">#Threads:进程的线程数量
+<pre class="smartperf-text fontColor light">CPU System Load：CPU在内核空间运行的使用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Memory:内存值
+<pre class="smartperf-text fontColor light">MemoryTotal： 总计物理内存的大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Disk Writes(B):磁盘读入的字节数
+<pre class="smartperf-text fontColor light">Cached：缓存的大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Disk Reads(B):磁盘写入的字节数
+<pre class="smartperf-text fontColor light">SwapTotal： 虚拟内存
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Disk Bytes Read/Sec：每秒从磁盘读取到内存的字节数。
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Disk Bytes Written/Sec： 每秒从内存写入磁盘的字节数。
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Disk Read Ops/Sec：读入的字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Disk Written Ops/Sec： 写入的字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Network Bytes In/Sec：每秒接收的网络数据字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Network Bytes Out/Sec： 每秒发送的网络数据字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Network Packets In/Sec：每秒接收的网络数据包数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Network Packets Out/Sec： 每秒发送的网络数据包数
 </pre>
         </li>
     </ul>
-    <p class="fontColor">Processes History的Tab页<br>
-        <img src="../figures/ProcessesHistory.jpg" alt="GitHub Logo"></p>
+    <h3 class="mume-header fontColor">Ability Monitor泳道图的框选功能</h3>
+
+    <p class="fontColor">可以对CPU，内存，磁盘IO和网络的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有六个tab页。<br>
+        Live Processes的Tab页如图：<br>
+        <img src="../figures/abilityMonitor/liveprocess.jpg" alt="GitHub Logo"></p>
     <ul class="fontColor">
         <li>
-<pre class="font-text light fontColor">Process ID:进程ID
+<pre class="smartperf-text fontColor light">Process ID：进程的ID
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Alive:进程是否存活
+<pre class="smartperf-text fontColor light">Process Name：进程名称
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">First Seen:开始时间
+<pre class="smartperf-text fontColor light">Responsible Process：父进程ID
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Last Seen:所选区域的结束时间
+<pre class="smartperf-text fontColor light">User ID：用户ID
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Process Name:进程名称
+<pre class="smartperf-text fontColor light">%CPU：进程的CPU占用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Responsible Process:父进程ID
+<pre class="smartperf-text fontColor light">CPU Time：CPU运行时间
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">User ID:用户ID
+<pre class="smartperf-text fontColor light">#Threads：进程的线程数量
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">CPU Time:CPU运行时间
+<pre class="smartperf-text fontColor light">Memory：内存值
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Disk Writes(B)：磁盘读入的字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Disk Reads(B)：磁盘写入的字节数
 </pre>
         </li>
     </ul>
-    <p class="fontColor">框选CPU Total Load,CPU User Load,CPU System Load三个区域的泳道图,会展示System CPU Summary的Tab页<br>
-        <img src="../figures/cpusummary.jpg" alt="GitHub Logo"></p>
+    <p class="fontColor">Processes History的Tab页如图：<br>
+        <img src="../figures/abilityMonitor/ProcessesHistory.jpg" alt="GitHub Logo"></p>
     <ul class="fontColor">
         <li>
-<pre class="font-text light fontColor">Start Time:采集时间的时间戳
+<pre class="smartperf-text fontColor light">Process ID：进程ID
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Duration:前一次采集到本次采集的时间差</pre></li>
-        <li>
-<pre class="font-text light fontColor">TotalLoad%:总的CPU使用率
+<pre class="smartperf-text fontColor light">Alive：进程是否存活
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">UserLoad%:CPU在用户态空间运行的使用率
+<pre class="smartperf-text fontColor light">First Seen：开始时间
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">SystemLoad%:CPU在内核空间运行的使用率
+<pre class="smartperf-text fontColor light">Last Seen：所选区域的结束时间
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Process:进程号
+<pre class="smartperf-text fontColor light">Process Name：进程名称
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Responsible Process：父进程ID
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">User ID：用户ID
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">CPU Time：CPU运行时间
 </pre>
         </li>
     </ul>
-    <p class="fontColor">框选MemoryTotal,Cached,SwapTota三个区域的泳道图,会展示System Memory Summary的Tab页<br>
-        <img src="../figures/memorytab.jpg" alt="GitHub Logo"></p>
+    <p class="fontColor">框选CPU Total Load，CPU User Load，CPU System Load三个区域的泳道图，会展示System CPU Summary的Tab页。<br>
+        <img src="../figures/abilityMonitor/cpusummary.jpg" alt="GitHub Logo"></p>
     <ul class="fontColor">
         <li>
-<pre class="font-text light fontColor">Start Time:采集时间的时间戳
+<pre class="smartperf-text fontColor light">Start Time：采集时间的时间戳
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Duration:前一次采集到本次采集的时间差
+<pre class="smartperf-text fontColor light">Duration：前一次采集到本次采集的时间差
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">MemTotal:总内存大小
+<pre class="smartperf-text fontColor light">TotalLoad%：总的CPU使用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">MemFree:空闲内存大小
+<pre class="smartperf-text fontColor light">UserLoad%：CPU在用户态空间运行的使用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Buffers:文件的缓冲大小
+<pre class="smartperf-text fontColor light">SystemLoad%：CPU在内核空间运行的使用率
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Cached:缓存的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Shmem:已被分配的共享内存大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Slab:内核数据缓存大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">SUnreclaim:不可回收的Slab大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Swap Toal:交换空间的总大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">SwapFree:未被使用交换空间的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Mapped:设备和文件等映射的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">VmallocUsed:已被使用的虚拟内存大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">PageTables:管理内存分页的索引表大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">KernelStack:Kernel消耗的内存
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Active: 在活跃使用中的缓冲或高速缓冲存储器页面文件的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Inactive:在不经常使用中的缓冲或高速缓冲存储器页面文件的大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">Unevictable:不能被释放的内存页
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">VmallocTotal:可以vmalloc虚拟内存大小
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">CmaTotal:总的连续可用内存
-</pre>
-        </li>
-        <li>
-<pre class="font-text light fontColor">CmaFree:空闲的可用内存
+<pre class="smartperf-text fontColor light">Process：进程号
 </pre>
         </li>
     </ul>
-    <p class="fontColor">框选Disk Bytes Read/Sec,Disk Bytes Written/Sec,Disk Read Ops/Sec, Disk Written
-        Ops/Sec四个区域的泳道图,会展示System Disk Summary的Tab页<br>
-        <img src="../figures/disktab.jpg" alt="GitHub Logo"></p>
+    <p class="fontColor">框选MemoryTotal，Cached，SwapTota三个区域的泳道图，会展示System Memory Summary的Tab页。<br>
+        <img src="../figures/abilityMonitor/memorytab.jpg" alt="GitHub Logo"></p>
     <ul class="fontColor">
         <li>
-<pre class="font-text light fontColor">Start Time:采集时间的时间戳
+<pre class="smartperf-text fontColor light">Start Time：采集时间的时间戳
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Duration:前一次采集到本次采集的时间差
-        </li>
-        <li>
-<pre class="font-text light fontColor">Data Read:从磁盘读取到内存的总字节数
+<pre class="smartperf-text fontColor light">Duration：前一次采集到本次采集的时间差
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Read/sec:每秒从磁盘读取到内存的字节数
+<pre class="smartperf-text fontColor light">MemTotal：总内存大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Write:从磁盘写入磁盘的总字节数。
+<pre class="smartperf-text fontColor light">MemFree：空闲内存大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Write/sec:每秒从内存写入磁盘的字节数。
+<pre class="smartperf-text fontColor light">Buffers：文件的缓冲大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Reads In:读入的字节数
+<pre class="smartperf-text fontColor light">Cached：缓存的大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Reads In/sec:每秒读入的字节数;
+<pre class="smartperf-text fontColor light">Shmem：已被分配的共享内存大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Write Out:写入的字节数
+<pre class="smartperf-text fontColor light">Slab：内核数据缓存大小
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Write Out/sec:每秒写入的字节数
+<pre class="smartperf-text fontColor light">SUnreclaim：不可回收的Slab大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Swap Toal：交换空间的总大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">SwapFree：未被使用交换空间的大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Mapped：设备和文件等映射的大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">VmallocUsed：已被使用的虚拟内存大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">PageTables：管理内存分页的索引表大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">KernelStack：Kernel消耗的内存
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Active： 在活跃使用中的缓冲或高速缓冲存储器页面文件的大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Inactive：在不经常使用中的缓冲或高速缓冲存储器页面文件的大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Unevictable：不能被释放的内存页
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">VmallocTotal：可以vmalloc虚拟内存大小
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">CmaTotal：总的连续可用内存
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">CmaFree：空闲的可用内存
 </pre>
         </li>
     </ul>
-    <p class="fontColor">框选Network Bytes In/Sec,Network Bytes Out/Sec,Network Packets In/Sec,Network Packets
-        Out/Sec四个区域的泳道图,会展示System Network Summary的Tab页<br>
-        <img src="../figures/network.jpg" alt="GitHub Logo"></p>
+    <p class="fontColor">框选Disk Bytes Read/Sec，Disk Bytes Written/Sec，Disk Read Ops/Sec，Disk Written
+        Ops/Sec四个区域的泳道图，会展示System Disk Summary的Tab页。<br>
+        <img src="../figures/abilityMonitor/disktab.jpg" alt="GitHub Logo"></p>
     <ul class="fontColor">
         <li>
-<pre class="font-text light fontColor">Start Time:采集时间的时间戳;
+<pre class="smartperf-text fontColor light">Start Time：采集时间的时间戳
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Duration:前一次采集到本次采集的时间差;
+<pre class="smartperf-text fontColor light">Duration：前一次采集到本次采集的时间差
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Received:接收的网络数据总字节数;
+<pre class="smartperf-text fontColor light">Data Read：从磁盘读取到内存的总字节数
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Received/sec:每秒接收的网络数据字节数;
+<pre class="smartperf-text fontColor light">Data Read/sec：每秒从磁盘读取到内存的字节数
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Send:发送的网络数据总字节数;
+<pre class="smartperf-text fontColor light">Data Write：从磁盘写入磁盘的总字节数。
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Data Send/sec:每秒发送的网络数据字节数;
+<pre class="smartperf-text fontColor light">Data Write/sec：每秒从内存写入磁盘的字节数。
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Packets In:接收的网络总数据包数;
+<pre class="smartperf-text fontColor light">Reads In：读入的字节数
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Packets In/sec:每秒接收的网络数据包数;
+<pre class="smartperf-text fontColor light">Reads In/sec：每秒读入的字节数
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Packets Out:发送的网络总数据包数;
+<pre class="smartperf-text fontColor light">Write Out：写入的字节数
 </pre>
         </li>
         <li>
-<pre class="font-text light fontColor">Packets Out/sec:每秒发送的网络数据包数;
+<pre class="smartperf-text fontColor light">Write Out/sec：每秒写入的字节数
 </pre>
         </li>
     </ul>
+    <p class="fontColor">框选Network Bytes In/Sec，Network Bytes Out/Sec，Network Packets In/Sec，Network Packets
+        Out/Sec四个区域的泳道图，会展示System Network Summary的Tab页。<br>
+        <img src="../figures/abilityMonitor/network.jpg" alt="GitHub Logo"></p>
+    <ul class="fontColor">
+        <li>
+<pre class="smartperf-text fontColor light">Start Time：采集时间的时间戳
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Duration：前一次采集到本次采集的时间差
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Data Received：接收的网络数据总字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Data Received/sec：每秒接收的网络数据字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Data Send：发送的网络数据总字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Data Send/sec：每秒发送的网络数据字节数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Packets In：接收的网络总数据包数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Packets In/sec：每秒接收的网络数据包数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Packets Out：发送的网络总数据包数
+</pre>
+        </li>
+        <li>
+<pre class="smartperf-text fontColor light">Packets Out/sec：每秒发送的网络数据包数
+</pre>
+        </li>
+    </ul>
+
 </div>
-<script type="text/javascript">
+
+
+<script>
     window.onload = (() => {
         let isDark = window.location.search;
         if (isDark.indexOf("?") != -1) {
@@ -1111,5 +1157,6 @@
         }
     })
 </script>
+
 </body>
 </html>

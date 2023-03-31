@@ -148,7 +148,7 @@ int NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
                 FilterId(c.op, argv[i]);
                 break;
             case CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
                                     nativeHookFrameInfoObj_.CallChainIds());
                 break;
             case SYMBOL_ID:
@@ -186,7 +186,11 @@ int NativeHookFrameTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()]));
+            if (nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case DEPTH:
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Depths()[CurrentRow()]));

@@ -72,7 +72,7 @@ export class IrqStruct extends BaseStruct {
 
     static draw(ctx: CanvasRenderingContext2D, data: IrqStruct,isHover:boolean) {
         if (data.frame) {
-            ctx.fillStyle = ColorUtils.colorForTid(IrqStruct.index)
+            ctx.fillStyle = ColorUtils.colorForName(data.name || "")
             ctx.strokeStyle = '#232c5d'
             if ((data.startNS === IrqStruct.hoverIrqStruct?.startNS&&isHover) || data.id === IrqStruct.selectIrqStruct?.id) {
                 ctx.lineWidth = 1;

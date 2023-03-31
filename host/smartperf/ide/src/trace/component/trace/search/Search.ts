@@ -73,6 +73,9 @@ export class LitSearch extends BaseElement {
     setPercent(name: string = "", value: number) {
         let searchHide = this.shadowRoot!.querySelector<HTMLElement>(".root")
         let searchIcon = this.shadowRoot!.querySelector<HTMLElement>("#search-icon")
+        if(this.hasAttribute('textRoll')){
+            this.removeAttribute("textRoll");
+        }
         this.isLoading = false
         if (value > 0 && value <= 100) {
             searchHide!.style.display = "flex"
@@ -96,6 +99,16 @@ export class LitSearch extends BaseElement {
             this.search!.setAttribute('placeholder', `${name}`);
             this.search!.setAttribute('readonly', "");
             this.search!.className = "readonly"
+        } else if (value == -2) {
+            searchHide!.style.display = "flex"
+            searchHide!.style.backgroundColor = "var(--dark-background5,#e3e3e3)"
+            searchIcon?.setAttribute('name', "cloud-sync");
+            this.search!.setAttribute('placeholder', `${name}`);
+            this.search!.setAttribute('readonly', "");
+            this.search!.className = "text-Roll"
+            setTimeout(()=>{
+                this.setAttribute("textRoll", '');
+            }, 200);
         } else {
             searchHide!.style.display = "none"
         }
@@ -185,6 +198,7 @@ export class LitSearch extends BaseElement {
             align-items: center;
             border: 1px solid var(--dark-border,#c5c5c5);
             width: 35vw;
+            overflow: hidden;
             }
         .root input{
             outline: none;
@@ -213,6 +227,11 @@ export class LitSearch extends BaseElement {
           color: #4f7ab3;
           font-size: 1em;
         }
+        .text-Roll::placeholder {
+          font-weight: 700;
+          color: #DB5860;
+          font-size: 1em;
+        }
         :host([show-search-info]) .search-info{
             display: inline-flex;
         }
@@ -225,7 +244,25 @@ export class LitSearch extends BaseElement {
         .search-info lit-icon{
             font-weight: bold;
         }
-
+        
+        :host([textRoll]) input {
+            position: relative;
+            animation: textRoll 5s ease-in-out 0s backwards;
+            white-space: nowrap;
+            overflow: hidden;
+            display: block;
+            text-overflow: ellipsis;
+        }
+      
+        @keyframes textRoll {
+            0% {
+                left: 0;
+            }
+            100% {
+                left: 100%;
+            }
+        }       
+        
         </style>
         <div class="root" style="display: none">
             <lit-icon id="search-icon" name="search" size="20" color="#aaaaaa">

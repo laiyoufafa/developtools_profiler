@@ -32,16 +32,21 @@ public:
 
 public:
     void IrqHandlerEntry(int64_t ts, uint32_t cpu, DataIndex nameId);
-    void IrqHandlerExit(int64_t ts, uint32_t cpu, uint32_t ret);
+    void IrqHandlerExit(int64_t ts, uint32_t cpu, uint32_t irq, uint32_t ret);
+    void IpiHandlerEntry(int64_t ts, uint32_t cpu, DataIndex nameId);
+    void IpiHandlerExit(int64_t ts, uint32_t cpu);
     void SoftIrqEntry(int64_t ts, uint32_t cpu, uint32_t vec);
     void SoftIrqExit(int64_t ts, uint32_t cpu, uint32_t vec);
     void Clear();
 private:
     const DataIndex irqId_ = traceDataCache_->GetDataIndex("irq_id");
     const DataIndex irqRet_ = traceDataCache_->GetDataIndex("irq_ret");
+    const DataIndex irq_ = traceDataCache_->GetDataIndex("irq");
+    const DataIndex irqVec_ = traceDataCache_->GetDataIndex("vec");
     const DataIndex irqHandled_ = traceDataCache_->GetDataIndex("handled");
     const DataIndex irqUnHandled_ = traceDataCache_->GetDataIndex("unhandled");
     const DataIndex irqCatalog_ = traceDataCache_->GetDataIndex("irq");
+    const DataIndex ipiCatalog_ = traceDataCache_->GetDataIndex("ipi");
     const DataIndex softIrqCatalog_ = traceDataCache_->GetDataIndex("softirq");
     std::unordered_map<uint64_t, int64_t> lastEventTs_ = {};
     std::unordered_set<uint64_t> transReplyWaitingReply_ = {};

@@ -63,11 +63,7 @@ describe('SportRuler Test', () => {
         expect(ranges.endNS).toBe(20);
     })
 
-    // it('SportRulerTest06', function () {
-    //     sportRuler.flagListIdx = jest.fn(() => "flagListIdx")
-    //     sportRuler.flagList = jest.fn(() => true)
-    //     expect(sportRuler.modifyFlagList('amend', {})).toBeUndefined();
-    // })
+
 
     it('SportRulerTest07', function () {
         sportRuler.flagList.splice = jest.fn(() => true)
@@ -108,7 +104,6 @@ describe('SportRuler Test', () => {
         rangeSelectStruct.endX = 1000
         rangeSelectStruct.startNS = 20
         rangeSelectStruct.endNS = 200
-        // TraceRow.rangeSelectObject = rangeSelectStruct
         expect(sportRuler.draw()).toBeUndefined();
     })
 
@@ -161,7 +156,6 @@ describe('SportRuler Test', () => {
         })
         sportRuler.flagList = flags;
         sportRuler.drawTriangle(1000, 'triangle');
-        // expect(sportRuler.range()).toBeUndefined();
     })
 
     it('SportRulerTest13', function () {
@@ -180,7 +174,7 @@ describe('SportRuler Test', () => {
         })
         sportRuler.flagList = flags;
         sportRuler.drawTriangle(1000, 'triangle');
-        // expect(sportRuler.range()).toBeUndefined();
+
     })
 
     it('SportRulerTest14', function () {
@@ -199,7 +193,7 @@ describe('SportRuler Test', () => {
         })
         sportRuler.flagList = flags;
         sportRuler.drawTriangle(1000, 'square');
-        // expect(sportRuler.range()).toBeUndefined();
+
     })
 
     it('SportRulerTest22', function () {
@@ -221,37 +215,23 @@ describe('SportRuler Test', () => {
 
     })
 
-    // it('SportRulerTest15', function () {
-    //     sportRuler.flagList.findIndex = jest.fn(() => 0)
-    //     sportRuler.drawTriangle(1000, 'square')
-    //     expect(sportRuler.range()).toBeUndefined();
-    // })
-
-    // it('SportRulerTest16', function () {
-    //     sportRuler.flagList.findIndex = jest.fn(() => -1)
-    //     sportRuler.drawTriangle(1000, 'inverted')
-    //     expect(sportRuler.range()).toBeUndefined();
-    // })
 
     it('SportRulerTest17', function () {
         sportRuler.removeTriangle('inverted')
-        // expect(sportRuler.range()).toBeUndefined();
+  
     })
 
     it('SportRulerTest18', function () {
         sportRuler.flagList.findIndex = jest.fn(() => 0)
         sportRuler.removeTriangle('square')
-        // expect(sportRuler.range()).toBeUndefined();
     })
 
     it('SportRulerTest19', function () {
         sportRuler.drawInvertedTriangle(100, '#000000')
-        // expect(sportRuler.range()).toBeUndefined();
     })
 
     it('SportRulerTest20', function () {
         sportRuler.drawFlag(100, '#000000', false, 'text', '')
-        // expect(sportRuler.range()).toBeUndefined();
     })
 
     it('SportRulerTest23', function () {

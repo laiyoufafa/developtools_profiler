@@ -204,7 +204,11 @@ int FileSystemSampleTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(fileSystemSampleTableObj_.IdsData()[CurrentRow()]));
             break;
         case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
+            if (fileSystemSampleTableObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Types()[CurrentRow()]));

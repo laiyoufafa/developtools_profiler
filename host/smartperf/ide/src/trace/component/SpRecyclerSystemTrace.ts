@@ -110,7 +110,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
                 } else if (it.rowType == TraceRow.ROW_TYPE_FPS) {
                     selection.hasFps = true;
                 } else if (it.rowType == TraceRow.ROW_TYPE_HEAP) {
-                    selection.heapIds.push(parseInt(it.rowId!))
+                    selection.nativeMemory.push(parseInt(it.rowId!))
                 }
                 if (it.rangeSelect && it.rangeSelect.startNS) {
                     selection.leftNs = it.rangeSelect.startNS;

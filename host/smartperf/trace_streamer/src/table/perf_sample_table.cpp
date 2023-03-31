@@ -159,11 +159,11 @@ int PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                 FilterId(c.op, argv[i]);
                 break;
             case CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
                                     perfSampleObj_.SampleIds());
                 break;
             case THREAD_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfSampleObj_.Tids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfSampleObj_.Tids());
                 break;
             case EVENT_TYPE_ID:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
@@ -198,7 +198,11 @@ int PerfSampleTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(perfSampleObj_.IdsData()[CurrentRow()]));
             break;
         case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(perfSampleObj_.SampleIds()[CurrentRow()]));
+            if (perfSampleObj_.SampleIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(perfSampleObj_.SampleIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case TIMESTAMP:
             sqlite3_result_int64(context_, static_cast<int64_t>(perfSampleObj_.TimeStamData()[CurrentRow()]));

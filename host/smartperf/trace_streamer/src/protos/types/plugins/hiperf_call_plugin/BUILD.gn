@@ -51,7 +51,7 @@ config("hiperf_call_plugin_protos_config") {
   include_dirs = [ "$proto_out_dir" ]
 }
 
-ohos_source_set("hiperf_call_plugin_protos_cpp") {
+source_set("hiperf_call_plugin_protos_cpp") {
   deps = [ ":hiperf_call_plugin_protos_protoc" ]
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",

@@ -43,13 +43,14 @@ extern bool g_cleanMode;
     } while (0)
 #define TS_LOGE(fmt, ...) LOGWITHLEVEL(LOG_ERROR, 'E', fmt, ##__VA_ARGS__)
 #define TS_LOGF(fmt, ...) LOGWITHLEVEL(LOG_FATAL, 'F', fmt, ##__VA_ARGS__)
-#define TS_LOGI(fmt, ...) LOGWITHLEVEL(LOG_INFO, 'I',  fmt, ##__VA_ARGS__)
 #ifdef NDEBUG
+#define TS_LOGI(fmt, ...) LOGWITHLEVEL(LOG_DEBUG, 'I', fmt, ##__VA_ARGS__)
 #define TS_LOGD(format, ...)
-#define TS_LOGW(format, ...)
 #define TS_ASSERT(x)
+#define TS_LOGW(fmt, ...) LOGWITHLEVEL(LOG_WARN, 'W',  fmt, ##__VA_ARGS__)
 #else
 #define TS_LOGD(fmt, ...) LOGWITHLEVEL(LOG_DEBUG, 'D', fmt, ##__VA_ARGS__)
+#define TS_LOGI(fmt, ...) LOGWITHLEVEL(LOG_DEBUG, 'I', fmt, ##__VA_ARGS__)
 #define TS_LOGW(fmt, ...) LOGWITHLEVEL(LOG_WARN, 'W',  fmt, ##__VA_ARGS__)
 
 #define TS_ASSERT(x)        \

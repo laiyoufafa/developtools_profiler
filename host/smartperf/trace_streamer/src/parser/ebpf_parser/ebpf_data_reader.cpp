@@ -189,14 +189,13 @@ void EbpfDataReader::ReadKernelSymAddrMap(const KernelSymbolInfoHeader* elfAddr,
     auto strTab = reinterpret_cast<const char*>(start + sysItemSize);
     maxKernelAddr_ = elfAddr->vaddrEnd;
     minKernelAddr_ = elfAddr->vaddrStart;
-    char strName[MAX_SYMBOL_LENGTH];
     for (auto i = 0; i < sysItemSize; i++) {
-        memset_s(strName, MAX_SYMBOL_LENGTH, 0, MAX_SYMBOL_LENGTH);
+        (void*)memset_s(strSymbolName_, MAX_SYMBOL_LENGTH, 0, MAX_SYMBOL_LENGTH);
         auto item = start + i;
-        if (strncpy_s(strName, MAX_SYMBOL_LENGTH, strTab + item->nameOffset, MAX_SYMBOL_LENGTH) < 0) {
+        if (strncpy_s(strSymbolName_, MAX_SYMBOL_LENGTH, strTab + item->nameOffset, MAX_SYMBOL_LENGTH) < 0) {
             TS_LOGE("get kernel symbol name error");
         }
-        AddrDesc desc{item->size, traceDataCache_->dataDict_.GetStringIndex(std::string(strName))};
+        AddrDesc desc{item->size, traceDataCache_->dataDict_.GetStringIndex(strSymbolName_)};
         kernelSymbolMap_.insert(std::make_pair(item->value, desc));
     }
 }
@@ -213,7 +212,7 @@ void EbpfDataReader::UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* e
     auto fileNameAddr = const_cast<char*>(reinterpret_cast<const char*>(
         reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen + elfAddr->symTabLen));
     fileNameAddr[elfAddr->fileNameLen - 1] = '\0';
-    fileNameIndex = traceDataCache_->GetDataIndex(fileNameAddr);
+    fileNameIndex = traceDataCache_->GetDataIndex(std::string(fileNameAddr));
     elfPathIndexToElfFixedHeaderAddr_.insert(std::make_pair(fileNameIndex, elfAddr));
 
 #if WITH_EBPF_HELP

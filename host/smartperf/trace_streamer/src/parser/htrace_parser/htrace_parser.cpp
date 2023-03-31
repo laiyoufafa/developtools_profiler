@@ -165,9 +165,9 @@ void HtraceParser::FilterData(HtraceDataSegment& seg)
         processParser_->Parse(seg.processInfo, seg.timeStamp);
     } else if (seg.dataType == DATA_SOURCE_TYPE_DISKIO) {
         diskIOParser_->Parse(seg.diskIOInfo, seg.timeStamp);
-    } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT) {
+    } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT) { //
         hisyseventParser_->Parse(seg.hisyseventInfo, seg.timeStamp);
-    } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT_CONFIG) {
+    } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT_CONFIG) { //
         hisyseventParser_->Parse(seg.hisyseventConfig, seg.timeStamp);
     }
     if (supportThread_) {
@@ -590,7 +590,7 @@ bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesB
             hasGotHeader_ = false;
             packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
             profilerTraceFileHeader_.data.dataType = ProfilerTraceFileHeader::UNKNOW_TYPE;
-            TS_LOGW("read proto finished!");
+            TS_LOGD("read proto finished!");
             return ParseDataRecursively(packagesBegin, currentLength);
         }
     }
@@ -614,7 +614,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
         return false;
     }
     uint8_t buffer[PACKET_HEADER_LENGTH];
-    memset_s(buffer, PACKET_HEADER_LENGTH, 0, PACKET_HEADER_LENGTH);
+    (void)memset_s(buffer, PACKET_HEADER_LENGTH, 0, PACKET_HEADER_LENGTH);
     int i = 0;
     for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + PACKET_HEADER_LENGTH; ++it, ++i) {
         buffer[i] = *it;

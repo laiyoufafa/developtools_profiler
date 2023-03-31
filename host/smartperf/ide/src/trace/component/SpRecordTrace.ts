@@ -26,10 +26,12 @@ import {SpTraceCommand} from "./setting/SpTraceCommand.js";
 import {
     CpuConfig,
     CreateSessionRequest,
-    DiskioConfig, FileSystemConfig,
+    DiskioConfig,
+    FileSystemConfig,
     FpsConfig,
     HilogConfig,
-    HiperfPluginConfig, HiSystemEventConfig,
+    HiperfPluginConfig,
+    HiSystemEventConfig,
     levelFromJSON,
     MemoryConfig,
     NativeHookConfig,
@@ -60,6 +62,7 @@ import {SpFileSystem} from "./setting/SpFileSystem.js";
 import {SpSdkConfig} from "./setting/SpSdkConfig.js";
 import {SpVmTracker} from "./setting/SpVmTracker.js";
 import {SpHisysEvent} from "./setting/SpHisysEvent.js";
+import {SpRecordTemplate} from "./setting/SpRecordTemplate.js";
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -68,6 +71,19 @@ export class SpRecordTrace extends BaseElement {
     public static MaxFileSize: number = 1024 * 1024 * 1024;
     public static isVscode = false;
     public static stopRecord = false;
+
+    set record_template(re: boolean) {
+        if (re) {
+            this.setAttribute('record_template', '');
+        } else {
+            this.removeAttribute('record_template')
+        }
+
+    }
+
+    get record_template() {
+        return this.hasAttribute('record_template')
+    }
 
     set vs(vs: boolean) {
         if (vs) {
@@ -234,6 +250,7 @@ export class SpRecordTrace extends BaseElement {
     private spSdkConfig: SpSdkConfig | undefined;
     private spVmTracker: SpVmTracker | undefined;
     private spHisysEvent: SpHisysEvent | undefined;
+    private spRecordTemplate: SpRecordTemplate | undefined;
 
     private menuGroup: LitMainMenuGroup | undefined | null;
     private appContent: HTMLElement | undefined | null;
@@ -267,6 +284,10 @@ export class SpRecordTrace extends BaseElement {
                 let clearFlag = this.compareArray(devs);
                 if (clearFlag) {
                     this.deviceSelect!.innerHTML = '';
+                    if (devs.length == 0) {
+                        this.recordButton!.hidden = true
+                        this.disconnectButton!.hidden = true
+                    }
                     for (let i = 0; i < devs.length; i++) {
                         let dev = devs[i];
                         let option = document.createElement("option")
@@ -274,6 +295,8 @@ export class SpRecordTrace extends BaseElement {
                         option.textContent = dev;
                         this.deviceSelect!.appendChild(option)
                         if (i == 0) {
+                            this.recordButton!.hidden = false
+                            this.disconnectButton!.hidden = false
                             SpRecordTrace.serialNumber = option.value;
                         }
                     }
@@ -282,6 +305,10 @@ export class SpRecordTrace extends BaseElement {
         } else {
             this.deviceSelect!.innerHTML = '';
             HdcDeviceManager.getDevices().then((devs: USBDevice[]) => {
+                if (devs.length == 0) {
+                    this.recordButton!.hidden = true
+                    this.disconnectButton!.hidden = true
+                }
                 for (let len = 0; len < devs.length; len++) {
                     let dev = devs[len];
                     let option = document.createElement("option")
@@ -292,6 +319,8 @@ export class SpRecordTrace extends BaseElement {
                     option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
                     this.deviceSelect!.appendChild(option)
                     if (len == 0) {
+                        this.recordButton!.hidden = false
+                        this.disconnectButton!.hidden = false
                         SpRecordTrace.serialNumber = option.value;
                         HdcDeviceManager.connect(option.value).then(() => {
                         });
@@ -316,7 +345,14 @@ export class SpRecordTrace extends BaseElement {
 
     set showHint(bool: boolean) {
         if (bool) {
-            this.setAttribute("show_hint", '');
+            if (this.hasAttribute('show_hint')) {
+                this.removeAttribute("show_hint");
+                setTimeout(() => {
+                    this.setAttribute("show_hint", '');
+                }, 200)
+            } else {
+                this.setAttribute("show_hint", '');
+            }
         } else {
             this.removeAttribute("show_hint");
         }
@@ -340,6 +376,13 @@ export class SpRecordTrace extends BaseElement {
         })
         this.deviceSelect = this.shadowRoot?.querySelector("#device-select") as HTMLSelectElement;
         this.deviceSelect!.onchange = () => {
+            if (this.deviceSelect!.options.length > 0) {
+                this.recordButton!.hidden = false
+                this.disconnectButton!.hidden = false
+            } else {
+                this.recordButton!.hidden = true
+                this.disconnectButton!.hidden = true
+            }
             let value = this.deviceSelect!.options[this.deviceSelect!.selectedIndex].value;
             SpRecordTrace.serialNumber = value;
             if (!this.vs) {
@@ -356,7 +399,7 @@ export class SpRecordTrace extends BaseElement {
             });
         }
         this.disconnectButton = this.shadowRoot?.querySelector<LitButton>(".disconnect");
-        this.disconnectButton?.addEventListener('click',evt => {
+        this.disconnectButton?.addEventListener('click', evt => {
             let index = this.deviceSelect!.selectedIndex
             if (index != -1) {
                 let selectOption = this.deviceSelect!.options[index]
@@ -366,11 +409,15 @@ export class SpRecordTrace extends BaseElement {
                     if (this.deviceSelect!.selectedIndex != -1) {
                         SpRecordTrace.serialNumber = this.deviceSelect!.options[this.deviceSelect!.selectedIndex].value
                     } else {
+                        this.recordButton!.hidden = true
+                        this.disconnectButton!.hidden = true
+                        this.sp!.search = false
                         SpRecordTrace.serialNumber = ''
                     }
                 })
             }
         })
+
         this.recordSetting = new SpRecordSetting();
         this.probesConfig = new SpProbesConfig();
         this.traceCommand = new SpTraceCommand();
@@ -380,12 +427,20 @@ export class SpRecordTrace extends BaseElement {
         this.spSdkConfig = new SpSdkConfig();
         this.spVmTracker = new SpVmTracker();
         this.spHisysEvent = new SpHisysEvent();
+        this.spRecordTemplate = new SpRecordTemplate(this);
         this.recordButton = this.shadowRoot?.querySelector(".record") as LitButton;
         this.sp = document.querySelector("sp-application") as SpApplication;
         this.progressEL = this.sp.shadowRoot?.querySelector('.progress') as LitProgressBar
         this.litSearch = this.sp.shadowRoot?.querySelector('#lit-search') as LitSearch;
+        if (this.deviceSelect!.options && this.deviceSelect!.options.length > 0) {
+            this.disconnectButton!.hidden = false
+            this.recordButton!.hidden = false
+        } else {
+            this.disconnectButton!.hidden = true
+            this.recordButton!.hidden = true
+        }
         this.recordButton!.addEventListener("click", () => {
-          this.recordButtonListener()
+            this.recordButtonListener()
         })
         this.spRecordPerf!.addEventListener("addProbe", (event: any) => {
             this.showHint = false;
@@ -396,14 +451,20 @@ export class SpRecordTrace extends BaseElement {
         this.probesConfig!.addEventListener("addProbe", (event: any) => {
             this.showHint = false;
         })
-
+        this.spRecordTemplate!.addEventListener("addProbe", (event: any) => {
+            this.showHint = false;
+        })
         this.stopButtonEl = this.traceCommand!.shadowRoot?.querySelector<HTMLButtonElement>('#stop-button');
         this.stopButtonEl!.addEventListener('click', ev => {
             this.stopRecordListener();
         })
         this.menuGroup = this.shadowRoot?.querySelector('#menu-group') as LitMainMenuGroup
         this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement
-        this.appContent.append(this.recordSetting)
+        if (this.record_template) {
+            this.appContent.append(this.spRecordTemplate)
+        } else {
+            this.appContent.append(this.recordSetting)
+        }
         this.initMenuItems();
     }
 
@@ -450,90 +511,129 @@ export class SpRecordTrace extends BaseElement {
 
     private initMenuItems() {
         let that = this
-        this._menuItems = [
-            {
-                title: "Record setting",
-                icon: "properties",
-                fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.recordSetting!)
-                    that.freshMenuItemsStatus('Record setting')
+        if (this.record_template) {
+            this._menuItems = [
+                {
+                    title: "Record setting",
+                    icon: "properties",
+                    fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.recordSetting!)
+                        that.freshMenuItemsStatus('Record setting')
+                    }
+                },
+                {
+                    title: "Trace template",
+                    icon: "realIntentionBulb",
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spRecordTemplate!)
+                        that.freshMenuItemsStatus('Trace template')
+                    }
+                },
+                {
+                    title: "Trace command",
+                    icon: "dbsetbreakpoint",
+                    fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        let request = that.makeRequest();
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.traceCommand!)
+                        that.traceCommand!.hdcCommon =
+                            PluginConvertUtils.createHdcCmd(
+                                PluginConvertUtils.BeanToCmdTxt(request, false), that.recordSetting!.output, that.recordSetting!.maxDur)
+                        that.freshMenuItemsStatus('Trace command')
+                    }
                 }
-            },
-            {
-                title: "Trace command",
-                icon: "dbsetbreakpoint",
-                fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.freshMenuItemsStatus('Trace command')
-                    let request = that.makeRequest();
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.traceCommand!)
-                    that.traceCommand!.hdcCommon =
-                        PluginConvertUtils.createHdcCmd(
-                            PluginConvertUtils.BeanToCmdTxt(request, false), that.recordSetting!.output, that.recordSetting!.maxDur)
+            ]
+        } else {
+            this._menuItems = [
+                {
+                    title: "Record setting",
+                    icon: "properties",
+                    fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.recordSetting!)
+                        that.freshMenuItemsStatus('Record setting')
+                    }
+                },
+                {
+                    title: "Trace command",
+                    icon: "dbsetbreakpoint",
+                    fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.freshMenuItemsStatus('Trace command')
+                        let request = that.makeRequest();
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.traceCommand!)
+                        that.traceCommand!.hdcCommon =
+                            PluginConvertUtils.createHdcCmd(
+                                PluginConvertUtils.BeanToCmdTxt(request, false), that.recordSetting!.output, that.recordSetting!.maxDur)
+                    }
+                },
+                {
+                    title: "Probes config", icon: "realIntentionBulb", fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.probesConfig!)
+                        that.freshMenuItemsStatus('Probes config')
+                    }
+                },
+                {
+                    title: "Native Memory",
+                    icon: "externaltools",
+                    fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spAllocations!)
+                        that.freshMenuItemsStatus('Native Memory')
+                    }
+                },
+                {
+                    title: "Hiperf", icon: "realIntentionBulb", fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spRecordPerf!)
+                        that.freshMenuItemsStatus('Hiperf')
+                    }
+                },
+                {
+                    title: "eBPF Config", icon: "file-config", fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spFileSystem!)
+                        that.freshMenuItemsStatus('eBPF Config')
+                    }
+                },
+                {
+                    title: "VM Tracker", icon: "vm-tracker", fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spVmTracker!)
+                        that.freshMenuItemsStatus('VM Tracker')
+                    }
+                },
+                {
+                    title: "HiSystemEvent", icon: "externaltools", fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spHisysEvent!)
+                        that.freshMenuItemsStatus('HiSystemEvent')
+                    }
+                },
+                {
+                    title: "SDK Config", icon: "file-config", fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = ""
+                        that.appContent!.append(that.spSdkConfig!)
+                        that.freshMenuItemsStatus('SDK Config')
+                    }
                 }
-            },
-            {
-                title: "Probes config", icon: "realIntentionBulb", fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.probesConfig!)
-                    that.freshMenuItemsStatus('Probes config')
-                }
-            },
-            {
-                title: "Native Memory",
-                icon: "externaltools",
-                fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.spAllocations!)
-                    that.freshMenuItemsStatus('Native Memory')
-                }
-            },
-            {
-                title: "Hiperf", icon: "realIntentionBulb", fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.spRecordPerf!)
-                    that.freshMenuItemsStatus('Hiperf')
-                }
-            },
-            {
-                title: "eBPF Config", icon: "file-config", fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.spFileSystem!)
-                    that.freshMenuItemsStatus('eBPF Config')
-                }
-            },
-            {
-                title: "VM Tracker", icon: "vm-tracker", fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.spVmTracker!)
-                    that.freshMenuItemsStatus('VM Tracker')
-                }
-            },
-            {
-                title: "HiSystemEvent", icon: "externaltools", fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.spHisysEvent!)
-                    that.freshMenuItemsStatus('HiSystemEvent')
-                }
-            },
-            {
-                title: "SDK Config", icon: "file-config", fileChoose: false,
-                clickHandler: function (ev: InputEvent) {
-                    that.appContent!.innerHTML = ""
-                    that.appContent!.append(that.spSdkConfig!)
-                    that.freshMenuItemsStatus('SDK Config')
-                }
-            }
-        ]
+            ]
+        }
+
         this._menuItems?.forEach(item => {
             let th = new LitMainMenuItem();
             th.setAttribute('icon', item.icon || "");
@@ -555,6 +655,8 @@ export class SpRecordTrace extends BaseElement {
 
     usbConnectionListener(event: USBConnectionEvent) {
         if (event.isTrusted) {
+            this.recordButton!.hidden = false
+            this.disconnectButton!.hidden = false
             let usbDevice: USBDevice = event.device;
             let option = document.createElement("option")
             option.className = 'select'
@@ -584,6 +686,8 @@ export class SpRecordTrace extends BaseElement {
                         let selectedOpt = options[this.deviceSelect!.selectedIndex]
                         SpRecordTrace.serialNumber = selectedOpt.value;
                     } else {
+                        this.recordButton!.hidden = true
+                        this.disconnectButton!.hidden = true
                         SpRecordTrace.serialNumber = '';
                     }
                 }
@@ -592,8 +696,8 @@ export class SpRecordTrace extends BaseElement {
     }
 
     recordButtonListener() {
-      SpRecordTrace.stopRecord = false;
-      let request = this.makeRequest();
+        SpRecordTrace.stopRecord = false;
+        let request = this.makeRequest();
         if (request.pluginConfigs.length == 0) {
             this.showHint = true;
             return;
@@ -609,8 +713,9 @@ export class SpRecordTrace extends BaseElement {
             this.sp!.search = true;
             this.litSearch!.clear();
             this.progressEL!.loading = false
-            this.litSearch!.setPercent("please connect device", -1);
+            this.litSearch!.setPercent("please connect device", -2);
         }
+
         if (this.vs) {
             this.appContent!.innerHTML = ""
             this.appContent!.append(this.traceCommand!)
@@ -651,7 +756,7 @@ export class SpRecordTrace extends BaseElement {
                                 }
                             })
                         } else {
-                            this.litSearch!.setPercent("tracing htrace failed, please check your config ", -1);
+                            this.litSearch!.setPercent("tracing htrace failed, please check your config ", -2);
                             this.traceCommand!.show = false;
                             this.freshMenuDisable(false);
                             this.freshConfigMenuDisable(false);
@@ -686,11 +791,11 @@ export class SpRecordTrace extends BaseElement {
                                     HdcDeviceManager.shellResultAsString(CmdConstant.CMD_SHELL + traceCommandStr, false).then(traceResult => {
                                         let re = this.isSuccess(traceResult)
                                         if (re == 0) {
-                                          this.traceCommand!.show = false;
-                                          this.litSearch!.setPercent("tracing htrace down", -1);
+                                            this.traceCommand!.show = false;
+                                            this.litSearch!.setPercent("tracing htrace down", -1);
                                             HdcDeviceManager.shellResultAsString(CmdConstant.CMD_TRACE_FILE_SIZE + this.recordSetting!.output, false).then(traceFileSize => {
                                                 if (traceFileSize.indexOf("No such") != -1) {
-                                                   this.litSearch!.setPercent("No such file or directory", -1);
+                                                    this.litSearch!.setPercent("No such file or directory", -2);
                                                 } else if (Number(traceFileSize) <= SpRecordTrace.MaxFileSize) {
                                                     HdcDeviceManager.fileRecv(this.recordSetting!.output, (perNumber: number) => {
                                                         this.litSearch!.setPercent("downloading Hitrace file ", perNumber);
@@ -714,7 +819,7 @@ export class SpRecordTrace extends BaseElement {
                                                         })
                                                     });
                                                 } else {
-                                                    this.litSearch!.setPercent("htrace  file is too big", -1);
+                                                    this.litSearch!.setPercent("htrace file is too big", -2);
                                                 }
                                             })
                                         } else if (re == 2) {
@@ -723,13 +828,13 @@ export class SpRecordTrace extends BaseElement {
                                             this.freshMenuDisable(false)
                                             this.buttonDisable(false);
                                         } else if (re == -1) {
-                                            this.litSearch!.setPercent("The device is abnormal", -1);
+                                            this.litSearch!.setPercent("The device is abnormal", -2);
                                             this.progressEL!.loading = false
                                             this.freshConfigMenuDisable(false);
                                             this.freshMenuDisable(false)
                                             this.buttonDisable(false);
                                         } else {
-                                            this.litSearch!.setPercent("tracing htrace failed, please check your config ", -1);
+                                            this.litSearch!.setPercent("tracing htrace failed, please check your config ", -2);
                                             this.freshConfigMenuDisable(false);
                                             this.freshMenuDisable(false)
                                             this.buttonDisable(false);
@@ -746,7 +851,7 @@ export class SpRecordTrace extends BaseElement {
                     } else {
                         this.sp!.search = true;
                         this.litSearch!.clear();
-                        this.litSearch!.setPercent("please kill other hdc-server !", -1);
+                        this.litSearch!.setPercent("please kill other hdc-server !", -2);
                     }
                 }
             );
@@ -767,48 +872,55 @@ export class SpRecordTrace extends BaseElement {
 
     private makeRequest = () => {
         let request = this.createSessionRequest();
-        let hasMonitorMemory = false;
-        let hasSamps = false;
-        if (this.probesConfig!.traceConfig.length > 0) {
-            if (this.probesConfig!.traceConfig.find(value => {
-                return value != "FPS"
-            })) {
-                request.pluginConfigs.push(this.createHtracePluginConfig())
-            }
-            if (this.probesConfig!.traceConfig.indexOf("FPS") != -1) {
-                request.pluginConfigs.push(this.createFpsPluginConfig())
-            }
-        }
-        if (this.probesConfig!.recordAbility) {
-            hasMonitorMemory = true;
-            this.createMonitorPlugin(this, request);
-        }
-        let reportingFrequency: number;
-        if (this.recordSetting!.maxDur > 20) {
-            reportingFrequency = 5
+        if (this.record_template) {
+            let templateConfigs = this.spRecordTemplate?.getTemplateConfig();
+            templateConfigs?.forEach(config => {
+                request.pluginConfigs.push(config)
+            })
         } else {
-            reportingFrequency = 2
-        }
-        if (this.spVmTracker!.startSamp && this.spVmTracker!.process != "") {
-            hasSamps = true;
-        }
-        if (this.probesConfig!.memoryConfig.length > 0 || hasMonitorMemory || hasSamps) {
-            request.pluginConfigs.push(this.createMemoryPluginConfig(reportingFrequency, this.probesConfig!.memoryConfig.length > 0, hasMonitorMemory, hasSamps))
-        }
-        if (this.spAllocations!.appProcess != "") {
-            request.pluginConfigs.push(this.createNativePluginConfig(reportingFrequency))
-        }
-        if (this.spRecordPerf!.startSamp) {
-            request.pluginConfigs.push(this.createHiperConfig(reportingFrequency))
-        }
-        if (this.spFileSystem!.startRecord) {
-            request.pluginConfigs.push(this.createSystemConfig(reportingFrequency))
-        }
-        if (this.spSdkConfig!.startSamp && this.spSdkConfig!.getPlugName() != "") {
-            request.pluginConfigs.push(this.createSdkConfig(reportingFrequency))
-        }
-        if (this.spHisysEvent?.startSamp) {
-            request.pluginConfigs.push(this.createHiSystemEventPluginConfig(this.spHisysEvent.process))
+            let hasMonitorMemory = false;
+            let hasSamps = false;
+            if (this.probesConfig!.traceConfig.length > 0) {
+                if (this.probesConfig!.traceConfig.find(value => {
+                    return value != "FPS"
+                })) {
+                    request.pluginConfigs.push(this.createHtracePluginConfig())
+                }
+                if (this.probesConfig!.traceConfig.indexOf("FPS") != -1) {
+                    request.pluginConfigs.push(this.createFpsPluginConfig())
+                }
+            }
+            if (this.probesConfig!.recordAbility) {
+                hasMonitorMemory = true;
+                this.createMonitorPlugin(this, request);
+            }
+            let reportingFrequency: number;
+            if (this.recordSetting!.maxDur > 20) {
+                reportingFrequency = 5
+            } else {
+                reportingFrequency = 2
+            }
+            if (this.spVmTracker!.startSamp && this.spVmTracker!.process != "") {
+                hasSamps = true;
+            }
+            if (this.probesConfig!.memoryConfig.length > 0 || hasMonitorMemory || hasSamps) {
+                request.pluginConfigs.push(this.createMemoryPluginConfig(reportingFrequency, this.probesConfig!.memoryConfig.length > 0, hasMonitorMemory, hasSamps))
+            }
+            if (this.spAllocations!.appProcess != "") {
+                request.pluginConfigs.push(this.createNativePluginConfig(reportingFrequency))
+            }
+            if (this.spRecordPerf!.startSamp) {
+                request.pluginConfigs.push(this.createHiperConfig(reportingFrequency))
+            }
+            if (this.spFileSystem!.startRecord) {
+                request.pluginConfigs.push(this.createSystemConfig(reportingFrequency))
+            }
+            if (this.spSdkConfig!.startSamp && this.spSdkConfig!.getPlugName() != "") {
+                request.pluginConfigs.push(this.createSdkConfig(reportingFrequency))
+            }
+            if (this.spHisysEvent?.startSamp) {
+                request.pluginConfigs.push(this.createHiSystemEventPluginConfig(this.spHisysEvent.process))
+            }
         }
         return request;
     }
@@ -1039,10 +1151,26 @@ export class SpRecordTrace extends BaseElement {
           border-radius: 0px 16px 16px 0px;
         }
         :host([show_hint]) #hint {
-            display: block
+            color: #DB5860;
+            position: absolute;
+            left:1%;
+            animation: textRoll 5s ease-in-out 0s backwards;
+            white-space: nowrap;
+            display: block;
+            font-weight: 700;
         }
         #hint {
            display: none;
+        }
+        
+        @keyframes textRoll {
+            0% {
+                left: 1%;
+                
+            }
+            100% {
+                left:100%;
+            }
         }
         
         </style>
@@ -1089,8 +1217,8 @@ export class SpRecordTrace extends BaseElement {
         return hilogConfigProfilerPluginConfig;
     }
 
-    private isNumber(str:string) {
-      return !isNaN(Number(str))
+    private isNumber(str: string) {
+        return !isNaN(Number(str))
     }
 
     private createHiperConfig(reportingFrequency: number) {
@@ -1100,9 +1228,9 @@ export class SpRecordTrace extends BaseElement {
         if (perfConfig?.process && !perfConfig?.process.includes("ALL") && perfConfig?.process.length > 0) {
             let process = perfConfig.process;
             if (this.isNumber(process)) {
-                 recordArgs = recordArgs + " -p " + perfConfig?.process;
+                recordArgs = recordArgs + " -p " + perfConfig?.process;
             } else {
-                 recordArgs = recordArgs + " --app " + perfConfig?.process;
+                recordArgs = recordArgs + " --app " + perfConfig?.process;
             }
         } else {
             recordArgs = recordArgs + " -a ";
@@ -1301,7 +1429,7 @@ export class SpRecordTrace extends BaseElement {
         return fpsPlugin;
     }
 
-    private createHiSystemEventPluginConfig(appName:string) {
+    private createHiSystemEventPluginConfig(appName: string) {
         let hiSystemEventConfig: HiSystemEventConfig = {
             msg: 'hisysevent-plugin',
             processName: appName
@@ -1322,7 +1450,7 @@ export class SpRecordTrace extends BaseElement {
             flushIntervalMs: 1000,
             flushThresholdKb: 4096,
             parseKsyms: true,
-            clock: "mono",
+            clock: "boot",
             tracePeriodMs: 200,
             rawDataPrefix: "",
             traceDurationMs: 0,
@@ -1390,8 +1518,21 @@ export class SpRecordTrace extends BaseElement {
     freshMenuItemsStatus(currentValue: string) {
         let litMainMenuGroup = this.shadowRoot?.querySelector<LitMainMenuGroup>('lit-main-menu-group');
         let litMainMenuItemNodeListOf = litMainMenuGroup!.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-        litMainMenuItemNodeListOf.forEach(item =>{
+        litMainMenuItemNodeListOf.forEach(item => {
             item.back = item.title == currentValue;
         })
+    }
+
+    synchronizeDeviceList() {
+        this.deviceSelect!.innerHTML = '';
+        if (SpRecordTrace.serialNumber != '') {
+            let option = document.createElement("option")
+            option.className = 'select'
+            option.value = SpRecordTrace.serialNumber;
+            option.textContent = SpRecordTrace.serialNumber
+            this.deviceSelect!.appendChild(option)
+            this.recordButton!.hidden = false
+            this.disconnectButton!.hidden = false
+        }
     }
 }

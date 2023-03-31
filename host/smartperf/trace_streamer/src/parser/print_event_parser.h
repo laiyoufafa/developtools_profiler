@@ -28,21 +28,45 @@ namespace TraceStreamer {
 class PrintEventParser : private EventParserBase {
 public:
     PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    bool ParsePrintEvent(const std::string& comm, uint64_t ts, uint32_t pid, std::string_view event);
+    bool ParsePrintEvent(const std::string& comm, uint64_t ts, uint32_t pid, std::string_view event, const BytraceLine& line);
+    void Finish();
 private:
+    using FrameFuncCall = std::function<bool(const size_t callStackRow, std::string& args, const BytraceLine& line)>;
     ParseResult GetTracePoint(std::string_view pointStr, TracePoint& outPoint) const;
     ParseResult CheckTracePoint(std::string_view pointStr) const;
     uint32_t GetThreadGroupId(std::string_view pointStr, size_t& length) const;
     std::string_view GetPointNameForBegin(std::string_view pointStr, size_t tGidlength) const;
-    ParseResult HandlerB(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
+    ParseResult HandlerB(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
+    void HandleFrameSliceBeginEvent(DataIndex eventName, size_t callStackRow, std::string& args, const BytraceLine& line);
+    void HandleFrameSliceEndEvent(uint64_t ts, uint64_t pid, uint64_t tid, size_t callStackRow);
+    void HandleFrameQueueEndEvent(uint64_t ts, uint64_t pid, uint64_t tid, size_t callStackRow);
     static ParseResult HandlerE(void);
-    ParseResult HandlerCSF(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
+    ParseResult HandlerCSF(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
     static size_t GetNameLength(std::string_view pointStr, size_t nameIndex);
     size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
+    bool ReciveVsync( size_t callStackRow, std::string& args, const BytraceLine &line);
+    bool ReciveOnVsync( size_t callStackRow, std::string& args, const BytraceLine &line);
+    bool RSReciveOnVsync( size_t callStackRow, std::string& args, const BytraceLine &line);
+    bool OnRwTransaction( size_t callStackRow, std::string& args, const BytraceLine &line);
+    bool OnMainThreadProcessCmd( size_t callStackRow, std::string& args, const BytraceLine &line);
+    bool OnFrameQueueStart(uint64_t ts, size_t callStackRow, uint64_t pid);
 private:
+    std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
     const uint32_t pointLength_;
     const uint32_t maxPointLength_;
     TraceStreamerConfig config_{};
+    const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
+    const DataIndex onVsyncEvent_ = traceDataCache_->GetDataIndex("H:OnVsyncEvent");
+    const DataIndex rsOnVsyncEvent_ = traceDataCache_->GetDataIndex("H:RSMainThread::OnVsync");
+    const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";
+    const DataIndex marshRwTransactionData_ = traceDataCache_->GetDataIndex("H:MarshRSTransactionData");
+    const DataIndex rsMainThreadProcessCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::ProcessCommandUni");
+    const std::regex recvVsyncPattern_ = std::regex("(\\w+):(\\w+)");
+    const std::regex transFlagPattern_ =  std::regex("transactionFlag:\\[(\\d+),(\\d+)\\]");
+    const std::regex mainProcessCmdPattern =  std::regex("\\[(\\d+),(\\d+)\\]");
+    std::vector<uint64_t> frameCallIds_ = {};
+    std::vector<uint64_t> vsyncSliceIds_ = {};
+    std::vector<uint64_t> onVsyncCallIds_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

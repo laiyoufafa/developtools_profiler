@@ -11,13 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("../../build/ohos.gni")
 import("ts.gni")
 if (use_wasm) {
-  import("../../wasm.gni")
+  import("../../gn/wasm.gni")
 }
 if (use_wasm) {
   ohos_source_set("trace_streamer_dubai_builtin") {
+    subsystem_name = "trace_streamer"
+    part_name = "trace_streamer_dubai_builtin"
     sources = []
     include_dirs = []
     deps = []
@@ -25,6 +27,8 @@ if (use_wasm) {
   }
 }
 ohos_source_set("lib") {
+  subsystem_name = "trace_streamer"
+  part_name = "lib"
   sources = [ "main.cpp" ]
   deps = [
     ":trace_streamer_sdk",
@@ -55,7 +59,7 @@ ohos_source_set("lib") {
   }
   public_deps = []
 }
-ohos_source_set("trace_streamer_sdk") {
+source_set("trace_streamer_sdk") {
   sources = [
     "filter/clock_filter.cpp",
     "filter/clock_filter.h",
@@ -146,6 +150,7 @@ ohos_source_set("trace_streamer_sdk") {
       "sdk/wasm_func.h",
     ]
   }
+  cflags = [ "-std=c++17" ]
   if (enable_ts_utest && !use_wasm) {
     cflags = [
       "-fprofile-arcs",

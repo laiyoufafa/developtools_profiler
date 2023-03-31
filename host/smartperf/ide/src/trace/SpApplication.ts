@@ -37,12 +37,16 @@ import "./component/SpRecordTrace.js";
 import "./component/SpMetrics.js";
 import "./component/SpInfoAndStas.js";
 import "./component/trace/base/TraceRow.js";
+import "./component/schedulingAnalysis/SpSchedulingAnalysis.js"
 import {info, log} from "../log/Log.js";
 import {LitMainMenuGroup} from "../base-ui/menu/LitMainMenuGroup.js";
 import {LitMainMenuItem} from "../base-ui/menu/LitMainMenuItem.js";
 import {LitIcon} from "../base-ui/icon/LitIcon.js";
 import {Cmd} from "../command/Cmd.js";
 import {TraceRow} from "./component/trace/base/TraceRow.js";
+import {SpSchedulingAnalysis} from "./component/schedulingAnalysis/SpSchedulingAnalysis.js";
+import "./component/trace/base/TraceRowConfig.js";
+import {TraceRowConfig} from "./component/trace/base/TraceRowConfig.js";
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -321,6 +325,28 @@ export class SpApplication extends BaseElement {
             font-size: 20px;
             color: var(--dark-color1,#4D4D4D);
          }
+         .chart-filter {
+            display: block;
+            visibility: hidden;
+            z-index: -1;
+        }
+        
+        :host([chart_filter]) .chart-filter {
+            visibility: visible;
+            position: absolute;
+            width: 40%;
+            height: 100%;
+            right: 0;
+            z-index: 1001;
+            top: 0;
+        }
+        .filter-config {
+            opacity: 1;
+            visibility: hidden;
+        }
+        .filter-config:hover {
+            opacity: 0.7;
+        }
         </style>
         <div class="root">
             <lit-main-menu id="main-menu" class="menu" data=''></lit-main-menu>
@@ -333,6 +359,7 @@ export class SpApplication extends BaseElement {
                     </div>
                     <lit-search id="lit-search"></lit-search>
                 </div>
+                <img class="filter-config" title="Display Template" src="img/config_filter.png" style="display: block;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 20px">
                 <lit-progress-bar class="progress"></lit-progress-bar>
             </div>
             <div id="app-content" class="content">
@@ -342,6 +369,9 @@ export class SpApplication extends BaseElement {
                 </sp-system-trace>
                 <sp-record-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
                 </sp-record-trace>
+                <sp-record-trace record_template='' style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-template">
+                </sp-record-trace>
+                <sp-scheduling-analysis style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-scheduling-analysis"></sp-scheduling-analysis>
                 <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 97" id="sp-metrics">
                 </sp-metrics>
                 <sp-query-sql style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 98" id="sp-query-sql">
@@ -350,6 +380,7 @@ export class SpApplication extends BaseElement {
                 </sp-info-and-stats>
                 <sp-help style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
                 </sp-help>
+                <trace-row-config class="chart-filter" style="overflow-y: clip;"></trace-row-config>
             </div>
         </div>
         `;
@@ -363,10 +394,11 @@ export class SpApplication extends BaseElement {
         let spMetrics = this.shadowRoot!.querySelector<SpMetrics>("#sp-metrics") as SpMetrics // new SpMetrics();
         let spQuerySQL = this.shadowRoot!.querySelector<SpQuerySQL>("#sp-query-sql") as SpQuerySQL // new SpQuerySQL();
         let spInfoAndStats = this.shadowRoot!.querySelector<SpInfoAndStats>("#sp-info-and-stats") as SpInfoAndStats // new SpInfoAndStats();
-
         let spSystemTrace = this.shadowRoot!.querySelector<SpSystemTrace>("#sp-system-trace")
         this.spHelp = this.shadowRoot!.querySelector<SpHelp>("#sp-help")
         let spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>("#sp-record-trace")
+        let spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>("#sp-record-template")
+        let spSchedulingAnalysis = this.shadowRoot!.querySelector<SpSchedulingAnalysis>("#sp-scheduling-analysis") as SpSchedulingAnalysis
         let appContent = this.shadowRoot?.querySelector('#app-content') as HTMLDivElement;
         let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu
         let menu = mainMenu.shadowRoot?.querySelector('.menu-button') as HTMLDivElement
@@ -374,7 +406,8 @@ export class SpApplication extends BaseElement {
         let litSearch = this.shadowRoot?.querySelector('#lit-search') as LitSearch
         let search = this.shadowRoot?.querySelector('.search-container') as HTMLElement
         let sidebarButton: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button')
-        let childNodes = [spSystemTrace, spRecordTrace, spWelcomePage, spMetrics, spQuerySQL, spInfoAndStats, this.spHelp]
+        let childNodes = [spSystemTrace, spRecordTrace, spWelcomePage, spMetrics, spQuerySQL,spSchedulingAnalysis, spInfoAndStats, this.spHelp, spRecordTemplate]
+        window.subscribe(window.SmartEvent.UI.MenuTrace,()=>showContent(spSystemTrace!))
         litSearch.addEventListener("focus", () => {
             spSystemTrace!.keyboardEnable = false
         })
@@ -412,6 +445,22 @@ export class SpApplication extends BaseElement {
         spSystemTrace?.addEventListener("next-data", (ev: any) => {
             litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
         })
+
+        let filterConfig = this.shadowRoot?.querySelector('.filter-config') as LitIcon;
+        let configClose = this.shadowRoot?.querySelector<HTMLElement>('.chart-filter')!.shadowRoot?.querySelector<LitIcon>(".config-close");
+        filterConfig.addEventListener('click', ev => {
+            if (this!.hasAttribute('chart_filter')) {
+                this!.removeAttribute('chart_filter');
+            } else {
+                this!.setAttribute('chart_filter', '')
+            }
+        })
+        configClose!.addEventListener('click', ev => {
+            if (this.hasAttribute('chart_filter')) {
+                this!.removeAttribute('chart_filter');
+            }
+        })
+
         //打开侧边栏
         sidebarButton!.onclick = (e) => {
             let menu: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#main-menu')
@@ -454,6 +503,9 @@ export class SpApplication extends BaseElement {
             }
             log("show pages" + showNode.id)
             childNodes.forEach((node) => {
+                if (that.hasAttribute('chart_filter')) {
+                    that!.removeAttribute('chart_filter');
+                }
                 if (node === showNode) {
                     showNode.style.visibility = 'visible'
                 } else {
@@ -478,13 +530,92 @@ export class SpApplication extends BaseElement {
             });
         }
 
+        function getTraceOptionMenus(showFileName:string,fileSize:string,fileName:string,isServer:boolean,dbName?:string){
+            let menus = [
+                {
+                    title: `${showFileName} (${fileSize}M)`,
+                    icon: "file-fill",
+                    clickHandler: function () {
+                        that.search = true
+                        showContent(spSystemTrace!)
+                    }
+                },
+                {
+                    title: "Scheduling Analysis",
+                    icon: "piechart-circle-fil",
+                    clickHandler: function () {
+                        showContent(spSchedulingAnalysis!)
+                        spSchedulingAnalysis.init();
+                    }
+                },
+                {
+                    title: "DownLoad",
+                    icon: "download",
+                    clickHandler: function () {
+                        if (that.vs) {
+                            that.vsDownload(mainMenu, fileName, isServer, dbName);
+                        } else {
+                            that.download(mainMenu, fileName, isServer, dbName);
+                        }
+                    }
+                }
+            ];
+            if (that.querySql) {
+                if (spQuerySQL) {
+                    spQuerySQL.reset()
+                    menus.push({
+                        title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
+                            showContent(spQuerySQL)
+                        }
+                    });
+                }
+
+                if (spMetrics) {
+                    spMetrics.reset()
+                    menus.push({
+                        title: "Metrics", icon: "metric", clickHandler: () => {
+                            showContent(spMetrics)
+                        }
+                    });
+                }
+
+                if (spInfoAndStats) {
+                    menus.push({
+                        title: "Info and stats", icon: "info", clickHandler: () => {
+                            showContent(spInfoAndStats)
+                        }
+                    });
+                }
+            }
+            if((window as any).cpuCount === 0){
+                //if cpu count > 1 then show Scheduling-Analysis menu else hide it
+                menus.splice(1,1)
+            }
+            return  menus;
+        }
+
+        function setProgress(command: string){
+            if(command == "database ready" && SpApplication.loadingProgress < 50){
+                SpApplication.progressStep = 6
+            }
+            if(command == "process" && SpApplication.loadingProgress < 92){
+                SpApplication.loadingProgress = 92 + Math.round(Math.random() * SpApplication.progressStep)
+            }else{
+                SpApplication.loadingProgress += Math.round(Math.random() * SpApplication.progressStep + Math.random())
+            }
+            if(SpApplication.loadingProgress > 99){
+                SpApplication.loadingProgress = 99
+            }
+            info("setPercent ：" + command + "percent :" + SpApplication.loadingProgress);
+            litSearch.setPercent(command + '  ', SpApplication.loadingProgress);
+        }
+
         function handleServerMode(ev: any, showFileName: string, fileSize: string, fileName: string, isClickHandle?: boolean) {
             threadPool.init("server").then(() => {
                 info("init server ok");
                 litSearch.setPercent("parse trace", 1);
                 // Load the trace file and send it to the background parse to return the db file path
                 const fd = new FormData()
-                that.freshMenuDisable(true)
                 if (that.vs && isClickHandle) {
                     fd.append("convertType", "vsUpload");
                     fd.append('filePath', ev as any)
@@ -504,64 +635,6 @@ export class SpApplication extends BaseElement {
                     litSearch.setPercent("load database", 5);
                     if (res.ok) {
                         info(" server Parse trace file success");
-                        let menus = [
-                            {
-                                title: `${showFileName} (${fileSize}M)`,
-                                icon: "file-fill",
-                                clickHandler: function () {
-                                    that.search = true
-                                    showContent(spSystemTrace!)
-                                }
-                            },
-                            {
-                                title: "DownLoad",
-                                icon: "download",
-                                clickHandler: function () {
-                                    if (that.vs) {
-                                        that.vsDownload(mainMenu, fileName, true, dbName);
-                                    } else {
-                                        that.download(mainMenu, fileName, true, dbName);
-                                    }
-                                }
-                            }
-                        ];
-
-                        if (that.querySql) {
-                            if (spQuerySQL) {
-                                spQuerySQL.reset()
-                                menus.push({
-                                    title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
-                                        showContent(spQuerySQL)
-                                    }
-                                });
-                            }
-
-                            if (spMetrics) {
-                                spMetrics.reset()
-                                menus.push({
-                                    title: "Metrics", icon: "metric", clickHandler: () => {
-                                        showContent(spMetrics)
-                                    }
-                                });
-                            }
-
-                            if (spInfoAndStats) {
-                                menus.push({
-                                    title: "Info and stats", icon: "info", clickHandler: () => {
-                                        showContent(spInfoAndStats)
-                                    }
-                                });
-                            }
-                        }
-
-                        mainMenu.menus!.splice(1, 1, {
-                            collapsed: false,
-                            title: "Current Trace",
-                            describe: "Actions on the current trace",
-                            children: menus
-                        })
-
-                        that.freshMenuDisable(true)
                         return res.text();
                     } else {
                         if (res.status == 404) {
@@ -586,6 +659,12 @@ export class SpApplication extends BaseElement {
                             setProgress(command)
                         }, (res) => {
                             info("loadDatabaseUrl success");
+                            mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
+                                collapsed: false,
+                                title: "Current Trace",
+                                describe: "Actions on the current trace",
+                                children: getTraceOptionMenus(showFileName,fileSize,fileName,true,dbName)
+                            })
                             litSearch.setPercent("", 101);
                             progressEL.loading = false;
                             that.freshMenuDisable(false)
@@ -600,22 +679,6 @@ export class SpApplication extends BaseElement {
             })
         }
 
-        function setProgress(command: string){
-            if(command == "database ready" && SpApplication.loadingProgress < 50){
-                SpApplication.progressStep = 6
-            }
-            if(command == "process" && SpApplication.loadingProgress < 92){
-                SpApplication.loadingProgress = 92 + Math.round(Math.random() * SpApplication.progressStep)
-            }else{
-                SpApplication.loadingProgress += Math.round(Math.random() * SpApplication.progressStep + Math.random())
-            }
-            if(SpApplication.loadingProgress > 99){
-                SpApplication.loadingProgress = 99
-            }
-            info("setPercent ：" + command + "percent :" + SpApplication.loadingProgress);
-            litSearch.setPercent(command + '  ', SpApplication.loadingProgress);
-        }
-
         function handleWasmMode(ev: any, showFileName: string, fileSize: string, fileName: string) {
             litSearch.setPercent("", 1);
             threadPool.init("wasm").then(res => {
@@ -624,77 +687,6 @@ export class SpApplication extends BaseElement {
                 reader.onloadend = function (ev) {
                     info("read file onloadend");
                     litSearch.setPercent("ArrayBuffer loaded  ", 2);
-                    that.freshMenuDisable(true)
-                    let menus = [
-                        {
-                            title: `${showFileName} (${fileSize}M)`,
-                            icon: "file-fill",
-                            clickHandler: function () {
-                                that.search = true
-                                showContent(spSystemTrace!)
-                            }
-                        },
-                        {
-                            title: "DownLoad",
-                            icon: "download",
-                            clickHandler: function () {
-                                if (that.vs) {
-                                    that.vsDownload(mainMenu, fileName, false);
-                                } else {
-                                    that.download(mainMenu, fileName, false);
-                                }
-                            }
-                        }
-                    ];
-                    if (that.querySql) {
-                        if (spQuerySQL) {
-                            spQuerySQL.reset()
-                            menus.push({
-                                title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
-                                    showContent(spQuerySQL)
-                                }
-                            });
-                        }
-
-                        if (spMetrics) {
-                            spMetrics.reset()
-                            menus.push({
-                                title: "Metrics", icon: "metric", clickHandler: () => {
-                                    showContent(spMetrics)
-                                }
-                            });
-                        }
-
-                        if (spInfoAndStats) {
-                            menus.push({
-                                title: "Info and stats", icon: "info", clickHandler: () => {
-                                    showContent(spInfoAndStats)
-                                }
-                            });
-                        }
-                    }
-                    mainMenu.menus!.splice(1, 1, {
-                        collapsed: false,
-                        title: "Current Trace",
-                        describe: "Actions on the current trace",
-                        children: menus
-                    })
-                    mainMenu.menus!.splice(2, 1, {
-                        collapsed: false,
-                        title: 'Support',
-                        describe: 'Support',
-                        children: [
-                            {
-                                title: "Help Documents",
-                                icon: "smart-help",
-                                clickHandler: function (item: MenuItem) {
-                                    that.search = false
-                                    that.spHelp!.dark = that.dark
-                                    showContent(that.spHelp!)
-                                }
-                            },
-                        ]
-                    })
                     let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`
                     if (that.vs) {
                         wasmUrl = `http://${window.location.host.split(':')[0]}:${window.location.port}/wasm.json`
@@ -706,6 +698,12 @@ export class SpApplication extends BaseElement {
                     }, (res) => {
                         if (res.status) {
                             info("loadDatabaseArrayBuffer success");
+                            mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
+                                collapsed: false,
+                                title: "Current Trace",
+                                describe: "Actions on the current trace",
+                                children: getTraceOptionMenus(showFileName,fileSize,fileName,false)
+                            })
                             showContent(spSystemTrace!)
                             litSearch.setPercent("", 101);
                             progressEL.loading = false;
@@ -726,6 +724,14 @@ export class SpApplication extends BaseElement {
 
         function openTraceFile(ev: any, isClickHandle?: boolean) {
             info("openTraceFile")
+            spSystemTrace!.clearPointPair();
+            window.clearTraceRowComplete();
+            that.freshMenuDisable(true)
+            SpSchedulingAnalysis.resetCpu();
+            if(mainMenu.menus!.length > 2){
+                mainMenu.menus!.splice(1, 1);
+                mainMenu.menus = mainMenu.menus!;
+            }
             if (that.vs && isClickHandle) {
                 Cmd.openFileDialog().then((res: string) => {
                     if (res != "") {
@@ -837,7 +843,18 @@ export class SpApplication extends BaseElement {
                                 spRecordTrace!.vs = true;
                                 spRecordTrace!.startRefreshDeviceList()
                             }
+                            spRecordTrace!.synchronizeDeviceList();
                             showContent(spRecordTrace!)
+                        }
+                    },
+                    {
+                        title: "Record template", icon: "copyhovered", clickHandler: function (item: MenuItem) {
+                            if (that.vs) {
+                                spRecordTemplate!.vs = true;
+                                spRecordTemplate!.startRefreshDeviceList()
+                            }
+                            spRecordTemplate!.synchronizeDeviceList();
+                            showContent(spRecordTemplate!)
                         }
                     }
                 ]
@@ -1064,6 +1081,18 @@ export class SpApplication extends BaseElement {
         let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu
         // @ts-ignore
         mainMenu.menus[0].children[0].disabled = disable
+        if(mainMenu.menus!.length > 2){
+            // @ts-ignore
+            mainMenu.menus[1].children.map((it) => it.disabled = disable)
+        }
         mainMenu.menus = mainMenu.menus;
+        let litIcon = this.shadowRoot?.querySelector('.filter-config') as LitIcon;
+        if (disable) {
+            litIcon.style.visibility = 'hidden'
+        } else {
+            litIcon.style.visibility = 'visible'
+            let chartFilter = this.shadowRoot?.querySelector('.chart-filter') as TraceRowConfig;
+            chartFilter!.setAttribute('mode', '')
+        }
     }
 }

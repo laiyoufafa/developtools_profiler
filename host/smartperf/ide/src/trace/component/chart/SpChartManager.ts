@@ -29,19 +29,22 @@ import {SpProcessChart} from "./SpProcessChart.js";
 import {perfDataQuery} from "./PerfDataQuery.js";
 import {SpVirtualMemChart} from "./SpVirtualMemChart.js";
 import {SpFileSystemChart} from "./SpFileSystemChart.js";
-import {procedurePool} from "../../database/Procedure.js";
 import {SpSdkChart} from "./SpSdkChart.js";
 import {SpHiSysEventChart} from "./SpHiSysEventChart.js";
-import {SmpsChart} from "./SmpsChart.js";
+import {SmapsChart} from "./SmapsChart.js";
 import {SpClockChart} from "./SpClockChart.js";
 import {SpIrqChart} from "./SpIrqChart.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {EmptyRender} from "../../database/ui-worker/ProcedureWorkerCPU.js";
+import {TraceRow} from "../trace/base/TraceRow.js";
+import {SpFrameTimeChart} from "./SpFrameTimeChart.js";
 
 export class SpChartManager {
     private trace: SpSystemTrace;
     public perf: SpHiPerf;
     private cpu: SpCpuChart;
     private freq: SpFreqChart;
-    private virtualMemChart:SpVirtualMemChart;
+    private virtualMemChart: SpVirtualMemChart;
     private fps: SpFpsChart
     private nativeMemory: SpNativeMemoryChart;
     private abilityMonitor: SpAbilityMonitorChart;
@@ -49,10 +52,10 @@ export class SpChartManager {
     private fileSystem: SpFileSystemChart;
     private sdkChart: SpSdkChart;
     private hiSyseventChart: SpHiSysEventChart;
-    private smpsChart:SmpsChart;
+    private smapsChart:SmapsChart;
     private clockChart: SpClockChart;
     private irqChart: SpIrqChart;
-
+    private frameTimeChart: SpFrameTimeChart;
 
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
@@ -67,12 +70,13 @@ export class SpChartManager {
         this.process = new SpProcessChart(trace);
         this.sdkChart = new SpSdkChart(trace);
         this.hiSyseventChart = new SpHiSysEventChart(trace);
-        this.smpsChart = new SmpsChart(trace);
+        this.smapsChart = new SmapsChart(trace);
         this.clockChart = new SpClockChart(trace);
         this.irqChart = new SpIrqChart(trace)
+        this.frameTimeChart = new SpFrameTimeChart(trace)
     }
 
-    async init(progress:Function){
+    async init(progress: Function) {
         progress("load data dict", 50);
         SpSystemTrace.DATA_DICT.clear();
         let dict = await queryDataDICT();
@@ -85,6 +89,9 @@ export class SpChartManager {
         info("cpu Data initialized")
         progress("process/thread state", 73);
         await this.cpu.initProcessThreadStateData(progress);
+        await this.cpu.initCpuIdle0Data(progress);
+        await this.cpu.initSchedulingPTData(progress);
+        await this.cpu.initSchedulingFreqData(progress);
         info("ProcessThreadState Data initialized")
         progress("cpu rate", 75);
         await this.initCpuRate();
@@ -111,7 +118,7 @@ export class SpChartManager {
         await this.hiSyseventChart.init();
         info("Perf Files Data initialized")
         progress("vm tracker", 88.4);
-        await this.smpsChart.init();
+        await this.smapsChart.init();
         progress("sdk", 88.6);
         await this.sdkChart.init();
         progress("perf", 88.8);
@@ -121,8 +128,10 @@ export class SpChartManager {
         info("Ability Monitor Data initialized")
         await perfDataQuery.initPerfCache()
         info("HiPerf Data initialized")
+        await this.frameTimeChart.init();
         progress("process", 90);
-        await this.process.initAsyncFuncData()
+        await this.process.initAsyncFuncData();
+        await this.process.initDeliverInputEvent();
         await this.process.init();
         info("Process Data initialized")
         progress("display", 95);
@@ -131,9 +140,17 @@ export class SpChartManager {
     initTotalTime = async () => {
         let res = await queryTotalTime();
         if (this.trace.timerShaftEL) {
-            this.trace.timerShaftEL.totalNS = res[0].total;
-            (window as any).recordStartNS = res[0].recordStartNS;
-            (window as any).recordEndNS = res[0].recordEndNS;
+            let total = res[0].total;
+            let startNS = res[0].recordStartNS;
+            let endNS = res[0].recordEndNS;
+            if (total===0 && startNS=== endNS) {
+                total = 1;
+                endNS = startNS+1;
+            }
+            this.trace.timerShaftEL.totalNS = total;
+            (window as any).recordStartNS = startNS;
+            (window as any).recordEndNS = endNS;
+            (window as any).totalNS = total;
             this.trace.timerShaftEL.loadComplete = true;
         }
     }
@@ -144,4 +161,26 @@ export class SpChartManager {
         info("Cpu UtilizationRate data size is: ", rates.length)
     }
 
+}
+
+export const FolderSupplier = () => {
+    return () => new Promise<Array<any>>((resolve) => resolve([]))
+}
+export const FolderThreadHandler = (row:TraceRow<any>,trace:SpSystemTrace)=>{
+    return (useCache:boolean) => {
+        row.canvasSave(trace.canvasPanelCtx!);
+        if (row.expansion) {
+            trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
+        } else {
+            (renders["empty"] as EmptyRender).renderMainThread(
+                {
+                    context: trace.canvasPanelCtx,
+                    useCache: useCache,
+                    type: ``,
+                },
+                row,
+            );
+        }
+        row.canvasRestore(trace.canvasPanelCtx!);
+    }
 }

@@ -30,7 +30,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
 SliceFilter::SliceFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64)
+    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64), irqDataLinker_(INVALID_UINT32)
 {
 }
 
@@ -58,6 +58,8 @@ size_t SliceFilter::BeginSlice(const std::string& comm,
 
 void SliceFilter::IrqHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
 {
+    // clear ipi for current cpu and nameIndex
+    irqDataLinker_.Erase(cpu, nameIndex);
     struct SliceData sliceData = {timestamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
     size_t index = slices->AppendInternalSlice(
@@ -84,10 +86,46 @@ void SliceFilter::IrqHandlerExit(uint64_t timestamp, uint32_t cpu, ArgsSet args)
     auto slices = traceDataCache_->GetIrqData();
     argSetId = streamFilters_->argsFilter_->NewArgs(args);
     slices->SetIrqDurAndArg(irqEventMap_.at(cpu).row, timestamp, argSetId);
+    auto nameId = slices->NamesData()[irqEventMap_.at(cpu).row];
+    auto internalEventDur = irqDataLinker_.Find(cpu, nameId);
+    if (internalEventDur != INVALID_UINT32) {
+        slices->SetDurationEx(irqEventMap_.at(cpu).row, internalEventDur);
+    }
+    irqDataLinker_.Erase(cpu, slices->NamesData()[irqEventMap_.at(cpu).row]);
     irqEventMap_.erase(cpu);
     return;
 }
 
+void SliceFilter::IpiHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
+{
+    irqDataLinker_.Erase(cpu, ipiId_);
+    struct SliceData sliceData = {timestamp, 0, cpu, catalog, nameIndex};
+    auto slices = traceDataCache_->GetIrqData();
+    size_t index = slices->AppendInternalSlice(
+        sliceData.timestamp, sliceData.duration, sliceData.internalTid, sliceData.cat,
+        GetNameASCIISumNoNum(traceDataCache_->GetDataFromDict(sliceData.name)), sliceData.name, 0, std::nullopt);
+    if (ipiEventMap_.count(cpu)) {
+        // not match
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_ENTRY, STAT_EVENT_DATA_LOST);
+        ipiEventMap_.at(cpu) = {timestamp, index};
+    } else {
+        ipiEventMap_[cpu] = {timestamp, index};
+    }
+    return;
+}
+void SliceFilter::IpiHandlerExit(uint64_t timestamp, uint32_t cpu)
+{
+    if (!ipiEventMap_.count(cpu)) {
+        // not match
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SOFTIRQ_EXIT, STAT_EVENT_DATA_LOST);
+        return;
+    }
+    auto slices = traceDataCache_->GetIrqData();
+    slices->SetDuration(ipiEventMap_.at(cpu).row, timestamp);
+    irqDataLinker_.Insert(cpu, ipiId_, slices->DursData()[ipiEventMap_.at(cpu).row]);
+    ipiEventMap_.erase(cpu);
+
+}
 void SliceFilter::SoftIrqEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
 {
     struct SliceData sliceData = {timestamp, 0, cpu, catalog, nameIndex};
@@ -380,7 +418,7 @@ std::tuple<uint64_t, uint32_t> SliceFilter::AddArgs(uint32_t tid, DataIndex key1
     }
     return std::make_tuple(stack.sliceStack[idx].index, argSetId);
 }
-void SliceFilter::StartAsyncSlice(uint64_t timestamp,
+size_t SliceFilter::StartAsyncSlice(uint64_t timestamp,
                                   uint32_t pid,
                                   uint32_t threadGroupId,
                                   uint64_t cookie,
@@ -393,7 +431,7 @@ void SliceFilter::StartAsyncSlice(uint64_t timestamp,
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId != INVALID_UINT64) {
         asyncEventDisMatchCount++;
-        return;
+        return INVALID_UINT64;
     }
     asyncEventSize_++;
     // a pid, cookie and function name determain a callstack
@@ -405,13 +443,14 @@ void SliceFilter::StartAsyncSlice(uint64_t timestamp,
                                                     GetNameASCIISumNoNum(traceDataCache_->GetDataFromDict(nameIndex)),
                                                     nameIndex, depth, cookie, std::nullopt);
     asyncEventFilterMap_.insert(std::make_pair(asyncEventSize_, AsyncEvent{timestamp, index}));
+    return index;
 }
 
-void SliceFilter::FinishAsyncSlice(uint64_t timestamp,
-                                   uint32_t pid,
-                                   uint32_t threadGroupId,
-                                   uint64_t cookie,
-                                   DataIndex nameIndex)
+size_t SliceFilter::FinishAsyncSlice(uint64_t timestamp,
+                                     uint32_t pid,
+                                     uint32_t threadGroupId,
+                                     uint64_t cookie,
+                                     DataIndex nameIndex)
 {
     UNUSED(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timestamp, threadGroupId);
@@ -419,19 +458,21 @@ void SliceFilter::FinishAsyncSlice(uint64_t timestamp,
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId == INVALID_UINT64) { // if failed
         asyncEventDisMatchCount++;
-        return;
+        return INVALID_UINT64;
     }
     if (asyncEventFilterMap_.find(lastFilterId) == asyncEventFilterMap_.end()) {
         TS_LOGE("logic error");
         asyncEventDisMatchCount++;
-        return;
+        return INVALID_UINT64;
     }
     // update timestamp
     asyncEventFilterMap_.at(lastFilterId).timestamp = timestamp;
+    auto lastRow = asyncEventFilterMap_.at(lastFilterId).row;
     slices->SetDuration(asyncEventFilterMap_.at(lastFilterId).row, timestamp);
     asyncEventFilterMap_.erase(lastFilterId);
     asyncEventMap_.Erase(internalTid, cookie, nameIndex);
     streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
+    return lastRow;
 }
 
 

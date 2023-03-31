@@ -19,6 +19,7 @@
 #include "clock_filter.h"
 #include "cpu_filter.h"
 #include "filter_filter.h"
+#include "frame_filter.h"
 #include "hi_sysevent_measure_filter.h"
 #include "irq_filter.h"
 #include "measure_filter.h"

@@ -360,7 +360,7 @@ export class SpRecordPerf extends BaseElement {
                         } else {
                             sp.search = true;
                             litSearch.clear();
-                            litSearch.setPercent("please kill other hdc-server !", -1);
+                            litSearch.setPercent("please kill other hdc-server !", -2);
                         }
                     })
                 }
@@ -409,7 +409,7 @@ export class SpRecordPerf extends BaseElement {
                         } else {
                             sp.search = true;
                             litSearch.clear();
-                            litSearch.setPercent("please kill other hdc-server !", -1);
+                            litSearch.setPercent("please kill other hdc-server !", -2);
                         }
                     });
                 }
@@ -481,7 +481,7 @@ export class SpRecordPerf extends BaseElement {
                         } else {
                             sp.search = true;
                             litSearch.clear();
-                            litSearch.setPercent("please kill other hdc-server !", -1);
+                            litSearch.setPercent("please kill other hdc-server !", -2);
                         }
                     });
                 }

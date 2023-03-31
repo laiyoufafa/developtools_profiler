@@ -18,7 +18,7 @@
 
 #include "double_map.h"
 
-template<class T1, class T2, class T3, class T4>
+template <class T1, class T2, class T3, class T4>
 class TripleMap {
 public:
     TripleMap(T4 invalidValue)

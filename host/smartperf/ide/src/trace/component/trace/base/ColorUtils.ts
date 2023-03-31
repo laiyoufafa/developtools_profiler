@@ -52,6 +52,15 @@ export class ColorUtils {
         "#C6D9F2",
     ];
 
+    public static JANK_COLOR: Array<string> = [
+        "#42A14D",
+        "#C0CE85",
+        "#FF651D",
+        "#FFE335",
+        "#009DFA",
+        "#E97978"
+    ];
+
     public static hash(str: string, max: number): number {
         let colorA: number = 0x811c9dc5;
         let colorB: number = 0xfffffff;
@@ -76,6 +85,11 @@ export class ColorUtils {
 
     public static colorForTid(tid: number): string {
         let colorIdx: number = ColorUtils.hash(`${tid}`, ColorUtils.MD_PALETTE.length);
+        return ColorUtils.MD_PALETTE[colorIdx];
+    }
+
+    public static colorForName(name: string): string {
+        let colorIdx: number = ColorUtils.hash(name, ColorUtils.MD_PALETTE.length);
         return ColorUtils.MD_PALETTE[colorIdx];
     }
 

@@ -34,6 +34,7 @@ import { ProcessMemStruct } from "../../../database/ui-worker/ProcedureWorkerMem
 import {CpuStateStruct} from "../../../database/ui-worker/ProcedureWorkerCpuState.js";
 import {ClockStruct} from "../../../database/ui-worker/ProcedureWorkerClock.js";
 import {IrqStruct} from "../../../database/ui-worker/ProcedureWorkerIrq.js";
+import {JankStruct} from "../../../database/ui-worker/ProcedureWorkerJank.js";
 
 
 @element("trace-sheet")
@@ -250,10 +251,13 @@ export class TraceSheet extends BaseElement {
         this.displayTab<TabPaneCurrentSelection>("current-selection").setFunctionData(data, scrollCallback);
     displayCpuData = (data: CpuStruct, callback: ((data: WakeupBean | null) => void) | undefined = undefined, scrollCallback?: (data: CpuStruct) => void) =>
         this.displayTab<TabPaneCurrentSelection>("current-selection").setCpuData(data, callback, scrollCallback);
+    displayJankData = (data: JankStruct, callback: ((data: Array<any>) => void) | undefined = undefined, scrollCallback: ((e: JankStruct) => void) | undefined) =>
+        this.displayTab<TabPaneCurrentSelection>("current-selection").setJankData(data, callback, scrollCallback);
     displayFlagData = (flagObj: Flag) => this.displayTab<TabPaneFlag>("box-flag").setFlagObj(flagObj);
     displayFreqData = () => this.displayTab<TabPaneCurrentSelection>("box-freq").data = CpuFreqStruct.selectCpuFreqStruct;
     displayCpuStateData = () => this.displayTab<TabPaneCurrentSelection>("cpu-state-click").data = CpuStateStruct.selectStateStruct;
     displayFreqLimitData = () => this.displayTab<TabPaneCurrentSelection>("box-freq-limit").data = CpuFreqLimitsStruct.selectCpuFreqLimitsStruct;
+
 
     rangeSelect(selection: SelectionParam): boolean {
         this.selection = selection;

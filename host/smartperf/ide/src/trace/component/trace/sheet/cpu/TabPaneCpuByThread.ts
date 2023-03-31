@@ -84,7 +84,7 @@ export class TabPaneCpuByThread extends BaseElement {
         }
         </style>
         <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-        <lit-table id="tb-cpu-thread" style="height:calc( 30vh - 25px )">
+        <lit-table id="tb-cpu-thread" style="height:calc( 30vh - 25px )" >
             <lit-table-column order width="25%" title="Process" data-index="process" key="process" align="flex-start" order >
             </lit-table-column>
             <lit-table-column order width="1fr" title="PID" data-index="pid" key="pid" align="flex-start" order >

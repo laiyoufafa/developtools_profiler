@@ -89,7 +89,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto callChainId = stream_.traceDataCache_->GetConstBioLatencySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT64);
+    EXPECT_EQ(callChainId, INVALID_UINT32);
     auto type = stream_.traceDataCache_->GetConstBioLatencySampleData().Types()[0];
     EXPECT_EQ(type, 2);
     auto startTs = stream_.traceDataCache_->GetConstBioLatencySampleData().StartTs()[0];

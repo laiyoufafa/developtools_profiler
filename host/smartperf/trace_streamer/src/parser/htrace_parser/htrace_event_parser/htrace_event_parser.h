@@ -42,7 +42,7 @@ public:
     void ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, BuiltinClocks clock);
     void FilterAllEventsTemp();
     void FilterAllEvents();
-    void Clear() const;
+    void Clear();
 private:
     void DealEvent(const FtraceEvent& event);
     bool BinderTractionEvent(const MessageLite& event) const;
@@ -75,6 +75,8 @@ private:
     bool ClkDisableEvent(const MessageLite& event) const;
     bool IrqHandlerEntryEvent(const MessageLite& event) const;
     bool IrqHandlerExitEvent(const MessageLite& event) const;
+    bool IpiHandlerEntryEvent(const MessageLite& event) const;
+    bool IpiHandlerExitEvent(const MessageLite& event) const;
     bool SoftIrqEntryEvent(const MessageLite& event) const;
     bool SoftIrqRaiseEvent(const MessageLite& event) const;
     bool SoftIrqExitEvent(const MessageLite& event) const;

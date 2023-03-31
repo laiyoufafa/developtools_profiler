@@ -105,6 +105,9 @@ enum SupportedTraceEventType {
     TRACE_EVENT_EBPF_BIO_LATENCY,
     TRACE_HISYSEVENT,
     TRACE_SMAPS,
+    TRACE_VSYNC,
+    TRACE_ONVSYNC,
+    TRACE_FRAMEQUEUE,
     TRACE_EVENT_OTHER,
     TRACE_EVENT_MAX
 };
@@ -261,6 +264,9 @@ private:
     const std::string TRACE_ACTION_EBPF_BIO_LATENCY = "trace_ebpf_bio_latency";
     const std::string TRACE_ACTION_HISYS_EVENT = "trace_hisys_event";
     const std::string TRACE_ACTION_SMAPS = "trace_smaps";
+    const std::string TRACE_ACTION_VSYNC = "trace_vsync";
+    const std::string TRACE_ACTION_ONVSYNC = "trace_on_vsync";
+    const std::string TRACE_ACTION_FRAMEQUEUE = "trace_frame_queue";
     const std::string TRACE_ACTION_OTHER = "other";
 
     const std::string MEM_INFO_VM_SIZE_DESC = "mem.vm.size";

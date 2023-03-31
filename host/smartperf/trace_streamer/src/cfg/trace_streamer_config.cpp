@@ -172,6 +172,9 @@ void TraceStreamerConfig::InitEventNameMap()
                      {TRACE_NATIVE_HOOK_MMAP, TRACE_ACTION_NATIVE_HOOK_MMAP},
                      {TRACE_HISYSEVENT, TRACE_ACTION_HISYS_EVENT},
                      {TRACE_SMAPS, TRACE_ACTION_SMAPS},
+                     {TRACE_VSYNC, TRACE_ACTION_VSYNC},
+                     {TRACE_ONVSYNC, TRACE_ACTION_ONVSYNC},
+                     {TRACE_FRAMEQUEUE, TRACE_ACTION_FRAMEQUEUE},
                      {TRACE_NATIVE_HOOK_MUNMAP, TRACE_ACTION_NATIVE_HOOK_MUNMAP},
                      {TRACE_EVENT_EBPF, TRACE_ACTION_EBPF},
                      {TRACE_EVENT_EBPF_FILE_SYSTEM, TRACE_ACTION_EBPF_FILE_SYSTEM},
@@ -1135,6 +1138,36 @@ void TraceStreamerConfig::InitSecurityMap()
         },
         {
             TRACE_SMAPS,
+            {
+                {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},
+                {STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN},
+                {STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR},
+            },
+        },
+        {
+            TRACE_VSYNC,
+            {
+                {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},
+                {STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN},
+                {STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR},
+            },
+        },
+        {
+            TRACE_ONVSYNC,
+            {
+                {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},
+                {STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN},
+                {STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR},
+            },
+        },
+        {
+            TRACE_FRAMEQUEUE,
             {
                 {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
                 {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},

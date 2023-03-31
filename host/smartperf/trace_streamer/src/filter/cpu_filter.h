@@ -40,39 +40,47 @@ public:
 public:
     void InsertSwitchEvent(uint64_t ts,
                            uint64_t cpu,
-                           uint64_t prevPid,
+                           uint32_t prevPid,
                            uint64_t prevPior,
                            uint64_t prevState,
-                           uint64_t nextPid,
+                           uint32_t nextPid,
                            uint64_t nextPior);
-    bool InsertBlockedReasonEvent(uint64_t ts, uint64_t cpu, uint64_t iTid, bool iowait, DataIndex caller);
-    void InsertWakeupEvent(uint64_t ts, uint64_t internalTid);
-    bool InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint64_t pid);
-    bool InsertProcessFreeEvent(uint64_t ts, uint64_t pid);
+    bool InsertBlockedReasonEvent(uint64_t ts,
+                                  uint64_t cpu,
+                                  uint32_t iTid,
+                                  bool iowait,
+                                  DataIndex caller,
+                                  uint32_t delay);
+    void InsertWakeupEvent(uint64_t ts, uint32_t internalTid, bool isWaking = false);
+    bool InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint32_t pid);
+    bool InsertProcessFreeEvent(uint64_t ts, uint32_t pid);
     void Finish() const;
     void Clear();
+
 private:
-    void CheckWakeupEvent(uint64_t internalTid);
-    uint64_t RemberInternalTidInStateTable(uint64_t uid, uint64_t row, uint64_t state = TASK_INVALID);
-    uint64_t RowOfInternalTidInStateTable(uint64_t uid) const;
-    uint64_t StateOfInternalTidInStateTable(uint64_t uid) const;
+    void CheckWakeupEvent(uint32_t internalTid);
+    uint64_t RemberInternalTidInStateTable(uint32_t uid, uint64_t row, uint64_t state = TASK_INVALID);
+    uint64_t RowOfInternalTidInStateTable(uint32_t uid) const;
+    void ClearInternalTidInStateTable(uint32_t uid);
+    uint64_t StateOfInternalTidInStateTable(uint32_t uid) const;
     std::map<uint64_t, uint64_t> cpuToRowThreadState_ = {};
     typedef struct {
-        uint64_t iTid;
+        uint32_t iTid;
         uint64_t row;
     } RowPos;
     std::map<uint64_t, RowPos> cpuToRowSched_ = {};
 
     std::map<uint64_t, uint64_t> lastWakeUpMsg_ = {};
-    std::map<uint64_t, uint64_t> pidToSchedSliceRow = {};
+    std::map<uint32_t, uint64_t> pidToSchedSliceRow = {};
     struct TPthread {
         uint64_t row_;
         uint64_t state_;
     };
-    std::map<uint64_t, TPthread> internalTidToRowThreadState_ = {};
+    std::map<uint32_t, TPthread> internalTidToRowThreadState_ = {};
     const DataIndex ioWait_ = traceDataCache_->GetDataIndex("iowait");
     const DataIndex caller_ = traceDataCache_->GetDataIndex("caller");
     const DataIndex delay_ = traceDataCache_->GetDataIndex("delay");
+    std::map<uint64_t, uint64_t> toRunnableTid_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

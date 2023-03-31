@@ -32,6 +32,7 @@ class ArgsFilter;
 class IrqFilter;
 class SystemEventMeasureFilter;
 class HiSysEventMeasureFilter;
+class FrameFilter;
 #if WITH_PERF
 class PerfDataFilter;
 #endif
@@ -64,6 +65,7 @@ public:
     std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventSourceFilter_;
     std::unique_ptr<HiSysEventMeasureFilter> hiSysEventMeasureFilter_;
+    std::unique_ptr<FrameFilter> frameFilter_;
 #if WITH_PERF
     std::unique_ptr<PerfDataFilter> perfDataFilter_;
 #endif

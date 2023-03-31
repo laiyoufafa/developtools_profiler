@@ -18,6 +18,8 @@ if (use_wasm) {
 }
 if (use_wasm) {
   ohos_source_set("trace_streamer_builtin") {
+    subsystem_name = "trace_streamer"
+    part_name = "src"
     sources = []
     include_dirs = []
     deps = []
@@ -25,8 +27,13 @@ if (use_wasm) {
   }
 }
 ohos_source_set("lib") {
+  subsystem_name = "trace_streamer"
+  part_name = "lib"
   sources = [ "main.cpp" ]
-  deps = [ ":trace_streamer_source" ]
+  deps = [
+    ":trace_streamer_source",
+    "proto_reader:proto_reader",
+  ]
   include_dirs = [
     "base",
     "..",
@@ -39,9 +46,7 @@ ohos_source_set("lib") {
     "./",
     "parser",
     "cfg",
-    "parser/htrace_parser",
-    "parser/htrace_parser/htrace_event_parser",
-    "parser/htrace_parser/htrace_cpu_parser",
+    "proto_reader/include",
     "//third_party/sqlite/include",
     "//third_party/json-master/include",
     "//third_party/json-master/include/nlohmann",
@@ -58,6 +63,19 @@ ohos_source_set("lib") {
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
   ]
+  if (is_pbreader) {
+    include_dirs += [
+      "parser/htrace_pbreader_parser",
+      "parser/htrace_pbreader_parser/htrace_event_parser",
+      "parser/htrace_pbreader_parser/htrace_cpu_parser",
+    ]
+  } else {
+    include_dirs += [
+      "parser/htrace_parser",
+      "parser/htrace_parser/htrace_event_parser",
+      "parser/htrace_parser/htrace_cpu_parser",
+    ]
+  }
   if (with_perf) {
     include_dirs += [
       "parser/hiperf_parser",
@@ -69,6 +87,8 @@ ohos_source_set("lib") {
   public_deps = []
 }
 ohos_source_set("trace_streamer_source") {
+  subsystem_name = "trace_streamer"
+  part_name = "trace_streamer_source"
   sources = [
     "cfg/trace_streamer_config.cpp",
     "cfg/trace_streamer_config.h",
@@ -92,9 +112,7 @@ ohos_source_set("trace_streamer_source") {
     "./",
     "parser",
     "cfg",
-    "parser/htrace_parser",
-    "parser/htrace_parser/htrace_event_parser",
-    "parser/htrace_parser/htrace_cpu_parser",
+    "proto_reader/include",
     "parser/ebpf_parser",
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
@@ -119,6 +137,19 @@ ohos_source_set("trace_streamer_source") {
   }
   if (is_test) {
     include_dirs += [ "../prebuilts/emsdk/emsdk/emscripten/system/include" ]
+  }
+  if (is_pbreader) {
+    include_dirs += [
+      "parser/htrace_pbreader_parser",
+      "parser/htrace_pbreader_parser/htrace_event_parser",
+      "parser/htrace_pbreader_parser/htrace_cpu_parser",
+    ]
+  } else {
+    include_dirs += [
+      "parser/htrace_parser",
+      "parser/htrace_parser/htrace_event_parser",
+      "parser/htrace_parser/htrace_cpu_parser",
+    ]
   }
   include_dirs += [
     "//third_party/libunwind/include",

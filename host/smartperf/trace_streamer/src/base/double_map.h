@@ -18,7 +18,7 @@
 
 #include <map>
 
-template<class T1, class T2, class T3>
+template <class T1, class T2, class T3>
 class DoubleMap {
 public:
     DoubleMap(T3 invalidValue)
@@ -40,9 +40,7 @@ public:
                 (*streamIdHookidMap).second.at(t2) = t3;
             }
         } else {
-            std::map<T2, T3> mm = {
-                {t2, t3}
-            };
+            std::map<T2, T3> mm = {{t2, t3}};
             internalMap_.insert(std::make_pair(t1, mm));
         }
     }

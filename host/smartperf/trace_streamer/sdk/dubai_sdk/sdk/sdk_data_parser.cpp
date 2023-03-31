@@ -39,9 +39,8 @@ SDKDataParser::SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilte
 {
 }
 
-int SDKDataParser::GetPluginName(const uint8_t* data, int len)
+int SDKDataParser::GetPluginName(std::string pluginName)
 {
-    std::string pluginName(reinterpret_cast<const char*>(data), len);
     pluginName.replace(pluginName.find("-"), 1, "_");
     counterTableName_ = pluginName + "_" + "counter_table";
     counterObjectTableName_ = pluginName + "_" + "counterobj_table";

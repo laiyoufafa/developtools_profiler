@@ -309,6 +309,19 @@ DataSourceClockIdData* TraceDataCacheWriter::GetDataSourceClockIdData()
 {
     return &dataSourceClockIdData_;
 }
+FrameSlice* TraceDataCacheWriter::GetFrameSliceData()
+{
+    return &frameSliceData_;
+}
+FrameMaps* TraceDataCacheWriter::GetFrameMapsData()
+{
+    return &frameMapsData_;
+}
+
+GPUSlice* TraceDataCacheWriter::GetGPUSliceData()
+{
+    return &gpuSliceData_;
+}
 void TraceDataCacheWriter::Clear()
 {
     rawData_.Clear();

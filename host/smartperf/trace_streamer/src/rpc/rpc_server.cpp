@@ -66,7 +66,7 @@ int RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len
     std::string thirdPartyConfig = reinterpret_cast<const char*>(data);
     TS_LOGE("thirdPartyConfig = %s", thirdPartyConfig.c_str());
     int size = thirdPartyConfig.size();
-    std::vector<std::string> vTraceRangeStr;
+    std::vector<std::string> comPonentStr;
     for (int i = 0, pos = 0; i < size; i++) {
         pos = thirdPartyConfig.find(";", i);
         if (pos == std::string::npos) {
@@ -74,19 +74,19 @@ int RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len
         }
         if (pos < size) {
             std::string s = thirdPartyConfig.substr(i, pos - i);
-            vTraceRangeStr.push_back(s);
+            comPonentStr.push_back(s);
             i = pos;
         }
     }
     const int EVENT_COUNT_PAIR = 2;
-    if (vTraceRangeStr.size() % EVENT_COUNT_PAIR != 0) {
+    if (comPonentStr.size() % EVENT_COUNT_PAIR != 0) {
         TS_LOGE("thirdPartyConfig is wrong!");
         return -1;
     }
-    for (int m = 0; m < vTraceRangeStr.size(); m += EVENT_COUNT_PAIR) {
-        int componentId = std::stoi(vTraceRangeStr.at(m));
-        std::string componentName = vTraceRangeStr.at(m + 1);
-        TS_LOGE("vTraceRangeStr[m] = %d, vTraceRangeStr[m + 1] = %s", componentId, componentName.c_str());
+    for (int m = 0; m < comPonentStr.size(); m += EVENT_COUNT_PAIR) {
+        int componentId = std::stoi(comPonentStr.at(m));
+        std::string componentName = comPonentStr.at(m + 1);
+        TS_LOGE("comPonentStr[m] = %d, comPonentStr[m + 1] = %s", componentId, componentName.c_str());
         g_thirdPartyConfig.insert((std::map<int, std::string>::value_type(componentId, componentName)));
     }
     return 0;
@@ -171,8 +171,7 @@ int RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int o
 {
     ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
-    TS_LOGI("WASM RPC SqlQuery out(%p:%d) sql(%zu:%s)", reinterpret_cast<void*>(out), outLen,
-        len, sql.c_str());
+    TS_LOGI("WASM RPC SqlQuery outlen(%d) sql(%zu:%s)", outLen, len, sql.c_str());
 
     int ret = ts_->SearchDatabase(sql, out, outLen);
     return ret;
@@ -185,6 +184,11 @@ int RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultC
 
     int ret = ts_->SearchDatabase(sql, callback);
     return ret;
+}
+
+int RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
+{
+    return ts_->ExportDatabase("default.db", resultCallBack);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

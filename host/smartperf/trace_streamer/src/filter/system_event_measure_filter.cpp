@@ -32,7 +32,14 @@ SystemEventMeasureFilter::~SystemEventMeasureFilter() {}
 void SystemEventMeasureFilter::AppendNewMeasureData(DataIndex nameIndex, uint64_t timestamp, int64_t value)
 {
     auto filterId = GetOrCreateFilterId(nameIndex);
-    traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+    auto row = traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+    //if the filterId ever exists
+    if (filterIdToRow_.count(filterId)) {
+        traceDataCache_->GetSysMemMeasureData()->SetDur(filterIdToRow_.at(filterId), timestamp);
+        filterIdToRow_.at(filterId) = row;
+    } else {
+        filterIdToRow_.insert(std::make_pair(filterId, row));
+    }
 }
 uint32_t SystemEventMeasureFilter::AppendNewMeasureFilter(DataIndex nameIndex)
 {

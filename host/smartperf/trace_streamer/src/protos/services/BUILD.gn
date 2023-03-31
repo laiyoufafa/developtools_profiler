@@ -65,7 +65,7 @@ config("service_types_proto_config") {
   include_dirs = [ "$proto_out_dir" ]
 }
 
-ohos_source_set("service_types_proto") {
+source_set("service_types_proto") {
   deps = [ ":service_types_proto_gen" ]
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
@@ -76,7 +76,7 @@ ohos_source_set("service_types_proto") {
   sources = proto_types_codegen
 }
 
-ohos_source_set("service_types_proto_static") {
+source_set("service_types_proto_static") {
   deps = [ ":service_types_proto_gen" ]
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite_static",
@@ -125,7 +125,7 @@ config("profiler_services_proto_config") {
   include_dirs = [ "$proto_out_dir" ]
 }
 
-ohos_source_set("profiler_services_proto") {
+source_set("profiler_services_proto") {
   deps = [
     ":profiler_services_proto_gen",
     ":service_types_proto",
@@ -179,7 +179,7 @@ config("plugin_services_proto_config") {
   include_dirs = [ "$proto_out_dir" ]
 }
 
-ohos_source_set("plugin_services_proto") {
+source_set("plugin_services_proto") {
   deps = [
     ":plugin_services_proto_gen",
     ":service_types_proto",
@@ -197,7 +197,7 @@ ohos_source_set("plugin_services_proto") {
   sources = plugin_services_codegen
 }
 
-ohos_source_set("plugin_services_proto_static") {
+source_set("plugin_services_proto_static") {
   deps = [
     ":plugin_services_proto_gen",
     ":service_types_proto_static",
@@ -216,7 +216,7 @@ ohos_source_set("plugin_services_proto_static") {
 }
 
 #######################################################
-ohos_source_set("proto_services_cpp") {
+source_set("proto_services_cpp") {
   public_deps = [
     ":plugin_services_proto",
     ":profiler_services_proto",

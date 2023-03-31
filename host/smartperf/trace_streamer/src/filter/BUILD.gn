@@ -15,6 +15,8 @@ import("//build/ohos.gni")
 import("//src/ts.gni")
 
 ohos_source_set("filter") {
+  subsystem_name = "trace_streamer"
+  part_name = "trace_streamer_filter"
   sources = [
     "args_filter.cpp",
     "args_filter.h",
@@ -27,6 +29,8 @@ ohos_source_set("filter") {
     "filter_base.h",
     "filter_filter.cpp",
     "filter_filter.h",
+    "frame_filter.cpp",
+    "frame_filter.h",
     "hi_sysevent_measure_filter.cpp",
     "hi_sysevent_measure_filter.h",
     "irq_filter.cpp",

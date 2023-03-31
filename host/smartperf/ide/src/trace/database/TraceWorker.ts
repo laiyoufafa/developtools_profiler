@@ -91,7 +91,7 @@ let convertJSON = ()=>{
     str = str.substring(str.indexOf("\n") + 1);
     if (!str) {
     }else{
-        let parse = JSON.parse(str);
+        let parse = JSON.parse(translateJsonString(str));
         let columns = parse.columns;
         let values = parse.values;
         for (let i = 0; i < values.length; i++) {
@@ -148,10 +148,10 @@ self.onmessage = async (e: MessageEvent) => {
                         importScripts(config.wasmJsName)
                         let thirdMode = initThirdWASM(config.wasmName)
                         let configPluginName = config.pluginName
-                        let pluginNamePtr = thirdMode._malloc(configPluginName.length);
                         let pluginNameUintArray = enc.encode(configPluginName);
-                        thirdMode.HEAPU8.set(pluginNameUintArray, pluginNamePtr);
-                        thirdMode._TraceStreamer_In_PluginName(pluginNamePtr, configPluginName.length)
+                        let pluginNameBuffer = thirdMode._InitPluginName(pluginNameUintArray.length)
+                        thirdMode.HEAPU8.set(pluginNameUintArray, pluginNameBuffer);
+                        thirdMode._TraceStreamerGetPluginNameEx(configPluginName.length)
                         let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
                             if (isConfig == 1) {
                                 let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
@@ -242,6 +242,31 @@ self.onmessage = async (e: MessageEvent) => {
             let msg = {id: me.data.id,action:me.data.action, results: arr.buffer}
             port.postMessage(msg, [arr.buffer]);
         }
+    } else if (e.data.action == "download-db") {
+        let bufferSliceUint:Array<any> = [];
+        let mergedUint = ()=>{
+            let length = 0;
+            bufferSliceUint.forEach(item => {
+                length += item.length;
+            });
+            let mergedArray = new Uint8Array(length);
+            let offset = 0;
+            bufferSliceUint.forEach(item => {
+                mergedArray.set(item, offset);
+                offset += item.length;
+            });
+            return mergedArray;
+        }
+        let getDownloadDb = (heapPtr:number,size:number,isEnd:number) => {
+            let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+            bufferSliceUint.push(out);
+            if (isEnd == 1) {
+                let arr:Uint8Array = mergedUint()
+                self.postMessage({id: e.data.id, action: e.data.action, results: arr});
+            }
+        }
+        let fn1 = Module.addFunction(getDownloadDb,"viii")
+        Module._WasmExportDatabase(fn1)
     }
 }
 

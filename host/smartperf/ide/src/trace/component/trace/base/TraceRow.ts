@@ -49,6 +49,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     static ROW_TYPE_FPS = "fps"
     static ROW_TYPE_NATIVE_MEMORY = "native-memory"
     static ROW_TYPE_HIPERF = "hiperf"
+    static ROW_TYPE_DELIVER_INPUT_EVENT = "DeliverInputEvent"
     static ROW_TYPE_HIPERF_CPU = "hiperf-cpu"
     static ROW_TYPE_HIPERF_PROCESS = "hiperf-process"
     static ROW_TYPE_HIPERF_THREAD = "hiperf-thread"
@@ -81,6 +82,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     static ROW_TYPE_CLOCK = "clock"
     static ROW_TYPE_IRQ_GROUP = "irq-group"
     static ROW_TYPE_IRQ = "irq"
+    static ROW_TYPE_JANK = "janks"
     static range: TimeRange | undefined | null;
     static rangeSelectObject: RangeSelectStruct | undefined
     public obj: TraceRowObject<any> | undefined | null;
@@ -186,17 +188,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this._rangeSelect = value;
     }
 
-    get sleeping(): boolean {
-        return this.hasAttribute("sleeping");
-    }
-
-    set sleeping(value: boolean) {
-        if (value) {
-            this.setAttribute("sleeping", "")
-        } else {
-            this.removeAttribute("sleeping")
-        }
-    }
+    sleeping:boolean = false
 
     get rowType(): string | undefined | null {
         return this.getAttribute("row-type");
@@ -260,7 +252,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         } else {
             this.removeAttribute('expansion')
         }
+        const fragment = document.createDocumentFragment()
+        let node;
         this.parentElement?.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.rowId}']`).forEach(it => {
+            node = it
+            fragment.appendChild(node)
+        })
+        Array.prototype.slice.call(fragment.childNodes).forEach(it => {
             if (!it.collect) {
                 it.rowHidden = !this.expansion;
             }
@@ -268,6 +266,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 it.expansion = value;
             }
         })
+        this.insertAfter(fragment,this)
         this.dispatchEvent(new CustomEvent("expansion-change", {
             detail: {
                 expansion: this.expansion,
@@ -276,6 +275,15 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 rowParentId: this.rowParentId
             }
         }))
+    }
+
+    insertAfter(newEl: DocumentFragment, targetEl: HTMLElement) {
+        let parentEl = targetEl.parentNode;
+        if (parentEl!.lastChild == targetEl) {
+            parentEl!.appendChild(newEl);
+        } else {
+            parentEl!.insertBefore(newEl, targetEl.nextSibling);
+        }
     }
 
     set tip(value: string) {
@@ -396,7 +404,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 let canvas = document.createElement('canvas');
                 canvas.className = "panel";
                 this.canvas.push(canvas);
-                this.canvasContainer!.appendChild(canvas);
+                if(this.canvasContainer){
+                    this.canvasContainer.appendChild(canvas);
+                }
             }
         }
         this.describeEl?.addEventListener('click', () => {
@@ -703,6 +713,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                             if (this.onComplete) {
                                 this.onComplete();
                             }
+                            window.publish(window.SmartEvent.UI.TraceRowComplete, this);
                             this.isComplete = true;
                             this.isLoading = false;
                             this.draw(false);

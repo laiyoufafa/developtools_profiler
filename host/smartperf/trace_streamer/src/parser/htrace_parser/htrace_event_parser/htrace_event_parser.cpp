@@ -18,6 +18,7 @@
 #include "binder.pb.h"
 #include "clock_filter.h"
 #include "cpu_filter.h"
+#include "ipi.pb.h"
 #include "irq_filter.h"
 #include "irq.pb.h"
 #include "log.h"
@@ -95,6 +96,10 @@ HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStrea
                             std::bind(&HtraceEventParser::IrqHandlerEntryEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
                             std::bind(&HtraceEventParser::IrqHandlerExitEvent, this, std::placeholders::_1)},
+                           {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
+                            std::bind(&HtraceEventParser::IpiHandlerEntryEvent, this, std::placeholders::_1)},
+                           {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
+                            std::bind(&HtraceEventParser::IpiHandlerExitEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
                             std::bind(&HtraceEventParser::SoftIrqEntryEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
@@ -130,7 +135,7 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
             lastOverwrite_ = cpuDetail->overwrite();
         }
         if (lastOverwrite_ != cpuDetail->overwrite()) {
-            TS_LOGW("lost events:%lu", cpuDetail->overwrite() - lastOverwrite_);
+            TS_LOGW("lost events:%llu", cpuDetail->overwrite() - lastOverwrite_);
             lastOverwrite_ = cpuDetail->overwrite();
         }
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
@@ -349,7 +354,7 @@ bool HtraceEventParser::SchedBlockReasonEvent(const MessageLite& event)
     auto caller = traceDataCache_->GetDataIndex(
         std::string_view("0x" + SysTuning::base::number(msg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX)));
     auto itid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, pid);
-    if (!streamFilters_->cpuFilter_->InsertBlockedReasonEvent(eventTimestamp_, eventCpu_, itid, ioWait, caller)) {
+    if (!streamFilters_->cpuFilter_->InsertBlockedReasonEvent(eventTimestamp_, eventCpu_, itid, ioWait, caller, INVALID_UINT32)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
     }
     return true;
@@ -402,7 +407,11 @@ bool HtraceEventParser::ParsePrintEvent(const MessageLite& event)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PRINT, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const PrintFormat&>(event);
-    printEventParser_.ParsePrintEvent(comm_, eventTimestamp_, eventTid_, msg.buf().c_str());
+    BytraceLine line;
+    line.tgid = eventPid_;
+    line.pid = eventTid_;
+    line.ts = eventTimestamp_;
+    printEventParser_.ParsePrintEvent(comm_, eventTimestamp_, eventTid_, msg.buf().c_str(), line);
     if (!tids_.count(eventTid_)) {
         tids_.insert(eventTid_);
     }
@@ -417,10 +426,11 @@ bool HtraceEventParser::SchedWakeupEvent(const MessageLite& event) const
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
     InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
     instants->AppendInstantEventData(eventTimestamp_, schedWakeupName_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKEUP, targetCpu.value(),
-                                                     internalTid);
+                                                     wakeupFromPid);
     } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_DATA_INVALID);
     }
@@ -432,13 +442,14 @@ bool HtraceEventParser::SchedWakeupNewEvent(const MessageLite& event) const
     const auto msg = static_cast<const SchedWakeupNewFormat&>(event);
     auto instants = traceDataCache_->GetInstantsData();
 
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
-    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
+    auto internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
+    auto wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
     instants->AppendInstantEventData(eventTimestamp_, schedWakeupNewName_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKEUP, targetCpu.value(),
-                                                     internalTid);
+                                                     wakeupFromPid);
     } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP_NEW, STAT_EVENT_DATA_INVALID);
     }
@@ -455,11 +466,11 @@ bool HtraceEventParser::SchedWakingEvent(const MessageLite& event) const
         return false;
     }
     auto instants = traceDataCache_->GetInstantsData();
-    InternalTid internalTid =
+    auto internalTid =
         streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, wakePidValue.value());
-    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
+    auto wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid, true);
     instants->AppendInstantEventData(eventTimestamp_, schedWakingName_, internalTid, wakeupFromPid);
-    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKING, targetCpu.value(),
@@ -631,7 +642,21 @@ bool HtraceEventParser::IrqHandlerExitEvent(const MessageLite& event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_EXIT, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const IrqHandlerExitFormat&>(event);
-    streamFilters_->irqFilter_->IrqHandlerExit(eventTimestamp_, eventCpu_, static_cast<uint32_t>(msg.ret()));
+    streamFilters_->irqFilter_->IrqHandlerExit(eventTimestamp_, eventCpu_, msg.irq(), static_cast<uint32_t>(msg.ret()));
+    return true;
+}
+bool HtraceEventParser::IpiHandlerEntryEvent(const MessageLite& event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_ENTRY, STAT_EVENT_RECEIVED);
+    const auto msg = static_cast<const IpiEntryFormat&>(event);
+    auto name = std::string_view(msg.reason());
+    streamFilters_->irqFilter_->IpiHandlerEntry(eventTimestamp_, eventCpu_, traceDataCache_->GetDataIndex(name));
+    return true;
+}
+bool HtraceEventParser::IpiHandlerExitEvent(const MessageLite& event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_EXIT, STAT_EVENT_RECEIVED);
+    streamFilters_->irqFilter_->IpiHandlerExit(eventTimestamp_, eventCpu_);
     return true;
 }
 bool HtraceEventParser::SoftIrqEntryEvent(const MessageLite& event) const
@@ -767,7 +792,7 @@ void HtraceEventParser::FilterAllEvents()
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
 }
-void HtraceEventParser::Clear() const
+void HtraceEventParser::Clear()
 {
     streamFilters_->binderFilter_->Clear();
     streamFilters_->sliceFilter_->Clear();
@@ -786,6 +811,7 @@ void HtraceEventParser::Clear() const
     streamFilters_->binderFilter_->Clear();
     streamFilters_->sysEventMemMeasureFilter_->Clear();
     streamFilters_->sysEventVMemMeasureFilter_->Clear();
+    printEventParser_.Finish();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

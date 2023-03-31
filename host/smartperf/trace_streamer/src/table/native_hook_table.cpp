@@ -175,7 +175,7 @@ int NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), nativeHookObj_.Itids());
                 break;
             case CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
                                     nativeHookObj_.CallChainIds());
                 break;
             default:
@@ -205,7 +205,11 @@ int NativeHookTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.CallChainIds()[CurrentRow()]));
+            if (nativeHookObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case IPID:
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.Ipids()[CurrentRow()]));

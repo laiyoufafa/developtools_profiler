@@ -25,9 +25,9 @@
 #include "clock_snapshot_table.h"
 #include "cpu_measure_filter_table.h"
 #include "cpu_usage_info_table.h"
-#include "datasource_clockid_table.h"
 #include "data_dict_table.h"
 #include "data_type_table.h"
+#include "datasource_clockid_table.h"
 #include "device_state_table.h"
 #include "disk_io_table.h"
 #include "ebpf_callstack_table.h"
@@ -38,8 +38,10 @@
 #endif
 #include "file_system_sample_table.h"
 #include "filter_table.h"
+#include "frame_maps_table.h"
+#include "frame_slice_table.h"
+#include "gpu_slice_table.h"
 #include "hidump_table.h"
-#include "trace_config_table.h"
 #include "instants_table.h"
 #include "irq_table.h"
 #include "live_process_table.h"
@@ -48,15 +50,16 @@
 #include "measure_table.h"
 #include "meta_table.h"
 #include "native_hook_frame_table.h"
+#include "native_hook_statistic_table.h"
 #include "native_hook_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
 #if WITH_PERF
 #include "perf_call_chain_table.h"
 #include "perf_files_table.h"
+#include "perf_report_table.h"
 #include "perf_sample_table.h"
 #include "perf_thread_table.h"
-#include "perf_report_table.h"
 #endif
 #include "process_filter_table.h"
 #include "process_measure_filter_table.h"
@@ -75,6 +78,7 @@
 #include "thread_filter_table.h"
 #include "thread_state_table.h"
 #include "thread_table.h"
+#include "trace_config_table.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -107,6 +111,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<HidumpTable>(*db_, this, "hidump");
     TableBase::TableDeclare<NativeHookTable>(*db_, this, "native_hook");
     TableBase::TableDeclare<NativeHookFrameTable>(*db_, this, "native_hook_frame");
+    TableBase::TableDeclare<NativeHookStatisticTable>(*db_, this, "native_hook_statistic");
     TableBase::TableDeclare<SpanJoin>(*db_, this, "span_join");
 
     // no id
@@ -149,6 +154,9 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "bio_latency_sample");
     TableBase::TableDeclare<DataSourceClockIdTableTable>(*db_, this, "datasource_clockid");
     TableBase::TableDeclare<ClockSnapShotTable>(*db_, this, "clock_snapshot");
+    TableBase::TableDeclare<FrameSliceTable>(*db_, this, "frame_slice");
+    TableBase::TableDeclare<FrameMapsTable>(*db_, this, "frame_maps");
+    TableBase::TableDeclare<GPUSliceTable>(*db_, this, "gpu_slice");
 
 #if WITH_PERF
     TableBase::TableDeclare<PerfReportTable>(*db_, this, "perf_report");
@@ -174,6 +182,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<HidumpTable>(*db_, this, "_hidump");
     TableBase::TableDeclare<NativeHookTable>(*db_, this, "_native_hook");
     TableBase::TableDeclare<NativeHookFrameTable>(*db_, this, "_native_hook_frame");
+    TableBase::TableDeclare<NativeHookStatisticTable>(*db_, this, "_native_hook_statistic");
     TableBase::TableDeclare<SpanJoin>(*db_, this, "_span_join");
 
     // no id
@@ -206,6 +215,9 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "_bio_latency_sample");
     TableBase::TableDeclare<DataSourceClockIdTableTable>(*db_, this, "_datasource_clockid");
     TableBase::TableDeclare<ClockSnapShotTable>(*db_, this, "_clock_snapshot");
+    TableBase::TableDeclare<FrameSliceTable>(*db_, this, "_frame_slice");
+    TableBase::TableDeclare<FrameMapsTable>(*db_, this, "_frame_maps");
+    TableBase::TableDeclare<GPUSliceTable>(*db_, this, "_gpu_slice");
 #if WITH_EBPF_HELP
     TableBase::TableDeclare<EbpfProcessMapsTable>(*db_, this, "_ebpf_process_maps");
     TableBase::TableDeclare<EbpfElfTable>(*db_, this, "_ebpf_elf");

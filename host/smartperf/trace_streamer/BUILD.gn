@@ -20,6 +20,8 @@ group("trace_streamer") {
     testonly = true
   } else if (is_protoc) {
     deps = [ "//third_party/protobuf:protoc" ]
+  } else if (is_spb) {
+    deps = [ "src/proto_reader/protoc_plugin:protoreader_plugin" ]
   } else if (is_sdkdemo) {
     deps = [ "sdk/demo_sdk:trace_streamer_sdk_builtin" ]
   } else if (is_dubai_sdk) {
@@ -28,6 +30,10 @@ group("trace_streamer") {
     deps = [ "sdk/test:sdkunittest" ]
   } else if (use_wasm) {
     deps = [ "src:trace_streamer_builtin" ]
+  } else if (use_wasmpb) {
+    deps = [ "src:trace_streamer_builtin" ]
+  } else if (is_pbreader) {
+    deps = [ "src:trace_streamer" ]
   } else {
     deps = [ "src:trace_streamer" ]
   }

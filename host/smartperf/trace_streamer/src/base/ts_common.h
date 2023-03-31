@@ -16,20 +16,22 @@
 #ifndef SRC_TRACE_BASE_TS_COMMON_H
 #define SRC_TRACE_BASE_TS_COMMON_H
 
+#include <cstdint>
 #include <limits>
 #include <map>
-#include <cstdint>
 #include <string>
 
 const uint64_t INVALID_UTID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint64_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
 const uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
+const uint32_t INVALID_UINT8 = std::numeric_limits<uint8_t>::max();
 const uint32_t INVALID_UINT16 = std::numeric_limits<uint16_t>::max();
 const uint32_t INVALID_UINT32 = std::numeric_limits<uint32_t>::max();
 const uint32_t INVALID_INT32 = std::numeric_limits<int32_t>::max();
 const int64_t INVALID_INT64 = std::numeric_limits<int64_t>::max();
 const uint64_t INVALID_DATAINDEX = std::numeric_limits<uint64_t>::max();
+const uint64_t INVALID_CALL_CHAIN_ID = std::numeric_limits<uint64_t>::max();
 const size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
@@ -86,22 +88,38 @@ enum EndState {
     TASK_TRACED_KILL = 136,
     // (W) The process is in a deep sleep state and will be killed directly after waking up
     TASK_WAKEKILL = 256,
+    TASK_PARKED = 512,
     // (R+) Process groups in the foreground
     TASK_FOREGROUND = 2048,
     TASK_MAX = 4096,
     TASK_INVALID = 9999
 };
 enum TSLogLevel {
-    TS_DEBUG = 68, // Debug
-    TS_ERROR = 69, // Error
-    TS_INFO = 73, // Info
+    TS_DEBUG = 68,   // Debug
+    TS_ERROR = 69,   // Error
+    TS_INFO = 73,    // Info
     TS_VERBOSE = 86, // Verbose
-    TS_WARN = 87 // Warn
+    TS_WARN = 87     // Warn
 };
 enum SchedWakeType {
     SCHED_WAKING = 0, // sched_waking
     SCHED_WAKEUP = 1, // sched_wakeup
 };
+#if IS_PBREADER
+enum DataSourceType {
+    DATA_SOURCE_TYPE_TRACE,
+    DATA_SOURCE_TYPE_MEM,
+    DATA_SOURCE_TYPE_HILOG,
+    DATA_SOURCE_TYPE_NATIVEHOOK,
+    DATA_SOURCE_TYPE_FPS,
+    DATA_SOURCE_TYPE_NETWORK,
+    DATA_SOURCE_TYPE_DISKIO,
+    DATA_SOURCE_TYPE_CPU,
+    DATA_SOURCE_TYPE_PROCESS,
+    DATA_SOURCE_TYPE_HISYSEVENT,
+    DATA_SOURCE_TYPE_HISYSEVENT_CONFIG
+};
+#else
 enum DataSourceType {
     DATA_SOURCE_TYPE_TRACE,
     DATA_SOURCE_TYPE_MEM,
@@ -115,6 +133,7 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_HISYSEVENT,
     DATA_SOURCE_TYPE_HISYSEVENT_CONFIG
 };
+#endif
 using DataIndex = uint64_t;
 using TableRowId = int32_t;
 using InternalPid = uint32_t;
@@ -123,12 +142,7 @@ using InternalTime = uint64_t;
 using FilterId = uint32_t;
 using InternalCpu = uint32_t; // how many cpus? could change to int8_t?
 
-enum BaseDataType {
-    BASE_DATA_TYPE_INT,
-    BASE_DATA_TYPE_STRING,
-    BASE_DATA_TYPE_DOUBLE,
-    BASE_DATA_TYPE_BOOLEAN
-};
+enum BaseDataType { BASE_DATA_TYPE_INT, BASE_DATA_TYPE_STRING, BASE_DATA_TYPE_DOUBLE, BASE_DATA_TYPE_BOOLEAN };
 namespace SysTuning {
 namespace TraceStreamer {
 struct ArgsData {

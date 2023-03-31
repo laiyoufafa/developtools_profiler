@@ -18,7 +18,7 @@
 
 #include "triple_map.h"
 
-template<class T1, class T2, class T3, class T4, class T5>
+template <class T1, class T2, class T3, class T4, class T5>
 class QuatraMap {
 public:
     QuatraMap(T5 invalidValue)

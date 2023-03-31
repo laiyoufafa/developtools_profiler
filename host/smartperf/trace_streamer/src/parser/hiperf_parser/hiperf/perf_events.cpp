@@ -1298,13 +1298,12 @@ void PerfEvents::GetRecordFieldFromMmap(MmapFd &mmap, void *dest, size_t pos, si
     size_t tailSize = mmap.bufSize - pos;
     size_t copySize = std::min(size, tailSize);
     if (memcpy_s(dest, copySize, mmap.buf + pos, copySize) != 0) {
-        HLOGEP("memcpy_s %p to %p failed. size %zd", mmap.buf + pos, dest, copySize);
+        HLOGEP("memcpy_s failed. size %zd", copySize);
     }
     if (copySize < size) {
         size -= copySize;
-        if (memcpy_s(static_cast<uint8_t *>(dest) + copySize, size, mmap.buf, size) != 0) {
-            HLOGEP("memcpy_s %p to %p failed. size %zd", mmap.buf,
-                   static_cast<uint8_t *>(dest) + copySize, size);
+        if (memcpy_s(static_cast<uint8_t*>(dest) + copySize, size, mmap.buf, size) != 0) {
+            HLOGEP("memcpy_s failed. size %zd", size);
         }
     }
 }
@@ -1383,8 +1382,7 @@ bool PerfEvents::CutStackAndMove(MmapFd &mmap)
     uint8_t *buf = recordBuf_->AllocForWrite(mmap.header.size);
     // copy1: new_header
     if (memcpy_s(buf, sizeof(perf_event_header), &(mmap.header), sizeof(perf_event_header)) != 0) {
-        HLOGEP("memcpy_s %p to %p failed. size %zd", &(mmap.header), buf,
-               sizeof(perf_event_header));
+        HLOGEP("memcpy_s failed. size %zd", sizeof(perf_event_header));
     }
     size_t copyPos = sizeof(perf_event_header);
     size_t copySize = stackSizePos - sizeof(perf_event_header) + sizeof(stackSize) + newStackSize;
@@ -1396,7 +1394,7 @@ bool PerfEvents::CutStackAndMove(MmapFd &mmap)
                            recordSize - dynSizePos);
     // update stack_size
     if (memcpy_s(buf + stackSizePos, sizeof(stackSize), &(newStackSize), sizeof(newStackSize)) != 0) {
-        HLOGEP("memcpy_s %p to %p failed. size %zd", &(newStackSize), buf + stackSizePos, sizeof(newStackSize));
+        HLOGEP("memcpy_s failed. size %zd", sizeof(newStackSize));
     }
     recordBuf_->EndWrite();
     __sync_synchronize();

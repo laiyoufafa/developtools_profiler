@@ -44,6 +44,7 @@ public:
                      const char* sliceTableName,
                      const char* sliceObjectName);
     int GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction);
+    int GetPluginName(std::string pluginName);
     int GetPluginName(const uint8_t* data, int len);
     int ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFunction);
     int ParserData(const uint8_t* data, int len, int componentId);

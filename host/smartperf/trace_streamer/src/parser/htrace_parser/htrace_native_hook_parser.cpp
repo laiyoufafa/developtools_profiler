@@ -22,7 +22,7 @@ HtraceNativeHookParser::HtraceNativeHookParser(TraceDataCache* dataCache, const 
     : HtracePluginTimeParser(dataCache, ctx),
       addrToAllocEventRow_(INVALID_UINT64),
       addrToMmapEventRow_(INVALID_UINT64),
-      frameToFrameId_(INVALID_UINT64)
+      frameToFrameId_(INVALID_UINT32)
 {
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/libc++.so"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libc++.so"));
@@ -192,7 +192,7 @@ void HtraceNativeHookParser::ParseFreeEvent(uint64_t newTimeStamp, const NativeH
         traceDataCache_->GetNativeHookData()->UpdateHeapDuration(row, newTimeStamp);
         freeHeapSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];
     } else if (row == INVALID_UINT64) {
-        TS_LOGW("func addr:%lu is empty", freeEvent.addr());
+        TS_LOGD("func addr:%lu is empty", freeEvent.addr());
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_DATA_INVALID);
         return;
     }
@@ -239,7 +239,7 @@ void HtraceNativeHookParser::ParseMunmapEvent(uint64_t newTimeStamp, const Nativ
         traceDataCache_->GetNativeHookData()->UpdateHeapDuration(row, newTimeStamp);
         effectiveMUnMapSize = static_cast<int64_t>(mUnMapEvent.size());
     } else if (row == INVALID_UINT64) {
-        TS_LOGW("func addr:%lu is empty", mUnMapEvent.addr());
+        TS_LOGD("func addr:%lu is empty", mUnMapEvent.addr());
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_DATA_INVALID);
         return;
     }
@@ -348,7 +348,7 @@ void HtraceNativeHookParser::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t ti
     }
     lastAnyEventRaw = row;
 }
-uint64_t HtraceNativeHookParser::ParseNativeHookFrame(const RepeatedPtrField<::Frame>& repeatedFrame)
+uint32_t HtraceNativeHookParser::ParseNativeHookFrame(const RepeatedPtrField<::Frame>& repeatedFrame)
 {
     // the callstack from nativehook of sourcedata is reverse order
     // we need to show the last frame firstly
@@ -376,14 +376,14 @@ uint64_t HtraceNativeHookParser::ParseNativeHookFrame(const RepeatedPtrField<::F
     }
 
     // Determine whether to write callstack data to cache
-    auto callChainId = INVALID_UINT64;
+    auto callChainId = INVALID_UINT32;
     bool callStackNotExist = false;
     auto size = callStackTemp.size();
     for (auto itor = callStackTemp.begin(); itor != callStackTemp.end(); itor++) {
         auto callstack = itor->get();
         auto ret = frameToFrameId_.Find(callstack->fileId_, callstack->symbolId_, callstack->depth_, size);
-        if (ret != INVALID_UINT64) { // find it
-            if (callChainId == INVALID_UINT64) {
+        if (ret != INVALID_UINT32) { // find it
+            if (callChainId == INVALID_UINT32) {
                 callChainId = ret;
             } else if (callChainId != ret) {
                 callStackNotExist = true;

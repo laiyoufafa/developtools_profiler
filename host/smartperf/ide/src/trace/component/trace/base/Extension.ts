@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+import {EventCenter} from "./EventCenter.js";
 
 declare global {
     interface Number {
@@ -26,6 +28,28 @@ declare global {
 
     interface HTMLElement {
         containPoint(ev: MouseEvent, cut?: { left?: number, right?: number, top?: number, bottom?: number }): boolean;
+    }
+
+    interface Window {
+        SmartEvent: {
+            UI: {
+                MenuTrace: string,//selected menu trace
+                RefreshCanvas: string,//selected menu trace
+                SliceMark: string,//Set the tag scope
+                TimeRange: string,//Set the timeline range
+                TraceRowComplete: string,//Triggered after the row component has finished loading data
+            }
+        }
+
+        subscribe(evt: string, fn: (b: any) => void): void;
+
+        subscribeOnce(evt: string, fn: (b: any) => void): void;
+
+        unsubscribe(evt: string, fn: (b: any) => void): void;
+
+        publish(evt: string, data: any): void;
+
+        clearTraceRowComplete(): void;
     }
 }
 
@@ -48,4 +72,18 @@ HTMLElement.prototype.containPoint = function (ev, cut) {
         && ev.pageY <= (rect.bottom - (cut?.bottom ?? 0));
 }
 
+window.SmartEvent = {
+    UI: {
+        MenuTrace: "SmartEvent-UI-MenuTrace",
+        RefreshCanvas: "SmartEvent-UI-RefreshCanvas",
+        SliceMark: "SmartEvent-UI-SliceMark",
+        TimeRange: "SmartEvent-UI-TimeRange",
+        TraceRowComplete: "SmartEvent-UI-TraceRowComplete",
+    }
+}
+Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn)
+Window.prototype.unsubscribe = (ev, fn) => EventCenter.unsubscribe(ev, fn)
+Window.prototype.publish = (ev, data) => EventCenter.publish(ev, data)
+Window.prototype.subscribeOnce = (ev, data) => EventCenter.subscribeOnce(ev, data)
+Window.prototype.clearTraceRowComplete = () => EventCenter.clearTraceRowComplete()
 export {};

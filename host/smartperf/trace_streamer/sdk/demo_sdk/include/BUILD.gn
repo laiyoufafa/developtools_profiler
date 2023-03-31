@@ -12,6 +12,8 @@
 # limitations under the License.
 import("//build/ohos.gni")
 ohos_source_set("ibase") {
+  subsystem_name = "trace_streamer"
+  part_name = "ibase"
   sources = [
     "codec_cov.h",
     "file.h",

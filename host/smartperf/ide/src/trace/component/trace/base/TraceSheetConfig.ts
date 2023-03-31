@@ -48,6 +48,7 @@ import {TabPaneSdkSlice} from "../sheet/sdk/TabPaneSdkSlice.js";
 import {TabPaneSdkCounter} from "../sheet/sdk/TabPaneSdkCounter.js";
 import {TabPaneCounterSample} from "../sheet/cpu/TabPaneCounterSample.js";
 import {TabPaneThreadStates} from "../sheet/process/TabPaneThreadStates.js";
+import {TabPaneThreadUsage} from "../sheet/process/TabPaneThreadUsage.js";
 import {TabPaneFrequencySample} from "../sheet/cpu/TabPaneFrequencySample.js";
 import {TabPaneEnergyAnomaly} from "../sheet/energy/TabPaneEnergyAnomaly.js";
 import {TabPaneSystemDetails} from "../sheet/energy/TabPaneSystemDetails.js";
@@ -66,6 +67,7 @@ import {TabPaneCpuFreqLimits} from "../sheet/freq/TabPaneCpuFreqLimits.js";
 import {TabpaneNMCalltree} from "../sheet/native-memory/TabPaneNMCallTree.js";
 import {TabPaneClockCounter} from "../sheet/clock/TabPaneClockCounter.js";
 import {TabPaneIrqCounter} from "../sheet/irq/TabPaneIrqCounter.js";
+import {TabPaneFrames} from "../sheet/jank/TabPaneFrames.js";
 
 export let tabConfig: any = {
     "current-selection": {
@@ -206,6 +208,10 @@ export let tabConfig: any = {
         title: "Thread States", type: TabPaneThreadStates,
         require: (param: SelectionParam) => param.threadIds.length > 0,
     },
+    "box-thread-usage": {
+        title: "Thread Usage", type: TabPaneThreadUsage,
+        require: (param: SelectionParam) => param.threadIds.length > 0,
+    },
     "box-frequency-sample": {
         title: "Cpu Frequency", type: TabPaneFrequencySample,
         require: (param: SelectionParam) => param.cpuFreqFilterIds.length > 0,
@@ -277,5 +283,9 @@ export let tabConfig: any = {
     "box-smaps-record": {
         title: "VM Tracker Record List", type: TabPaneSmapsRecord,
         require: (param: SelectionParam) => param.smapsType.length > 0,
+    },
+    "box-frames": {
+        title: "Frames", type: TabPaneFrames,
+        require: (param: SelectionParam) => param.jankFramesData.length > 0,
     },
 }

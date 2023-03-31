@@ -104,6 +104,15 @@ export class LitButton extends BaseElement {
         this.litIcon?.setAttribute("opacity", value);
     }
 
+    set hidden(hidden:boolean) {
+        if (hidden) {
+            this.setAttribute('hidden', 'true')
+            this.style.display = 'none'
+        } else {
+            this.removeAttribute('hidden')
+            this.style.display = 'block'
+        }
+    }
 
     initHtml(): string {
         return `
