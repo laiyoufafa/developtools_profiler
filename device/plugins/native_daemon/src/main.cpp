@@ -46,7 +46,7 @@ bool ProcessExist(std::string pid)
 
 bool ParseCommand(std::vector<std::string> args, HookData& hookData)
 {
-    std::vector<std::string>::size_type idx = 0;
+    size_t idx = 0;
     while (idx < args.size()) {
         if (args[idx] == "-o") {
             hookData.fileName = args[idx + 1].c_str();
