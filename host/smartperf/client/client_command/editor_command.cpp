@@ -14,6 +14,8 @@
  */
 #include "unistd.h"
 #include <thread>
+#include <cstdio>
+#include <cstring>
 #include "include/editor_command.h"
 #include "include/startup_delay.h"
 #include "include/parse_trace.h"
@@ -70,21 +72,29 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
     OHOS::SmartPerf::ParseTrace parseTrace;
     std::string cmdResult;
     int type = 4;
+    int typePKG = 3;
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
     SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
     sleep(1);
-    int position = cmdResult.find(":");
+    size_t position = cmdResult.find(":");
     std::string pathJson = cmdResult.substr(position + 1);
     sd.InitXY2(v[type], pathJson);
     std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
     std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
     std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
-    std::cout << "cmd:" << cmd << std::endl;
     sleep(1);
     SPUtils::LoadCmd(cmd, cmdResult);
+    std::string pid = sd.GetPidByPkg(v[typePKG]);
     thGetTrace.join();
-    float time = parseTrace.ParseTraceCold(traceName);
+    std::string deviceType = sd.GetDeviceType();
+    float time = 0.0;
+    if (deviceType == " rk3568") {
+        time = parseTrace.ParseTraceCold(traceName, pid);
+    } else {
+        time = parseTrace.ParseTraceNoah(traceName, pid);
+    }
+    
     return time;
 }
 float EditorCommand::HotStart()

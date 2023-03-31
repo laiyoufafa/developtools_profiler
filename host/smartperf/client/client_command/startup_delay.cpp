@@ -24,16 +24,16 @@ namespace OHOS {
 namespace SmartPerf {
 StartUpDelay::StartUpDelay() {}
 StartUpDelay::~StartUpDelay() {}
-void StartUpDelay::GetTrace(const std::string &sessionId, const std::string &traceName)
+void StartUpDelay::GetTrace(const std::string &sessionID, const std::string &traceName)
 {
     std::string result;
     std::string cmdString{"bytrace -t 5 -b 20480 --overwrite idle ace app ohos ability graphic "};
     std::string cmdStringEnd{"sched freq irq sync workq pagecache multimodalinput > "};
     SPUtils::LoadCmd(cmdString + cmdStringEnd + traceName, result);
 }
-std::thread StartUpDelay::ThreadGetTrace(const std::string &sessionId, const std::string &traceName)
+std::thread StartUpDelay::ThreadGetTrace(const std::string &sessionID, const std::string &traceName)
 {
-    std::thread thGetTrace(&StartUpDelay::GetTrace, this, sessionId, traceName);
+    std::thread thGetTrace(&StartUpDelay::GetTrace, this, sessionID, traceName);
     return thGetTrace;
 }
 void StartUpDelay::GetLayout()
@@ -49,15 +49,21 @@ std::thread StartUpDelay::ThreadGetLayout()
 void StartUpDelay::ChangeToBackground()
 {
     std::string result;
-    SPUtils::LoadCmd("uinput -k -d 2 -u 2", result);
+    SPUtils::LoadCmd("uinput -K -d 2 -u 2", result);
 }
-std::vector<std::string> StartUpDelay::GetPidByPkg(const std::string &curPkgName)
+std::string StartUpDelay::GetPidByPkg(const std::string &curPkgName)
 {
-    std::string resultPids;
-    SPUtils::LoadCmd("pidof" + curPkgName, resultPids);
-    std::vector<std::string> pidV;
-    SPUtils::StrSplit(resultPids, " ", pidV);
-    return pidV;
+    std::string resultPid;
+    SPUtils::LoadCmd("pidof " + curPkgName, resultPid);
+    return resultPid;
+}
+std::string StartUpDelay::GetDeviceType()
+{
+    std::string cmdResult;
+    SPUtils::LoadCmd("param get |grep ohos.boot.hardware", cmdResult);
+    size_t splitFlag = cmdResult.find("= ");
+    std::string deviceType = cmdResult.substr(splitFlag + 1);
+    return deviceType;
 }
 void StartUpDelay::InitXY2(const std::string &curAppName, const std::string &fileName)
 {
@@ -79,8 +85,8 @@ void StartUpDelay::InitXY2(const std::string &curAppName, const std::string &fil
                     iterStart = result[0].second;
                     pointVector.push_back(startX);
                 }
-                int num = 3;
-                int pointNum = pointVector.size();
+                size_t num = 3;
+                size_t pointNum = pointVector.size();
                 if (pointNum > num) {
                     int x = (std::atoi(pointVector[2].c_str()) + std::atoi(pointVector[0].c_str())) / 2;
                     int y = (std::atoi(pointVector[3].c_str()) + std::atoi(pointVector[1].c_str())) / 2;

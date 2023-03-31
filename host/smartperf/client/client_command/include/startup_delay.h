@@ -24,7 +24,8 @@ public:
     void GetLayout();
     std::thread ThreadGetLayout();
     void ChangeToBackground();
-    std::vector<std::string> GetPidByPkg(const std::string &curPkgName);
+    std::string GetPidByPkg(const std::string &curPkgName);
+    std::string GetDeviceType();
     void InitXY2(const std::string &curAppName, const std::string &fileName);
     std::string pointXY = "0 0";
 };
