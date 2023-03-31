@@ -29,8 +29,8 @@ public:
     static float GetTime(std::string start, std::string end);
     static float GetTimeNoah(std::string start, std::string end, std::string windowTime);
     std::string GetStartTime(std::string line, const std::string &startTimeBefore);
-    std::string GetWindowTime(std::string line,std::string wt);
-    std::string GetFrameId(std::string line,std::string appPid,std::string fid);
+    std::string GetWindowTime(std::string line, std::string wt);
+    std::string GetFrameId(std::string line, std::string appPid, std::string fid);
 private:
     std::ifstream infile;
     std::string flagTime = "0";
