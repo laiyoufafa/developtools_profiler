@@ -66,7 +66,6 @@ message MunmapEvent {
     uint32 thread_name_id = 6;
     uint32 stack_id = 7;
 }
-
 message StackMap {
     uint32 id = 1;
     repeated uint64 frame_map_id = 2; // online symbolization use frame_map_id
@@ -130,7 +129,6 @@ message RecordStatisticsEvent {
     uint64 apply_size = 6;
     uint64 release_size = 7;
 }
-
 message NativeHookData {
     uint64 tv_sec = 1;
     uint64 tv_nsec = 2;
