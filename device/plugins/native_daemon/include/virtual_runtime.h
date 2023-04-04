@@ -42,7 +42,7 @@ recorded in the corresponding mmap.
 
 class VirtualRuntime {
 public:
-    VirtualRuntime(bool onDevice = true);
+    VirtualRuntime(bool offlineSymbolization = false);
     virtual ~VirtualRuntime();
     // thread need hook the record
     // from the record , it will call back to write some Simulated Record
@@ -54,7 +54,7 @@ public:
     // any mode
     static_assert(sizeof(pid_t) == sizeof(int));
 
-    const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> &GetSymbolsFiles() const
+    const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> &GetSymbolsFiles() const
     {
         return symbolsFiles_;
     }
@@ -68,15 +68,17 @@ public:
         return userSpaceThreadMap_;
     }
 
-    bool UnwindStack(std::vector<u64> regs,
+    bool UnwindStack(std::vector<u64>& regs,
                      const u8* stack_addr,
                      int stack_size,
                      pid_t pid,
                      pid_t tid,
                      std::vector<CallFrame>& callsFrames,
-                     size_t maxStackLevel);
+                     size_t maxStackLevel,
+                     bool offline_symbolization = false);
     bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first);
     void ClearMaps();
+    void CalculationDlopenRange(std::string& muslPath, uint64_t& max, uint64_t& min);
     // debug time
 #ifdef HIPERF_DEBUG_TIME
     std::chrono::microseconds updateSymbolsTimes_ = std::chrono::microseconds::zero();
@@ -88,8 +90,28 @@ public:
     const bool loadSymboleWhenNeeded_ = true; // thie is a feature config
     void UpdateSymbols(std::string filename);
     bool IsSymbolExist(std::string fileName);
+    bool DelSymbolFile(const std::string& fileName);
     void UpdateMaps(pid_t pid, pid_t tid);
+    std::vector<MemMapItem>& GetProcessMaps()
+    {
+        return processMemMaps_;
+    }
+
+public:
+    enum SymbolCacheLimit : std::size_t {
+        USER_SYMBOL_CACHE_LIMIT = 10000,
+    };
+
 private:
+    struct HashPair {
+        size_t operator() (const std::pair<uint64_t, uint64_t>& key) const {
+            std::hash<uint64_t> hasher;
+            size_t seed = 0;
+            seed ^= hasher(key.first) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher(key.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            return seed;
+        }
+    };
     CallStack callstack_;
     // pid map with user space thread
     pthread_mutex_t threadMapsLock_;
@@ -97,15 +119,9 @@ private:
     // not pid , just memmap
     std::vector<MemMapItem> kernelSpaceMemMaps_;
     pthread_mutex_t processSymbolsFileLock_;
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> symbolsFiles_;
-    enum SymbolCacheLimit : std::size_t {
-        KERNEL_SYMBOL_CACHE_LIMIT = 4000,
-        THREAD_SYMBOL_CACHE_LIMIT = 2000,
-    };
-    std::unordered_map<pid_t, HashList<uint64_t, Symbol>> threadSymbolCache_;
-    HashList<uint64_t, Symbol> kernelSymbolCache_ {KERNEL_SYMBOL_CACHE_LIMIT};
-    bool GetSymbolCache(uint64_t ip, pid_t pid, pid_t tid, Symbol &symbol,
-                        const perf_callchain_context &context);
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles_ { 512 };
+    std::unordered_map<std::pair<uint64_t, uint64_t>, Symbol, HashPair> userSymbolCache_;
+    bool GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualThread &thread);
     void UpdateSymbolCache(uint64_t ip, Symbol &symbol, HashList<uint64_t, Symbol> &cache);
 
     // find synbols function name

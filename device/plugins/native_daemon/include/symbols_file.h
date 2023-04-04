@@ -60,31 +60,32 @@ class FileSymbol {
 };
 
 struct Symbol {
-    uint64_t funcVaddr_ = 0;
-    uint64_t fileVaddr_ = 0;
-    uint64_t taskVaddr_ = 0;
-    uint64_t offset_ = 0;
-    uint64_t len_ = 0;
-    int32_t index_ = -1;
     std::string_view name_ = "";
     std::string_view demangle_ = ""; // demangle string
     std::string_view module_ = "";   // maybe empty
     std::string_view comm_ = "";     // we need a comm name like comm@0x1234
     std::string_view symbolName_ = "";
     mutable std::string_view unknow_ = "";
+    uint64_t funcVaddr_ = 0;
+    uint64_t fileVaddr_ = 0;
+    uint64_t taskVaddr_ = 0;
+    uint64_t offset_ = 0;
+    uint64_t len_ = 0;
+    uint64_t filePathId_ = 0;
+    int32_t index_ = -1;
+    uint32_t symbolId_ = 0;        // for frame map id
     mutable bool matched_ = false; // if some callstack match this
-    int32_t hit_ = 0;
-
+    bool isReported_ = false;      // for frame map report
     // elf use this
     Symbol(uint64_t vaddr, uint64_t len, const std::string &name, const std::string &demangle,
            const std::string module)
-        : funcVaddr_(vaddr),
+        : name_(memHolder.HoldStringView(name)),
+          demangle_(memHolder.HoldStringView(demangle)),
+          module_(memHolder.HoldStringView(module)),
+          funcVaddr_(vaddr),
           fileVaddr_(vaddr),
           offset_(fileVaddr_ - funcVaddr_),
-          len_(len),
-          name_(memHolder.HoldStringView(name)),
-          demangle_(memHolder.HoldStringView(demangle)),
-          module_(memHolder.HoldStringView(module)) {}
+          len_(len) {}
     Symbol(uint64_t vaddr, uint64_t len, const std::string &name, const std::string &module)
         : Symbol(vaddr, len, name, name, module) {};
 
@@ -94,7 +95,7 @@ struct Symbol {
 
     // Symbolic use this
     Symbol(uint64_t taskVaddr = 0, const std::string &comm = "")
-        : taskVaddr_(taskVaddr), comm_(comm) {}
+        : comm_(comm), taskVaddr_(taskVaddr) {}
 
     static bool SameVaddr(const Symbol &a, const Symbol &b)
     {

@@ -130,7 +130,7 @@ void VirtualRuntimeTest::PrepareKernelSymbol()
     kernel->symbols_.emplace_back(testKernelVaddr, 1u, "first_kernel_func", kernel->filePath_);
     kernel->symbols_.emplace_back(testKernelVaddr + 1u, 1u, "second_kernel_func",
                                   kernel->filePath_);
-    runtime_->symbolsFiles_.insert(std::move(kernel));
+    runtime_->symbolsFiles_[kernel->filePath_] = std::move(kernel);
 
     auto &kernelMap = runtime_->kernelSpaceMemMaps_.emplace_back();
     kernelMap.name_ = kernelSymbol;
@@ -148,7 +148,7 @@ void VirtualRuntimeTest::PrepareUserSymbol()
     user->symbols_.emplace_back(testUserVaddr + 1u, 1u, "second_user_func", user->filePath_);
     user->textExecVaddrFileOffset_ = testUserVaddr;
     user->textExecVaddr_ = testUserVaddr;
-    runtime_->symbolsFiles_.insert(std::move(user));
+    runtime_->symbolsFiles_[user->filePath_] =  std::move(user);
 
     VirtualThread &thread = runtime_->GetThread(testTid, testTid);
     thread.CreateMapItem(userSymbol, testUserMapBegin, testUserMapLen, 0);

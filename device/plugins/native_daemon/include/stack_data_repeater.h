@@ -30,11 +30,14 @@ using BatchNativeHookDataPtr = STD_PTR(shared, BatchNativeHookData);
 class StackDataRepeater {
 public:
     struct RawStack {
-        StackRawData stackConext;
+        std::unique_ptr<uint8_t[]> BaseStackData;
+        BaseStackRawData* stackConext;
+        uint8_t* stackData;
+        uint8_t* data;
+        uint32_t stackSize;
+        uint8_t fpDepth;
         bool reportFlag;
         bool reduceStackFlag;
-        uint32_t stackSize;
-        std::unique_ptr<uint8_t[]> stackData;
     };
 
     explicit StackDataRepeater(size_t maxSize);

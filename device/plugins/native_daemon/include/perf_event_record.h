@@ -45,6 +45,10 @@ struct CallFrame {
     std::string_view filePath_; // lib path , elf path
     uint64_t offset_ = 0;
     uint64_t symbolOffset_ = 0;
+
+    uint32_t callFrameId_ = 0; // for frame map id
+    bool isReported_ = false; // for frame map report
+
     CallFrame(uint64_t ip, uint64_t sp = 0) : ip_(ip), sp_(sp) {}
 
     // this is for ut test
