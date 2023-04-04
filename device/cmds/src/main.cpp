@@ -30,13 +30,10 @@
 
 #include "common.h"
 #include "command_line.h"
-#include "google/protobuf/text_format.h"
 #include "parameters.h"
 #include "parse_plugin_config.h"
 #include "profiler_service.grpc.pb.h"
 #include "trace_plugin_config.pb.h"
-
-using google::protobuf::TextFormat;
 
 namespace {
 constexpr int ADDR_BUFFER_SIZE = 128;
@@ -104,7 +101,8 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
         printf("config file empty!");
         return nullptr;
     }
-    if (!TextFormat::ParseFromString(content, request.get())) {
+
+    if (!ParsePluginConfig::GetInstance().GetParser().ParseFromString(content, request.get())) {
         printf("config [%s] parse FAILED!\n", content.c_str());
         return nullptr;
     }
