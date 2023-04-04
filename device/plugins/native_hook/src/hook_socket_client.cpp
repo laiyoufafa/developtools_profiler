@@ -26,7 +26,7 @@ const int MOVE_BIT_32 = 32;
 const int MOVE_BIT_48 = 48;
 const int MOVE_BIT_56 = 56;
 constexpr int FLUSH_FLAG = 20;
-int g_flushCount = 0;
+std::atomic<int> g_flushCount = 0;
 } // namespace
 
 HookSocketClient::HookSocketClient(int pid, ClientConfig *config) : pid_(pid), config_(config)
