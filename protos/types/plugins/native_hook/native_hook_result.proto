@@ -34,6 +34,7 @@ message AllocEvent {
     uint32 size = 4;
     repeated Frame frame_info = 5;
     uint32 thread_name_id = 6;
+    uint32 stack_id = 7;
 }
 
 message FreeEvent {
@@ -42,6 +43,7 @@ message FreeEvent {
     uint64 addr = 3;
     repeated Frame frame_info = 4;
     uint32 thread_name_id = 5;
+    uint32 stack_id = 6;
 }
 
 message MmapEvent {
@@ -52,6 +54,7 @@ message MmapEvent {
     uint32 size = 5;
     repeated Frame frame_info = 6;
     uint32 thread_name_id = 7;
+    uint32 stack_id = 8;
 }
 
 message MunmapEvent {
@@ -61,6 +64,17 @@ message MunmapEvent {
     uint32 size = 4;
     repeated Frame frame_info = 5;
     uint32 thread_name_id = 6;
+    uint32 stack_id = 7;
+}
+message StackMap {
+    uint32 id = 1;
+    repeated uint64 frame_map_id = 2; // online symbolization use frame_map_id
+    repeated uint64 ip = 3; // offline symbolization use ip
+}
+
+message FrameMap {
+    uint32 id = 1;
+    Frame frame = 2;
 }
 
 message MemTagEvent {
@@ -84,6 +98,37 @@ message ThreadNameMap {
     string name = 2;
 }
 
+message MapsInfo {
+    uint32 pid = 1;
+    uint64 start = 2;
+    uint64 end = 3;
+    uint64 offset = 4;
+    uint32 file_path_id = 5;
+}
+
+message SymbolTable {
+    uint32 file_path_id = 1;
+    uint64 text_exec_vaddr = 2;
+    uint64 text_exec_vaddr_file_offset = 3;
+    uint32 sym_entry_size = 4;
+    bytes sym_table = 5;
+    bytes str_table = 6;
+}
+
+
+message RecordStatisticsEvent {
+    uint32 pid = 1;
+    uint32 callstack_id = 2;
+    enum MemoryType {
+        MALLOC = 0;
+        MMAP = 1;
+    };
+    MemoryType type = 3;
+    uint64 apply_count = 4;
+    uint64 release_count = 5;
+    uint64 apply_size = 6;
+    uint64 release_size = 7;
+}
 message NativeHookData {
     uint64 tv_sec = 1;
     uint64 tv_nsec = 2;
@@ -96,6 +141,11 @@ message NativeHookData {
         FilePathMap file_path = 8;
         SymbolMap symbol_name = 9;
         ThreadNameMap thread_name_map = 10;
+        MapsInfo maps_info = 11;
+        SymbolTable symbol_tab = 12;
+        FrameMap frame_map = 13;
+        StackMap stack_map = 14;
+        RecordStatisticsEvent statistics_event = 15;
     }
 }
 
