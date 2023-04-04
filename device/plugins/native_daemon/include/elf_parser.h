@@ -272,6 +272,20 @@ public:
         return nullptr;
     }
 
+    template <typename T>
+    std::pair<uint64_t, uint64_t> GetSymbolRange(uint8_t* strData, const uint64_t strSize, const uint64_t nameOffset)
+    {
+        uint64_t step = 0;
+        while (step < strSize) {
+            T* t = (T*)(strData + step);
+            if (t->st_name == nameOffset) {
+                return {t->st_value, t->st_size};
+            }
+            step += sizeof(T);
+        }
+        return {};
+    }
+
     using SecHeaderTableType = std::unordered_map<std::string, std::unique_ptr<SectionHeader>>;
     using PrgHeaderTableType = std::vector<std::unique_ptr<ProgramHeader>>;
     int fd_ {-1};

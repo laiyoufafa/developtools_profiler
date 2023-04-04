@@ -214,7 +214,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     // hook config |F F            F F              F F F F       F F F F      F F F F|
     //              stack depth    malloctype       filtersize    sharememory  size
 
-    if (hookConfig_.max_stack_depth() == 0) {
+    if (hookConfig_.max_stack_depth() <= 0) {
         // set default max depth
         hookConfig_.set_max_stack_depth(MAX_UNWIND_DEPTH);
     }
@@ -237,11 +237,28 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookConfig <<= MOVE_BIT_32;
     hookConfig |= bufferSize;
 
+    // offlinem symbolization, callframe must be compressed
+    if (hookConfig_.offline_symbolization()) {
+        hookConfig_.set_callframe_compress(true);
+    }
+
+    // statistical reporting must be callframe compressed and accurate.
+    if (hookConfig_.statistics_interval() > 0) {
+        hookConfig_.set_callframe_compress(true);
+        hookConfig_.set_record_accurately(true);
+    }
+
+    // callframe compressed, string must be compressed.
+    if (hookConfig_.callframe_compress()) {
+        hookConfig_.set_string_compressed(true);
+    }
+
     isRecordAccurately_ = hookConfig_.record_accurately();
     HILOG_INFO(LOG_CORE, "hookConfig filter size = %d, malloc disable = %d mmap disable = %d smb size = %u",
         hookConfig_.filter_size(), hookConfig_.malloc_disable(), hookConfig_.mmap_disable(), bufferSize);
     HILOG_INFO(LOG_CORE, "hookConfig fp unwind = %d, max stack depth = %d, record_accurately=%d",
         hookConfig_.fp_unwind(), hookConfig_.max_stack_depth(), isRecordAccurately_);
+    HILOG_INFO(LOG_CORE, "hookConfig  offline_symbolization = %d", hookConfig_.offline_symbolization());
 
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
                                                 eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
@@ -252,6 +269,9 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_);
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "Create StackPreprocess FAIL");
     stackPreprocess_->SetWriter(g_buffWriter);
+    if (hookConfig_.offline_symbolization() && pid_ != 0) {
+        stackPreprocess_->OfflineSymbolizationPreprocess(pid_);
+    }
     return true;
 }
 
@@ -259,29 +279,36 @@ void HookManager::ReadShareMemory()
 {
     CHECK_NOTNULL(shareMemoryBlock_, NO_RETVAL, "smb is null!");
     uint64_t value = eventNotifier_->Take();
-
+    int  rawRealSize = 0;
     while (true) {
         auto rawStack = std::make_shared<StackDataRepeater::RawStack>();
-
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {
-            if (size < sizeof(rawStack->stackConext)) {
+            if (size < sizeof(BaseStackRawData)) {
                 HILOG_ERROR(LOG_CORE, "stack data invalid!");
                 return false;
             }
-            if (memcpy_s(reinterpret_cast<void*>(&(rawStack->stackConext)), sizeof(rawStack->stackConext), data,
-                         sizeof(rawStack->stackConext)) != EOK) {
+
+            rawStack->BaseStackData = std::make_unique<uint8_t[]>(size);
+            if (memcpy_s(rawStack->BaseStackData.get(), size, data, size) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s raw data failed!");
                 return false;
             }
+
+            rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->BaseStackData.get());
+            rawStack->data = rawStack->BaseStackData.get() + sizeof(BaseStackRawData);
             rawStack->reportFlag = true;
             rawStack->reduceStackFlag = false;
-            rawStack->stackSize = size - sizeof(rawStack->stackConext);
+            if (hookConfig_.fp_unwind()) {
+                rawRealSize = size;
+                rawStack->fpDepth = (size - sizeof(BaseStackRawData)) / sizeof(uint64_t);
+                return true;
+            } else {
+                rawRealSize = sizeof(BaseStackRawData) + kMaxRegSize * sizeof(char);
+            }
+
+            rawStack->stackSize = size - rawRealSize;
             if (rawStack->stackSize > 0) {
-                rawStack->stackData = std::make_unique<uint8_t[]>(rawStack->stackSize);
-                if (memcpy_s(rawStack->stackData.get(), rawStack->stackSize, data + sizeof(rawStack->stackConext),
-                             rawStack->stackSize) != EOK) {
-                    HILOG_ERROR(LOG_CORE, "memcpy_s stack data failed!");
-                }
+                rawStack->stackData = rawStack->BaseStackData.get() + rawRealSize;
             }
             return true;
         });
@@ -370,6 +397,9 @@ bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
     stackPreprocess_->StopTakeResults();
 
     HILOG_INFO(LOG_CORE, "StopTakeResults success");
+    if (hookConfig_.statistics_interval() > 0) {
+        stackPreprocess_->FlushRecordStatistics();
+    }
 
     // make sure TakeResults thread exit
     if (stackData_) {
