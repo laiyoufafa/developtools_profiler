@@ -22,8 +22,6 @@
 #include "google/protobuf/text_format.h"
 #include "profiler_service.grpc.pb.h"
 
-using google::protobuf::TextFormat;
-
 class ParsePluginConfig {
 public:
     static ParsePluginConfig& GetInstance();
@@ -45,7 +43,7 @@ public:
     bool SetSerializeHiperfConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeHisyseventConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
 
-    TextFormat::Parser& GetParser()
+    google::protobuf::TextFormat::Parser& GetParser()
     {
         return parser_;
     }
@@ -55,7 +53,7 @@ private:
     ~ParsePluginConfig() {}
 
     std::map<std::string, std::string> pluginConfigMap;
-    TextFormat::Parser parser_;
+    google::protobuf::TextFormat::Parser parser_;
 };
 
 
