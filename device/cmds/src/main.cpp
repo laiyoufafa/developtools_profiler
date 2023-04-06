@@ -30,10 +30,13 @@
 
 #include "common.h"
 #include "command_line.h"
+#include "google/protobuf/text_format.h"
 #include "parameters.h"
 #include "parse_plugin_config.h"
 #include "profiler_service.grpc.pb.h"
 #include "trace_plugin_config.pb.h"
+
+using google::protobuf::TextFormat;
 
 namespace {
 constexpr int ADDR_BUFFER_SIZE = 128;
