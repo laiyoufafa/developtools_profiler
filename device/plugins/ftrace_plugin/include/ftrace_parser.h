@@ -60,7 +60,7 @@ private:
     bool ParseTimeStamp(const FtraceEventHeader& eventHeader);
     bool ParseDataRecord(const FtraceEventHeader& eventHeader, FtraceCpuDetailMsg& cpuDetailMsg);
 
-    bool ParseFtraceEvent(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat& format);
+    bool ParseFtraceEvent(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const SubEventParser::ParseEventCtx* parseEventCtx);
     bool ParseFtraceCommonFields(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat& format);
 
 private:
@@ -68,7 +68,6 @@ private:
     bool debugOn_ = false;
     std::regex fixedCharArrayRegex_;
     std::regex flexDataLocArrayRegex_;
-    std::unordered_map<uint32_t, EventFormat> eventDict_ = {};
     PageHeaderFormat pageHeaderFormat_ = {};
     std::string savedTgidPath_ = "";
     std::string savedCmdlines_ = "";

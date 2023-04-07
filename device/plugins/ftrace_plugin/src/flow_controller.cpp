@@ -274,7 +274,6 @@ void FlowController::CaptureWork()
         }
 
         // parse ftrace metadata
-        ftraceParser_->ParseSavedTgid(FtraceFsOps::GetInstance().GetSavedTgids());
         ftraceParser_->ParseSavedCmdlines(FtraceFsOps::GetInstance().GetSavedCmdLines());
 
         // parse ftrace percpu event data
@@ -299,7 +298,6 @@ long FlowController::ReadEventData(int cpuid)
     auto buffer = ftraceBuffers_[cpuid].get();
     auto reader = ftraceReaders_[cpuid].get();
     auto bufferSize = static_cast<long>(memPool_->GetBlockSize());
-    (void)memset_s(buffer, bufferSize, 0, bufferSize);
 
     long nbytes = 0;
     long used = 0;

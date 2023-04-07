@@ -26,12 +26,40 @@ class SubEventParser {
 public:
     static SubEventParser& GetInstance();
 
-    bool IsSupport(uint32_t eventId) const;
     bool IsSupport(const std::string& eventName) const;
-    bool ParseEvent(FtraceEvent& event, uint8_t data[], size_t size, const EventFormat& format) const;
     bool SetupEvent(const EventFormat& format);
 
     using ParseFunction = std::function<void(FtraceEvent&, uint8_t[], size_t, const EventFormat&)>;
+    struct ParseEventCtx
+    {
+        EventFormat format;
+        ParseFunction func;
+    };
+
+    inline ParseEventCtx* GetParseEventCtx(uint32_t eventId)
+    {
+        if (eventId == schedSwitchEventID) {
+            return schedSwitchCtx;
+        } else if (eventId == schedWakingEventID) {
+            return schedWakingCtx;
+        } else if (eventId == schedWakupEventID) {
+            return schedWakingCtx;
+        }
+
+        auto it = idToFunctions_.find(eventId);
+        if (it != idToFunctions_.end()) {
+            return it->second;
+        }
+        return nullptr;
+    }
+
+    inline void ParseEvent(FtraceEvent& event,
+                           uint8_t data[],
+                           size_t size,
+                           const ParseEventCtx* parseEventCtx) const
+    {
+        parseEventCtx->func(event, data, size, parseEventCtx->format);
+    }
 
 protected:
     friend class SubEventParserRegisterar;
@@ -42,8 +70,15 @@ private:
     SubEventParser();
     ~SubEventParser();
     DISALLOW_COPY_AND_MOVE(SubEventParser);
-    std::map<uint32_t, ParseFunction> idToFunctions_;
-    std::map<std::string, ParseFunction> nameToFunctions_;
+    std::unordered_map<std::string, ParseEventCtx> nameToFunctions_;
+    std::unordered_map<uint32_t, ParseEventCtx*> idToFunctions_;
+
+    uint32_t schedSwitchEventID = (uint32_t)-1;
+    uint32_t schedWakingEventID = (uint32_t)-1;
+    uint32_t schedWakupEventID = (uint32_t)-1;
+    ParseEventCtx* schedSwitchCtx = nullptr;
+    ParseEventCtx* schedWakingCtx = nullptr;
+    ParseEventCtx* schedWakupCtx = nullptr;
 };
 
 class SubEventParserRegisterar {

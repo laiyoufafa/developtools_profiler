@@ -173,6 +173,7 @@ HWTEST_F(FtraceParserTest, ParsePage, TestSize.Level1)
 
     FtraceCpuDetailMsg cpuDetailMsg = {};
     FtraceParser parser;
+    parser.Init();
     EXPECT_TRUE(parser.ParsePage(cpuDetailMsg, buffer.data(), buffer.size()));
     EXPECT_EQ(close(fd), 0);
 }
