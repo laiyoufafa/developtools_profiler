@@ -17,7 +17,6 @@
 
 #include "cpu_plugin_config_standard.pb.h"
 #include "diskio_plugin_config_standard.pb.h"
-#include "google/protobuf/text_format.h"
 #include "hidump_plugin_config_standard.pb.h"
 #include "hiebpf_plugin_config_standard.pb.h"
 #include "hilog_plugin_config_standard.pb.h"
@@ -30,10 +29,13 @@
 #include "process_plugin_config_standard.pb.h"
 #include "trace_plugin_config_standard.pb.h"
 
-using google::protobuf::TextFormat;
-
 namespace {
 constexpr int REMAINDER = 2;
+}
+
+ParsePluginConfig::ParsePluginConfig()
+{
+    parser_.AllowUnknownField(true);
 }
 
 ParsePluginConfig& ParsePluginConfig::GetInstance()
@@ -134,7 +136,7 @@ bool ParsePluginConfig::SetSerializeCpuConfig(const std::string& pluginName, Pro
 {
     std::string configData = pluginConfigMap[pluginName];
     auto cpuConfigNolite = std::make_unique<ForStandard::CpuConfig>();
-    if (!TextFormat::ParseFromString(configData, cpuConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, cpuConfigNolite.get())) {
         printf("cpu parse failed!\n");
         return false;
     }
@@ -152,7 +154,7 @@ bool ParsePluginConfig::SetSerializeDiskioConfig(const std::string& pluginName, 
 {
     std::string configData = pluginConfigMap[pluginName];
     auto diskioConfigNolite = std::make_unique<ForStandard::DiskioConfig>();
-    if (!TextFormat::ParseFromString(configData, diskioConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, diskioConfigNolite.get())) {
         printf("diskio parse failed!\n");
         return false;
     }
@@ -170,7 +172,7 @@ bool ParsePluginConfig::SetSerializeFtraceConfig(const std::string& pluginName, 
 {
     std::string configData = pluginConfigMap[pluginName];
     auto ftraceConfigNolite = std::make_unique<ForStandard::TracePluginConfig>();
-    if (!TextFormat::ParseFromString(configData, ftraceConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, ftraceConfigNolite.get())) {
         printf("ftrace parse failed!\n");
         return false;
     }
@@ -189,7 +191,7 @@ bool ParsePluginConfig::SetSerializeHidumpConfig(const std::string& pluginName, 
 {
     std::string configData = pluginConfigMap[pluginName];
     auto hidumpConfigNolite = std::make_unique<ForStandard::HidumpConfig>();
-    if (!TextFormat::ParseFromString(configData, hidumpConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, hidumpConfigNolite.get())) {
         printf("hidump parse failed!\n");
         return false;
     }
@@ -215,7 +217,7 @@ bool ParsePluginConfig::SetSerializeHiebpfConfig(const std::string& pluginName, 
         printf("hiebpfConfigNolite is nullptr\n");
         return false;
     }
-    if (!TextFormat::ParseFromString(iter->second, hiebpfConfigNolite.get())) {
+    if (!parser_.ParseFromString(iter->second, hiebpfConfigNolite.get())) {
         printf("hiebpf config parse failed!\n");
         return false;
     }
@@ -232,7 +234,7 @@ bool ParsePluginConfig::SetSerializeHilogConfig(const std::string& pluginName, P
 {
     std::string configData = pluginConfigMap[pluginName];
     auto hilogConfigNolite = std::make_unique<ForStandard::HilogConfig>();
-    if (!TextFormat::ParseFromString(configData, hilogConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, hilogConfigNolite.get())) {
         printf("hilog parse failed!\n");
         return false;
     }
@@ -250,7 +252,7 @@ bool ParsePluginConfig::SetSerializeMemoryConfig(const std::string& pluginName, 
 {
     std::string configData = pluginConfigMap[pluginName];
     auto memoryConfigNolite = std::make_unique<ForStandard::MemoryConfig>();
-    if (!TextFormat::ParseFromString(configData, memoryConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, memoryConfigNolite.get())) {
         printf("memory parse failed!\n");
         return false;
     }
@@ -268,7 +270,7 @@ bool ParsePluginConfig::SetSerializeHookConfig(const std::string& pluginName, Pr
 {
     std::string configData = pluginConfigMap[pluginName];
     auto hookConfigNolite = std::make_unique<ForStandard::NativeHookConfig>();
-    if (!TextFormat::ParseFromString(configData, hookConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, hookConfigNolite.get())) {
         printf("nativedaemon parse failed!\n");
         return false;
     }
@@ -286,7 +288,7 @@ bool ParsePluginConfig::SetSerializeNetworkConfig(const std::string& pluginName,
 {
     std::string configData = pluginConfigMap[pluginName];
     auto networkConfigNolite = std::make_unique<ForStandard::NetworkConfig>();
-    if (!TextFormat::ParseFromString(configData, networkConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, networkConfigNolite.get())) {
         printf("network parse failed!\n");
         return false;
     }
@@ -304,7 +306,7 @@ bool ParsePluginConfig::SetSerializeProcessConfig(const std::string& pluginName,
 {
     std::string configData = pluginConfigMap[pluginName];
     auto processConfigNolite = std::make_unique<ForStandard::ProcessConfig>();
-    if (!TextFormat::ParseFromString(configData, processConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, processConfigNolite.get())) {
         printf("process parse failed!\n");
         return false;
     }
@@ -322,7 +324,7 @@ bool ParsePluginConfig::SetSerializeHiperfConfig(const std::string& pluginName, 
 {
     std::string configData = pluginConfigMap[pluginName];
     auto hiperfConfigNolite = std::make_unique<ForStandard::HiperfPluginConfig>();
-    if (!TextFormat::ParseFromString(configData, hiperfConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, hiperfConfigNolite.get())) {
         printf("hiperf config parse failed!\n");
         return false;
     }
@@ -340,7 +342,7 @@ bool ParsePluginConfig::SetSerializeHisyseventConfig(const std::string& pluginNa
 {
     std::string configData = pluginConfigMap[pluginName];
     auto hisyseventConfigNolite = std::make_unique<ForStandard::HisyseventConfig>();
-    if (!TextFormat::ParseFromString(configData, hisyseventConfigNolite.get())) {
+    if (!parser_.ParseFromString(configData, hisyseventConfigNolite.get())) {
         printf("NODE hisysevent parse failed!\n");
         return false;
     }
