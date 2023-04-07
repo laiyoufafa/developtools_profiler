@@ -30,8 +30,7 @@ public:
     bool SetupEvent(const EventFormat& format);
 
     using ParseFunction = std::function<void(FtraceEvent&, uint8_t[], size_t, const EventFormat&)>;
-    struct ParseEventCtx
-    {
+    struct ParseEventCtx {
         EventFormat format;
         ParseFunction func;
     };

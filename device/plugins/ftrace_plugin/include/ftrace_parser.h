@@ -43,7 +43,6 @@ public:
     void SetDebugOn(bool value);
 
 private:
-
     int GetHeaderPageCommitSize(void);
     bool ParseHeaderPageFormat(const std::string& formatDesc);
     bool ParseEventFormat(const std::string& formatDesc, EventFormat& format);
@@ -60,7 +59,8 @@ private:
     bool ParseTimeStamp(const FtraceEventHeader& eventHeader);
     bool ParseDataRecord(const FtraceEventHeader& eventHeader, FtraceCpuDetailMsg& cpuDetailMsg);
 
-    bool ParseFtraceEvent(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const SubEventParser::ParseEventCtx* parseEventCtx);
+    bool ParseFtraceEvent(FtraceEvent& ftraceEvent, uint8_t data[],
+                          size_t dataSize, const SubEventParser::ParseEventCtx* parseEventCtx);
     bool ParseFtraceCommonFields(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat& format);
 
 private:

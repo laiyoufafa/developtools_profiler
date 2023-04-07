@@ -729,8 +729,10 @@ bool FtraceParser::ParseFtraceEvent(FtraceEvent& ftraceEvent,
                                     size_t dataSize,
                                     const SubEventParser::ParseEventCtx* parseEventCtx)
 {
-    CHECK_TRUE(dataSize >= parseEventCtx->format.eventSize, false, "FtraceParser::ParseFtraceEvent, dataSize not enough!");
-    CHECK_TRUE(ParseFtraceCommonFields(ftraceEvent, data, dataSize, parseEventCtx->format), false, "parse common fields failed!");
+    CHECK_TRUE(dataSize >= parseEventCtx->format.eventSize, false,
+               "FtraceParser::ParseFtraceEvent, dataSize not enough!");
+    CHECK_TRUE(ParseFtraceCommonFields(ftraceEvent, data, dataSize, parseEventCtx->format), false,
+               "parse common fields failed!");
 
     int pid = ftraceEvent.common_fields().pid();
     if (pid != 0) {
