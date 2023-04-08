@@ -45,7 +45,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
             std::cout << v[typeName] << " Duplicate Application Name" << std::endl;
         } else {
             std::cout << "time:" << time << std::endl;
-        }     
+        }
     }
 }
 float EditorCommand::ResponseTime()
@@ -105,7 +105,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
             time = parseTrace.ParseTraceNoah(traceName, pid);
         }
         return time;
-    }    
+    }
 }
 float EditorCommand::HotStart(std::vector<std::string> v)
 {
