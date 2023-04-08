@@ -31,6 +31,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         int type = 2;
         float time = 0.0;
         int typeName = 4;
+        float noNameType = 5.0;
         if (v[type] == "coldStart") {
             time = SmartPerf::EditorCommand::ColdStart(v);
         } else if (v[type] == "hotStart") {
@@ -40,12 +41,11 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         } else if (v[type] == "completeTime") {
             time = SmartPerf::EditorCommand::CompleteTime();
         }
-        if (time == 5.0) {
+        if (time == noNameType) {
             std::cout << v[typeName] << " Duplicate Application Name" << std::endl;
         } else {
             std::cout << "time:" << time << std::endl;
-        }
-        
+        }     
     }
 }
 float EditorCommand::ResponseTime()
@@ -79,6 +79,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
     std::string cmdResult;
     int type = 4;
     int typePKG = 3;
+    float noNameType = 5.0;
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
     SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
@@ -87,7 +88,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
     std::string pathJson = cmdResult.substr(position + 1);
     sd.InitXY2(v[type], pathJson, v[typePKG]);
     if (sd.pointXY == "0 0") {
-        return 5.0;
+        return noNameType;
     } else {
         std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
         std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
@@ -104,8 +105,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
             time = parseTrace.ParseTraceNoah(traceName, pid);
         }
         return time;
-    }
-    
+    }    
 }
 float EditorCommand::HotStart(std::vector<std::string> v)
 {
@@ -114,6 +114,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
     std::string cmdResult;
     int type = 4;
     int typePKG = 3;
+    float noNameType = 5.0;
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
     SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
@@ -122,14 +123,14 @@ float EditorCommand::HotStart(std::vector<std::string> v)
     std::string pathJson = cmdResult.substr(position + 1);
     sd.InitXY2(v[type], pathJson, v[typePKG]);
     if (sd.pointXY == "0 0") {
-        return 5.0;
+        return noNameType;
     } else {
         std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
         sleep(1);
         SPUtils::LoadCmd(cmd, cmdResult);
         sleep(1);
         SPUtils::LoadCmd("uinput -T -m 600 2760 600 1300 200", cmdResult);
-        sleep(2);
+        sleep(1);
         std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
         std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
         SPUtils::LoadCmd(cmd, cmdResult);
@@ -144,7 +145,6 @@ float EditorCommand::HotStart(std::vector<std::string> v)
         }
         return time;
     }
-
 }
 }
 }
