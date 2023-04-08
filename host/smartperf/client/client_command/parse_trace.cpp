@@ -51,12 +51,12 @@ namespace OHOS {
                 if (positionPid != std::string::npos) {
                     size_t position1 = line.find("....");
                     size_t position2 = line.find(":");
-                    size_t flagTimeSize=5;
+                    size_t flagTimeSize = 5;
                     flagTime = line.substr(position1 + flagTimeSize, position2 - position1 - flagTimeSize);
                     if (std::stof(endTime) == 0) {
                         endTime = flagTime;
                     } else {
-                        float dataThreshold=0.3;
+                        float dataThreshold = 0.3;
                         if ((std::stof(flagTime) - std::stof(endTime)) > dataThreshold) {
                             break;
                         } else {
@@ -75,7 +75,7 @@ namespace OHOS {
                 size_t positionFrame1 = line.rfind("[" + appPid + ",");
                 size_t positionFrame2 = line.rfind("],isUni:1");
                 size_t subNum = 3;
-                frameId = line.substr(positionFrame1 + subNum + appPid.length(), positionFrame2 - positionFrame1 - subNum -appPid.length());
+                frameId = line.substr(positionFrame1 + subNum + appPid.length(), positionFrame2 - positionFrame1 - subNum - appPid.length());
             } else {
                 frameId = fid;
             }
@@ -93,17 +93,15 @@ namespace OHOS {
                     int windowSizeNum = 1024;
                     if (std::stof(windowSizeFlag) == windowSizeNum) {
                         windowSize = "0";
-                    }
-                    else {
+                    } else {
                         windowSize = windowSizeFlag;
                     }
-                }
-                else {
-                    if (std::stof(windowSize) != std::stof(windowSizeFlag)){
+                } else {
+                    if (std::stof(windowSize) != std::stof(windowSizeFlag)) {
                         size_t subNum = 5;
                         size_t position1 = line.find("....");
                         size_t position2 = line.find(":");
-                        windowTime = line.substr(position1 + subNum, position2 - position1 -subNum);
+                        windowTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                         windowSize = windowSizeFlag;
                     } else {
                         windowTime = wt;
@@ -224,15 +222,15 @@ namespace OHOS {
             }
             return codeTime;
         }
-        float  ParseTrace::GetTimeNoah(std::string start, std::string end, std::string windowTime)
+        float  ParseTrace::GetTimeNoah(std::string start, std::string end, std::string wt)
         {
             float startTimeThreshold = 1.2;
             float codeTime = -1;
-            if (std::stof(end) < std::stof(windowTime) && std::stof(end) != 0) {
-                end = windowTime;
+            if (std::stof(end) < std::stof(wt) && std::stof(end) != 0) {
+                end = wt;
             }
             if (std::stof(end) - std::stof(start) > startTimeThreshold) {
-                end = windowTime;
+                end = wt;
             }
             size_t point = end.find(".");
             size_t subNum = 2;

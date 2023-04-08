@@ -27,14 +27,14 @@ public:
     float ParseCodeTrace(const std::string &fileNamePath, const std::string &appPid);
     float ParseHotTrace(const std::string &fileNamePath);
     static float GetTime(std::string start, std::string end);
-    static float GetTimeNoah(std::string start, std::string end, std::string windowTime);
+    static float GetTimeNoah(std::string start, std::string end, std::string wt);
     std::string GetStartTime(std::string line, const std::string &startTimeBefore);
     std::string GetWindowTime(std::string line, std::string wt);
     std::string GetFrameId(std::string line, std::string appPid, std::string fid);
 private:
     std::ifstream infile;
     std::string flagTime = "0";
-    int flagTouch = 0;
+    int flagTouch = 0; 
     std::string startTime = "0";
     std::string endTime = "0";
     std::string endTimeFlag = "0";

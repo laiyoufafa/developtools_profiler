@@ -30,16 +30,22 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
     if (argc >= threeParamMore) {
         int type = 2;
         float time = 0.0;
+        int typeName = 4;
         if (v[type] == "coldStart") {
             time = SmartPerf::EditorCommand::ColdStart(v);
         } else if (v[type] == "hotStart") {
-            time = SmartPerf::EditorCommand::HotStart();
+            time = SmartPerf::EditorCommand::HotStart(v);
         } else if (v[type] == "responseTime") {
             time = SmartPerf::EditorCommand::ResponseTime();
         } else if (v[type] == "completeTime") {
             time = SmartPerf::EditorCommand::CompleteTime();
         }
-        std::cout << "time:" << time << std::endl;
+        if (time == 5.0) {
+            std::cout << v[typeName] << " Duplicate Application Name" << std::endl;
+        } else {
+            std::cout << "time:" << time << std::endl;
+        }
+        
     }
 }
 float EditorCommand::ResponseTime()
@@ -79,35 +85,66 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
     sleep(1);
     size_t position = cmdResult.find(":");
     std::string pathJson = cmdResult.substr(position + 1);
-    sd.InitXY2(v[type], pathJson);
-    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
-    std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
-    std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
-    sleep(1);
-    SPUtils::LoadCmd(cmd, cmdResult);
-    std::string pid = sd.GetPidByPkg(v[typePKG]);
-    thGetTrace.join();
-    std::string deviceType = sd.GetDeviceType();
-    float time = 0.0;
-    if (deviceType == " rk3568") {
-        time = parseTrace.ParseTraceCold(traceName, pid);
+    sd.InitXY2(v[type], pathJson, v[typePKG]);
+    if (sd.pointXY == "0 0") {
+        return 5.0;
     } else {
-        time = parseTrace.ParseTraceNoah(traceName, pid);
+        std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
+        std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
+        std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
+        sleep(1);
+        SPUtils::LoadCmd(cmd, cmdResult);
+        std::string pid = sd.GetPidByPkg(v[typePKG]);
+        thGetTrace.join();
+        std::string deviceType = sd.GetDeviceType();
+        float time = 0.0;
+        if (deviceType == " rk3568") {
+            time = parseTrace.ParseTraceCold(traceName, pid);
+        } else {
+            time = parseTrace.ParseTraceNoah(traceName, pid);
+        }
+        return time;
     }
     
-    return time;
 }
-float EditorCommand::HotStart()
+float EditorCommand::HotStart(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseTrace parseTrace;
     std::string cmdResult;
+    int type = 4;
+    int typePKG = 3;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
-    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
-    std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
-    thGetTrace.join();
-    float time = parseTrace.ParseTraceHot(traceName);
-    return time;
+    SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
+    sleep(1);
+    size_t position = cmdResult.find(":");
+    std::string pathJson = cmdResult.substr(position + 1);
+    sd.InitXY2(v[type], pathJson, v[typePKG]);
+    if (sd.pointXY == "0 0") {
+        return 5.0;
+    } else {
+        std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
+        sleep(1);
+        SPUtils::LoadCmd(cmd, cmdResult);
+        sleep(1);
+        SPUtils::LoadCmd("uinput -T -m 600 2760 600 1300 200", cmdResult);
+        sleep(2);
+        std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
+        std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
+        SPUtils::LoadCmd(cmd, cmdResult);
+        std::string pid = sd.GetPidByPkg(v[typePKG]);
+        thGetTrace.join();
+        std::string deviceType = sd.GetDeviceType();
+        float time = 0.0;
+        if (deviceType == " rk3568") {
+            time = parseTrace.ParseTraceCold(traceName, pid);
+        } else {
+            time = parseTrace.ParseTraceNoah(traceName, pid);
+        }
+        return time;
+    }
+
 }
 }
 }

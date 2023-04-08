@@ -26,7 +26,7 @@ public:
     void ChangeToBackground();
     std::string GetPidByPkg(const std::string &curPkgName);
     std::string GetDeviceType();
-    void InitXY2(const std::string &curAppName, const std::string &fileName);
+    void InitXY2(const std::string &curAppName, const std::string &fileName, const std::string &appPkgName);
     std::string pointXY = "0 0";
 };
 }

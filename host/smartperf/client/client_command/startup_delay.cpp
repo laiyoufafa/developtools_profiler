@@ -65,14 +65,15 @@ std::string StartUpDelay::GetDeviceType()
     std::string deviceType = cmdResult.substr(splitFlag + 1);
     return deviceType;
 }
-void StartUpDelay::InitXY2(const std::string &curAppName, const std::string &fileName)
+void StartUpDelay::InitXY2(const std::string &curAppName, const std::string &fileName, const std::string &appPkgName)
 {
     std::ifstream file(fileName, std::ios::in);
     std::string strLine = "";
     std::regex pattern("\\d+");
     while (getline(file, strLine)) {
         size_t appIndex = strLine.find(curAppName);
-        if (appIndex > 0) {
+        size_t appPkgIndex = strLine.find(appPkgName);
+        if (appIndex > 0 && appPkgIndex < appIndex) {
             size_t bounds = strLine.rfind("bounds", appIndex);
             if (bounds > 0) {
                 std::string boundStr = strLine.substr(bounds, 30);
@@ -99,6 +100,8 @@ void StartUpDelay::InitXY2(const std::string &curAppName, const std::string &fil
                 }
                 break;
             }
+        } else {
+            break;
         }
     }
 }
