@@ -98,7 +98,7 @@ bool ParseCommand(std::vector<std::string> args, HookData& hookData)
             }
             printf("set unwind mode:%s\n", unwind.c_str());
         } else {
-            printf("args[%d] = %s\n", idx, args[idx].c_str());
+            printf("args[%zu] = %s\n", idx, args[idx].c_str());
             return false;
         }
         idx += VC_ARG_STEP_SIZE;
