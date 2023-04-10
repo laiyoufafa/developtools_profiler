@@ -177,7 +177,7 @@ struct StartTestPage {
               }
 			if(router!=null){
 				if(router.getParams()!=null){
-					if(router.getParams()["selectPackageName"]!=null)
+					if(router.getParams()["selectPackageName"]!=null){
 					  //启动app
 					  commonStartAbility(new String(router.getParams()["selectPackageName"]).toString(), new String(router.getParams()["selectAbilityName"]).toString())
 					  //启动悬浮窗
