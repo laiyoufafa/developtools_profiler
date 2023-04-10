@@ -55,7 +55,8 @@
         "//developtools/profiler/host/smartperf/client/:SmartPerf",
         "//developtools/profiler/host/smartperf/client/client_command_fps/:GP_daemon_fps",
         "//developtools/profiler/hiebpf:hiebpf_tool",
-        "//developtools/profiler/transitto:transitto_tool"
+        "//developtools/profiler/transitto:transitto_tool",
+        "//developtools/profiler/timestamps:timestamps_tool"
       ],
       "inner_kits": [
         {
