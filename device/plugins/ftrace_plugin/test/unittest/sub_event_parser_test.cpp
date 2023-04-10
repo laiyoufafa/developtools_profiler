@@ -88,14 +88,15 @@ HWTEST_F(SubEventParserTest, IsSupportName, TestSize.Level1)
  */
 HWTEST_F(SubEventParserTest, SetupEvent, TestSize.Level1)
 {
-    EXPECT_FALSE(SubEventParser::GetInstance().IsSupport(0));
-
     EventFormat format;
     FtraceParser ftraceParser;
     format.eventType = "sched";
     format.eventName = "sched_switch";
     EXPECT_TRUE(ftraceParser.ParseEventFormat(SCHED_SWITCH_FORMAT_DESC, format));
+
+    EXPECT_TRUE(nullptr == SubEventParser::GetInstance().GetParseEventCtx(format.eventId));
     EXPECT_TRUE(SubEventParser::GetInstance().SetupEvent(format));
+    EXPECT_TRUE(nullptr != SubEventParser::GetInstance().GetParseEventCtx(format.eventId));
 }
 
 /*
@@ -105,15 +106,15 @@ HWTEST_F(SubEventParserTest, SetupEvent, TestSize.Level1)
  */
 HWTEST_F(SubEventParserTest, IsSupportId, TestSize.Level1)
 {
-    EXPECT_FALSE(SubEventParser::GetInstance().IsSupport(0));
-
     EventFormat format;
     FtraceParser ftraceParser;
     format.eventType = "sched";
     format.eventName = "sched_switch";
     EXPECT_TRUE(ftraceParser.ParseEventFormat(SCHED_SWITCH_FORMAT_DESC, format));
+    SubEventParser::GetInstance().schedSwitchCtx = nullptr;
+    EXPECT_TRUE(nullptr == SubEventParser::GetInstance().GetParseEventCtx(format.eventId));
     EXPECT_TRUE(SubEventParser::GetInstance().SetupEvent(format));
-    EXPECT_TRUE(SubEventParser::GetInstance().IsSupport(format.eventId));
+    EXPECT_TRUE(nullptr != SubEventParser::GetInstance().GetParseEventCtx(format.eventId));
 }
 
 /*
@@ -148,6 +149,8 @@ HWTEST_F(SubEventParserTest, ParseEvent, TestSize.Level1)
     EXPECT_NE(buffer, zeros);
 
     FtraceEvent event = {};
-    EXPECT_TRUE(SubEventParser::GetInstance().ParseEvent(event, buffer.data(), buffer.size(), format));
+    SubEventParser::ParseEventCtx* ctx = SubEventParser::GetInstance().GetParseEventCtx(format.eventId);
+    EXPECT_TRUE(ctx != nullptr);
+    SubEventParser::GetInstance().ParseEvent(event, buffer.data(), buffer.size(), ctx);
 }
 } // namespace
