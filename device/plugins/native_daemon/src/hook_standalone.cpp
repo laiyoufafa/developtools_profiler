@@ -43,7 +43,7 @@ bool g_unwindErrorFlag = false;
 bool g_fpUnwind = false;
 std::unique_ptr<FILE, decltype(&fclose)> g_fpHookFile(nullptr, nullptr);
 
-void writeFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
+void WriteFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
 {
     if (data->type == MALLOC_MSG) {
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
@@ -174,7 +174,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 }
             }
 
-            writeFrames(rawData, callsFrames);
+            WriteFrames(rawData, callsFrames);
 
             return true;
         });

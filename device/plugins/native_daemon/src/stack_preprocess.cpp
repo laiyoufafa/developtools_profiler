@@ -222,7 +222,7 @@ void StackPreprocess::TakeResults()
                 }
             }
             if (hookConfig_.save_file() && hookConfig_.file_name() != "") {
-                writeFrames(rawData, callsFrames_);
+                WriteFrames(rawData, callsFrames_);
             } else if (!hookConfig_.save_file()) {
                 SetHookData(rawData, callsFrames_, stackData);
             }
@@ -521,7 +521,7 @@ uint32_t StackPreprocess::GetThreadIdx(std::string threadName, BatchNativeHookDa
     }
 }
 
-void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFrame>& callsFrames)
+void StackPreprocess::WriteFrames(RawStackPtr rawStack, const std::vector<CallFrame>& callsFrames)
 {
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());

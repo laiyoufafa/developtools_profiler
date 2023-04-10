@@ -71,7 +71,7 @@ private:
     void TakeResults();
     void SetHookData(RawStackPtr RawStack, std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData);
-    void writeFrames(RawStackPtr RawStack, const std::vector<CallFrame>& callsFrames);
+    void WriteFrames(RawStackPtr RawStack, const std::vector<CallFrame>& callsFrames);
     void SetFrameInfo(Frame& frame, CallFrame& callsFrame);
     void SetSymbolNameId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
     void SetFilePathId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
