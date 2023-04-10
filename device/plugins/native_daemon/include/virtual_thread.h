@@ -91,8 +91,8 @@ public:
     static bool IsLegalFileName(const std::string &filename);
 
 private:
-    inline static uint64_t filePathCnt_ = 0;
-    inline void SetFilePathId(std::string& currentFileName, MemMapItem& map)
+    inline static uint32_t filePathCnt_ = 0;
+    void SetFilePathId(std::string& currentFileName, MemMapItem& map)
     {
         if (currentFileName.compare(map.name_) != 0) {
             currentFileName = map.name_;

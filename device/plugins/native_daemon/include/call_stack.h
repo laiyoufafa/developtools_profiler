@@ -15,12 +15,6 @@
 #ifndef HIPERF_CALLSTACK_H
 #define HIPERF_CALLSTACK_H
 
-#if HAVE_LIBUNWIND
-// for libunwind.h empty struct has size 0 in c, size 1 in c++
-#define UNW_EMPTY_STRUCT uint8_t unused;
-#include <libunwind.h>
-#endif
-
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -28,8 +22,6 @@
 
 #include "hashlistpp.h"
 #include "perf_event_record.h"
-#include "register.h"
-#include "utilities.h"
 #include "virtual_thread.h"
 #include "hook_common.h"
 namespace OHOS {

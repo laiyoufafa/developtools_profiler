@@ -49,7 +49,7 @@ public:
     bool StopTakeResults();
     void OfflineSymbolizationPreprocess(pid_t pid);
     bool FlushRecordStatistics();
-    void SetOptimize(bool serializeOptimize);
+    void SetSerializeMode(bool protobufSerialize);
 
 private:
     using CallFrame = OHOS::Developtools::NativeDaemon::CallFrame;
@@ -63,7 +63,7 @@ private:
 
     enum RecordStatisticsLimit : std::size_t {
         STATISTICS_MAP_SZIE = 2048,
-        STATISTICS_CACHE_SIZE = 256,
+        STATISTICS_PERIOD_DATA_SIZE = 256,
         ALLOC_ADDRMAMP_SIZE = 2048,
     };
 
@@ -72,12 +72,13 @@ private:
     void SetHookData(RawStackPtr RawStack, std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData);
     void writeFrames(RawStackPtr RawStack, const std::vector<CallFrame>& callsFrames);
-    void SetFrameInfo(Frame& frame, CallFrame& callsFrame, uint32_t symbolNameId = 0, uint32_t filePathId = 0);
-    uint32_t CompressedSymbolName(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
-    uint32_t CompressedFilePath(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
+    void SetFrameInfo(Frame& frame, CallFrame& callsFrame);
+    void SetSymbolNameId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
+    void SetFilePathId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
     uint32_t GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData);
     void SetMapsInfo(pid_t pid, RawStackPtr rawStack);
-    void SetSymbolInfo(const std::string& filePath, BatchNativeHookData& batchNativeHookData);
+    void SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,
+        BatchNativeHookData& batchNativeHookData);
     void FlushData(BatchNativeHookData& stackData);
     void Flush(const uint8_t* src, size_t size);
     void GetSymbols(const std::string& filePath, ElfSymbolTable& symbols);
@@ -87,7 +88,8 @@ private:
     void SetOfflineFrameMap(std::vector<CallFrame>& callsFrames, size_t idx);
     void SetFrameMap(std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData, size_t idx);
-    uint32_t SetCallStack(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames, BatchNativeHookData& batchNativeHookData);
+    uint32_t SetCallStack(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
+        BatchNativeHookData& batchNativeHookData);
     template <typename T>
     void SetEventFrame(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData, T* event, uint32_t stackId);
@@ -103,7 +105,6 @@ private:
     bool isStopTakeData_ = false;
     std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
     DISALLOW_COPY_AND_MOVE(StackPreprocess);
-    std::unordered_map<std::string, uint32_t> functionMap_;
     std::unordered_map<std::string, uint32_t> fileMap_;
     std::unordered_map<std::string, uint32_t> threadMap_;
     NativeHookConfig hookConfig_;
@@ -121,10 +122,13 @@ private:
     std::map<std::vector<uint64_t>, uint32_t> callStackMap_;
     std::chrono::seconds statisticsInterval_;
     std::chrono::steady_clock::time_point lastStatisticsTime_;
+    // Key is call stack id, value is recordstatistic data
     std::unordered_map<uint32_t, RecordStatistic> recordStatisticsMap_ {STATISTICS_MAP_SZIE};
-    std::unordered_map<uint32_t, RecordStatistic*> recordStatisticsCache_ {STATISTICS_CACHE_SIZE};
+    // Key is call stack id, value is recordstatistic data pointer
+    std::unordered_map<uint32_t, RecordStatistic*> statisticsPeriodData_ {STATISTICS_PERIOD_DATA_SIZE};
+    // Key is alloc or mmap address, value first is mallocsize, second is recordstatistic data pointer
     std::unordered_map<uint64_t, std::pair<uint64_t, RecordStatistic*>> allocAddrMap_ {ALLOC_ADDRMAMP_SIZE};
-    bool isOptimize_ = false;
+    bool isProtobufSerialize_ = true;
     bool isGetDlopenRange_ = true;
 };
 

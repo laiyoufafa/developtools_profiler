@@ -23,6 +23,7 @@
 #include "perf_event_record.h"
 #include "symbols_file.h"
 #include "virtual_thread.h"
+#include "native_hook_config.pb.h"
 
 namespace OHOS {
 namespace Developtools {
@@ -42,7 +43,8 @@ recorded in the corresponding mmap.
 
 class VirtualRuntime {
 public:
-    VirtualRuntime(bool offlineSymbolization = false);
+    VirtualRuntime();
+    VirtualRuntime(NativeHookConfig hookConfig);
     virtual ~VirtualRuntime();
     // thread need hook the record
     // from the record , it will call back to write some Simulated Record
@@ -59,7 +61,7 @@ public:
         return symbolsFiles_;
     }
 
-    const Symbol GetSymbol(uint64_t ip, pid_t pid, pid_t tid,
+    const Symbol GetSymbol(CallFrame& callsFrame, pid_t pid, pid_t tid,
                            const perf_callchain_context &context = PERF_CONTEXT_MAX);
 
     VirtualThread &GetThread(pid_t pid, pid_t tid);
@@ -74,8 +76,7 @@ public:
                      pid_t pid,
                      pid_t tid,
                      std::vector<CallFrame>& callsFrames,
-                     size_t maxStackLevel,
-                     bool offline_symbolization = false);
+                     size_t maxStackLevel);
     bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first);
     void ClearMaps();
     void CalculationDlopenRange(std::string& muslPath, uint64_t& max, uint64_t& min);
@@ -89,7 +90,7 @@ public:
 #endif
     const bool loadSymboleWhenNeeded_ = true; // thie is a feature config
     void UpdateSymbols(std::string filename);
-    bool IsSymbolExist(std::string fileName);
+    bool IsSymbolExist(const std::string& fileName);
     bool DelSymbolFile(const std::string& fileName);
     void UpdateMaps(pid_t pid, pid_t tid);
     std::vector<MemMapItem>& GetProcessMaps()
@@ -103,12 +104,27 @@ public:
     };
 
 private:
+    struct SymbolCacheKey : public std::pair<uint64_t, uint32_t> {
+        uint64_t& ip = first;
+        uint32_t& filePathId = second;
+        explicit SymbolCacheKey() = default;
+        virtual ~SymbolCacheKey() = default;
+        SymbolCacheKey(const SymbolCacheKey &) = default;
+        SymbolCacheKey& operator=(const SymbolCacheKey& sym)
+        {
+            return ip = sym.ip, filePathId = sym.filePathId, *this;
+        }
+        SymbolCacheKey(const std::pair<uint64_t, uint32_t>& arg) : pair(arg), ip(first), filePathId(second) {}
+        SymbolCacheKey(uint64_t ip, uint32_t filePathId) : pair(ip, filePathId), ip(first), filePathId(second) {}
+    };
+
+    // boost library recommendation algorithm to reduce hash collisions.
     struct HashPair {
-        size_t operator() (const std::pair<uint64_t, uint64_t>& key) const {
+        size_t operator() (const SymbolCacheKey& key) const {
             std::hash<uint64_t> hasher;
             size_t seed = 0;
-            seed ^= hasher(key.first) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            seed ^= hasher(key.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             return seed;
         }
     };
@@ -119,8 +135,10 @@ private:
     // not pid , just memmap
     std::vector<MemMapItem> kernelSpaceMemMaps_;
     pthread_mutex_t processSymbolsFileLock_;
-    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles_ { 512 };
-    std::unordered_map<std::pair<uint64_t, uint64_t>, Symbol, HashPair> userSymbolCache_;
+    std::unordered_set<uint32_t> fileSet_; // for memMpaItem filePathId_
+    std::unordered_map<std::string, uint32_t> functionMap_;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles_;
+    std::unordered_map<SymbolCacheKey, Symbol, HashPair> userSymbolCache_;
     bool GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualThread &thread);
     void UpdateSymbolCache(uint64_t ip, Symbol &symbol, HashList<uint64_t, Symbol> &cache);
 
@@ -135,6 +153,8 @@ private:
     const Symbol GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps,
                                  const VirtualThread &thread);
     const Symbol GetUserSymbol(uint64_t ip, const VirtualThread &thread);
+    void SetSymbolNameId(CallFrame& callsFrame, Symbol& symbol);
+    void SetFilePathId(CallFrame& callsFrame, const Symbol& symbol);
 
     std::vector<std::string> symbolsPaths_;
 
@@ -143,6 +163,7 @@ private:
     pthread_mutex_t threadMemMapsLock_;
     std::vector<MemMapItem> processMemMaps_;
     std::unordered_set<uint64_t> failedIPs_;
+    NativeHookConfig hookConfig_;
 };
 } // namespace NativeDaemon
 } // namespace Developtools

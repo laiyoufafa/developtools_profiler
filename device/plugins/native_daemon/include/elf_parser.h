@@ -272,12 +272,19 @@ public:
         return nullptr;
     }
 
+    /**
+     * Gets the member of the symbol table structure by the symbol offset.
+     * @param symData Symbol table address.
+     * @param symSize Symbol table size.
+     * @param nameOffset The symbol is based on the offset at the beginning of the string table.
+     * @return Returns members st_value and st_name in the symbol table.
+     */
     template <typename T>
-    std::pair<uint64_t, uint64_t> GetSymbolRange(uint8_t* strData, const uint64_t strSize, const uint64_t nameOffset)
+    std::pair<uint64_t, uint64_t> GetSymbolRange(uint8_t* symData, const uint64_t symSize, const uint64_t nameOffset)
     {
         uint64_t step = 0;
-        while (step < strSize) {
-            T* t = (T*)(strData + step);
+        while (step < symSize) {
+            T* t = (T*)(symData + step);
             if (t->st_name == nameOffset) {
                 return {t->st_value, t->st_size};
             }

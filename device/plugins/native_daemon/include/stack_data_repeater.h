@@ -30,12 +30,12 @@ using BatchNativeHookDataPtr = STD_PTR(shared, BatchNativeHookData);
 class StackDataRepeater {
 public:
     struct RawStack {
-        std::unique_ptr<uint8_t[]> BaseStackData;
-        BaseStackRawData* stackConext;
+        std::unique_ptr<uint8_t[]> baseStackData; // Save the shared memory data
+        BaseStackRawData* stackConext; // Points to the foundation type data
         uint8_t* stackData;
-        uint8_t* data;
+        uint8_t* data; // Fp mode data is ip, dwarf mode data is regs
         uint32_t stackSize;
-        uint8_t fpDepth;
+        uint8_t fpDepth; // Fp mode fpDepth is ip depth, dwarf mode is invalid
         bool reportFlag;
         bool reduceStackFlag;
     };

@@ -385,6 +385,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
         }
     }
 
+    // Find if there are duplicate mapping intervals, and if there are, overwrite the old data with the new data.
     for (auto tempMapIter = tempMap.begin(); tempMapIter != tempMap.end(); ++tempMapIter) {
         auto memMapIter = std::find_if(memMaps.begin(), memMaps.end(), [&](MemMapItem& map) {
             if (tempMapIter->begin_ == map.begin_ && tempMapIter->end_ == map.end_) {
@@ -394,8 +395,8 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
         });
 
         if (memMapIter != memMaps.end()) {
-            memMaps.erase(memMapIter);
             virtualruntime_->DelSymbolFile(memMapIter->name_);
+            memMaps.erase(memMapIter);
         }
     }
     memMaps.insert(memMaps.end(), tempMap.begin(), tempMap.end());

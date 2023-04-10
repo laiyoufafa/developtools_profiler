@@ -16,6 +16,12 @@
 #ifndef HOOK_COMMON_H
 #define HOOK_COMMON_H
 
+#if HAVE_LIBUNWIND
+// for libunwind.h empty struct has size 0 in c, size 1 in c++
+#define UNW_EMPTY_STRUCT uint8_t unused;
+#include <libunwind.h>
+#endif
+
 #include "register.h"
 #include "utilities.h"
 
@@ -32,6 +38,7 @@ const int32_t MIN_STACK_DEPTH = 6;
 // Filter two layers of dwarf stack in libnative_hook.z.so
 const size_t FILTER_STACK_DEPTH = 2;
 const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + FILTER_STACK_DEPTH;
+
 }
 }
 }

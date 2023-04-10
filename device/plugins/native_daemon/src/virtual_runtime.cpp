@@ -35,6 +35,7 @@ namespace NativeDaemon {
 namespace {
 std::atomic<uint64_t> callStackErrCnt = 0;
 constexpr uint32_t CALL_STACK_ERROR_TIMES = 10;
+constexpr uint32_t SYMBOL_FILES_SIZE = 512;
 }
 // we unable to access 'swapper' from /proc/0/
 void VirtualRuntime::ClearMaps()
@@ -42,11 +43,18 @@ void VirtualRuntime::ClearMaps()
     processMemMaps_.clear();
 }
 
-VirtualRuntime::VirtualRuntime(bool offlineSymbolization)
+VirtualRuntime::VirtualRuntime()
 {
     threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
-    if (!offlineSymbolization) {
+}
+
+VirtualRuntime::VirtualRuntime(NativeHookConfig hookConfig): hookConfig_(hookConfig)
+{
+    threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
+    threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
+    symbolsFiles_.reserve(SYMBOL_FILES_SIZE);
+    if (!hookConfig_.offline_symbolization()) {
         userSymbolCache_.reserve(USER_SYMBOL_CACHE_LIMIT);
     }
 }
@@ -113,7 +121,8 @@ void VirtualRuntime::MakeCallFrame(Symbol &symbol, CallFrame &callFrame)
     callFrame.filePath_ = symbol.module_.empty() ? symbol.comm_ : symbol.module_;
     callFrame.symbolOffset_ = symbol.offset_;
     callFrame.callFrameId_ = symbol.symbolId_;
-    callFrame.isReported_ = symbol.isReported_;
+    callFrame.symbolNameId_ = symbol.symbolNameId_;
+    callFrame.filePathId_ = symbol.filePathId_;
     if (symbol.funcVaddr_ != 0) {
         callFrame.offset_ = symbol.funcVaddr_;
     } else {
@@ -137,7 +146,7 @@ bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
             HLOGV("%s", UpdatePerfContext(callFrame.ip_, perfCallchainContext).c_str());
             continue;
         }
-        auto symbol = GetSymbol(callFrame.ip_, pid, tid,
+        auto symbol = GetSymbol(callFrame, pid, tid,
             perfCallchainContext);
         if (symbol.isValid()) {
             MakeCallFrame(symbol, callFrame);
@@ -193,8 +202,7 @@ bool VirtualRuntime::UnwindStack(std::vector<u64>& regs,
                                  pid_t pid,
                                  pid_t tid,
                                  std::vector<CallFrame>& callsFrames,
-                                 size_t maxStackLevel,
-                                 bool offline_symbolization)
+                                 size_t maxStackLevel)
 {
 #ifdef HIPERF_DEBUG_TIME
     const auto startTime = steady_clock::now();
@@ -217,7 +225,7 @@ bool VirtualRuntime::UnwindStack(std::vector<u64>& regs,
 #ifdef HIPERF_DEBUG_TIME
     unwindFromRecordTimes_ += duration_cast<microseconds>(steady_clock::now() - startTime);
 #endif
-    if (offline_symbolization) {
+    if (hookConfig_.offline_symbolization()) {
         return true;
     }
     if (!GetSymbolName(pid, tid, callsFrames, offset, true)) {
@@ -244,7 +252,7 @@ bool VirtualRuntime::UnwindStack(std::vector<u64>& regs,
     return true;
 }
 
-bool VirtualRuntime::IsSymbolExist(std::string fileName)
+bool VirtualRuntime::IsSymbolExist(const std::string& fileName)
 {
     if (symbolsFiles_.find(fileName) != symbolsFiles_.end()) {
         HLOGV("already have '%s'", fileName.c_str());
@@ -256,12 +264,13 @@ bool VirtualRuntime::IsSymbolExist(std::string fileName)
 bool VirtualRuntime::DelSymbolFile(const std::string& fileName)
 {
     auto search = symbolsFiles_.find(fileName);
-    if ( search != symbolsFiles_.end()) {
+    if (search != symbolsFiles_.end()) {
         symbolsFiles_.erase(search);
         return true;
     }
     return false;
 }
+
 
 void VirtualRuntime::UpdateSymbols(std::string fileName)
 {
@@ -387,7 +396,6 @@ bool VirtualRuntime::GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualTh
         auto foundSymbolIter = userSymbolCache_.find(std::pair(ip, mmap->filePathId_));
         if (foundSymbolIter != userSymbolCache_.end()) {
             symbol = foundSymbolIter->second;
-            symbol.isReported_ = true;
             return true;
         }
     }
@@ -402,21 +410,26 @@ void VirtualRuntime::UpdateSymbolCache(uint64_t ip, Symbol &symbol,
     cache[ip] = symbol;
 }
 
-const Symbol VirtualRuntime::GetSymbol(uint64_t ip, pid_t pid, pid_t tid,
+const Symbol VirtualRuntime::GetSymbol(CallFrame& callsFrame, pid_t pid, pid_t tid,
                                        const perf_callchain_context &context)
 {
-    HLOGM("try find tid %u ip 0x%" PRIx64 " in %zu symbolsFiles ", tid, ip, symbolsFiles_.size());
+    HLOGM("try find tid %u ip 0x%" PRIx64 " in %zu symbolsFiles ", tid, callsFrame.ip_, symbolsFiles_.size());
     Symbol symbol;
-    if (GetSymbolCache(ip, symbol, GetThread(pid, tid))) {
+    if (GetSymbolCache(callsFrame.ip_, symbol, GetThread(pid, tid))) {
         return symbol;
     }
     if (context == PERF_CONTEXT_USER or (context == PERF_CONTEXT_MAX and !symbol.isValid())) {
         // check userspace memmap
-        symbol = GetUserSymbol(ip, GetThread(pid, tid));
+        symbol = GetUserSymbol(callsFrame.ip_, GetThread(pid, tid));
         if (symbol.isValid()) {
-            HLOGM("GetUserSymbol valid tid = %d ip = 0x%" PRIx64 "", tid, ip);
+            HLOGM("GetUserSymbol valid tid = %d ip = 0x%" PRIx64 "", tid, callsFrame.ip_);
             symbol.symbolId_ = userSymbolCache_.size() + 1;
-            userSymbolCache_[std::pair(ip, symbol.filePathId_)] = symbol;
+            if (hookConfig_.string_compressed()) {
+                SetSymbolNameId(callsFrame, symbol);
+                SetFilePathId(callsFrame, symbol);
+            }
+            callsFrame.needReport_ |= CALL_FRAME_REPORT;
+            userSymbolCache_[std::pair(callsFrame.ip_, symbol.filePathId_)] = symbol;
         } else {
             HLOGM("GetUserSymbol invalid!");
         }
@@ -439,6 +452,7 @@ bool VirtualRuntime::SetSymbolsPaths(const std::vector<std::string> &symbolsPath
     }
     return accessable;
 }
+
 void VirtualRuntime::CalculationDlopenRange(std::string& muslPath, uint64_t& max, uint64_t& min)
 {
     auto iter = std::find_if(processMemMaps_.begin(), processMemMaps_.end(), [&](MemMapItem& map) {
@@ -454,6 +468,27 @@ void VirtualRuntime::CalculationDlopenRange(std::string& muslPath, uint64_t& max
     }
     max = max + iter->begin_ - iter->pageoffset_;
     min = min + iter->begin_ - iter->pageoffset_;
+}
+
+inline void VirtualRuntime::SetSymbolNameId(CallFrame& callsFrame, Symbol& symbol)
+{
+    auto itFuntion = functionMap_.find(std::string(symbol.symbolName_));
+    if (itFuntion != functionMap_.end()) {
+        symbol.symbolNameId_ = itFuntion->second;
+    } else {
+        symbol.symbolNameId_ = functionMap_.size() + 1;
+        functionMap_[std::string(symbol.symbolName_)] = symbol.symbolNameId_;
+        callsFrame.needReport_ |= SYMBOL_NAME_ID_REPORT;
+    }
+}
+
+inline void VirtualRuntime::SetFilePathId(CallFrame& callsFrame, const Symbol& symbol)
+{
+    auto itFile = fileSet_.find(symbol.filePathId_);
+    if (itFile == fileSet_.end()) {
+        callsFrame.needReport_ |= FILE_PATH_ID_REPORT;
+        fileSet_.insert(symbol.filePathId_);
+    }
 }
 } // namespace NativeDaemon
 } // namespace Developtools

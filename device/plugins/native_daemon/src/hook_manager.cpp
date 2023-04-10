@@ -288,18 +288,17 @@ void HookManager::ReadShareMemory()
                 return false;
             }
 
-            rawStack->BaseStackData = std::make_unique<uint8_t[]>(size);
-            if (memcpy_s(rawStack->BaseStackData.get(), size, data, size) != EOK) {
+            rawStack->baseStackData = std::make_unique<uint8_t[]>(size);
+            if (memcpy_s(rawStack->baseStackData.get(), size, data, size) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s raw data failed!");
                 return false;
             }
 
-            rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->BaseStackData.get());
-            rawStack->data = rawStack->BaseStackData.get() + sizeof(BaseStackRawData);
+            rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->baseStackData.get());
+            rawStack->data = rawStack->baseStackData.get() + sizeof(BaseStackRawData);
             rawStack->reportFlag = true;
             rawStack->reduceStackFlag = false;
             if (hookConfig_.fp_unwind()) {
-                rawRealSize = size;
                 rawStack->fpDepth = (size - sizeof(BaseStackRawData)) / sizeof(uint64_t);
                 return true;
             } else {
@@ -308,7 +307,7 @@ void HookManager::ReadShareMemory()
 
             rawStack->stackSize = size - rawRealSize;
             if (rawStack->stackSize > 0) {
-                rawStack->stackData = rawStack->BaseStackData.get() + rawRealSize;
+                rawStack->stackData = rawStack->baseStackData.get() + rawRealSize;
             }
             return true;
         });

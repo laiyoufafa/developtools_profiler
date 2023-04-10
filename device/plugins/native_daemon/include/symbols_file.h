@@ -71,11 +71,11 @@ struct Symbol {
     uint64_t taskVaddr_ = 0;
     uint64_t offset_ = 0;
     uint64_t len_ = 0;
-    uint64_t filePathId_ = 0;
+    uint32_t filePathId_ = 0; // for memMpaItem filePathId_
+    uint32_t symbolNameId_ = 0; // for symbolName_ id
     int32_t index_ = -1;
-    uint32_t symbolId_ = 0;        // for frame map id
+    uint32_t symbolId_ = 0; // for frame map id
     mutable bool matched_ = false; // if some callstack match this
-    bool isReported_ = false;      // for frame map report
     // elf use this
     Symbol(uint64_t vaddr, uint64_t len, const std::string &name, const std::string &demangle,
            const std::string module)

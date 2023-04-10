@@ -30,8 +30,10 @@ public:
     uint64_t major_ = 0;
     uint64_t minor_ = 0;
     uint64_t inode = 0;
+    uint32_t filePathId_ = 0; // for maps item filePath id
     std::string name_;
     std::string_view nameHold_;
+    bool isReport = false;
 
     MemMapItem() {}
     MemMapItem(uint64_t begin, uint64_t end, uint64_t offset, const std::string &name)
