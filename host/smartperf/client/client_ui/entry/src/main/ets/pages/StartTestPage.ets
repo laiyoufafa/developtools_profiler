@@ -175,7 +175,7 @@ struct StartTestPage {
                 prompt.showToast({ message: "please choose app!", duration: 1000 })
                 return
               }
-				if(router.getParams()["selectPackageName"]!=null && router!=null){
+				if(router!=null && router.getParams()["selectPackageName"]!=null){
               //启动app
               commonStartAbility(new String(router.getParams()["selectPackageName"]).toString(), new String(router.getParams()["selectAbilityName"]).toString())
 
