@@ -302,7 +302,7 @@ void HookManager::ReadShareMemory()
                 rawStack->fpDepth = (size - sizeof(BaseStackRawData)) / sizeof(uint64_t);
                 return true;
             } else {
-                rawRealSize = sizeof(BaseStackRawData) + kMaxRegSize * sizeof(char);
+                rawRealSize = sizeof(BaseStackRawData) + MAX_REG_SIZE * sizeof(char);
             }
 
             rawStack->stackSize = size - rawRealSize;
