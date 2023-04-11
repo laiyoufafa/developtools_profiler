@@ -38,7 +38,7 @@ constexpr static uint32_t DLOPE_FRAME = 4;
 
 using namespace OHOS::Developtools::NativeDaemon;
 
-StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, NativeHookConfig hookConfig)
+StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig hookConfig)
     : dataRepeater_(dataRepeater), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]),
       hookConfig_(hookConfig), fpHookData_(nullptr, nullptr)
 {

@@ -44,7 +44,7 @@ recorded in the corresponding mmap.
 class VirtualRuntime {
 public:
     VirtualRuntime();
-    VirtualRuntime(NativeHookConfig hookConfig);
+    VirtualRuntime(const NativeHookConfig hookConfig);
     virtual ~VirtualRuntime();
     // thread need hook the record
     // from the record , it will call back to write some Simulated Record
@@ -112,7 +112,9 @@ private:
         SymbolCacheKey(const SymbolCacheKey &) = default;
         SymbolCacheKey& operator=(const SymbolCacheKey& sym)
         {
-            return ip = sym.ip, filePathId = sym.filePathId, *this;
+            ip = sym.ip;
+            filePathId = sym.filePathId; 
+            return *this;
         }
         SymbolCacheKey(const std::pair<uint64_t, uint32_t>& arg) : pair(arg), ip(first), filePathId(second) {}
         SymbolCacheKey(uint64_t ip, uint32_t filePathId) : pair(ip, filePathId), ip(first), filePathId(second) {}

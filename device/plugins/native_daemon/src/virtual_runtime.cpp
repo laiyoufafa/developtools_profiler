@@ -49,7 +49,7 @@ VirtualRuntime::VirtualRuntime()
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
 }
 
-VirtualRuntime::VirtualRuntime(NativeHookConfig hookConfig): hookConfig_(hookConfig)
+VirtualRuntime::VirtualRuntime(const NativeHookConfig hookConfig): hookConfig_(hookConfig)
 {
     threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;

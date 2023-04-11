@@ -33,7 +33,7 @@ public:
     uint32_t filePathId_ = 0; // for maps item filePath id
     std::string name_;
     std::string_view nameHold_;
-    bool isReport = false;
+    bool isReported = false;
 
     MemMapItem() {}
     MemMapItem(uint64_t begin, uint64_t end, uint64_t offset, const std::string &name)
