@@ -281,7 +281,7 @@ void HookManager::ReadShareMemory()
 {
     CHECK_NOTNULL(shareMemoryBlock_, NO_RETVAL, "smb is null!");
     uint64_t value = eventNotifier_->Take();
-    int  rawRealSize = 0;
+    int rawRealSize = 0;
     while (true) {
         auto rawStack = std::make_shared<StackDataRepeater::RawStack>();
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {

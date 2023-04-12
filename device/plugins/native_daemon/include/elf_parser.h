@@ -284,7 +284,7 @@ public:
     {
         uint64_t step = 0;
         while (step < symSize) {
-            T* t = (T*)(symData + step);
+            T* t = static_cast<T*>(symData + step);
             if (t->st_name == nameOffset) {
                 return {t->st_value, t->st_size};
             }

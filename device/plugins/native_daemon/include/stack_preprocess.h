@@ -42,7 +42,7 @@ public:
         uint64_t releaseSize {0};
     };
 
-    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, NativeHookConfig hookConfig);
+    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig& hookConfig);
     ~StackPreprocess();
     void SetWriter(const std::shared_ptr<BufferWriter>& writer);
     bool StartTakeResults();

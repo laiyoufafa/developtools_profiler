@@ -166,11 +166,13 @@ HWTEST_F(VirtualRuntimeTest, GetSymbol, TestSize.Level1)
     PrepareUserSymbol();
 
     ScopeDebugLevel tempLogLevel(LEVEL_MUCH);
+    CallFrame callFrame(0);
 
-    symbol = runtime_->GetSymbol(0u, testTid, testTid);
+    symbol = runtime_->GetSymbol(callFrame, testTid, testTid);
     EXPECT_EQ(symbol.isValid(), false);
 
-    symbol = runtime_->GetSymbol(testUserVaddr + testUserMapBegin, testTid, testTid);
+    callFrame.ip_ = testUserVaddr + testUserMapBegin;
+    symbol = runtime_->GetSymbol(callFrame, testTid, testTid);
     // in user
     EXPECT_EQ(symbol.isValid(), true);
     EXPECT_EQ(symbol.funcVaddr_, testUserVaddr);
