@@ -42,7 +42,7 @@ public:
         uint64_t releaseSize {0};
     };
 
-    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig hookConfig);
+    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, NativeHookConfig hookConfig);
     ~StackPreprocess();
     void SetWriter(const std::shared_ptr<BufferWriter>& writer);
     bool StartTakeResults();
@@ -72,9 +72,10 @@ private:
     void SetHookData(RawStackPtr RawStack, std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData);
     void WriteFrames(RawStackPtr RawStack, const std::vector<CallFrame>& callsFrames);
-    void SetFrameInfo(Frame& frame, CallFrame& callsFrame);
-    void SetSymbolNameId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
-    void SetFilePathId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData);
+    void SetFrameInfo(Frame& frame, CallFrame& callFrame);
+    void ReportSymbolNameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
+    void ReportFilePathMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
+    void ReportFrameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     uint32_t GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData);
     void SetMapsInfo(pid_t pid, RawStackPtr rawStack);
     void SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,
@@ -83,12 +84,13 @@ private:
     void Flush(const uint8_t* src, size_t size);
     void GetSymbols(const std::string& filePath, ElfSymbolTable& symbols);
     void DlopenRangePreprocess();
-    const std::string SearchMuslSoPath();
+    const std::string SearchLibcSoPath();
 
-    void SetOfflineFrameMap(std::vector<CallFrame>& callsFrames, size_t idx);
-    void SetFrameMap(std::vector<CallFrame>& callsFrames,
+    void FillOfflineCallStack(std::vector<CallFrame>& callsFrames, size_t idx);
+    void FillCallStack(std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData, size_t idx);
-    uint32_t SetCallStack(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
+    uint32_t SetCallStackMap(BatchNativeHookData& batchNativeHookData);
+    uint32_t GetCallStackId(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
         BatchNativeHookData& batchNativeHookData);
     template <typename T>
     void SetEventFrame(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
@@ -105,20 +107,20 @@ private:
     bool isStopTakeData_ = false;
     std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
     DISALLOW_COPY_AND_MOVE(StackPreprocess);
-    std::unordered_map<std::string, uint32_t> fileMap_;
     std::unordered_map<std::string, uint32_t> threadMap_;
     NativeHookConfig hookConfig_;
     std::unique_ptr<FILE, decltype(&fclose)> fpHookData_;
     uint32_t ignoreCnts_ = 0;
     uint32_t eventCnts_ = 0;
     bool flushBasicData_ {true};
-    std::string muslSoPath_;
+    std::string libcSoPath_;
     uint32_t dlopenFrameIdx_ {0};
     uint64_t dlopenIpMax_ {0};
     uint64_t dlopenIpMin_ {0};
     std::vector<u64> u64regs_;
     std::vector<CallFrame> callsFrames_;
     std::vector<uint64_t> callStack_;
+    // Key is callStack_, value is call stack id
     std::map<std::vector<uint64_t>, uint32_t> callStackMap_;
     std::chrono::seconds statisticsInterval_;
     std::chrono::steady_clock::time_point lastStatisticsTime_;
@@ -129,7 +131,7 @@ private:
     // Key is alloc or mmap address, value first is mallocsize, second is recordstatistic data pointer
     std::unordered_map<uint64_t, std::pair<uint64_t, RecordStatistic*>> allocAddrMap_ {ALLOC_ADDRMAMP_SIZE};
     bool isProtobufSerialize_ = true;
-    bool isGetDlopenRange_ = true;
+    bool isDlopenRangeValid_ = false;
 };
 
 #endif // STACK_PREPROCESS_H

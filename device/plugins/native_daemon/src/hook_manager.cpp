@@ -49,6 +49,8 @@ const int MOVE_BIT_32 = 32;
 const int SIGNAL_START_HOOK = 36;
 const int SIGNAL_STOP_HOOK = 37;
 const std::string VERSION = "1.01";
+// dlopen function minimum stack depth
+const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
 }  // namespace
 
 bool HookManager::CheckProcess()
@@ -214,9 +216,9 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     // hook config |F F            F F              F F F F       F F F F      F F F F|
     //              stack depth    malloctype       filtersize    sharememory  size
 
-    if (hookConfig_.max_stack_depth() <= 0) {
+    if (hookConfig_.max_stack_depth() < DLOPEN_MIN_UNWIND_DEPTH) {
         // set default max depth
-        hookConfig_.set_max_stack_depth(MAX_UNWIND_DEPTH);
+        hookConfig_.set_max_stack_depth(DLOPEN_MIN_UNWIND_DEPTH);
     }
 #if defined(__arm__)
     hookConfig_.set_fp_unwind(false); // if OS is 32-bit,set fp_unwind false.
@@ -279,7 +281,7 @@ void HookManager::ReadShareMemory()
 {
     CHECK_NOTNULL(shareMemoryBlock_, NO_RETVAL, "smb is null!");
     uint64_t value = eventNotifier_->Take();
-    int rawRealSize = 0;
+    int  rawRealSize = 0;
     while (true) {
         auto rawStack = std::make_shared<StackDataRepeater::RawStack>();
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {

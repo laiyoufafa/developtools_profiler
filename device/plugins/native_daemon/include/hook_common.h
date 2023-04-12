@@ -43,7 +43,8 @@ const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + FILTER_STACK_DEPTH;
 }
 }
 
-constexpr size_t MAX_REG_SIZE = sizeof(uint64_t) * OHOS::Developtools::NativeDaemon::PERF_REG_ARM64_MAX;
+constexpr size_t MAX_REG_SIZE = sizeof(uint64_t)
+    * OHOS::Developtools::NativeDaemon::PERF_REG_ARM64_MAX;
 
 enum {
     MALLOCDISABLE = (1u << 0),

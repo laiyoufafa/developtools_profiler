@@ -790,13 +790,6 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
         prctl(PR_GET_NAME, rawdata.tname);
     }
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock failed!");
-        return;
-    }
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {

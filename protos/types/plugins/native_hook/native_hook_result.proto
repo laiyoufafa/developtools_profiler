@@ -115,7 +115,6 @@ message SymbolTable {
     bytes str_table = 6;
 }
 
-
 message RecordStatisticsEvent {
     uint32 pid = 1;
     uint32 callstack_id = 2;
@@ -129,6 +128,7 @@ message RecordStatisticsEvent {
     uint64 apply_size = 6;
     uint64 release_size = 7;
 }
+
 message NativeHookData {
     uint64 tv_sec = 1;
     uint64 tv_nsec = 2;

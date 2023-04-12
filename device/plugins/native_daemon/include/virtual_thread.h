@@ -91,16 +91,6 @@ public:
     static bool IsLegalFileName(const std::string &filename);
 
 private:
-    inline static uint32_t filePathCnt_ = 0;
-    void SetFilePathId(std::string& currentFileName, MemMapItem& map)
-    {
-        if (currentFileName.compare(map.name_) != 0) {
-            currentFileName = map.name_;
-            ++filePathCnt_;
-        }
-        map.filePathId_ = filePathCnt_;
-    }
-
     void SortMemMaps();
 #ifdef DEBUG_TIME
     bool IsSorted() const;

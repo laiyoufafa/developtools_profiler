@@ -49,7 +49,7 @@ VirtualRuntime::VirtualRuntime()
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
 }
 
-VirtualRuntime::VirtualRuntime(const NativeHookConfig hookConfig): hookConfig_(hookConfig)
+VirtualRuntime::VirtualRuntime(const NativeHookConfig& hookConfig): hookConfig_(hookConfig)
 {
     threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
@@ -410,26 +410,26 @@ void VirtualRuntime::UpdateSymbolCache(uint64_t ip, Symbol &symbol,
     cache[ip] = symbol;
 }
 
-const Symbol VirtualRuntime::GetSymbol(CallFrame& callsFrame, pid_t pid, pid_t tid,
+const Symbol VirtualRuntime::GetSymbol(CallFrame& callFrame, pid_t pid, pid_t tid,
                                        const perf_callchain_context &context)
 {
-    HLOGM("try find tid %u ip 0x%" PRIx64 " in %zu symbolsFiles ", tid, callsFrame.ip_, symbolsFiles_.size());
+    HLOGM("try find tid %u ip 0x%" PRIx64 " in %zu symbolsFiles ", tid, callFrame.ip_, symbolsFiles_.size());
     Symbol symbol;
-    if (GetSymbolCache(callsFrame.ip_, symbol, GetThread(pid, tid))) {
+    if (GetSymbolCache(callFrame.ip_, symbol, GetThread(pid, tid))) {
         return symbol;
     }
     if (context == PERF_CONTEXT_USER or (context == PERF_CONTEXT_MAX and !symbol.isValid())) {
         // check userspace memmap
-        symbol = GetUserSymbol(callsFrame.ip_, GetThread(pid, tid));
+        symbol = GetUserSymbol(callFrame.ip_, GetThread(pid, tid));
         if (symbol.isValid()) {
-            HLOGM("GetUserSymbol valid tid = %d ip = 0x%" PRIx64 "", tid, callsFrame.ip_);
+            HLOGM("GetUserSymbol valid tid = %d ip = 0x%" PRIx64 "", tid, callFrame.ip_);
             symbol.symbolId_ = userSymbolCache_.size() + 1;
             if (hookConfig_.string_compressed()) {
-                SetSymbolNameId(callsFrame, symbol);
-                SetFilePathId(callsFrame, symbol);
+                FillSymbolNameId(callFrame, symbol);
+                FillFileSet(callFrame, symbol);
             }
-            callsFrame.needReport_ |= CALL_FRAME_REPORT;
-            userSymbolCache_[std::pair(callsFrame.ip_, symbol.filePathId_)] = symbol;
+            callFrame.needReport_ |= CALL_FRAME_REPORT;
+            userSymbolCache_[std::pair(callFrame.ip_, symbol.filePathId_)] = symbol;
         } else {
             HLOGM("GetUserSymbol invalid!");
         }
@@ -453,7 +453,7 @@ bool VirtualRuntime::SetSymbolsPaths(const std::vector<std::string> &symbolsPath
     return accessable;
 }
 
-void VirtualRuntime::CalculationDlopenRange(std::string& muslPath, uint64_t& max, uint64_t& min)
+void VirtualRuntime::CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uint64_t& min)
 {
     auto iter = std::find_if(processMemMaps_.begin(), processMemMaps_.end(), [&](MemMapItem& map) {
         if (map.name_ == muslPath && (map.type_ & PROT_EXEC)) {
@@ -470,7 +470,16 @@ void VirtualRuntime::CalculationDlopenRange(std::string& muslPath, uint64_t& max
     min = min + iter->begin_ - iter->pageoffset_;
 }
 
-inline void VirtualRuntime::SetSymbolNameId(CallFrame& callsFrame, Symbol& symbol)
+void VirtualRuntime::FillFilePathId(std::string& currentFileName, MemMapItem& memMapItem)
+{
+    if (currentFileName.compare(memMapItem.name_) != 0) {
+        currentFileName = memMapItem.name_;
+        ++memMapFilePathId_;
+    }
+    memMapItem.filePathId_ = memMapFilePathId_;
+}
+
+inline void VirtualRuntime::FillSymbolNameId(CallFrame& callFrame, Symbol& symbol)
 {
     auto itFuntion = functionMap_.find(std::string(symbol.symbolName_));
     if (itFuntion != functionMap_.end()) {
@@ -478,15 +487,15 @@ inline void VirtualRuntime::SetSymbolNameId(CallFrame& callsFrame, Symbol& symbo
     } else {
         symbol.symbolNameId_ = functionMap_.size() + 1;
         functionMap_[std::string(symbol.symbolName_)] = symbol.symbolNameId_;
-        callsFrame.needReport_ |= SYMBOL_NAME_ID_REPORT;
+        callFrame.needReport_ |= SYMBOL_NAME_ID_REPORT;
     }
 }
 
-inline void VirtualRuntime::SetFilePathId(CallFrame& callsFrame, const Symbol& symbol)
+inline void VirtualRuntime::FillFileSet(CallFrame& callFrame, const Symbol& symbol)
 {
     auto itFile = fileSet_.find(symbol.filePathId_);
     if (itFile == fileSet_.end()) {
-        callsFrame.needReport_ |= FILE_PATH_ID_REPORT;
+        callFrame.needReport_ |= FILE_PATH_ID_REPORT;
         fileSet_.insert(symbol.filePathId_);
     }
 }

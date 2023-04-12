@@ -373,11 +373,11 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
 
             memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
             if (!update) {
-                SetFilePathId(tempMapName, memMapItem);
+                virtualruntime_->FillFilePathId(tempMapName, memMapItem);
                 memMaps.push_back(memMapItem);
                 virtualruntime_->UpdateSymbols(memMapItem.name_);
             } else if (!virtualruntime_->IsSymbolExist(memMapItem.name_)) {
-                SetFilePathId(tempMapName, memMapItem);
+                virtualruntime_->FillFilePathId(tempMapName, memMapItem);
                 mapsAdded = true;
                 tempMap.push_back(memMapItem);
                 addSymbolFile.emplace(memMapItem.name_);

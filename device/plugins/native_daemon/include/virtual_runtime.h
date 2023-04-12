@@ -44,7 +44,7 @@ recorded in the corresponding mmap.
 class VirtualRuntime {
 public:
     VirtualRuntime();
-    VirtualRuntime(const NativeHookConfig hookConfig);
+    VirtualRuntime(const NativeHookConfig& hookConfig);
     virtual ~VirtualRuntime();
     // thread need hook the record
     // from the record , it will call back to write some Simulated Record
@@ -61,7 +61,7 @@ public:
         return symbolsFiles_;
     }
 
-    const Symbol GetSymbol(CallFrame& callsFrame, pid_t pid, pid_t tid,
+    const Symbol GetSymbol(CallFrame& callFrame, pid_t pid, pid_t tid,
                            const perf_callchain_context &context = PERF_CONTEXT_MAX);
 
     VirtualThread &GetThread(pid_t pid, pid_t tid);
@@ -79,7 +79,8 @@ public:
                      size_t maxStackLevel);
     bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first);
     void ClearMaps();
-    void CalculationDlopenRange(std::string& muslPath, uint64_t& max, uint64_t& min);
+    void CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uint64_t& min);
+    void FillFilePathId(std::string& currentFileName, MemMapItem& memMapItem);
     // debug time
 #ifdef HIPERF_DEBUG_TIME
     std::chrono::microseconds updateSymbolsTimes_ = std::chrono::microseconds::zero();
@@ -113,7 +114,7 @@ private:
         SymbolCacheKey& operator=(const SymbolCacheKey& sym)
         {
             ip = sym.ip;
-            filePathId = sym.filePathId; 
+            filePathId = sym.filePathId;
             return *this;
         }
         SymbolCacheKey(const std::pair<uint64_t, uint32_t>& arg) : pair(arg), ip(first), filePathId(second) {}
@@ -155,8 +156,8 @@ private:
     const Symbol GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps,
                                  const VirtualThread &thread);
     const Symbol GetUserSymbol(uint64_t ip, const VirtualThread &thread);
-    void SetSymbolNameId(CallFrame& callsFrame, Symbol& symbol);
-    void SetFilePathId(CallFrame& callsFrame, const Symbol& symbol);
+    void FillSymbolNameId(CallFrame& callFrame, Symbol& symbol);
+    void FillFileSet(CallFrame& callFrame, const Symbol& symbol);
 
     std::vector<std::string> symbolsPaths_;
 
@@ -165,7 +166,8 @@ private:
     pthread_mutex_t threadMemMapsLock_;
     std::vector<MemMapItem> processMemMaps_;
     std::unordered_set<uint64_t> failedIPs_;
-    NativeHookConfig hookConfig_;
+    const NativeHookConfig hookConfig_;
+    uint32_t memMapFilePathId_ = 0;
 };
 } // namespace NativeDaemon
 } // namespace Developtools

@@ -33,12 +33,12 @@ constexpr static uint32_t FUNCTION_MAP_LOG_PRINT = 100;
 constexpr static uint32_t FILE_MAP_LOG_PRINT = 10;
 constexpr static uint32_t MAX_BATCH_CNT = 5;
 constexpr static uint32_t LONG_TIME_THRESHOLD = 1000000;
-constexpr static uint32_t DLOPEN_MIN_FRAME_DEPTH = 7; // for fp and dwarf
-constexpr static uint32_t DLOPE_FRAME = 4;
+// dlopen function call frame index for fp mode
+constexpr static uint32_t DLOPEN_FRAME_INDEX = 4;
 
 using namespace OHOS::Developtools::NativeDaemon;
 
-StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig hookConfig)
+StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, NativeHookConfig hookConfig)
     : dataRepeater_(dataRepeater), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]),
       hookConfig_(hookConfig), fpHookData_(nullptr, nullptr)
 {
@@ -77,6 +77,7 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const
         }
     }
     DlopenRangePreprocess();
+    dlopenFrameIdx_ = hookConfig_.fp_unwind() ? DLOPEN_FRAME_INDEX : DLOPEN_FRAME_INDEX + FILTER_STACK_DEPTH;
 #if defined(__arm__)
     u64regs_.resize(PERF_REG_ARM_MAX);
 #else
@@ -184,7 +185,10 @@ void StackPreprocess::TakeResults()
                 uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->data);
                 u64regs_.assign(regAddrArm, regAddrArm + PERF_REG_ARM_MAX);
 #else
-                memcpy_s(u64regs_.data(), sizeof(uint64_t) * PERF_REG_ARM64_MAX, rawData->data, sizeof(uint64_t) * PERF_REG_ARM64_MAX);
+                if (memcpy_s(u64regs_.data(), sizeof(uint64_t) * PERF_REG_ARM64_MAX, rawData->data,
+                    sizeof(uint64_t) * PERF_REG_ARM64_MAX) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+                }
 #endif
             }
 #ifdef PERFORMANCE_DEBUG
@@ -204,14 +208,13 @@ void StackPreprocess::TakeResults()
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 continue;
             }
-            if (isGetDlopenRange_) {
-                isGetDlopenRange_ = false;
-                runtime_instance->CalculationDlopenRange(muslSoPath_, dlopenIpMax_, dlopenIpMin_);
-                dlopenFrameIdx_ = hookConfig_.fp_unwind() ? DLOPE_FRAME : DLOPE_FRAME + FILTER_STACK_DEPTH;
+            if (!isDlopenRangeValid_) {
+                runtime_instance->CalcDlopenIpRange(libcSoPath_, dlopenIpMax_, dlopenIpMin_);
+                isDlopenRangeValid_ = true;
             }
             if (rawData->stackConext->type == MMAP_MSG) {
                 // if mmap msg trigger by dlopen, update maps voluntarily
-                if (callsFrames_.size() >= DLOPEN_MIN_FRAME_DEPTH) {
+                if (callsFrames_.size() > dlopenFrameIdx_) {
                     // for dlopen mmap framme
                     if (callsFrames_[dlopenFrameIdx_].ip_ >= dlopenIpMin_ &&
                             callsFrames_[dlopenFrameIdx_].ip_ < dlopenIpMax_) {
@@ -259,70 +262,75 @@ void StackPreprocess::TakeResults()
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }
 
-inline void StackPreprocess::SetOfflineFrameMap(std::vector<CallFrame>& callsFrames, size_t idx)
+inline void StackPreprocess::FillOfflineCallStack(std::vector<CallFrame>& callsFrames, size_t idx)
 {
     for (; idx < callsFrames.size(); ++idx) {
         callStack_.push_back(callsFrames[idx].ip_);
     }
 }
 
-inline void StackPreprocess::SetFrameMap(std::vector<CallFrame>& callsFrames,
+inline void StackPreprocess::FillCallStack(std::vector<CallFrame>& callsFrames,
     BatchNativeHookData& batchNativeHookData, size_t idx)
 {
     for (; idx < callsFrames.size(); ++idx) {
-        if (callsFrames[idx].needReport_ & CALL_FRAME_REPORT) {
-            SetSymbolNameId(callsFrames[idx], batchNativeHookData);
-            SetFilePathId(callsFrames[idx], batchNativeHookData);
-            auto hookData = batchNativeHookData.add_events();
-            FrameMap* frameMap = hookData->mutable_frame_map();
-            Frame* frame = frameMap->mutable_frame();
-            SetFrameInfo(*frame, callsFrames[idx]);
-            frameMap->set_id(callsFrames[idx].callFrameId_);
-        }
+        ReportFrameMap(callsFrames[idx], batchNativeHookData);
         // for call stack id
         callStack_.push_back(callsFrames[idx].callFrameId_);
     }
 }
 
-uint32_t StackPreprocess::SetCallStack(const RawStackPtr& rawStack,
+/**
+ * @return '0' is invalid stack id, '> 0' is valid stack id
+ */
+inline uint32_t StackPreprocess::SetCallStackMap(BatchNativeHookData& batchNativeHookData)
+{
+    auto hookData = batchNativeHookData.add_events();
+    StackMap* stackmap = hookData->mutable_stack_map();
+    uint32_t stackId = callStackMap_.size() + 1;
+    stackmap->set_id(stackId);
+    // offline symbolization use ip, other use frame_map_id
+    if (hookConfig_.offline_symbolization()) {
+        for (size_t i = 0; i < callStack_.size(); i++) {
+            stackmap->add_ip(callStack_[i]);
+        }
+    } else {
+        for (size_t i = 0; i < callStack_.size(); i++) {
+            stackmap->add_frame_map_id(callStack_[i]);
+        }
+    }
+    callStackMap_[callStack_] = stackId;
+    return stackId;
+}
+
+/**
+ * @return '0' is invalid stack id, '> 0' is valid stack id
+ */
+inline uint32_t StackPreprocess::GetCallStackId(const RawStackPtr& rawStack,
     std::vector<CallFrame>& callsFrames,
     BatchNativeHookData& batchNativeHookData)
 {
     // ignore the first two frame if dwarf unwind
     size_t idx = hookConfig_.fp_unwind() ? 0 : FILTER_STACK_DEPTH;
     // if free_stack_report or munmap_stack_report is false, don't need to record.
-    if ((rawStack->stackConext->type == FREE_MSG) && !hookConfig_.free_stack_report())
+    if ((rawStack->stackConext->type == FREE_MSG) && !hookConfig_.free_stack_report()) {
         return 0;
-    else if ((rawStack->stackConext->type == MUNMAP_MSG) && !hookConfig_.munmap_stack_report())
+    }
+    else if ((rawStack->stackConext->type == MUNMAP_MSG) && !hookConfig_.munmap_stack_report()) {
         return 0;
+    }
     callStack_.clear();
     callStack_.reserve(callsFrames.size());
     if (!hookConfig_.offline_symbolization()) {
-        SetFrameMap(callsFrames, batchNativeHookData, idx);
+        FillCallStack(callsFrames, batchNativeHookData, idx);
     } else {
-        SetOfflineFrameMap(callsFrames, idx);
+        FillOfflineCallStack(callsFrames, idx);
     }
-    // by call stack id set alloc statistics data.
+    // return call stack id
     auto itStack = callStackMap_.find(callStack_);
     if (itStack != callStackMap_.end()) {
         return itStack->second;
     } else {
-        auto hookData = batchNativeHookData.add_events();
-        StackMap* stackmap = hookData->mutable_stack_map();
-        auto stack_id = callStackMap_.size() + 1;
-        stackmap->set_id(stack_id);
-        // offline symbolization use ip, other use frame_map_id
-        if (hookConfig_.offline_symbolization()) {
-            for (size_t i = 0; i < callStack_.size(); i++) {
-                stackmap->add_ip(callStack_[i]);
-            }
-        } else {
-            for (size_t i = 0; i < callStack_.size(); i++) {
-                stackmap->add_frame_map_id(callStack_[i]);
-            }
-        }
-        callStackMap_[callStack_] = stack_id;
-        return stack_id;
+        return SetCallStackMap(batchNativeHookData);
     }
 }
 
@@ -342,8 +350,8 @@ void StackPreprocess::SetEventFrame(const RawStackPtr& rawStack,
         event->set_stack_id(stackMapId);
     } else if (hookConfig_.string_compressed()) {
         for (; idx < callsFrames.size(); ++idx) {
-            SetSymbolNameId(callsFrames[idx], batchNativeHookData);
-            SetFilePathId(callsFrames[idx], batchNativeHookData);
+            ReportSymbolNameMap(callsFrames[idx], batchNativeHookData);
+            ReportFilePathMap(callsFrames[idx], batchNativeHookData);
             Frame* frame = event->add_frame_info();
             SetFrameInfo(*frame, callsFrames[idx]);
         }
@@ -364,33 +372,20 @@ void StackPreprocess::SetAllocStatisticsFrame(const RawStackPtr& rawStack,
     callStack_.clear();
     callStack_.reserve(callsFrames.size());
     if (!hookConfig_.offline_symbolization()) {
-        SetFrameMap(callsFrames, batchNativeHookData, idx);
+        FillCallStack(callsFrames, batchNativeHookData, idx);
     } else {
-        SetOfflineFrameMap(callsFrames, idx);
+        FillOfflineCallStack(callsFrames, idx);
     }
     // by call stack id set alloc statistics data.
     auto itStack = callStackMap_.find(callStack_);
     if (itStack != callStackMap_.end()) {
         SetAllocStatisticsData(rawStack, itStack->second, true);
     } else {
-        auto hookData = batchNativeHookData.add_events();
-        StackMap* stackmap = hookData->mutable_stack_map();
-        auto stack_id = callStackMap_.size() + 1;
-        stackmap->set_id(stack_id);
-        // offline symbolization use ip, other use frame_map_id
-        if (hookConfig_.offline_symbolization()) {
-            for (size_t i = 0; i < callStack_.size(); i++) {
-                stackmap->add_ip(callStack_[i]);
-            }
-        } else {
-            for (size_t i = 0; i < callStack_.size(); i++) {
-                stackmap->add_frame_map_id(callStack_[i]);
-            }
-        }
-        callStackMap_[callStack_] = stack_id;
-        SetAllocStatisticsData(rawStack, stack_id);
+        auto stackId = SetCallStackMap(batchNativeHookData);
+        SetAllocStatisticsData(rawStack, stackId);
     }
 }
+
 void StackPreprocess::SetHookData(RawStackPtr rawStack,
     std::vector<CallFrame>& callsFrames, BatchNativeHookData& batchNativeHookData)
 {
@@ -412,7 +407,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
     uint32_t stackMapId = 0;
     if (hookConfig_.callframe_compress() &&
         !(rawStack->stackConext->type == MEMORY_TAG || rawStack->stackConext->type == PR_SET_VMA_MSG)) {
-        stackMapId = SetCallStack(rawStack, callsFrames, batchNativeHookData);
+        stackMapId = GetCallStackId(rawStack, callsFrames, batchNativeHookData);
     }
     NativeHookData* hookData = batchNativeHookData.add_events();
     hookData->set_tv_sec(rawStack->stackConext->ts.tv_sec);
@@ -561,47 +556,59 @@ void StackPreprocess::WriteFrames(RawStackPtr rawStack, const std::vector<CallFr
     }
 }
 
-inline void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callsFrame)
+inline void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callFrame)
 {
-    frame.set_ip(callsFrame.ip_);
+    frame.set_ip(callFrame.ip_);
     if (hookConfig_.offline_symbolization()) {
         return;
     }
-    frame.set_sp(callsFrame.sp_);
-    frame.set_offset(callsFrame.offset_);
-    frame.set_symbol_offset(callsFrame.symbolOffset_);
+    frame.set_sp(callFrame.sp_);
+    frame.set_offset(callFrame.offset_);
+    frame.set_symbol_offset(callFrame.symbolOffset_);
 
-    if (callsFrame.symbolNameId_ != 0 && callsFrame.filePathId_ != 0) {
-        frame.set_symbol_name_id(callsFrame.symbolNameId_);
-        frame.set_file_path_id(callsFrame.filePathId_);
+    if (callFrame.symbolNameId_ != 0 && callFrame.filePathId_ != 0) {
+        frame.set_symbol_name_id(callFrame.symbolNameId_);
+        frame.set_file_path_id(callFrame.filePathId_);
     } else {
-        frame.set_symbol_name(std::string(callsFrame.symbolName_));
-        frame.set_file_path(std::string(callsFrame.filePath_));
+        frame.set_symbol_name(std::string(callFrame.symbolName_));
+        frame.set_file_path(std::string(callFrame.filePath_));
     }
 }
 
-inline void StackPreprocess::SetSymbolNameId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData)
+inline void StackPreprocess::ReportSymbolNameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData)
 {
-    if (callsFrame.needReport_ & SYMBOL_NAME_ID_REPORT) {
+    if (callFrame.needReport_ & SYMBOL_NAME_ID_REPORT) {
         auto hookData = batchNativeHookData.add_events();
         SymbolMap* symbolMap = hookData->mutable_symbol_name();
-        symbolMap->set_id(callsFrame.symbolNameId_);
-        symbolMap->set_name(std::string(callsFrame.symbolName_));
+        symbolMap->set_id(callFrame.symbolNameId_);
+        symbolMap->set_name(std::string(callFrame.symbolName_));
     }
 }
 
-inline void StackPreprocess::SetFilePathId(CallFrame& callsFrame, BatchNativeHookData& batchNativeHookData)
+inline void StackPreprocess::ReportFilePathMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData)
 {
-    if (callsFrame.needReport_ & FILE_PATH_ID_REPORT) {
+    if (callFrame.needReport_ & FILE_PATH_ID_REPORT) {
         auto hookData = batchNativeHookData.add_events();
-        SymbolMap* symbolMap = hookData->mutable_symbol_name();
         FilePathMap* filepathMap = hookData->mutable_file_path();
-        filepathMap->set_id(callsFrame.filePathId_);
-        filepathMap->set_name(std::string(callsFrame.filePath_));
+        filepathMap->set_id(callFrame.filePathId_);
+        filepathMap->set_name(std::string(callFrame.filePath_));
     }
 }
 
-const std::string StackPreprocess::SearchMuslSoPath()
+inline void StackPreprocess::ReportFrameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData)
+{
+    if (callFrame.needReport_ & CALL_FRAME_REPORT) {
+        ReportSymbolNameMap(callFrame, batchNativeHookData);
+        ReportFilePathMap(callFrame, batchNativeHookData);
+        auto hookData = batchNativeHookData.add_events();
+        FrameMap* frameMap = hookData->mutable_frame_map();
+        Frame* frame = frameMap->mutable_frame();
+        SetFrameInfo(*frame, callFrame);
+        frameMap->set_id(callFrame.callFrameId_);
+    }
+}
+
+const std::string StackPreprocess::SearchLibcSoPath()
 {
     std::string mapContent = ReadFileToString("/proc/self/maps");
     std::istringstream s(mapContent);
@@ -621,13 +628,13 @@ const std::string StackPreprocess::SearchMuslSoPath()
 
 void StackPreprocess::DlopenRangePreprocess()
 {
-    muslSoPath_ = SearchMuslSoPath();
-    if (muslSoPath_.empty()) {
+    libcSoPath_ = SearchLibcSoPath();
+    if (libcSoPath_.empty()) {
         HILOG_ERROR(LOG_CORE, "DlopenRangePreprocess search musl so path failed");
         return;
     }
     using OHOS::Developtools::NativeDaemon::ELF::ElfFile;
-    std::unique_ptr<ElfFile> elfPtr = ElfFile::MakeUnique(muslSoPath_);
+    std::unique_ptr<ElfFile> elfPtr = ElfFile::MakeUnique(libcSoPath_);
     if (elfPtr == nullptr) {
         HILOG_ERROR(LOG_CORE, "DlopenRangePreprocess elfPtr is nullptr");
         return;
@@ -694,10 +701,10 @@ void StackPreprocess::SetMapsInfo(pid_t pid, RawStackPtr rawStack)
 
     uint32_t tempFilePathId = 0;
     for (auto& item : runtime_instance->GetProcessMaps()) {
-        if (item.isReport) {
+        if (item.isReported) {
             continue;
         }
-        item.isReport = true;
+        item.isReported = true;
 
         BatchNativeHookData stackData;
         if (tempFilePathId != item.filePathId_) {
