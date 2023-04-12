@@ -123,7 +123,8 @@ private:
 
     // boost library recommendation algorithm to reduce hash collisions.
     struct HashPair {
-        size_t operator() (const SymbolCacheKey& key) const {
+        size_t operator() (const SymbolCacheKey& key) const
+        {
             std::hash<uint64_t> hasher;
             size_t seed = 0;
             // 6 and 2 is the number of displacements

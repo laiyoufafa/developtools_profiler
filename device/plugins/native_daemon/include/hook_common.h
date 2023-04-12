@@ -18,7 +18,7 @@
 
 #if HAVE_LIBUNWIND
 // for libunwind.h empty struct has size 0 in c, size 1 in c++
-#define UNW_EMPTY_STRUCT uint8_t unused;
+#define UNW_EMPTY_STRUCT uint8_t unused
 #include <libunwind.h>
 #endif
 
@@ -65,7 +65,7 @@ enum {
     PR_SET_VMA_MSG,
 };
 
- struct alignas(8) BaseStackRawData { // 8 is 8 bit
+struct alignas(8) BaseStackRawData { // 8 is 8 bit
     char tname[MAX_THREAD_NAME];
     struct timespec ts;
     void* addr;
