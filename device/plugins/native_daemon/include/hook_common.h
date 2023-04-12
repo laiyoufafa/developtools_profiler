@@ -65,7 +65,7 @@ enum {
     PR_SET_VMA_MSG,
 };
 
- struct alignas(8) BaseStackRawData {
+ struct alignas(8) BaseStackRawData { // 8 is 8 bit
     char tname[MAX_THREAD_NAME];
     struct timespec ts;
     void* addr;
@@ -75,7 +75,7 @@ enum {
     uint32_t type;
 };
 
-struct alignas(8) StackRawData: public BaseStackRawData {
+struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
     union {
         char regs[MAX_REG_SIZE];
         uint64_t ip[MAX_UNWIND_DEPTH] = {0};

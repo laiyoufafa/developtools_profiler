@@ -132,7 +132,7 @@ bool HookSocketClient::SendStack(const void* data, size_t size)
 }
 
 bool HookSocketClient::SendStackWithPayload(const void* data, size_t size, const void* payload,
-        size_t payloadSize, bool forceFlush)
+    size_t payloadSize, bool forceFlush)
 {
     if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
         return true;

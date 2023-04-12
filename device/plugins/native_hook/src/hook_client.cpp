@@ -130,7 +130,8 @@ bool ohos_malloc_hook_on_start(void)
         HILOG_INFO(LOG_CORE, "hook already started");
         return true;
     } else {
-        CHECK_TRUE(memset_s(&g_ClientConfig, sizeof(g_ClientConfig), 0, sizeof(g_ClientConfig)) == 0, false, "memset_s error!");
+        CHECK_TRUE(memset_s(&g_ClientConfig, sizeof(g_ClientConfig), 0, sizeof(g_ClientConfig)) == 0,
+                   false, "memset_s error!");
         g_hookClient = std::make_shared<HookSocketClient>(g_hookPid, &g_ClientConfig);
     }
     pthread_key_create(&g_disableHookFlag, nullptr);
@@ -688,7 +689,6 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     rawdata.mallocSize = length;
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
-
 
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
