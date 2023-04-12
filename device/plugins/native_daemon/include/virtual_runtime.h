@@ -126,6 +126,7 @@ private:
         size_t operator() (const SymbolCacheKey& key) const {
             std::hash<uint64_t> hasher;
             size_t seed = 0;
+            // 6 and 2 is the number of displacements
             seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             return seed;

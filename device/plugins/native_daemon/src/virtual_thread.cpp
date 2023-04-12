@@ -393,7 +393,6 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
             }
             return false;
         });
-
         if (memMapIter != memMaps.end()) {
             virtualruntime_->DelSymbolFile(memMapIter->name_);
             memMaps.erase(memMapIter);

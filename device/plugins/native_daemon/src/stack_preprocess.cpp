@@ -175,7 +175,7 @@ void StackPreprocess::TakeResults()
             if (hookConfig_.fp_unwind()) {
                 uint64_t* fpIp = reinterpret_cast<uint64_t *>(rawData->data);
                 for (uint8_t idx = 0; idx < rawData->fpDepth ; ++idx) {
-                    if(fpIp[idx] == 0) {
+                    if (fpIp[idx] == 0) {
                         break;
                     }
                     callsFrames_.emplace_back(fpIp[idx]);
@@ -314,8 +314,7 @@ inline uint32_t StackPreprocess::GetCallStackId(const RawStackPtr& rawStack,
     // if free_stack_report or munmap_stack_report is false, don't need to record.
     if ((rawStack->stackConext->type == FREE_MSG) && !hookConfig_.free_stack_report()) {
         return 0;
-    }
-    else if ((rawStack->stackConext->type == MUNMAP_MSG) && !hookConfig_.munmap_stack_report()) {
+    } else if ((rawStack->stackConext->type == MUNMAP_MSG) && !hookConfig_.munmap_stack_report()) {
         return 0;
     }
     callStack_.clear();
@@ -386,8 +385,8 @@ void StackPreprocess::SetAllocStatisticsFrame(const RawStackPtr& rawStack,
     }
 }
 
-void StackPreprocess::SetHookData(RawStackPtr rawStack,
-    std::vector<CallFrame>& callsFrames, BatchNativeHookData& batchNativeHookData)
+void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& callsFrames,
+    BatchNativeHookData& batchNativeHookData)
 {
     if (hookConfig_.offline_symbolization() && flushBasicData_) {
         SetMapsInfo(-1, rawStack);
@@ -842,7 +841,8 @@ void StackPreprocess::GetSymbols(const std::string& filePath, ElfSymbolTable& sy
     std::copy(strData, strData + str->secSize_, symbols.strTable.data());
 }
 
-bool StackPreprocess::FlushRecordStatistics() {
+bool StackPreprocess::FlushRecordStatistics()
+{
     if (statisticsPeriodData_.empty()) {
         return false;
     }
