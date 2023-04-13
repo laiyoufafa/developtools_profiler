@@ -36,7 +36,7 @@ public:
     bool IsSupported();
 
     bool HasCategory(const std::string& name);
-    bool EnableCategories(const std::vector<std::string>& categories, int traceTime = 0, const std::string traceClock = {});
+    bool EnableCategories(const std::vector<std::string>& categories, int traceTime = 0, const std::string clock = {});
     bool DisableCategories();
 
     std::string GetCommand() const;
