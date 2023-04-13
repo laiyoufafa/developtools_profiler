@@ -29,6 +29,7 @@ private:
     bool PrepareListCategoriesCmd() override;
     bool PrepareEnableCategoriesCmd(int traceTime = 0) override;
     bool PrepareDisableCategoriesCmd() override;
+    bool PrepareTraceClockCmd(const std::string traceClock = {}) override;
 };
 FTRACE_NS_END
 

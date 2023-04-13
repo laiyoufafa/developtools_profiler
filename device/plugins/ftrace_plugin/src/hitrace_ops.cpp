@@ -50,4 +50,13 @@ bool HitraceOps::PrepareDisableCategoriesCmd()
     args_.push_back("--trace_finish");
     return true;
 }
+
+bool HitraceOps::PrepareTraceClockCmd(const std::string traceClock)
+{
+    if (traceClock.size() != 0) {
+        args_.push_back("--trace_clock");
+	args_.push_back(traceClock);
+    }
+    return true;
+}
 FTRACE_NS_END

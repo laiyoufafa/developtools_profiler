@@ -230,7 +230,7 @@ int FlowController::StartCapture(void)
 
     // enable ftrace event switches
     if (traceCategories_.size() > 0) {
-        traceOps_->EnableCategories(traceCategories_, hitraceTime_);
+        traceOps_->EnableCategories(traceCategories_, hitraceTime_, traceClock_);
     }
 
     // hitrace will reset trace buffer size, so reset user config after hitrace
@@ -500,6 +500,7 @@ int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
 
     // setup trace clock
     if (g_availableClocks.count(traceConfig.clock()) > 0) {
+        traceClock_ = traceConfig.clock();
         FtraceFsOps::GetInstance().SetTraceClock(traceConfig.clock());
     }
 
