@@ -75,9 +75,9 @@ public:
                      int stack_size,
                      pid_t pid,
                      pid_t tid,
-                     std::vector<CallFrame>& callsFrames,
+                     std::vector<CallFrame>& callFrames,
                      size_t maxStackLevel);
-    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first);
+    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callFrames, int offset, bool first);
     void ClearMaps();
     void CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uint64_t& min);
     void FillFilePathId(std::string& currentFileName, MemMapItem& memMapItem);

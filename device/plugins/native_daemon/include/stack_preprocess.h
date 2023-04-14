@@ -43,6 +43,7 @@ public:
     };
 
     explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig& hookConfig);
+    explicit StackPreprocess(bool fpUnwind);
     ~StackPreprocess();
     void SetWriter(const std::shared_ptr<BufferWriter>& writer);
     bool StartTakeResults();
@@ -50,6 +51,26 @@ public:
     void OfflineSymbolizationPreprocess(pid_t pid);
     bool FlushRecordStatistics();
     void SetSerializeMode(bool protobufSerialize);
+
+    std::string GetLibcSoPath()
+    {
+        return libcSoPath_;
+    }
+
+    uint32_t GetDlopenFrameIdx()
+    {
+        return dlopenFrameIdx_;
+    }
+
+    uint64_t GetDlopenIpMax()
+    {
+        return dlopenIpMax_;
+    }
+
+    uint64_t GetDlopenIpMin()
+    {
+        return dlopenIpMin_;
+    }
 
 private:
     using CallFrame = OHOS::Developtools::NativeDaemon::CallFrame;
@@ -69,9 +90,9 @@ private:
 
 private:
     void TakeResults();
-    void SetHookData(RawStackPtr RawStack, std::vector<CallFrame>& callsFrames,
+    void SetHookData(RawStackPtr RawStack, std::vector<CallFrame>& callFrames,
         BatchNativeHookData& batchNativeHookData);
-    void WriteFrames(RawStackPtr RawStack, const std::vector<CallFrame>& callsFrames);
+    void WriteFrames(RawStackPtr RawStack, const std::vector<CallFrame>& callFrames);
     void SetFrameInfo(Frame& frame, CallFrame& callFrame);
     void ReportSymbolNameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     void ReportFilePathMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
@@ -86,16 +107,16 @@ private:
     void DlopenRangePreprocess();
     const std::string SearchLibcSoPath();
 
-    void FillOfflineCallStack(std::vector<CallFrame>& callsFrames, size_t idx);
-    void FillCallStack(std::vector<CallFrame>& callsFrames,
+    void FillOfflineCallStack(std::vector<CallFrame>& callFrames, size_t idx);
+    void FillCallStack(std::vector<CallFrame>& callFrames,
         BatchNativeHookData& batchNativeHookData, size_t idx);
     uint32_t SetCallStackMap(BatchNativeHookData& batchNativeHookData);
-    uint32_t GetCallStackId(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
+    uint32_t GetCallStackId(const RawStackPtr& rawStack, std::vector<CallFrame>& callFrames,
         BatchNativeHookData& batchNativeHookData);
     template <typename T>
-    void SetEventFrame(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
+    void SetEventFrame(const RawStackPtr& rawStack, std::vector<CallFrame>& callFrames,
         BatchNativeHookData& batchNativeHookData, T* event, uint32_t stackId);
-    void SetAllocStatisticsFrame(const RawStackPtr& rawStack, std::vector<CallFrame>& callsFrames,
+    void SetAllocStatisticsFrame(const RawStackPtr& rawStack, std::vector<CallFrame>& callFrames,
         BatchNativeHookData& batchNativeHookData);
     bool SetFreeStatisticsData(uint64_t addr);
     void SetAllocStatisticsData(const RawStackPtr& rawStack, size_t stackId, bool isExists = false);
@@ -118,7 +139,7 @@ private:
     uint64_t dlopenIpMax_ {0};
     uint64_t dlopenIpMin_ {0};
     std::vector<u64> u64regs_;
-    std::vector<CallFrame> callsFrames_;
+    std::vector<CallFrame> callFrames_;
     std::vector<uint64_t> callStack_;
     // Key is callStack_, value is call stack id
     std::map<std::vector<uint64_t>, uint32_t> callStackMap_;

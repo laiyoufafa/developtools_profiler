@@ -49,8 +49,6 @@ const int MOVE_BIT_32 = 32;
 const int SIGNAL_START_HOOK = 36;
 const int SIGNAL_STOP_HOOK = 37;
 const std::string VERSION = "1.01";
-// dlopen function minimum stack depth
-const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
 }  // namespace
 
 bool HookManager::CheckProcess()

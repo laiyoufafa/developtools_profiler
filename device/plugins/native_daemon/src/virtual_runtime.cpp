@@ -130,16 +130,16 @@ void VirtualRuntime::MakeCallFrame(Symbol &symbol, CallFrame &callFrame)
     }
 }
 
-bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first)
+bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callFrames, int offset, bool first)
 {
 #ifdef HIPERF_DEBUG_TIME
     const auto startTime = steady_clock::now();
 #endif
     // Symbolic the Call Stack
-    HLOGV("total %zu frames", callsFrames.size());
+    HLOGV("total %zu frames", callFrames.size());
 
     perf_callchain_context perfCallchainContext = PERF_CONTEXT_MAX;
-    for (auto callFrameIt = callsFrames.begin() + offset; callFrameIt != callsFrames.end(); ++callFrameIt) {
+    for (auto callFrameIt = callFrames.begin() + offset; callFrameIt != callFrames.end(); ++callFrameIt) {
         auto &callFrame = callFrameIt.operator*();
         if (callFrame.ip_ >= PERF_CONTEXT_MAX) {
             // dont care, this is not issue.
@@ -156,12 +156,12 @@ bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
                 if (failedIPs_.find(callFrame.ip_) == failedIPs_.end()) {
                     return false;
                 } else {
-                    callsFrames.erase(callFrameIt, callsFrames.end());
+                    callFrames.erase(callFrameIt, callFrames.end());
                     return true;
                 }
             } else {
                 failedIPs_.insert(callFrame.ip_);
-                callsFrames.erase(callFrameIt, callsFrames.end());
+                callFrames.erase(callFrameIt, callFrames.end());
                 return true;
             }
 #else
@@ -169,11 +169,11 @@ bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
             if (callStackErrCnt.load() % CALL_STACK_ERROR_TIMES == 0) {
                 HILOG_DEBUG(LOG_CORE, "number of call stack errors: %" PRIu64 "", callStackErrCnt.load());
             }
-            callsFrames.erase(callFrameIt, callsFrames.end());
+            callFrames.erase(callFrameIt, callFrames.end());
             return true;
 #endif
         }
-        int index = callFrameIt - callsFrames.begin();
+        int index = callFrameIt - callFrames.begin();
         HLOGV(" (%u)unwind symbol: %*s%s", index, index, "", callFrame.ToSymbolString().c_str());
     }
 #ifdef HIPERF_DEBUG_TIME
@@ -201,7 +201,7 @@ bool VirtualRuntime::UnwindStack(std::vector<u64>& regs,
                                  int stack_size,
                                  pid_t pid,
                                  pid_t tid,
-                                 std::vector<CallFrame>& callsFrames,
+                                 std::vector<CallFrame>& callFrames,
                                  size_t maxStackLevel)
 {
 #ifdef HIPERF_DEBUG_TIME
@@ -211,9 +211,9 @@ bool VirtualRuntime::UnwindStack(std::vector<u64>& regs,
     int offset = 0;
     auto &thread = UpdateThread(pid, tid);
     if (stack_size > 0) {
-        callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr, stack_size, callsFrames, maxStackLevel);
-        if (callsFrames.size() <= FILTER_STACK_DEPTH) {
-            callsFrames.clear();
+        callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr, stack_size, callFrames, maxStackLevel);
+        if (callFrames.size() <= FILTER_STACK_DEPTH) {
+            callFrames.clear();
             return false;
         }
         // Do not symbolize the first two frame, cause the two frame implement by tool itself
@@ -228,23 +228,23 @@ bool VirtualRuntime::UnwindStack(std::vector<u64>& regs,
     if (hookConfig_.offline_symbolization()) {
         return true;
     }
-    if (!GetSymbolName(pid, tid, callsFrames, offset, true)) {
+    if (!GetSymbolName(pid, tid, callFrames, offset, true)) {
 #ifdef TRY_UNWIND_TWICE
         HLOGD("clear and unwind one more time");
         if (!thread.ParseMap(processMemMaps_, true)) {
-            GetSymbolName(pid, tid, callsFrames, offset, false);
+            GetSymbolName(pid, tid, callFrames, offset, false);
             return false;
         }
         if (stack_size > 0) {
-            callsFrames.clear();
+            callFrames.clear();
             callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr,
-                stack_size, callsFrames, maxStackLevel);
+                stack_size, callFrames, maxStackLevel);
         }
-        if (callsFrames.size() <= FILTER_STACK_DEPTH) {
-            callsFrames.clear();
+        if (callFrames.size() <= FILTER_STACK_DEPTH) {
+            callFrames.clear();
             return false;
         }
-        if (!GetSymbolName(pid, tid, callsFrames, offset, false)) {
+        if (!GetSymbolName(pid, tid, callFrames, offset, false)) {
             return false;
         }
 #endif
@@ -461,6 +461,7 @@ void VirtualRuntime::CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uin
         }
         return false;
     });
+
     if (iter == processMemMaps_.end()) {
         HILOG_INFO(LOG_CORE, "find musl failed!");
         return;

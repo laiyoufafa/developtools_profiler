@@ -35,10 +35,11 @@ const int STACK_DATA_SIZE = 40000;
 const int SPEED_UP_THRESHOLD = STACK_DATA_SIZE / 2;
 const int SLOW_DOWN_THRESHOLD = STACK_DATA_SIZE / 4;
 const int32_t MIN_STACK_DEPTH = 6;
-// Filter two layers of dwarf stack in libnative_hook.z.so
+// filter two layers of dwarf stack in libnative_hook.z.so
 const size_t FILTER_STACK_DEPTH = 2;
 const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + FILTER_STACK_DEPTH;
-
+// dlopen function minimum stack depth
+const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
 }
 }
 }
@@ -81,6 +82,7 @@ struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
         uint64_t ip[MAX_UNWIND_DEPTH] = {0};
     };
 };
+
 typedef struct {
     uint32_t filterSize_;
     bool mallocDisable_;
@@ -92,5 +94,13 @@ typedef struct {
     bool isBlocked;
     bool memtraceEnable;
 } ClientConfig;
+
+struct StandaloneRawStack {
+    BaseStackRawData* stackConext; // points to the foundation type data
+    uint8_t* stackData;
+    int8_t* data; // fp mode data is ip, dwarf mode data is regs
+    uint32_t stackSize;
+    uint8_t fpDepth; // fp mode fpDepth is ip depth, dwarf mode is invalid
+};
 
 #endif // HOOK_SERVICE_H

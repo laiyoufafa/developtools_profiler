@@ -83,7 +83,13 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const
 #else
     u64regs_.resize(PERF_REG_ARM64_MAX);
 #endif
-    callsFrames_.reserve(hookConfig_.max_stack_depth());
+    callFrames_.reserve(hookConfig_.max_stack_depth());
+}
+
+StackPreprocess::StackPreprocess(bool fpUnwind): fpHookData_(nullptr, nullptr)
+{
+    DlopenRangePreprocess();
+    dlopenFrameIdx_ = fpUnwind ? DLOPEN_FRAME_INDEX : DLOPEN_FRAME_INDEX + FILTER_STACK_DEPTH;
 }
 
 StackPreprocess::~StackPreprocess()
@@ -171,14 +177,14 @@ void StackPreprocess::TakeResults()
             if (eventCnts_ % LOG_PRINT_TIMES == 0) {
                 HILOG_INFO(LOG_CORE, "eventCnts_ = %d quene size = %zu\n", eventCnts_, dataRepeater_->Size());
             }
-            callsFrames_.clear();
+            callFrames_.clear();
             if (hookConfig_.fp_unwind()) {
                 uint64_t* fpIp = reinterpret_cast<uint64_t *>(rawData->data);
                 for (uint8_t idx = 0; idx < rawData->fpDepth ; ++idx) {
                     if (fpIp[idx] == 0) {
                         break;
                     }
-                    callsFrames_.emplace_back(fpIp[idx]);
+                    callFrames_.emplace_back(fpIp[idx]);
                 }
             } else {
 #if defined(__arm__)
@@ -194,7 +200,7 @@ void StackPreprocess::TakeResults()
 #ifdef PERFORMANCE_DEBUG
             struct timespec start = {};
             clock_gettime(CLOCK_REALTIME, &start);
-            size_t realFrameDepth = callsFrames_.size();
+            size_t realFrameDepth = callFrames_.size();
 #endif
             size_t stackDepth = ((size_t)hookConfig_.max_stack_depth() > MAX_CALL_FRAME_UNWIND_SIZE)
                         ? MAX_CALL_FRAME_UNWIND_SIZE
@@ -203,7 +209,7 @@ void StackPreprocess::TakeResults()
                 stackDepth = minStackDepth;
             }
             bool ret = runtime_instance->UnwindStack(u64regs_, rawData->stackData, rawData->stackSize,
-                rawData->stackConext->pid, rawData->stackConext->tid, callsFrames_, stackDepth);
+                rawData->stackConext->pid, rawData->stackConext->tid, callFrames_, stackDepth);
             if (!ret) {
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 continue;
@@ -214,10 +220,10 @@ void StackPreprocess::TakeResults()
             }
             if (rawData->stackConext->type == MMAP_MSG) {
                 // if mmap msg trigger by dlopen, update maps voluntarily
-                if (callsFrames_.size() > dlopenFrameIdx_) {
+                if (callFrames_.size() > dlopenFrameIdx_) {
                     // for dlopen mmap framme
-                    if (callsFrames_[dlopenFrameIdx_].ip_ >= dlopenIpMin_ &&
-                            callsFrames_[dlopenFrameIdx_].ip_ < dlopenIpMax_) {
+                    if (callFrames_[dlopenFrameIdx_].ip_ >= dlopenIpMin_ &&
+                            callFrames_[dlopenFrameIdx_].ip_ < dlopenIpMax_) {
                         HILOG_DEBUG(LOG_CORE, "mmap msg trigger by dlopen, update maps voluntarily");
                         runtime_instance->UpdateMaps(rawData->stackConext->pid, rawData->stackConext->tid);
                         flushBasicData_ = hookConfig_.offline_symbolization() ? true : false;
@@ -225,9 +231,9 @@ void StackPreprocess::TakeResults()
                 }
             }
             if (hookConfig_.save_file() && hookConfig_.file_name() != "") {
-                WriteFrames(rawData, callsFrames_);
+                WriteFrames(rawData, callFrames_);
             } else if (!hookConfig_.save_file()) {
-                SetHookData(rawData, callsFrames_, stackData);
+                SetHookData(rawData, callFrames_, stackData);
             }
 #ifdef PERFORMANCE_DEBUG
             struct timespec end = {};
@@ -236,8 +242,8 @@ void StackPreprocess::TakeResults()
                 (end.tv_nsec - start.tv_nsec);
             if (curTimeCost >= LONG_TIME_THRESHOLD) {
                 HILOG_ERROR(LOG_CORE, "bigTimeCost %" PRIu64 " event=%d, realFrameDepth=%zu, "
-                    "callsFramesDepth=%zu\n",
-                    curTimeCost, rawData->stackConext->type, realFrameDepth, callsFrames_.size());
+                    "callFramesDepth=%zu\n",
+                    curTimeCost, rawData->stackConext->type, realFrameDepth, callFrames_.size());
             }
             timeCost += curTimeCost;
             unwindTimes++;
@@ -262,20 +268,20 @@ void StackPreprocess::TakeResults()
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }
 
-inline void StackPreprocess::FillOfflineCallStack(std::vector<CallFrame>& callsFrames, size_t idx)
+inline void StackPreprocess::FillOfflineCallStack(std::vector<CallFrame>& callFrames, size_t idx)
 {
-    for (; idx < callsFrames.size(); ++idx) {
-        callStack_.push_back(callsFrames[idx].ip_);
+    for (; idx < callFrames.size(); ++idx) {
+        callStack_.push_back(callFrames[idx].ip_);
     }
 }
 
-inline void StackPreprocess::FillCallStack(std::vector<CallFrame>& callsFrames,
+inline void StackPreprocess::FillCallStack(std::vector<CallFrame>& callFrames,
     BatchNativeHookData& batchNativeHookData, size_t idx)
 {
-    for (; idx < callsFrames.size(); ++idx) {
-        ReportFrameMap(callsFrames[idx], batchNativeHookData);
+    for (; idx < callFrames.size(); ++idx) {
+        ReportFrameMap(callFrames[idx], batchNativeHookData);
         // for call stack id
-        callStack_.push_back(callsFrames[idx].callFrameId_);
+        callStack_.push_back(callFrames[idx].callFrameId_);
     }
 }
 
@@ -306,7 +312,7 @@ inline uint32_t StackPreprocess::SetCallStackMap(BatchNativeHookData& batchNativ
  * @return '0' is invalid stack id, '> 0' is valid stack id
  */
 inline uint32_t StackPreprocess::GetCallStackId(const RawStackPtr& rawStack,
-    std::vector<CallFrame>& callsFrames,
+    std::vector<CallFrame>& callFrames,
     BatchNativeHookData& batchNativeHookData)
 {
     // ignore the first two frame if dwarf unwind
@@ -318,11 +324,11 @@ inline uint32_t StackPreprocess::GetCallStackId(const RawStackPtr& rawStack,
         return 0;
     }
     callStack_.clear();
-    callStack_.reserve(callsFrames.size());
+    callStack_.reserve(callFrames.size());
     if (!hookConfig_.offline_symbolization()) {
-        FillCallStack(callsFrames, batchNativeHookData, idx);
+        FillCallStack(callFrames, batchNativeHookData, idx);
     } else {
-        FillOfflineCallStack(callsFrames, idx);
+        FillOfflineCallStack(callFrames, idx);
     }
     // return call stack id
     auto itStack = callStackMap_.find(callStack_);
@@ -335,7 +341,7 @@ inline uint32_t StackPreprocess::GetCallStackId(const RawStackPtr& rawStack,
 
 template <typename T>
 void StackPreprocess::SetEventFrame(const RawStackPtr& rawStack,
-    std::vector<CallFrame>& callsFrames,
+    std::vector<CallFrame>& callFrames,
     BatchNativeHookData& batchNativeHookData,
     T* event, uint32_t stackMapId)
 {
@@ -348,32 +354,32 @@ void StackPreprocess::SetEventFrame(const RawStackPtr& rawStack,
     if (hookConfig_.callframe_compress() && stackMapId != 0) {
         event->set_stack_id(stackMapId);
     } else if (hookConfig_.string_compressed()) {
-        for (; idx < callsFrames.size(); ++idx) {
-            ReportSymbolNameMap(callsFrames[idx], batchNativeHookData);
-            ReportFilePathMap(callsFrames[idx], batchNativeHookData);
+        for (; idx < callFrames.size(); ++idx) {
+            ReportSymbolNameMap(callFrames[idx], batchNativeHookData);
+            ReportFilePathMap(callFrames[idx], batchNativeHookData);
             Frame* frame = event->add_frame_info();
-            SetFrameInfo(*frame, callsFrames[idx]);
+            SetFrameInfo(*frame, callFrames[idx]);
         }
     } else {
-        for (; idx < callsFrames.size(); ++idx) {
+        for (; idx < callFrames.size(); ++idx) {
             Frame* frame = event->add_frame_info();
-            SetFrameInfo(*frame, callsFrames[idx]);
+            SetFrameInfo(*frame, callFrames[idx]);
         }
     }
 }
 
 void StackPreprocess::SetAllocStatisticsFrame(const RawStackPtr& rawStack,
-    std::vector<CallFrame>& callsFrames,
+    std::vector<CallFrame>& callFrames,
     BatchNativeHookData& batchNativeHookData)
 {
     // ignore the first two frame if dwarf unwind
     size_t idx = hookConfig_.fp_unwind() ? 0 : FILTER_STACK_DEPTH;
     callStack_.clear();
-    callStack_.reserve(callsFrames.size());
+    callStack_.reserve(callFrames.size());
     if (!hookConfig_.offline_symbolization()) {
-        FillCallStack(callsFrames, batchNativeHookData, idx);
+        FillCallStack(callFrames, batchNativeHookData, idx);
     } else {
-        FillOfflineCallStack(callsFrames, idx);
+        FillOfflineCallStack(callFrames, idx);
     }
     // by call stack id set alloc statistics data.
     auto itStack = callStackMap_.find(callStack_);
@@ -385,8 +391,8 @@ void StackPreprocess::SetAllocStatisticsFrame(const RawStackPtr& rawStack,
     }
 }
 
-void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& callsFrames,
-    BatchNativeHookData& batchNativeHookData)
+void StackPreprocess::SetHookData(RawStackPtr rawStack,
+    std::vector<CallFrame>& callFrames, BatchNativeHookData& batchNativeHookData)
 {
     if (hookConfig_.offline_symbolization() && flushBasicData_) {
         SetMapsInfo(-1, rawStack);
@@ -398,7 +404,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& 
         if (rawStack->stackConext->type == FREE_MSG || rawStack->stackConext->type == MUNMAP_MSG) {
             SetFreeStatisticsData((uint64_t)rawStack->stackConext->addr);
         } else if (rawStack->stackConext->type == MALLOC_MSG || rawStack->stackConext->type == MMAP_MSG) {
-            SetAllocStatisticsFrame(rawStack, callsFrames, batchNativeHookData);
+            SetAllocStatisticsFrame(rawStack, callFrames, batchNativeHookData);
         }
         return;
     }
@@ -406,7 +412,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& 
     uint32_t stackMapId = 0;
     if (hookConfig_.callframe_compress() &&
         !(rawStack->stackConext->type == MEMORY_TAG || rawStack->stackConext->type == PR_SET_VMA_MSG)) {
-        stackMapId = GetCallStackId(rawStack, callsFrames, batchNativeHookData);
+        stackMapId = GetCallStackId(rawStack, callFrames, batchNativeHookData);
     }
     NativeHookData* hookData = batchNativeHookData.add_events();
     hookData->set_tv_sec(rawStack->stackConext->ts.tv_sec);
@@ -419,14 +425,14 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& 
         if (!name.empty()) {
             allocEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
         }
-        SetEventFrame(rawStack, callsFrames, batchNativeHookData, allocEvent, stackMapId);
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, allocEvent, stackMapId);
     } else if (rawStack->stackConext->type == FREE_MSG) {
         FreeEvent* freeEvent = hookData->mutable_free_event();
         std::string name = rawStack->stackConext->tname;
         if (!name.empty()) {
             freeEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
         }
-        SetEventFrame(rawStack, callsFrames, batchNativeHookData, freeEvent, stackMapId);
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, freeEvent, stackMapId);
     } else if (rawStack->stackConext->type == MMAP_MSG) {
         MmapEvent* mmapEvent = hookData->mutable_mmap_event();
         mmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
@@ -439,7 +445,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& 
         } else if (!name.empty()) {
             mmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
         }
-        SetEventFrame(rawStack, callsFrames, batchNativeHookData, mmapEvent, stackMapId);
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, mmapEvent, stackMapId);
     } else if (rawStack->stackConext->type == MUNMAP_MSG) {
         MunmapEvent* munmapEvent = hookData->mutable_munmap_event();
         munmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
@@ -447,7 +453,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack, std::vector<CallFrame>& 
         if (!name.empty()) {
             munmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
         }
-        SetEventFrame(rawStack, callsFrames, batchNativeHookData, munmapEvent, stackMapId);
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, munmapEvent, stackMapId);
     } else if (rawStack->stackConext->type == PR_SET_VMA_MSG) {
         MemTagEvent* tagEvent = hookData->mutable_tag_event();
         std::string name = "Anonymous:";
@@ -515,7 +521,7 @@ uint32_t StackPreprocess::GetThreadIdx(std::string threadName, BatchNativeHookDa
     }
 }
 
-void StackPreprocess::WriteFrames(RawStackPtr rawStack, const std::vector<CallFrame>& callsFrames)
+void StackPreprocess::WriteFrames(RawStackPtr rawStack, const std::vector<CallFrame>& callFrames)
 {
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());
@@ -548,10 +554,10 @@ void StackPreprocess::WriteFrames(RawStackPtr rawStack, const std::vector<CallFr
         rawStack->stackConext->pid, rawStack->stackConext->tid, (int64_t)rawStack->stackConext->ts.tv_sec,
         rawStack->stackConext->ts.tv_nsec, (uint64_t)rawStack->stackConext->addr, rawStack->stackConext->mallocSize);
 
-    for (size_t idx = 0; idx < callsFrames.size(); ++idx) {
+    for (size_t idx = 0; idx < callFrames.size(); ++idx) {
         (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
-            callsFrames[idx].ip_, callsFrames[idx].sp_, std::string(callsFrames[idx].symbolName_).c_str(),
-            std::string(callsFrames[idx].filePath_).c_str(), callsFrames[idx].offset_, callsFrames[idx].symbolOffset_);
+            callFrames[idx].ip_, callFrames[idx].sp_, std::string(callFrames[idx].symbolName_).c_str(),
+            std::string(callFrames[idx].filePath_).c_str(), callFrames[idx].offset_, callFrames[idx].symbolOffset_);
     }
 }
 
