@@ -104,11 +104,6 @@ bool TraceOps::PrepareDisableCategoriesCmd()
     return false;
 }
 
-bool TraceOps::PrepareTraceClockCmd(const std::string traceClock)
-{
-    return false;
-}
-
 void TraceOps::SetTraceClock(const std::string& traceClock)
 {
     traceclockConfig_ = traceClock;
