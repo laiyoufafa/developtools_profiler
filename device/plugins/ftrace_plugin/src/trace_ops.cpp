@@ -125,7 +125,6 @@ bool TraceOps::EnableCategories(const std::vector<std::string>& categories, int 
         args_.push_back("--trace_clock");
         args_.push_back(traceclockConfig_);
     }
-    CHECK_TRUE(PrepareTraceClockCmd(clock), false, "prepare trace_clock failed!");
     CHECK_TRUE(PrepareEnableCategoriesCmd(traceTime), false, "prepare enable categories failed!");
 
     int retval = ExecuteCommand();
