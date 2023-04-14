@@ -228,9 +228,11 @@ int FlowController::StartCapture(void)
     keepRunning_ = true;
     pollThread_ = std::thread(&FlowController::CaptureWork, this);
 
+    //set trace_clock
+    traceOps_->SetTraceClock(traceClock_);
     // enable ftrace event switches
     if (traceCategories_.size() > 0) {
-        traceOps_->EnableCategories(traceCategories_, hitraceTime_, traceClock_);
+        traceOps_->EnableCategories(traceCategories_, hitraceTime_);
     }
 
     // hitrace will reset trace buffer size, so reset user config after hitrace
