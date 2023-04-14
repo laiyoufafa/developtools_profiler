@@ -169,7 +169,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                         HILOG_DEBUG(LOG_CORE, "mmap msg trigger by dlopen, update maps voluntarily");
                         g_runtimeInstance->UpdateMaps(rawData->stackConext->pid, rawData->stackConext->tid);
                     }
-                 }
+                }
             }
 
             if (!end_flag && duration != 0) {
