@@ -59,7 +59,7 @@ protected:
     std::vector<std::string> supportedCategories_;
     std::vector<std::string> args_;
     std::string output_;
-    std::string traceclockConfig_;
+    std::string traceClock_;
 };
 FTRACE_NS_END
 

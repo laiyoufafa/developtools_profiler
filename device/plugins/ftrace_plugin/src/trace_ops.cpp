@@ -106,7 +106,7 @@ bool TraceOps::PrepareDisableCategoriesCmd()
 
 void TraceOps::SetTraceClock(const std::string& traceClock)
 {
-    traceclockConfig_ = traceClock;
+    traceClock_ = traceClock;
 }
 
 bool TraceOps::EnableCategories(const std::vector<std::string>& categories, int traceTime)
