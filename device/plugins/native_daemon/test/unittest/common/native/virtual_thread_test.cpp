@@ -214,7 +214,7 @@ int VirtualThreadTest::PhdrCallBack(struct dl_phdr_info *info, size_t size, void
  */
 HWTEST_F(VirtualThreadTest, ParseMap, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> files;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
 
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(),
@@ -236,7 +236,7 @@ HWTEST_F(VirtualThreadTest, ParseMap, TestSize.Level1)
  */
 HWTEST_F(VirtualThreadTest, CreateMapItem, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> files;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         files, runtime.get(), false);
@@ -273,7 +273,7 @@ HWTEST_F(VirtualThreadTest, CreateMapItem, TestSize.Level1)
  */
 HWTEST_F(VirtualThreadTest, InheritMaps, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> files;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
 
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(),
@@ -307,7 +307,7 @@ HWTEST_F(VirtualThreadTest, InheritMaps, TestSize.Level1)
  */
 HWTEST_F(VirtualThreadTest, FindMapByAddr, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> files;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         files, runtime.get(), false);
@@ -348,7 +348,7 @@ HWTEST_F(VirtualThreadTest, FindMapByAddr, TestSize.Level1)
  */
 HWTEST_F(VirtualThreadTest, FindMapByFileInfo, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> files;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         files, runtime.get(), false);
@@ -391,10 +391,10 @@ HWTEST_F(VirtualThreadTest, FindMapByFileInfo, TestSize.Level1)
  */
 HWTEST_F(VirtualThreadTest, FindSymbolsFileByMap, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> files;
-    files.insert(std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "1.elf"));
-    files.insert(std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "2.elf"));
-    files.insert(std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "3.elf"));
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
+    files["1.elf"] = std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "1.elf");
+    files["2.elf"] = std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "2.elf");
+    files["3.elf"] = std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "3.elf");
 
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
@@ -428,7 +428,7 @@ HWTEST_F(VirtualThreadTest, FindSymbolsFileByMap, TestSize.Level1)
  */
 HWTEST_F(VirtualThreadTest, ReadRoMemory, TestSize.Level1)
 {
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> symbolsFiles;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         symbolsFiles, runtime.get(), false);
@@ -451,7 +451,7 @@ HWTEST_F(VirtualThreadTest, ReadRoMemory, TestSize.Level1)
         ASSERT_EQ(symbolsFile->LoadSymbols(), true);
 
         // add to symbols list
-        symbolsFiles.insert(std::move(symbolsFile));
+        symbolsFiles[symbolsFile->filePath_] = std::move(symbolsFile);
 
         uint8_t freadByte = '\0';
         uint8_t readRoByte = '\0';
@@ -468,7 +468,7 @@ HWTEST_F(VirtualThreadTest, ReadRoMemory, TestSize.Level1)
 
         EXPECT_NE(thread->FindSymbolsFileByMap(*map), nullptr);
         if (HasFailure()) {
-            printf("symbols: %s\n", thread->symbolsFiles_.begin()->get()->filePath_.c_str());
+            printf("symbols: %s\n", thread->symbolsFiles_.begin()->second->filePath_.c_str());
         }
 
         ASSERT_EQ(thread->ReadRoMemory(addr++, &readRoByte, 1u), true);

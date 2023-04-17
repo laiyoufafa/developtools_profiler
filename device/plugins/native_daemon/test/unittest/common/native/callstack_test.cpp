@@ -93,10 +93,10 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
 #ifdef __arm__
         ASSERT_EQ(regs.size(), 16u);
 #endif
-
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> symbolsFiles;
-    auto &symbolsFile = *symbolsFiles.insert(SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE,
-        PATH_RESOURCE_TEST_DWARF_DATA + TEST_DWARF_ELF)).first;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles;
+    std::string symbolFilePath = PATH_RESOURCE_TEST_DWARF_DATA + TEST_DWARF_ELF;
+    symbolsFiles[symbolFilePath] = SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, symbolFilePath);
+    auto& symbolsFile = symbolsFiles[symbolFilePath];
     ASSERT_EQ(symbolsFile->LoadSymbols(), true);
     // fix the name
     symbolsFile->filePath_ = TEST_DWARF_MMAP.front().fileName;

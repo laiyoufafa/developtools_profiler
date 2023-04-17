@@ -16,11 +16,17 @@
 #ifndef HOOK_COMMON_H
 #define HOOK_COMMON_H
 
+#if HAVE_LIBUNWIND
+// for libunwind.h empty struct has size 0 in c, size 1 in c++
+#define UNW_EMPTY_STRUCT uint8_t unused;
+#include <libunwind.h>
+#endif
+
 #include "register.h"
 #include "utilities.h"
 
 #define MAX_THREAD_NAME (32)
-#define MAX_UNWIND_DEPTH (30)
+#define MAX_UNWIND_DEPTH (100)
 
 namespace OHOS {
 namespace Developtools {
@@ -28,11 +34,17 @@ namespace NativeDaemon {
 const int STACK_DATA_SIZE = 40000;
 const int SPEED_UP_THRESHOLD = STACK_DATA_SIZE / 2;
 const int SLOW_DOWN_THRESHOLD = STACK_DATA_SIZE / 4;
+const int32_t MIN_STACK_DEPTH = 6;
+// filter two layers of dwarf stack in libnative_hook.z.so
+const size_t FILTER_STACK_DEPTH = 2;
+const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + FILTER_STACK_DEPTH;
+// dlopen function minimum stack depth
+const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
 }
 }
 }
 
-constexpr size_t kMaxRegSize = sizeof(uint64_t)
+constexpr size_t MAX_REG_SIZE = sizeof(uint64_t)
     * OHOS::Developtools::NativeDaemon::PERF_REG_ARM64_MAX;
 
 enum {
@@ -54,11 +66,7 @@ enum {
     PR_SET_VMA_MSG,
 };
 
-typedef struct alignas(8) {
-    union {
-        char regs[kMaxRegSize];
-        uint64_t ip[MAX_UNWIND_DEPTH + 1];
-    };
+struct alignas(8) BaseStackRawData { // 8 is 8 bit
     char tname[MAX_THREAD_NAME];
     struct timespec ts;
     void* addr;
@@ -66,7 +74,14 @@ typedef struct alignas(8) {
     uint32_t pid;
     uint32_t tid;
     uint32_t type;
-} StackRawData;
+};
+
+struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
+    union {
+        char regs[MAX_REG_SIZE];
+        uint64_t ip[MAX_UNWIND_DEPTH] = {0};
+    };
+};
 
 typedef struct {
     uint32_t filterSize_;
@@ -79,5 +94,13 @@ typedef struct {
     bool isBlocked;
     bool memtraceEnable;
 } ClientConfig;
+
+struct StandaloneRawStack {
+    BaseStackRawData* stackConext; // points to the foundation type data
+    uint8_t* stackData;
+    int8_t* data; // fp mode data is ip, dwarf mode data is regs
+    uint32_t stackSize;
+    uint8_t fpDepth; // fp mode fpDepth is ip depth, dwarf mode is invalid
+};
 
 #endif // HOOK_SERVICE_H

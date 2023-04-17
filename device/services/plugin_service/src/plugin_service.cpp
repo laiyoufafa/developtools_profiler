@@ -429,7 +429,7 @@ void PluginService::ReadShareMemoryOffline(PluginContext& context)
             break;
         }
 
-        dataFlushSize_ += retval;
+        dataFlushSize_ += static_cast<uint32_t>(retval);
         stopTakeDataSize += static_cast<uint32_t>(retval);
         if (stopTakeDataSize > STOP_BASELINE) {
             traceWriter_->Flush();

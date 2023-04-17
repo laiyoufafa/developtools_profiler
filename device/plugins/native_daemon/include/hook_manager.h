@@ -75,7 +75,7 @@ private:
     bool CheckProcess();
     void CheckProcessName();
     void SetHookData(HookContext& hookContext, struct timespec ts,
-        std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames,
+        std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callFrames,
         BatchNativeHookDataPtr& batchNativeHookData);
 
     std::shared_ptr<HookService> hookService_;

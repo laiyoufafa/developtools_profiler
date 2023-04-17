@@ -15,12 +15,6 @@
 #ifndef HIPERF_CALLSTACK_H
 #define HIPERF_CALLSTACK_H
 
-#if HAVE_LIBUNWIND
-// for libunwind.h empty struct has size 0 in c, size 1 in c++
-#define UNW_EMPTY_STRUCT uint8_t unused;
-#include <libunwind.h>
-#endif
-
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -28,19 +22,11 @@
 
 #include "hashlistpp.h"
 #include "perf_event_record.h"
-#include "register.h"
-#include "utilities.h"
 #include "virtual_thread.h"
+#include "hook_common.h"
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
-const int MAX_CALL_FRAME_EXPEND_CYCLE = 10;
-const size_t MAX_CALL_FRAME_EXPEND_CACHE_SIZE = 10;
-// Filter two layers of stack in libnative_hook.z.so
-const size_t MAX_CALL_FRAME_UNWIND_SIZE = 32;
-const int32_t MIN_STACK_DEPTH = 6;
-const size_t FILTER_STACK_DEPTH = 2;
-
 #if HAVE_LIBUNWIND
 struct UnwindInfo;
 #endif

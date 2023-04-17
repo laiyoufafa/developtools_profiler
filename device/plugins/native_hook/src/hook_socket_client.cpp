@@ -26,7 +26,7 @@ const int MOVE_BIT_32 = 32;
 const int MOVE_BIT_48 = 48;
 const int MOVE_BIT_56 = 56;
 constexpr int FLUSH_FLAG = 20;
-std::atomic<int> g_flushCount = 0;
+std::atomic<uint64_t> g_flushCount = 0;
 } // namespace
 
 HookSocketClient::HookSocketClient(int pid, ClientConfig *config) : pid_(pid), config_(config)
@@ -40,6 +40,10 @@ HookSocketClient::HookSocketClient(int pid, ClientConfig *config) : pid_(pid), c
 
 HookSocketClient::~HookSocketClient()
 {
+    if (stackWriter_) {
+        stackWriter_->Flush();
+        HILOG_INFO(LOG_CORE, "~HookSocketClient Flush()");
+    }
     unixSocketClient_ = nullptr;
     stackWriter_ = nullptr;
 }
@@ -127,13 +131,18 @@ bool HookSocketClient::SendStack(const void* data, size_t size)
     return true;
 }
 
-bool HookSocketClient::SendStackWithPayload(const void* data, size_t size, const void* payload, size_t payloadSize)
+bool HookSocketClient::SendStackWithPayload(const void* data, size_t size, const void* payload,
+    size_t payloadSize, bool forceFlush)
 {
     if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
         return true;
     }
 
     stackWriter_->WriteWithPayloadTimeout(data, size, payload, payloadSize);
+    if (forceFlush) {
+        stackWriter_->Flush();
+        return true;
+    }
     g_flushCount++;
     if (g_flushCount % FLUSH_FLAG == 0) {
         stackWriter_->Flush();

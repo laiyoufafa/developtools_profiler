@@ -29,8 +29,6 @@
 #include "parameter.h"
 #include "stack_writer.h"
 #include "runtime_stack_range.h"
-#include "register.h"
-#include "virtual_runtime.h"
 #include "get_thread_id.h"
 #include "hook_client.h"
 
@@ -132,6 +130,8 @@ bool ohos_malloc_hook_on_start(void)
         HILOG_INFO(LOG_CORE, "hook already started");
         return true;
     } else {
+        CHECK_TRUE(memset_s(&g_ClientConfig, sizeof(g_ClientConfig), 0, sizeof(g_ClientConfig)) == 0,
+                   false, "memset_s error!");
         g_hookClient = std::make_shared<HookSocketClient>(g_hookPid, &g_ClientConfig);
     }
     pthread_key_create(&g_disableHookFlag, nullptr);
@@ -184,12 +184,12 @@ bool ohos_malloc_hook_on_end(void)
 }
 
 #if defined(__aarch64__)
-static void inline __attribute__((always_inline)) FpUnwind(int maxDepth, uint64_t *ip, int stackSize)
+static int inline __attribute__((always_inline)) FpUnwind(int maxDepth, uint64_t *ip, int stackSize)
 {
     void **startfp = (void **)__builtin_frame_address(0);
     void **fp = startfp;
-    for (int i = 0; i < maxDepth + 1; i++) {
-        ip[i] = *(reinterpret_cast<unsigned long *>(fp + 1));
+    int depth = 0;
+    while (depth < maxDepth) {
         void **nextFp = (void **)*fp;
         if (nextFp <= fp) {
             break;
@@ -198,7 +198,12 @@ static void inline __attribute__((always_inline)) FpUnwind(int maxDepth, uint64_
             break;
         }
         fp = nextFp;
+        if (*(reinterpret_cast<unsigned long *>(fp + 1)) == 0) {
+            break;
+        }
+        ip[depth++] = *(reinterpret_cast<unsigned long *>(fp + 1));
     }
+    return depth;
 }
 #endif
 
@@ -222,6 +227,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
+    int fpStackDepth = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_ClientConfig.fpunwind_) {
@@ -229,7 +235,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -262,7 +268,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        int realSize = 0;
+        if (g_ClientConfig.fpunwind_) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     }
     g_mallocTimes++;
 #ifdef PERFORMANCE_DEBUG
@@ -305,6 +317,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
+    int fpStackDepth = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_ClientConfig.fpunwind_) {
@@ -312,7 +325,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -345,7 +358,13 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        int realSize = 0;
+        if (g_ClientConfig.fpunwind_) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     }
     g_mallocTimes++;
     return pRet;
@@ -378,6 +397,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
+    int fpStackDepth = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_ClientConfig.fpunwind_) {
@@ -385,7 +405,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
         if (g_ClientConfig.freeStackData_) {
             (void)memcpy_s(freeData.ip, sizeof(freeData.ip) / sizeof(uint64_t),
@@ -426,6 +446,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
+        int realSize = 0;
         freeData.type = FREE_MSG;
         freeData.pid = rawdata.pid;
         freeData.tid = rawdata.tid;
@@ -434,10 +455,14 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         freeData.ts = rawdata.ts;
         (void)memcpy_s(freeData.tname, sizeof(freeData.tname) / sizeof(char),
                        rawdata.tname, sizeof(rawdata.tname) / sizeof(char));
-        holder->SendStackWithPayload(&freeData, sizeof(freeData), nullptr, 0); // 0: Don't unwind the freeData
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        if (g_ClientConfig.fpunwind_) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&freeData, sizeof(BaseStackRawData), nullptr, 0); // 0: Don't unwind the freeData
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     }
-    g_mallocTimes++;
     return pRet;
 }
 
@@ -471,6 +496,7 @@ void hook_free(void (*free_func)(void*), void* p)
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
+    int fpStackDepth = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_ClientConfig.freeStackData_) {
@@ -479,7 +505,7 @@ void hook_free(void (*free_func)(void*), void* p)
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
-            FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
 #endif
         } else {
@@ -514,7 +540,13 @@ void hook_free(void (*free_func)(void*), void* p)
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        int realSize = 0;
+        if (g_ClientConfig.fpunwind_) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     }
 }
 
@@ -532,6 +564,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
+    int fpStackDepth = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_ClientConfig.fpunwind_) {
@@ -539,7 +572,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -591,7 +624,13 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        int realSize = 0;
+        if (g_ClientConfig.fpunwind_) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize, true);
     }
     return ret;
 }
@@ -609,6 +648,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
+    int fpStackDepth = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_ClientConfig.munmapStackData_) {
@@ -617,7 +657,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
-            FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
 #endif
         } else {
@@ -650,17 +690,16 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_munmap failed!");
-        return ret;
-    }
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        int realSize = 0;
+        if (g_ClientConfig.fpunwind_) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     }
     return ret;
 }
@@ -676,7 +715,7 @@ int hook_prctl(int(*fn)(int, ...),
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
-        StackRawData rawdata = {{{0}}};
+        BaseStackRawData rawdata = {};
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = static_cast<uint32_t>(g_hookPid);
@@ -751,13 +790,6 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
         prctl(PR_GET_NAME, rawdata.tname);
     }
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock failed!");
-        return;
-    }
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {

@@ -23,6 +23,7 @@
 #include "perf_event_record.h"
 #include "symbols_file.h"
 #include "virtual_thread.h"
+#include "native_hook_config.pb.h"
 
 namespace OHOS {
 namespace Developtools {
@@ -42,7 +43,8 @@ recorded in the corresponding mmap.
 
 class VirtualRuntime {
 public:
-    VirtualRuntime(bool onDevice = true);
+    VirtualRuntime();
+    VirtualRuntime(const NativeHookConfig& hookConfig);
     virtual ~VirtualRuntime();
     // thread need hook the record
     // from the record , it will call back to write some Simulated Record
@@ -54,12 +56,12 @@ public:
     // any mode
     static_assert(sizeof(pid_t) == sizeof(int));
 
-    const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> &GetSymbolsFiles() const
+    const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> &GetSymbolsFiles() const
     {
         return symbolsFiles_;
     }
 
-    const Symbol GetSymbol(uint64_t ip, pid_t pid, pid_t tid,
+    const Symbol GetSymbol(CallFrame& callFrame, pid_t pid, pid_t tid,
                            const perf_callchain_context &context = PERF_CONTEXT_MAX);
 
     VirtualThread &GetThread(pid_t pid, pid_t tid);
@@ -68,15 +70,17 @@ public:
         return userSpaceThreadMap_;
     }
 
-    bool UnwindStack(std::vector<u64> regs,
+    bool UnwindStack(std::vector<u64>& regs,
                      const u8* stack_addr,
                      int stack_size,
                      pid_t pid,
                      pid_t tid,
-                     std::vector<CallFrame>& callsFrames,
+                     std::vector<CallFrame>& callFrames,
                      size_t maxStackLevel);
-    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first);
+    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callFrames, int offset, bool first);
     void ClearMaps();
+    void CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uint64_t& min);
+    void FillFilePathId(std::string& currentFileName, MemMapItem& memMapItem);
     // debug time
 #ifdef HIPERF_DEBUG_TIME
     std::chrono::microseconds updateSymbolsTimes_ = std::chrono::microseconds::zero();
@@ -87,9 +91,48 @@ public:
 #endif
     const bool loadSymboleWhenNeeded_ = true; // thie is a feature config
     void UpdateSymbols(std::string filename);
-    bool IsSymbolExist(std::string fileName);
+    bool IsSymbolExist(const std::string& fileName);
+    bool DelSymbolFile(const std::string& fileName);
     void UpdateMaps(pid_t pid, pid_t tid);
+    std::vector<MemMapItem>& GetProcessMaps()
+    {
+        return processMemMaps_;
+    }
+
+public:
+    enum SymbolCacheLimit : std::size_t {
+        USER_SYMBOL_CACHE_LIMIT = 10000,
+    };
+
 private:
+    struct SymbolCacheKey : public std::pair<uint64_t, uint32_t> {
+        uint64_t& ip = first;
+        uint32_t& filePathId = second;
+        explicit SymbolCacheKey() = default;
+        virtual ~SymbolCacheKey() = default;
+        SymbolCacheKey(const SymbolCacheKey &) = default;
+        SymbolCacheKey& operator=(const SymbolCacheKey& sym)
+        {
+            ip = sym.ip;
+            filePathId = sym.filePathId;
+            return *this;
+        }
+        SymbolCacheKey(const std::pair<uint64_t, uint32_t>& arg) : pair(arg), ip(first), filePathId(second) {}
+        SymbolCacheKey(uint64_t ip, uint32_t filePathId) : pair(ip, filePathId), ip(first), filePathId(second) {}
+    };
+
+    // boost library recommendation algorithm to reduce hash collisions.
+    struct HashPair {
+        size_t operator() (const SymbolCacheKey& key) const
+        {
+            std::hash<uint64_t> hasher;
+            size_t seed = 0;
+            // 6 and 2 is the number of displacements
+            seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            return seed;
+        }
+    };
     CallStack callstack_;
     // pid map with user space thread
     pthread_mutex_t threadMapsLock_;
@@ -97,15 +140,11 @@ private:
     // not pid , just memmap
     std::vector<MemMapItem> kernelSpaceMemMaps_;
     pthread_mutex_t processSymbolsFileLock_;
-    std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> symbolsFiles_;
-    enum SymbolCacheLimit : std::size_t {
-        KERNEL_SYMBOL_CACHE_LIMIT = 4000,
-        THREAD_SYMBOL_CACHE_LIMIT = 2000,
-    };
-    std::unordered_map<pid_t, HashList<uint64_t, Symbol>> threadSymbolCache_;
-    HashList<uint64_t, Symbol> kernelSymbolCache_ {KERNEL_SYMBOL_CACHE_LIMIT};
-    bool GetSymbolCache(uint64_t ip, pid_t pid, pid_t tid, Symbol &symbol,
-                        const perf_callchain_context &context);
+    std::unordered_set<uint32_t> fileSet_; // for memMpaItem filePathId_
+    std::unordered_map<std::string, uint32_t> functionMap_;
+    std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles_;
+    std::unordered_map<SymbolCacheKey, Symbol, HashPair> userSymbolCache_;
+    bool GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualThread &thread);
     void UpdateSymbolCache(uint64_t ip, Symbol &symbol, HashList<uint64_t, Symbol> &cache);
 
     // find synbols function name
@@ -119,6 +158,8 @@ private:
     const Symbol GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps,
                                  const VirtualThread &thread);
     const Symbol GetUserSymbol(uint64_t ip, const VirtualThread &thread);
+    void FillSymbolNameId(CallFrame& callFrame, Symbol& symbol);
+    void FillFileSet(CallFrame& callFrame, const Symbol& symbol);
 
     std::vector<std::string> symbolsPaths_;
 
@@ -127,6 +168,8 @@ private:
     pthread_mutex_t threadMemMapsLock_;
     std::vector<MemMapItem> processMemMaps_;
     std::unordered_set<uint64_t> failedIPs_;
+    const NativeHookConfig hookConfig_;
+    uint32_t memMapFilePathId_ = 0;
 };
 } // namespace NativeDaemon
 } // namespace Developtools

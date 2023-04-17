@@ -35,6 +35,11 @@
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
+namespace {
+constexpr uint8_t CALL_FRAME_REPORT = 0x01; // 0001
+constexpr uint8_t SYMBOL_NAME_ID_REPORT = 0x02; // 0010
+constexpr uint8_t FILE_PATH_ID_REPORT = 0x04; // 0100
+}
 struct CallFrame {
     uint64_t ip_ = 0;
     uint64_t sp_ = 0;
@@ -45,6 +50,11 @@ struct CallFrame {
     std::string_view filePath_; // lib path , elf path
     uint64_t offset_ = 0;
     uint64_t symbolOffset_ = 0;
+    uint32_t filePathId_ = 0; // for memMpaItem filePathId_
+    uint32_t symbolNameId_ = 0; // for symbolName_ id
+    uint32_t callFrameId_ = 0; // for frame map id
+    uint8_t needReport_ = 0; // 0X01 for CALL_FRAME_REPORT,0x02 for SYMBOL_NAME_ID_REPORT,0x04 for FILE_PATH_ID_REPORT
+
     CallFrame(uint64_t ip, uint64_t sp = 0) : ip_(ip), sp_(sp) {}
 
     // this is for ut test

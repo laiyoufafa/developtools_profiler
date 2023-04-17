@@ -102,7 +102,7 @@ const MemMapItem *VirtualThread::FindMapByAddr(uint64_t addr) const
 }
 VirtualThread::VirtualThread(pid_t pid,
                              pid_t tid,
-                             const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile>& symbolsFiles,
+                             const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>>& symbolsFiles,
                              VirtualRuntime* runtime,
                              bool parseFlag)
     : pid_(pid), tid_(tid), symbolsFiles_(symbolsFiles), virtualruntime_(runtime)
@@ -165,12 +165,12 @@ const MemMapItem *VirtualThread::FindMapByFileInfo(const std::string name, uint6
 
 SymbolsFile *VirtualThread::FindSymbolsFileByMap(const MemMapItem &inMap) const
 {
-    for (auto &symbolsFile : symbolsFiles_) {
-        if (symbolsFile->filePath_ == inMap.name_) {
-            HLOGM("found symbol for map '%s'", inMap.name_.c_str());
-            symbolsFile->LoadDebugInfo();
-            return symbolsFile.get();
-        }
+    auto search = symbolsFiles_.find(inMap.name_);
+    if (search != symbolsFiles_.end()) {
+        auto& symbolsFile = search->second;
+        HLOGM("found symbol for map '%s'", inMap.name_.c_str());
+        symbolsFile->LoadDebugInfo();
+        return symbolsFile.get();
     }
 #ifdef DEBUG_MISS_SYMBOL
     if (find(missedSymbolFile_.begin(), missedSymbolFile_.end(), inMap.name_) ==
@@ -255,6 +255,8 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
     std::string mapContent = ReadFileToString(mapPath);
     bool mapsAdded = !update;
     std::set<std::string> addSymbolFile;
+    std::vector<MemMapItem> tempMap;
+    std::string tempMapName;
     if (mapContent.size() > 0) {
         std::istringstream s(mapContent);
         std::string line;
@@ -371,28 +373,43 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
 
             memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
             if (!update) {
+                virtualruntime_->FillFilePathId(tempMapName, memMapItem);
                 memMaps.push_back(memMapItem);
                 virtualruntime_->UpdateSymbols(memMapItem.name_);
-                HLOGD("%d %d memMap add '%s'", pid_, tid_, memMapItem.name_.c_str());
             } else if (!virtualruntime_->IsSymbolExist(memMapItem.name_)) {
+                virtualruntime_->FillFilePathId(tempMapName, memMapItem);
                 mapsAdded = true;
-                memMaps.push_back(memMapItem);
+                tempMap.push_back(memMapItem);
                 addSymbolFile.emplace(memMapItem.name_);
-                HLOGD("%d %d memMap update '%s'", pid_, tid_, memMapItem.name_.c_str());
             }
         }
     }
 
-    for (auto it : addSymbolFile) {
+    // Find if there are duplicate mapping intervals, and if there are, overwrite the old data with the new data.
+    for (auto tempMapIter = tempMap.begin(); tempMapIter != tempMap.end(); ++tempMapIter) {
+        auto memMapIter = std::find_if(memMaps.begin(), memMaps.end(), [&](MemMapItem& map) {
+            if (tempMapIter->begin_ == map.begin_ && tempMapIter->end_ == map.end_) {
+                return true;
+            }
+            return false;
+        });
+        if (memMapIter != memMaps.end()) {
+            virtualruntime_->DelSymbolFile(memMapIter->name_);
+            memMaps.erase(memMapIter);
+        }
+    }
+    memMaps.insert(memMaps.end(), tempMap.begin(), tempMap.end());
+
+    for (const auto& it : addSymbolFile) {
         virtualruntime_->UpdateSymbols(it);
         HLOGD("add symbol file %s", it.c_str());
     }
 
     if (mapsAdded) {
-        HILOG_INFO(LOG_CORE, "maps changed and need sort");
+        HILOG_DEBUG(LOG_CORE, "maps changed and need sort");
         SortMemMaps();
     } else {
-        HILOG_INFO(LOG_CORE, "maps no change");
+        HILOG_DEBUG(LOG_CORE, "maps no change");
         return false;
     }
     return true;

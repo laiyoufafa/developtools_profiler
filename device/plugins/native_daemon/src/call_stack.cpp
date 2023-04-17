@@ -169,7 +169,9 @@ int CallStack::FindUnwindTable(SymbolsFile *symbolsFile, const MemMapItem &mmap,
         std::optional<unw_dyn_info_t> &odi = dynFileMap[symbolsFile->filePath_];
 
         unw_dyn_info_t newdi;
-        memset_s(&newdi, sizeof(unw_dyn_info_t), 0, sizeof(unw_dyn_info_t));
+        if (memset_s(&newdi, sizeof(unw_dyn_info_t), 0, sizeof(unw_dyn_info_t)) != EOK) {
+            HLOGE("memset_s failed");
+        }
 #ifdef target_cpu_arm
         // arm use .ARM.exidx , not use ehframe
         newdi.format = UNW_INFO_FORMAT_ARM_EXIDX;

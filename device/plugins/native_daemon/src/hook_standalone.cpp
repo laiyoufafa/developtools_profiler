@@ -23,6 +23,7 @@
 #include "event_notifier.h"
 #include "epoll_event_poller.h"
 #include "virtual_runtime.h"
+#include "stack_preprocess.h"
 
 using namespace OHOS::Developtools::NativeDaemon;
 namespace OHOS {
@@ -38,12 +39,19 @@ std::unique_ptr<EpollEventPoller> g_eventPoller_;
 std::shared_ptr<ShareMemoryBlock> g_shareMemoryBlock;
 std::shared_ptr<EventNotifier> g_eventNotifier;
 std::shared_ptr<HookService> g_hookService;
+std::shared_ptr<StackPreprocess> g_stackPreprocess;
 uint32_t g_maxStackDepth;
 bool g_unwindErrorFlag = false;
 bool g_fpUnwind = false;
 std::unique_ptr<FILE, decltype(&fclose)> g_fpHookFile(nullptr, nullptr);
+std::string g_libcSoPath;
+uint32_t g_dlopenFrameIdx;
+uint64_t g_dlopenIpMax;
+uint64_t g_dlopenIpMin;
+bool g_isDlopenRangeValid = false;
 
-void writeFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
+
+void WriteFrames(BaseStackRawData *data, const std::vector<CallFrame>& callFrames)
 {
     if (data->type == MALLOC_MSG) {
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
@@ -64,8 +72,8 @@ void writeFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
         return;
     }
 
-    for (size_t idx = 0; idx < callsFrames.size(); ++idx) {
-        auto item = callsFrames[idx];
+    for (size_t idx = 0; idx < callFrames.size(); ++idx) {
+        auto item = callFrames[idx];
         (void)fprintf(g_fpHookFile.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
                       item.ip_, item.sp_, std::string(item.symbolName_).c_str(),
                       std::string(item.filePath_).c_str(), item.offset_, item.symbolOffset_);
@@ -85,41 +93,49 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
     struct timespec first_time;
     struct timespec begin_time;
     struct timespec end_time;
+    std::vector<u64> u64regs;
+    std::vector<CallFrame> callFrames;
     uint64_t total_time = 0;
-
+#if defined(__arm__)
+    u64regs.resize(PERF_REG_ARM_MAX);
+#else
+    u64regs.resize(PERF_REG_ARM64_MAX);
+#endif
+    callFrames.reserve(g_maxStackDepth);
+    auto rawData = std::make_unique<StandaloneRawStack>();
+    uint16_t  rawRealSize = 0;
     while (true) {
         bool ret = g_shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
-            if (size < sizeof(StackRawData)) {
+            if (size < sizeof(BaseStackRawData)) {
                 HILOG_ERROR(LOG_CORE, "stack data invalid!");
                 return false;
             }
-            StackRawData *rawData = reinterpret_cast<StackRawData *>(const_cast<int8_t *>(data));
-            const uint8_t *stackData = reinterpret_cast<const uint8_t *>(data + sizeof(StackRawData));
-            uint32_t stackSize = size - sizeof(StackRawData);
+            rawData->stackConext = reinterpret_cast<BaseStackRawData *>(const_cast<int8_t *>(data));
+            rawData->data = const_cast<int8_t *>(data) + sizeof(BaseStackRawData);
 
-            std::vector<u64> u64regs;
-            std::vector<CallFrame> callsFrames;
-
+            callFrames.clear();
             if (g_fpUnwind) {
-                for (int idx = 1; idx < MAX_UNWIND_DEPTH; ++idx) {
-                    if (rawData->ip[idx] == 0) {
+                rawData->fpDepth = (size - sizeof(BaseStackRawData)) / sizeof(uint64_t);
+                uint64_t* fpIp = reinterpret_cast<uint64_t *>(rawData->data);
+                for (int idx = 0; idx < rawData->fpDepth; ++idx) {
+                    if (fpIp[idx] == 0) {
                         break;
                     }
-                    OHOS::Developtools::NativeDaemon::CallFrame frame(0);
-                    frame.ip_ = rawData->ip[idx];
-                    callsFrames.push_back(frame);
+                    callFrames.push_back(fpIp[idx]);
                 }
             } else {
-                int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
-#if defined(__arm__)
-                uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->regs);
-                for (int idx = 0; idx < regCount; ++idx) {
-                    u64regs.push_back(*regAddrArm++);
+                rawRealSize = sizeof(BaseStackRawData) + MAX_REG_SIZE * sizeof(char);
+                rawData->stackSize = size - rawRealSize;
+                if (rawData->stackSize > 0) {
+                    rawData->stackData = reinterpret_cast<uint8_t *>(const_cast<int8_t *>(data)) + rawRealSize;
                 }
+#if defined(__arm__)
+                uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->data);
+                u64regs.assign(regAddrArm, regAddrArm + PERF_REG_ARM_MAX);
 #else
-                uint64_t *regAddrAarch64 = reinterpret_cast<uint64_t *>(rawData->regs);
-                for (int idx = 0; idx < regCount; ++idx) {
-                    u64regs.push_back(*regAddrAarch64++);
+                if (memcpy_s(u64regs.data(), sizeof(uint64_t) * PERF_REG_ARM64_MAX, rawData->data,
+                    sizeof(uint64_t) * PERF_REG_ARM64_MAX) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
                 }
 #endif
             }
@@ -132,21 +148,26 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 }
             }
 
-            bool ret = g_runtimeInstance->UnwindStack(u64regs, stackData, stackSize, rawData->pid,
-                rawData->tid, callsFrames,
+            bool ret = g_runtimeInstance->UnwindStack(u64regs, rawData->stackData, rawData->stackSize,
+                rawData->stackConext->pid, rawData->stackConext->tid, callFrames,
                 (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
-            if (!ret && !g_unwindErrorFlag) {
-                HILOG_ERROR(LOG_CORE, "unwind error, try unwind twice");
-                g_runtimeInstance = nullptr;
-                g_runtimeInstance = std::make_shared<VirtualRuntime>();
-                callsFrames.clear();
-                bool ret = g_runtimeInstance->UnwindStack(u64regs, stackData, stackSize, rawData->pid,
-                    rawData->tid, callsFrames,
-                    (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
-                if (!ret) {
-                    g_unwindErrorFlag = true;
-                    HILOG_ERROR(LOG_CORE, "unwind fatal error, do not try unwind twice!");
-                    return true;
+            if (!ret) {
+                HILOG_ERROR(LOG_CORE, "unwind fatal error");
+                return false;
+            }
+            if (!g_isDlopenRangeValid) {
+                g_runtimeInstance->CalcDlopenIpRange(g_libcSoPath, g_dlopenIpMax, g_dlopenIpMin);
+                g_isDlopenRangeValid = true;
+            }
+            if (rawData->stackConext->type == MMAP_MSG) {
+                // if mmap msg trigger by dlopen, update maps voluntarily
+                if (callFrames.size() > g_dlopenFrameIdx) {
+                    // for dlopen mmap framme
+                    if (callFrames[g_dlopenFrameIdx].ip_ >= g_dlopenIpMin &&
+                            callFrames[g_dlopenFrameIdx].ip_ < g_dlopenIpMax) {
+                        HILOG_DEBUG(LOG_CORE, "mmap msg trigger by dlopen, update maps voluntarily");
+                        g_runtimeInstance->UpdateMaps(rawData->stackConext->pid, rawData->stackConext->tid);
+                    }
                 }
             }
 
@@ -174,7 +195,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 }
             }
 
-            writeFrames(rawData, callsFrames);
+            WriteFrames(rawData->stackConext, callFrames);
 
             return true;
         });
@@ -187,6 +208,11 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
 bool StartHook(HookData& hookData)
 {
     g_runtimeInstance = std::make_shared<VirtualRuntime>();
+    g_stackPreprocess = std::make_shared<StackPreprocess>(hookData.fpUnwind);
+    g_libcSoPath = g_stackPreprocess->GetLibcSoPath();
+    g_dlopenFrameIdx = g_stackPreprocess->GetDlopenFrameIdx();
+    g_dlopenIpMax = g_stackPreprocess->GetDlopenIpMax();
+    g_dlopenIpMin = g_stackPreprocess->GetDlopenIpMin();
     FILE *fp = fopen(hookData.fileName.c_str(), "wb+");
     if (fp != nullptr) {
         g_fpHookFile.reset();
@@ -214,6 +240,10 @@ bool StartHook(HookData& hookData)
 #if defined(__arm__)
     hookData.fpUnwind = false;
 #endif
+    if (hookData.maxStackDepth < DLOPEN_MIN_UNWIND_DEPTH) {
+        // set default max depth
+        hookData.maxStackDepth = DLOPEN_MIN_UNWIND_DEPTH;
+    }
     uint64_t hookConfig = (uint8_t)hookData.maxStackDepth;
     const int moveBit8 = 8;
     hookConfig <<= moveBit8;

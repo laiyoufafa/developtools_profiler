@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <set>
 #include <unordered_set>
+#include <unordered_map>
 #include <vector>
 #include "debug_logger.h"
 #include "mem_map_item.h"
@@ -50,7 +51,7 @@ public:
 
     VirtualThread(pid_t pid,
                   pid_t tid,
-                  const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile>& symbolsFiles,
+                  const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>>& symbolsFiles,
                   VirtualRuntime* runtime,
                   bool parseFlag = true);
 
@@ -94,7 +95,7 @@ private:
 #ifdef DEBUG_TIME
     bool IsSorted() const;
 #endif
-    const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> & symbolsFiles_;
+    const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> & symbolsFiles_;
 
     // thread must use ref from process
     std::vector<MemMapItem>* memMaps_;

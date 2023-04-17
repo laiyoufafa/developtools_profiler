@@ -72,17 +72,17 @@ bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData, bool isRecordAcc
     }
 
     if (__builtin_expect((rawData != nullptr) && !isRecordAccurately, true)) {
-        if (rawData->stackConext.type == FREE_MSG) {
-            auto temp = mallocMap_.find(rawData->stackConext.addr);
+        if (rawData->stackConext->type == FREE_MSG) {
+            auto temp = mallocMap_.find(rawData->stackConext->addr);
             // true  : pair of malloc and free matched, both malloc and free will be ignored
             // false : can not match, send free's data anyway
             if (temp != mallocMap_.end()) {
                 temp->second->reportFlag = false; // will be ignore later
-                mallocMap_.erase(rawData->stackConext.addr);
+                mallocMap_.erase(rawData->stackConext->addr);
                 needInsert = false;
             }
-        } else if (rawData->stackConext.type == MALLOC_MSG) {
-            mallocMap_.insert(std::pair<void*, std::shared_ptr<RawStack>>(rawData->stackConext.addr, rawData));
+        } else if (rawData->stackConext->type == MALLOC_MSG) {
+            mallocMap_.insert(std::pair<void*, std::shared_ptr<RawStack>>(rawData->stackConext->addr, rawData));
         }
         if (needInsert) {
             rawDataQueue_.push_back(rawData);
@@ -114,8 +114,8 @@ RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, uint32_t batchCount,
         result = rawDataQueue_.front();
         rawDataQueue_.pop_front();
         batchRawStack[i] = result;
-        if ((result != nullptr) && (result->stackConext.type == MALLOC_MSG)) {
-            mallocMap_.erase(result->stackConext.addr);
+        if ((result != nullptr) && (result->stackConext->type == MALLOC_MSG)) {
+            mallocMap_.erase(result->stackConext->addr);
             if (needReduceStack) {
                 result->reduceStackFlag = true;
                 reducedStackCount_++;
@@ -128,7 +128,7 @@ RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, uint32_t batchCount,
     if (result != nullptr && during > 0 && rawDataQueueSize < SLOW_DOWN_THRESHOLD) {
         struct timespec now = {};
         clock_gettime(CLOCK_REALTIME, &now);
-        uint64_t curDuring = (now.tv_sec - result->stackConext.ts.tv_sec) * 1000;
+        uint64_t curDuring = (now.tv_sec - result->stackConext->ts.tv_sec) * 1000;
         int diff = during - curDuring;
         if (diff > 0) {
             HILOG_INFO(LOG_CORE, "TakeRawData sleep  diff %d, rawDataQueueSize %d", diff, rawDataQueueSize);
