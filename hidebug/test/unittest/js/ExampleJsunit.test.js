@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import hidebug from '@ohos.hidebug'
-import fileio from '@ohos.fileio'
+import fs from '@ohos.file.fs'
 import process from '@ohos.process'
 import featureAbility from '@ohos.ability.featureAbility'
 
@@ -75,7 +75,7 @@ describe("HidebugJsTest", function () {
             hidebug.stopProfiling();
             const pid = process.pid;
             let path = "/proc/" + pid + "/root/data/storage/el2/base/files/" + filename + ".json";
-            let data = fileio.readTextSync(path);
+            let data = fs.readTextSync(path);
             if (data.includes("napi")) {
                 expect(true).assertTrue();
             } else {
@@ -105,14 +105,14 @@ describe("HidebugJsTest", function () {
             hidebug.stopJsCpuProfiling();
             const pid = process.pid;
             let path = "/proc/" + pid + "/root/data/storage/el2/base/files/" + filename + ".json";
-            let data = fileio.readTextSync(path);
+            let data = fs.readTextSync(path);
             if (data.includes("napi")) {
                 expect(true).assertTrue();
             } else {
                 expect(false).assertTrue();
             }
         } catch (err) {
-            console.error('HidebugJsTest_001 has failed for ' + err);
+            console.error('HidebugJsTest_002 has failed for ' + err);
             expect(false).assertTrue();
         }
     })
@@ -184,7 +184,7 @@ describe("HidebugJsTest", function () {
         context.getFilesDir().then((data) => {
             const path = data + "/serviceInfo1.txt";
             console.info("output path: " + path)
-            let fd = fileio.openSync(path, 0o102, 0o666)
+            let fd = fs.openSync(path, 0o102, 0o666)
             const serviceId = 10;
             const args = new Array("allInfo");
             try {
@@ -194,7 +194,7 @@ describe("HidebugJsTest", function () {
               console.info(error.code)
               console.info(error.message)
             }
-            fileio.closeSync(fd);
+            fs.closeSync(fd);
         })
     })
     
@@ -210,7 +210,7 @@ describe("HidebugJsTest", function () {
         context.getFilesDir().then((data) => {
             const path = data + "/serviceInfo2.txt";
             console.info("output path: " + path)
-            let fd = fileio.openSync(path, 0o102, 0o666)
+            let fd = fs.openSync(path, 0o102, 0o666)
             const serviceId = 10;
             const args = new Array("allInfo");
             try {
@@ -220,7 +220,7 @@ describe("HidebugJsTest", function () {
               console.info(error.message)
               expect(error.code === "401").assertTrue();
             }
-            fileio.closeSync(fd);
+            fs.closeSync(fd);
         })
     })
 
@@ -236,7 +236,7 @@ describe("HidebugJsTest", function () {
         context.getFilesDir().then((data) => {
             const path = data + "/serviceInfo3.txt";
             console.info("output path: " + path)
-            let fd = fileio.openSync(path, 0o102, 0o666)
+            let fd = fs.openSync(path, 0o102, 0o666)
             const serviceId = -10;
             const args = new Array("allInfo");
             try {
@@ -246,7 +246,7 @@ describe("HidebugJsTest", function () {
               console.info(error.message)
               expect(error.code === "11400101").assertTrue();
             }
-            fileio.closeSync(fd);
+            fs.closeSync(fd);
         })
     })
 })
