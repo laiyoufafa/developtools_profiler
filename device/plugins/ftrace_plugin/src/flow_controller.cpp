@@ -228,7 +228,7 @@ int FlowController::StartCapture(void)
     keepRunning_ = true;
     pollThread_ = std::thread(&FlowController::CaptureWork, this);
 
-    //set trace_clock
+    // set trace_clock
     traceOps_->SetTraceClock(traceClock_);
     // enable ftrace event switches
     if (traceCategories_.size() > 0) {
