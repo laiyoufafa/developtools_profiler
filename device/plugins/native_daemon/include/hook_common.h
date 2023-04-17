@@ -83,7 +83,20 @@ struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
     };
 };
 
-typedef struct {
+struct ClientConfig {
+    void Reset()
+    {
+        filterSize_ = 0;
+        mallocDisable_ = false;
+        mmapDisable_ = false;
+        freeStackData_ = false;
+        munmapStackData_ = false;
+        maxStackDepth_ = 0;
+        fpunwind_ = false;
+        isBlocked = false;
+        memtraceEnable = false;
+    }
+
     uint32_t filterSize_;
     bool mallocDisable_;
     bool mmapDisable_;
@@ -93,7 +106,7 @@ typedef struct {
     bool fpunwind_;
     bool isBlocked;
     bool memtraceEnable;
-} ClientConfig;
+};
 
 struct StandaloneRawStack {
     BaseStackRawData* stackConext; // points to the foundation type data

@@ -164,6 +164,7 @@ void* ohos_release_on_end(void*)
     pthread_key_delete(g_disableHookFlag);
     pthread_key_delete(g_hookTid);
     g_mallocIgnoreSet.clear();
+    g_ClientConfig.Reset();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
     COMMON::PrintMallinfoLog("after hook(byte) => ");
     return nullptr;
