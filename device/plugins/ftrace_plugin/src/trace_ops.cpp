@@ -121,9 +121,9 @@ bool TraceOps::EnableCategories(const std::vector<std::string>& categories, int 
     }
 
     args_ = {arg0_};
-    if (!traceclockConfig_.empty()) {
+    if (!traceClock_.empty()) {
         args_.push_back("--trace_clock");
-        args_.push_back(traceclockConfig_);
+        args_.push_back(traceClock_);
     }
     CHECK_TRUE(PrepareEnableCategoriesCmd(traceTime), false, "prepare enable categories failed!");
 
