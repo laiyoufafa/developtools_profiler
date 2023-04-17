@@ -151,7 +151,6 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
             bool ret = g_runtimeInstance->UnwindStack(u64regs, rawData->stackData, rawData->stackSize,
                 rawData->stackConext->pid, rawData->stackConext->tid, callFrames,
                 (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
-
             if (!ret) {
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 return false;
