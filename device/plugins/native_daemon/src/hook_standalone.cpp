@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,7 +51,7 @@ uint64_t g_dlopenIpMin;
 bool g_isDlopenRangeValid = false;
 
 
-void WriteFrames(BaseStackRawData *data, const std::vector<CallFrame>& callFrames)
+void WriteFrames(BaseStackRawData *data, const std::vector<OHOS::HiviewDFX::CallFrame>& callFrames)
 {
     if (data->type == MALLOC_MSG) {
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
@@ -94,12 +94,12 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
     struct timespec begin_time;
     struct timespec end_time;
     std::vector<u64> u64regs;
-    std::vector<CallFrame> callFrames;
+    std::vector<OHOS::HiviewDFX::CallFrame> callFrames;
     uint64_t total_time = 0;
 #if defined(__arm__)
-    u64regs.resize(PERF_REG_ARM_MAX);
+    u64regs.resize(OHOS::HiviewDFX::PERF_REG_ARM_MAX);
 #else
-    u64regs.resize(PERF_REG_ARM64_MAX);
+    u64regs.resize(OHOS::HiviewDFX::PERF_REG_ARM64_MAX);
 #endif
     callFrames.reserve(g_maxStackDepth);
     auto rawData = std::make_unique<StandaloneRawStack>();
@@ -131,10 +131,10 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 }
 #if defined(__arm__)
                 uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->data);
-                u64regs.assign(regAddrArm, regAddrArm + PERF_REG_ARM_MAX);
+                u64regs.assign(regAddrArm, regAddrArm + OHOS::HiviewDFX::PERF_REG_ARM_MAX);
 #else
-                if (memcpy_s(u64regs.data(), sizeof(uint64_t) * PERF_REG_ARM64_MAX, rawData->data,
-                    sizeof(uint64_t) * PERF_REG_ARM64_MAX) != EOK) {
+                if (memcpy_s(u64regs.data(), sizeof(uint64_t) * OHOS::HiviewDFX::PERF_REG_ARM64_MAX, rawData->data,
+                    sizeof(uint64_t) * OHOS::HiviewDFX::PERF_REG_ARM64_MAX) != EOK) {
                     HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
                 }
 #endif
@@ -150,7 +150,8 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
 
             bool ret = g_runtimeInstance->UnwindStack(u64regs, rawData->stackData, rawData->stackSize,
                 rawData->stackConext->pid, rawData->stackConext->tid, callFrames,
-                (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
+                (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH :
+                    OHOS::HiviewDFX::MAX_CALL_FRAME_UNWIND_SIZE);
             if (!ret) {
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 return false;

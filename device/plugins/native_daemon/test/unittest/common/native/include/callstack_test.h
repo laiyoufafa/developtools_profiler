@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,9 @@
 
 #include <hilog/log.h>
 
-#include "call_stack.h"
+#define private public
+#include "callstack.h"
+#undef private
 #include "debug_logger.h"
 #include "utilities.h"
 
@@ -136,13 +138,6 @@ void LoadFromFile(const std::string &fileName, std::vector<T> &data)
         return;
     }
     ASSERT_EQ(ret, data.size());
-}
-
-static void MakeMaps(VirtualThread &thread)
-{
-    for (const mmapDumpInfo &mmap : TEST_DWARF_MMAP) {
-        thread.CreateMapItem(mmap.fileName, mmap.begin, mmap.len, mmap.pgoff);
-    }
 }
 } // namespace NativeDaemon
 } // namespace Developtools

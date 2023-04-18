@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,7 @@ namespace {
 static std::atomic<uint64_t> g_timeCost = 0;
 static std::atomic<uint64_t> g_mallocTimes = 0;
 static std::atomic<uint64_t> g_dataCounts = 0;
-using OHOS::Developtools::NativeDaemon::buildArchType;
+using OHOS::HiviewDFX::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};

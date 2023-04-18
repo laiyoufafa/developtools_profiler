@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -117,7 +117,7 @@ VirtualThread::VirtualThread(pid_t pid,
     }
 
     this->name_ = ReadThreadName(pid);
-    reg_nr = RegisterGetCount();
+    reg_nr = OHOS::HiviewDFX::RegisterGetCount();
     if (reg_nr <= 0) {
         HLOGE("Getting register count failed");
         reg_nr = 0;
@@ -406,10 +406,10 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
     }
 
     if (mapsAdded) {
-        HILOG_DEBUG(LOG_CORE, "maps changed and need sort");
+        HLOGD("maps changed and need sort");
         SortMemMaps();
     } else {
-        HILOG_DEBUG(LOG_CORE, "maps no change");
+        HLOGD("maps no change");
         return false;
     }
     return true;
