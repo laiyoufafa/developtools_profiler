@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,9 +57,11 @@ private:
     void SetupTransporterFlushParams(uint32_t intervalMs, uint32_t thresholdKb);
     void GenerateRawDataFileNames(const std::string& prefix);
     void SetupTraceReadPeriod(uint32_t periodMs);
-    void CaptureWork();
+    void CaptureWorkOnNomalMode();
+    void CaptureWorkOnDelayMode();
     long ReadEventData(int cpuid);
-    bool ParseEventData(int cpuid, long dataSize);
+    bool ParseEventDataOnNomalMode(int cpuid, long dataSize);
+    bool ParseEventDataOnDelayMode();
 
     bool AddPlatformEventsToParser(void);
     void EnableTraceEvents(void);
@@ -84,7 +86,7 @@ private:
     std::unique_ptr<TraceOps> traceOps_ = nullptr;
     std::vector<std::unique_ptr<FtraceDataReader>> ftraceReaders_ = {};
     std::vector<std::shared_ptr<uint8_t>> ftraceBuffers_;
-    std::vector<std::shared_ptr<FILE>> rawDataDumpFile_;
+    std::vector<std::shared_ptr<FILE>> rawDataFiles_;
     std::atomic<bool> keepRunning_ = false;
     std::thread pollThread_ = {};
 
@@ -96,6 +98,7 @@ private:
     uint32_t tracePeriodMs_ = 0;                    // 10
     uint32_t bufferSizeKb_ = 0;                     // 6
     bool parseKsyms_ = false;                       // 7
+    TracePluginConfig_ParseMode parseMode_ = TracePluginConfig_ParseMode_NORMAL;
 
     WriterStructPtr resultWriter_ = nullptr;
     int platformCpuNum_ = 0;

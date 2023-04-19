@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,7 @@ namespace {
     constexpr uint32_t DEFAULT_TRACE_PERIOD_MS = 250;  // 250 ms
     constexpr uint32_t MAX_BLOCK_SIZE_PAGES = 4096;    // 16 MB
     constexpr uint32_t MIN_BLOCK_SIZE_PAGES = 256;     // 1  MB
+    constexpr uint32_t PARSE_CMDLINE_COUNT = 1000;
     const std::set<std::string> g_availableClocks = { "boot", "global", "local", "mono" };
 } // namespace
 
@@ -150,35 +151,12 @@ bool FlowController::CreateRawDataBuffers()
 
 bool FlowController::CreateRawDataCaches()
 {
-    for (size_t i = 0; i < rawDataDumpPath_.size(); i++) {
-        auto& path = rawDataDumpPath_[i];
-        HILOG_INFO(LOG_CORE, "create raw data cache[%zu]: %s", i, path.c_str());
-
-        if (path.empty() || (path.length() >= PATH_MAX)) {
-            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
-            return false;
-        }
-
-        std::regex dirNameRegex("[.~-]");
-        std::regex fileNameRegex("[\\/:*?\"<>|]");
-        size_t pos = path.rfind("/");
-        if (pos != std::string::npos) {
-            std::string dirName = path.substr(0, pos + 1);
-            std::string fileName = path.substr(pos + 1, path.length() - pos - 1);
-            if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
-                HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
-                return false;
-            }
-        } else {
-            if (std::regex_search(path, fileNameRegex)) {
-                HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
-                return false;
-            }
-        }
-
-        auto cache = std::shared_ptr<FILE>(fopen(path.c_str(), "wb+"), [](FILE* fp) { fclose(fp); });
-        CHECK_NOTNULL(cache, false, "create cache[%zu]: %s failed!", i, path.c_str());
-        rawDataDumpFile_.emplace_back(std::move(cache));
+    for (int i = 0; i < platformCpuNum_; i++) {
+        char fileName[] = "/data/local/tmp/ftrace_rawdata.XXXXXX";
+        CHECK_TRUE(mkstemp(fileName) >= 0, false, "Get temp file fd failed!");
+        auto fpPtr = std::shared_ptr<FILE>(fopen(fileName, "wb+"), [](FILE* fp) { fclose(fp); });
+        rawDataFiles_.emplace_back(std::move(fpPtr));
+        unlink(fileName);
     }
     return true;
 }
@@ -215,7 +193,6 @@ int FlowController::StartCapture(void)
     CHECK_TRUE(CreatePagedMemoryPool(), -1, "create paged memory pool failed!");
     CHECK_TRUE(CreateRawDataReaders(), -1, "create raw data readers failed!");
     CHECK_TRUE(CreateRawDataBuffers(), -1, "create raw data buffers failed!");
-    CHECK_TRUE(CreateRawDataCaches(), -1, "create raw data caches failed!");
 
     // clear old trace
     FtraceFsOps::GetInstance().ClearTraceBuffer();
@@ -226,7 +203,13 @@ int FlowController::StartCapture(void)
 
     // start ftrace event data polling thread
     keepRunning_ = true;
-    pollThread_ = std::thread(&FlowController::CaptureWork, this);
+
+    if (parseMode_ == TracePluginConfig_ParseMode_NORMAL) {
+        pollThread_ = std::thread(&FlowController::CaptureWorkOnNomalMode, this);
+    } else if (parseMode_ == TracePluginConfig_ParseMode_DELAY_PARSE) {
+        CHECK_TRUE(CreateRawDataCaches(), -1, "create raw data caches failed!");
+        pollThread_ = std::thread(&FlowController::CaptureWorkOnDelayMode, this);
+    }
 
     // set trace_clock
     traceOps_->SetTraceClock(traceClock_);
@@ -241,10 +224,10 @@ int FlowController::StartCapture(void)
     return 0;
 }
 
-void FlowController::CaptureWork()
+void FlowController::CaptureWorkOnNomalMode()
 {
     pthread_setname_np(pthread_self(), "TraceReader");
-    HILOG_INFO(LOG_CORE, "FlowController::CaptureWork start!");
+    HILOG_INFO(LOG_CORE, "FlowController::CaptureWorkOnNomalMode start!");
 
     auto tracePeriod = std::chrono::milliseconds(tracePeriodMs_);
     std::vector<long> rawDataBytes(platformCpuNum_, 0);
@@ -262,19 +245,6 @@ void FlowController::CaptureWork()
             rawDataBytes[i] = nbytes;
         }
 
-        // append buffer data to cache
-        for (size_t i = 0; i < rawDataDumpFile_.size(); i++) {
-            if (flushCacheData_ && !keepRunning_) {
-                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
-                return;
-            }
-            auto& file = rawDataDumpFile_[i];
-            size_t writen = fwrite(ftraceBuffers_[i].get(), sizeof(uint8_t), rawDataBytes[i], file.get());
-            if (rawDataBytes[i] == 0) {
-                HILOG_INFO(LOG_CORE, "Append raw data to cache[%zu]: %zu/%ld bytes", i, writen, rawDataBytes[i]);
-            }
-        }
-
         // parse ftrace metadata
         ftraceParser_->ParseSavedCmdlines(FtraceFsOps::GetInstance().GetSavedCmdLines());
 
@@ -284,13 +254,61 @@ void FlowController::CaptureWork()
                 HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
                 return;
             }
-            ParseEventData(i, rawDataBytes[i]);
             if (rawDataBytes[i] == 0) {
-                HILOG_INFO(LOG_CORE, "Parse raw data for CPU%zu: %ld bytes...", i, rawDataBytes[i]);
+                HILOG_INFO(LOG_CORE, "Get raw data from CPU%zu is 0 bytes.", i);
+                continue;
             }
+            CHECK_TRUE(ParseEventDataOnNomalMode(i, rawDataBytes[i]), NO_RETVAL, "ParseEventData failed!");
         }
     }
 
+    tansporter_->Flush();
+    HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork done!");
+}
+
+void FlowController::CaptureWorkOnDelayMode()
+{
+    pthread_setname_np(pthread_self(), "TraceReader");
+    HILOG_INFO(LOG_CORE, "FlowController::CaptureWorkOnDelayMode start!");
+
+    auto tracePeriod = std::chrono::milliseconds(tracePeriodMs_);
+    std::vector<long> rawDataBytes(platformCpuNum_, 0);
+
+    int writeDataCount = 0;
+    while (keepRunning_) {
+        std::this_thread::sleep_for(tracePeriod);
+
+        // read data from percpu trace_pipe_raw, consume kernel ring buffers
+        for (size_t i = 0; i < rawDataBytes.size(); i++) {
+            if (flushCacheData_ && !keepRunning_) {
+                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
+                return;
+            }
+            long nbytes = ReadEventData(i);
+            rawDataBytes[i] = nbytes;
+        }
+
+        // append buffer data to cache
+        for (size_t i = 0; i < rawDataFiles_.size(); i++) {
+            if (flushCacheData_ && !keepRunning_) {
+                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
+                return;
+            }
+            if (rawDataBytes[i] == 0) {
+                HILOG_INFO(LOG_CORE, "Get raw data from CPU%zu is 0 bytes.", i);
+                continue;
+            }
+            fwrite(ftraceBuffers_[i].get(), sizeof(uint8_t), rawDataBytes[i], rawDataFiles_[i].get());
+            writeDataCount++;
+        }
+        if (writeDataCount == PARSE_CMDLINE_COUNT) {
+            // parse ftrace metadata
+            ftraceParser_->ParseSavedCmdlines(FtraceFsOps::GetInstance().GetSavedCmdLines());
+            writeDataCount = 0;
+        }
+    }
+
+    CHECK_TRUE(ParseEventDataOnDelayMode(), NO_RETVAL, "ParseEventData failed!");
     tansporter_->Flush();
     HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork done!");
 }
@@ -312,13 +330,32 @@ long FlowController::ReadEventData(int cpuid)
     return used;
 }
 
-bool FlowController::ParseEventData(int cpuid, long dataSize)
+bool FlowController::ParseEventDataOnNomalMode(int cpuid, long dataSize)
 {
     auto buffer = ftraceBuffers_[cpuid].get();
     auto endPtr = buffer + dataSize;
 
     for (auto page = buffer; page < endPtr; page += PAGE_SIZE) {
         CHECK_TRUE(ParseFtraceEvent(cpuid, page), false, "parse raw event for cpu-%d failed!", cpuid);
+    }
+    return true;
+}
+
+bool FlowController::ParseEventDataOnDelayMode()
+{
+    for (size_t i = 0; i < rawDataFiles_.size(); i++) {
+        auto& file = rawDataFiles_[i];
+        if (fseek(file.get(), 0, SEEK_SET) != 0) {
+            HILOG_ERROR(LOG_CORE, "fseek failed!");
+        }
+        while (!feof(file.get())) {
+            uint8_t page[PAGE_SIZE] = {0};
+            fread(page, sizeof(uint8_t), PAGE_SIZE, file.get());
+            if (!ParseFtraceEvent(i, page)) {
+                HILOG_ERROR(LOG_CORE, "ParseFtraceEvent failed!");
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -357,7 +394,7 @@ int FlowController::StopCapture(void)
     tansporter_->Flush();
 
     // release resources
-    rawDataDumpFile_.clear(); // close raw data dump files
+    rawDataFiles_.clear(); // close raw data dump files
     ftraceReaders_.clear();   // release ftrace data readers
     ftraceBuffers_.clear();   // release ftrace event read buffers
     memPool_.reset();         // release memory pool
@@ -508,7 +545,7 @@ int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
 
     // setup parse kernel symbol option
     parseKsyms_ = traceConfig.parse_ksyms();
-
+    parseMode_ = traceConfig.parse_mode();
     // setup trace buffer size
     SetupTraceBufferSize(traceConfig.buffer_size_kb());
 
