@@ -24,7 +24,11 @@ FTRACE_NS_BEGIN
 class SubEventParserRegisterar;
 class SubEventParser {
 public:
-    static SubEventParser& GetInstance();
+    static inline SubEventParser& GetInstance()
+    {
+        static SubEventParser instance;
+        return instance;
+    }
 
     bool IsSupport(const std::string& eventName) const;
     bool SetupEvent(const EventFormat& format);

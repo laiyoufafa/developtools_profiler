@@ -16,12 +16,6 @@
 #include "logging.h"
 
 FTRACE_NS_BEGIN
-SubEventParser& SubEventParser::GetInstance()
-{
-    static SubEventParser instance;
-    return instance;
-}
-
 SubEventParser::SubEventParser()
 {
     HILOG_INFO(LOG_CORE, "SubEventParser create!");
