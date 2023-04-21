@@ -35,16 +35,6 @@ protected:
 
 /**
  * @tc.name: base
- * @tc.desc: Get Instance.
- * @tc.type: FUNC
- */
-HWTEST_F(ScheduleTaskManagerTest, GetInstance, TestSize.Level1)
-{
-    ScheduleTaskManager::GetInstance();
-}
-
-/**
- * @tc.name: base
  * @tc.desc: Single task processing.
  * @tc.type: FUNC
  */

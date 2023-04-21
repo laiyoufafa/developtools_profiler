@@ -66,6 +66,7 @@ HWTEST_F(CommandHelperTest, Start, TestSize.Level1)
  */
 HWTEST_F(CommandHelperTest, DoHelp, TestSize.Level1)
 {
+    testing::internal::CaptureStdout();
     auto commandHelper = CommandHelper::GetInstance();
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::ARG_EXCLUDE_TRACER]);
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::ARG_MAX_STACK_DEPTH]);
@@ -83,6 +84,9 @@ HWTEST_F(CommandHelperTest, DoHelp, TestSize.Level1)
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::ARG_SERVER_START]);
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::ARG_SERVER_STOP]);
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::NR_SUPPORTED_ARGS]);
+    std::string out = testing::internal::GetCaptureStdout();
+    EXPECT_EQ(out.empty(), false);
+    EXPECT_TRUE(out.find(commandHelper.SUPPORTED_ARGS[CommandHelper::NR_SUPPORTED_ARGS]) != std::string::npos);
 }
 } // namespace Hiebpf
 } // namespace Developtools
