@@ -84,9 +84,9 @@ private:
     std::unique_ptr<FtraceParser> ftraceParser_ = nullptr;
     std::unique_ptr<ResultTransporter> tansporter_ = nullptr;
     std::unique_ptr<TraceOps> traceOps_ = nullptr;
+    std::shared_ptr<FILE> rawDataFile_ = nullptr;
     std::vector<std::unique_ptr<FtraceDataReader>> ftraceReaders_ = {};
     std::vector<std::shared_ptr<uint8_t>> ftraceBuffers_;
-    std::vector<std::shared_ptr<FILE>> rawDataFiles_;
     std::atomic<bool> keepRunning_ = false;
     std::thread pollThread_ = {};
 

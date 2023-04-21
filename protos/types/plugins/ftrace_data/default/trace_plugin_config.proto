@@ -32,7 +32,7 @@ message TracePluginConfig {
   enum ParseMode {
     NORMAL = 0;
     DELAY_PARSE = 1;
-    DISABLE_PARSE = 2;
+    RAW_DATA = 2;
   };
   ParseMode parse_mode = 33;
 }

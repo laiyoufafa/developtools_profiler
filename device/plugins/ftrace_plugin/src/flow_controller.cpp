@@ -151,13 +151,10 @@ bool FlowController::CreateRawDataBuffers()
 
 bool FlowController::CreateRawDataCaches()
 {
-    for (int i = 0; i < platformCpuNum_; i++) {
-        char fileName[] = "/data/local/tmp/ftrace_rawdata.XXXXXX";
-        CHECK_TRUE(mkstemp(fileName) >= 0, false, "Get temp file fd failed!");
-        auto fpPtr = std::shared_ptr<FILE>(fopen(fileName, "wb+"), [](FILE* fp) { fclose(fp); });
-        rawDataFiles_.emplace_back(std::move(fpPtr));
-        unlink(fileName);
-    }
+    char fileName[] = "/data/local/tmp/ftrace_rawdata.XXXXXX";
+    CHECK_TRUE(mkstemp(fileName) >= 0, false, "Create temp file failed!");
+    rawDataFile_ = std::shared_ptr<FILE>(fopen(fileName, "wb+"), [](FILE* fp) { fclose(fp); });
+    unlink(fileName);
     return true;
 }
 
@@ -209,6 +206,9 @@ int FlowController::StartCapture(void)
     } else if (parseMode_ == TracePluginConfig_ParseMode_DELAY_PARSE) {
         CHECK_TRUE(CreateRawDataCaches(), -1, "create raw data caches failed!");
         pollThread_ = std::thread(&FlowController::CaptureWorkOnDelayMode, this);
+    } else {
+        HILOG_ERROR(LOG_CORE, "ParseMode is Illegal parameter!");
+        return -1;
     }
 
     // set trace_clock
@@ -263,7 +263,7 @@ void FlowController::CaptureWorkOnNomalMode()
     }
 
     tansporter_->Flush();
-    HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork done!");
+    HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWorkOnNomalMode done!");
 }
 
 void FlowController::CaptureWorkOnDelayMode()
@@ -272,35 +272,26 @@ void FlowController::CaptureWorkOnDelayMode()
     HILOG_INFO(LOG_CORE, "FlowController::CaptureWorkOnDelayMode start!");
 
     auto tracePeriod = std::chrono::milliseconds(tracePeriodMs_);
-    std::vector<long> rawDataBytes(platformCpuNum_, 0);
-
     int writeDataCount = 0;
     while (keepRunning_) {
         std::this_thread::sleep_for(tracePeriod);
 
         // read data from percpu trace_pipe_raw, consume kernel ring buffers
-        for (size_t i = 0; i < rawDataBytes.size(); i++) {
+        for (int cpuIdx = 0; cpuIdx < platformCpuNum_; cpuIdx++) {
             if (flushCacheData_ && !keepRunning_) {
                 HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
                 return;
             }
-            long nbytes = ReadEventData(i);
-            rawDataBytes[i] = nbytes;
-        }
-
-        // append buffer data to cache
-        for (size_t i = 0; i < rawDataFiles_.size(); i++) {
-            if (flushCacheData_ && !keepRunning_) {
-                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
-                return;
-            }
-            if (rawDataBytes[i] == 0) {
-                HILOG_INFO(LOG_CORE, "Get raw data from CPU%zu is 0 bytes.", i);
+            long nbytes = ReadEventData(cpuIdx);
+            if (nbytes == 0) {
+                HILOG_INFO(LOG_CORE, "Get raw data from CPU%zu is 0 bytes.", cpuIdx);
                 continue;
             }
-            fwrite(ftraceBuffers_[i].get(), sizeof(uint8_t), rawDataBytes[i], rawDataFiles_[i].get());
-            writeDataCount++;
+            fwrite(&cpuIdx, sizeof(uint8_t), 1, rawDataFile_.get());
+            fwrite(&nbytes, sizeof(long), 1, rawDataFile_.get());
+            fwrite(ftraceBuffers_[cpuIdx].get(), sizeof(uint8_t), nbytes, rawDataFile_.get());
         }
+        writeDataCount++;
         if (writeDataCount == PARSE_CMDLINE_COUNT) {
             // parse ftrace metadata
             ftraceParser_->ParseSavedCmdlines(FtraceFsOps::GetInstance().GetSavedCmdLines());
@@ -310,7 +301,7 @@ void FlowController::CaptureWorkOnDelayMode()
 
     CHECK_TRUE(ParseEventDataOnDelayMode(), NO_RETVAL, "ParseEventData failed!");
     tansporter_->Flush();
-    HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork done!");
+    HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWorkOnDelayMode done!");
 }
 
 long FlowController::ReadEventData(int cpuid)
@@ -343,15 +334,19 @@ bool FlowController::ParseEventDataOnNomalMode(int cpuid, long dataSize)
 
 bool FlowController::ParseEventDataOnDelayMode()
 {
-    for (size_t i = 0; i < rawDataFiles_.size(); i++) {
-        auto& file = rawDataFiles_[i];
-        if (fseek(file.get(), 0, SEEK_SET) != 0) {
-            HILOG_ERROR(LOG_CORE, "fseek failed!");
-        }
-        while (!feof(file.get())) {
+    if (fseek(rawDataFile_.get(), 0, SEEK_SET) != 0) {
+        HILOG_ERROR(LOG_CORE, "fseek failed!");
+        return false;
+    }
+    while (!feof(rawDataFile_.get())) {
+        uint8_t cpuId = 0;
+        long dataBytes = 0;
+        fread(&cpuId, sizeof(uint8_t), 1, rawDataFile_.get());
+        fread(&dataBytes, sizeof(long), 1, rawDataFile_.get());
+        for (long i = 0; i < dataBytes; i += PAGE_SIZE) {
             uint8_t page[PAGE_SIZE] = {0};
-            fread(page, sizeof(uint8_t), PAGE_SIZE, file.get());
-            if (!ParseFtraceEvent(i, page)) {
+            fread(page, sizeof(uint8_t), PAGE_SIZE, rawDataFile_.get());
+            if (!ParseFtraceEvent(cpuId, page)) {
                 HILOG_ERROR(LOG_CORE, "ParseFtraceEvent failed!");
                 return false;
             }
@@ -394,7 +389,6 @@ int FlowController::StopCapture(void)
     tansporter_->Flush();
 
     // release resources
-    rawDataFiles_.clear(); // close raw data dump files
     ftraceReaders_.clear();   // release ftrace data readers
     ftraceBuffers_.clear();   // release ftrace event read buffers
     memPool_.reset();         // release memory pool
