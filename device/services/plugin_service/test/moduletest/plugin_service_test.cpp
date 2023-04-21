@@ -75,14 +75,4 @@ HWTEST_F(ModuleTestPluginService, RegisterPlugin, TestSize.Level1)
     ASSERT_TRUE(response.status() != ResponseStatus::OK);
     g_pluginId = response.plugin_id();
 }
-
-HWTEST_F(ModuleTestPluginService, RegisterPlugin_CallBack, TestSize.Level1)
-{
-    RegisterPluginRequest request;
-
-    request.set_request_id(1);
-    request.set_path("def.so");
-    request.set_sha256("ADSFAFASFASFASF");
-    request.set_name("def.so");
-}
 } // namespace

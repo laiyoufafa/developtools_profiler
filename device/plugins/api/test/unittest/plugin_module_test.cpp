@@ -135,7 +135,6 @@ HWTEST_F(PluginModuleTest, PluginModuleAbnormal, TestSize.Level1)
     EXPECT_STREQ(name.c_str(), "");
 
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
-    EXPECT_NE(buffer, nullptr);
     EXPECT_FALSE(plugin->StartSession(nullptr, 0));
     EXPECT_EQ(plugin->ReportResult(buffer.get(), size), -1);
     EXPECT_FALSE(plugin->StopSession());
