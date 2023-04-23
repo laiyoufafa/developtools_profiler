@@ -31,7 +31,7 @@ public:
     WriterPtr GetWriter();
 
 private:
-    static long WriteFunc(WriterStruct* writer, const void* data, size_t size);
+    static long WriteFunc(WriterStruct* writer, const char* data, size_t size);
     static bool FlushFunc(WriterStruct* writer);
 
 private:

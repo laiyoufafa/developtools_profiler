@@ -38,7 +38,7 @@ const WriterStruct* WriterAdapter::GetStruct()
     return &writerStruct_;
 }
 
-long WriterAdapter::WriteFunc(WriterStruct* writer, const void* data, size_t size)
+long WriterAdapter::WriteFunc(WriterStruct* writer, const char* data, size_t size)
 {
     static_assert(offsetof(WriterAdapter, writerStruct_) == 0, "unexpected alignment of writerStruct_!");
     WriterAdapter* writerAdaptor = reinterpret_cast<WriterAdapter*>(writer); // 转成 WriterAdapter*
