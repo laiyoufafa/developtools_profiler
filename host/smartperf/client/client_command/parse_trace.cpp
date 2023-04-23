@@ -21,7 +21,7 @@
 #include <sstream>
 #include <iomanip>
 #include "include/parse_trace.h"
-#include "include/sp_utils.h"
+
 namespace OHOS {
     namespace SmartPerf {
         float ParseTrace::ParseTraceNoah(const std::string &fileNamePath, const std::string &appPid)
@@ -47,7 +47,8 @@ namespace OHOS {
                 startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
                 windowTime = SmartPerf::ParseTrace::GetWindowTime(line, windowTime);
                 frameId = SmartPerf::ParseTrace::GetFrameId(line, appPid, frameId);
-                positionPid = line.find("[" + appPid + ", " + frameId + "]");
+				
+                positionPid = line.find("[" + appPid + "," + frameId + "]");
                 if (positionPid != std::string::npos) {
                     size_t position1 = line.find("....");
                     size_t position2 = line.find(":");
@@ -73,8 +74,8 @@ namespace OHOS {
             std::string::size_type positionTransactionFlag = line.find("transactionFlag:[" + appPid);
             if (positionTransactionFlag != std::string::npos) {
                 size_t positionFrame1 = line.rfind("[" + appPid + ",");
-                size_t positionFrame2 = line.rfind("],isUni:1");
-                size_t subNum = 3;
+                size_t positionFrame2 = line.rfind("] isUni:1");
+                size_t subNum = 2;
                 frameId = line.substr(positionFrame1 + subNum + appPid.length(), positionFrame2 - positionFrame1 - subNum - appPid.length());
             } else {
                 frameId = fid;
@@ -83,14 +84,15 @@ namespace OHOS {
         }
         std::string  ParseTrace::GetWindowTime(std::string line, std::string wt)
         {
-            std::string::size_type positionWindow = line.find("H:RSUniRender::Process:[leashWindow");
+            size_t positionWindow = line.find("H:RSUniRender::Process:[leashWindow");
             if (positionWindow != std::string::npos) {
+				
                 size_t positionWindow1 = line.rfind(")");
                 size_t subNumSize = 4;
                 std::string windowSizeFlag = line.substr(positionWindow1 - subNumSize, subNumSize);
                 std::string windowSize = "0";
                 if (std::stof(windowSize) == 0) {
-                    int windowSizeNum = 1024;
+                    const int windowSizeNum = 1344;
                     if (std::stof(windowSizeFlag) == windowSizeNum) {
                         windowSize = "0";
                     } else {
@@ -107,7 +109,7 @@ namespace OHOS {
                         windowTime = wt;
                     }
                 }
-            }
+			}
             return windowTime;
         }
         float ParseTrace::ParseTraceCold(const std::string &fileNamePath, const std::string &appPid)
