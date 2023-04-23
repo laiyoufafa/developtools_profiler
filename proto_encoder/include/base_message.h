@@ -232,10 +232,8 @@ public:
     void AddBytes(uint32_t fieldId, const void* data, uint32_t dataSize);
 
     // add customize data, return RandomWriteCtx pointer, caller implement:
-    // RandomWriteCtx* writeCtx = StartAddBytes();
     // 1, write data by writeCtx->write() directly;
     // 2, constructor Message object by writeCtx, and fill data by method of Message
-    // FinishAddBytes(size);
     RandomWriteCtx* StartAddBytes(uint32_t fieldId);
     void FinishAddBytes(int32_t size);
 

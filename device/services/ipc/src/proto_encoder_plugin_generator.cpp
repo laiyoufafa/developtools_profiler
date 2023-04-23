@@ -336,22 +336,24 @@ public:
             case FieldDescriptor::TYPE_INT64:
             case FieldDescriptor::TYPE_UINT32:
             case FieldDescriptor::TYPE_UINT64:
-                return packed?"AddPackedVarint":"AddVarint";
+                return packed ? "AddPackedVarint" : "AddVarint";
             case FieldDescriptor::TYPE_SINT32:
             case FieldDescriptor::TYPE_SINT64:
                 return "AddZigZagVarint";
             case FieldDescriptor::TYPE_FIXED64:
             case FieldDescriptor::TYPE_SFIXED64:
             case FieldDescriptor::TYPE_DOUBLE:
-                return packed?"AddPackedFixed":"AddFixed64";
+                return packed ? "AddPackedFixed" : "AddFixed64";
             case FieldDescriptor::TYPE_FIXED32:
             case FieldDescriptor::TYPE_SFIXED32:
             case FieldDescriptor::TYPE_FLOAT:
-                return packed?"AddPackedFixed":"AddFixed32";
+                return packed ? "AddPackedFixed" : "AddFixed32";
             case FieldDescriptor::TYPE_STRING:
             case FieldDescriptor::TYPE_GROUP:
             case FieldDescriptor::TYPE_MESSAGE:
             case FieldDescriptor::TYPE_BYTES:
+                return "";
+            default:
                 return "";
         }
         return "";
