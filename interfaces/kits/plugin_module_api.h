@@ -127,7 +127,7 @@ typedef struct WriterStruct WriterStruct;
  * @param size : The byte counts in the data buffer
  * @return : Return the number of bytes written for success, and returns -1 for failure
  */
-typedef long (*WriteFuncPtr)(WriterStruct* writer, const char* data, size_t size);
+typedef long (*WriteFuncPtr)(WriterStruct* writer, const void* data, size_t size);
 
 /**
  * @brief flush : interface type
