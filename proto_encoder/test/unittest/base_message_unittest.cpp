@@ -1462,11 +1462,11 @@ HWTEST_F(BaseMessageUnittest, MessagePool, TestSize.Level1)
     }
 
     for (uint32_t i = 0; i < testRepeat; i++) {
-        for (uint32_t i = 0; i < testDepth; i++) {
+        for (uint32_t j = 0; j < testDepth; j++) {
             pMsg = msgStack.Get();
             ASSERT_TRUE(pMsg != nullptr);
         }
-        for (uint32_t i = 0; i < testDepth; i++) {
+        for (uint32_t j = 0; j < testDepth; j++) {
             msgStack.Release();
         }
     }
