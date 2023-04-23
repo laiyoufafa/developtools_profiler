@@ -287,7 +287,7 @@ static bool LoadCmd(const std::string &cmd, std::string &result)
 }
 
 int main(int argc, char *argv[])
-{   
+{
     if (argc < 2) {
         printf("exec failed, require one param | example: GP_daemon_fps 10");
         return 0;

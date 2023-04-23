@@ -86,7 +86,6 @@ namespace OHOS {
         {
             size_t positionWindow = line.find("H:RSUniRender::Process:[leashWindow");
             if (positionWindow != std::string::npos) {
-				
                 size_t positionWindow1 = line.rfind(")");
                 size_t subNumSize = 4;
                 std::string windowSizeFlag = line.substr(positionWindow1 - subNumSize, subNumSize);
@@ -109,7 +108,7 @@ namespace OHOS {
                         windowTime = wt;
                     }
                 }
-			}
+            }
             return windowTime;
         }
         float ParseTrace::ParseTraceCold(const std::string &fileNamePath, const std::string &appPid)
