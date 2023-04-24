@@ -25,8 +25,9 @@ HtraceClockDetailParser::HtraceClockDetailParser(TraceDataCache* dataCache, cons
     : EventParserBase(dataCache, filters)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
-        memNameDictMap_.insert(std::make_pair(static_cast<MemInfoType>(i),
-            traceDataCache_->GetDataIndex(config_.memNameMap_.at(static_cast<MemInfoType>(i)))));
+        memNameDictMap_.insert(
+            std::make_pair(static_cast<MemInfoType>(i),
+                           traceDataCache_->GetDataIndex(config_.memNameMap_.at(static_cast<MemInfoType>(i)))));
     }
 }
 

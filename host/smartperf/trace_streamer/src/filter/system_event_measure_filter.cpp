@@ -29,13 +29,13 @@ SystemEventMeasureFilter::SystemEventMeasureFilter(TraceDataCache* dataCache,
 
 SystemEventMeasureFilter::~SystemEventMeasureFilter() {}
 
-void SystemEventMeasureFilter::AppendNewMeasureData(DataIndex nameIndex, uint64_t timestamp, int64_t value)
+void SystemEventMeasureFilter::AppendNewMeasureData(DataIndex nameIndex, uint64_t timeStamp, int64_t value)
 {
     auto filterId = GetOrCreateFilterId(nameIndex);
-    auto row = traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
-    //if the filterId ever exists
+    auto row = traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(0, timeStamp, value, filterId);
+    // if the filterId ever exists
     if (filterIdToRow_.count(filterId)) {
-        traceDataCache_->GetSysMemMeasureData()->SetDur(filterIdToRow_.at(filterId), timestamp);
+        traceDataCache_->GetSysMemMeasureData()->SetDur(filterIdToRow_.at(filterId), timeStamp);
         filterIdToRow_.at(filterId) = row;
     } else {
         filterIdToRow_.insert(std::make_pair(filterId, row));

@@ -37,7 +37,7 @@ public:
         } else {
             TripleMap<T2, T3, T4, T5> mm(invalidValue_);
             mm.Insert(t2, t3, t4, t5);
-            internalMap_.insert(std::make_pair(t1, mm));
+            internalMap_.emplace(std::make_pair(t1, mm));
         }
     }
     T5 Find(T1 t1, T2 t2, T3 t3, T4 t4)

@@ -44,7 +44,8 @@ public:
                            uint64_t prevPior,
                            uint64_t prevState,
                            uint32_t nextPid,
-                           uint64_t nextPior);
+                           uint64_t nextPior,
+                           DataIndex nextInfo);
     bool InsertBlockedReasonEvent(uint64_t ts,
                                   uint64_t cpu,
                                   uint32_t iTid,
@@ -71,13 +72,14 @@ private:
     std::map<uint64_t, RowPos> cpuToRowSched_ = {};
 
     std::map<uint64_t, uint64_t> lastWakeUpMsg_ = {};
-    std::map<uint32_t, uint64_t> pidToSchedSliceRow = {};
+    std::map<uint32_t, uint64_t> pidToThreadSliceRow = {};
     struct TPthread {
         uint64_t row_;
         uint64_t state_;
     };
     std::map<uint32_t, TPthread> internalTidToRowThreadState_ = {};
     const DataIndex ioWait_ = traceDataCache_->GetDataIndex("iowait");
+    const DataIndex nextInfo_ = traceDataCache_->GetDataIndex("next_info");
     const DataIndex caller_ = traceDataCache_->GetDataIndex("caller");
     const DataIndex delay_ = traceDataCache_->GetDataIndex("delay");
     std::map<uint64_t, uint64_t> toRunnableTid_ = {};

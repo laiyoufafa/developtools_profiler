@@ -35,13 +35,13 @@ public:
         if (streamIdHookidMap != internalMap_.end()) {
             auto hookId = (*streamIdHookidMap).second.find(t2);
             if (hookId == (*streamIdHookidMap).second.end()) {
-                (*streamIdHookidMap).second.insert(std::make_pair(t2, t3));
+                (*streamIdHookidMap).second.emplace(std::make_pair(t2, t3));
             } else {
                 (*streamIdHookidMap).second.at(t2) = t3;
             }
         } else {
             std::map<T2, T3> mm = {{t2, t3}};
-            internalMap_.insert(std::make_pair(t1, mm));
+            internalMap_.emplace(std::make_pair(t1, mm));
         }
     }
     T3 Find(T1 t1, T2 t2)

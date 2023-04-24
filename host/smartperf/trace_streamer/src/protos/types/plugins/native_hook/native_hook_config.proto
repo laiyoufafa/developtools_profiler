@@ -35,8 +35,9 @@ message NativeHookConfig {
     bool fp_unwind = 15;
     bool blocked = 16;
     bool record_accurately = 17;
-    bool offline_symbolization = 18;
-    bool record_statistics = 19;
-    bool callframe_compressed = 20;
-    uint32 statistics_interval = 21;
+    bool startup_mode = 18;
+    bool memtrace_enable = 19;
+    bool offline_symbolization = 20;
+    bool callframe_compressed = 21;
+    uint32 statistics_interval = 22;
 }

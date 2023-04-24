@@ -29,16 +29,16 @@ class TraceStreamerSelector {
 public:
     TraceStreamerSelector();
     ~TraceStreamerSelector();
-    bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
+    static bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
     void EnableMetaTable(bool enabled);
-    void SetCleanMode(bool cleanMode);
+    static void SetCleanMode(bool cleanMode);
     int ExportDatabase(const std::string& outputName) const;
     int SearchData();
     int OperateDatabase(const std::string& sql);
     int SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
     int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
     MetaData* GetMetaData();
-    void WaitForParserEnd();
+    static void WaitForParserEnd();
     void Clear();
     void SetDataType(TraceFileType type);
     void SetCancel(bool cancel);

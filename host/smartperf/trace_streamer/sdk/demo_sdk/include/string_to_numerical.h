@@ -22,10 +22,7 @@
 
 namespace SysTuning {
 namespace base {
-enum IntegerRadixType {
-    INTEGER_RADIX_TYPE_DEC = 10,
-    INTEGER_RADIX_TYPE_HEX = 16
-};
+enum IntegerRadixType { INTEGER_RADIX_TYPE_DEC = 10, INTEGER_RADIX_TYPE_HEX = 16 };
 inline uint16_t GetNameASCIISumNoNum(const std::string& str)
 {
     uint32_t sum = 0;

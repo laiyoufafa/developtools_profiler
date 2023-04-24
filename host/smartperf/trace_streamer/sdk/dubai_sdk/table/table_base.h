@@ -106,7 +106,7 @@ protected:
         bool isOrdered = false;
     };
 
-    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& name, TabTemplate tmplate);
+    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& tableName, TabTemplate tmplate);
     virtual int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     {
         return SQLITE_READONLY;

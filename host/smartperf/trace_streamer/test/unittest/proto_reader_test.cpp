@@ -372,7 +372,7 @@ HWTEST_F(ProtoReaderTest, ParserNoDataByVarInt, TestSize.Level1)
     std::string str = "";
     testParser.SerializeToString(&str);
 
-    auto kCountFieldNumber = TestParser_Reader::kCountFieldNumber;
+    auto kCountFieldNumber = TestParser_Reader::kCountDataAreaNumber;
     uint64_t count = 0;
     auto tsTag = CreateTagVarInt(kCountFieldNumber);
     if (str.size() > 10 && str.data()[0] == tsTag) {
@@ -410,7 +410,7 @@ HWTEST_F(ProtoReaderTest, ParserDataByVarInt, TestSize.Level1)
     std::string str = "";
     testParser.SerializeToString(&str);
 
-    auto kCountFieldNumber = TestParser_Reader::kCountFieldNumber;
+    auto kCountFieldNumber = TestParser_Reader::kCountDataAreaNumber;
     uint64_t count = 0;
     auto tsTag = CreateTagVarInt(kCountFieldNumber);
     if (str.size() > 10 && str.data()[0] == tsTag) {
@@ -449,18 +449,18 @@ HWTEST_F(ProtoReaderTest, ParserDataByPBReaderBase, TestSize.Level1)
     testParser.SerializeToString(&str);
 
     TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-    auto count = typedProtoTest.FindDataArea(TestParser_Reader::kCountFieldNumber).ToInt32();
+    auto count = typedProtoTest.FindDataArea(TestParser_Reader::kCountDataAreaNumber).ToInt32();
     EXPECT_EQ(COUNT, count);
-    auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresFieldNumber).ToBytes();
+    auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
     TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
-    auto typtest = typedProtoCpuInfoTest.FindDataArea(CpuInfoTest_Reader::kTestFieldNumber).ToBytes();
+    auto typtest = typedProtoCpuInfoTest.FindDataArea(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
     TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
-    auto number = typedProtoTestReader.FindDataArea(Test_Reader::kNumberFieldNumber).ToInt32();
-    auto tvNsec = typedProtoTestReader.FindDataArea(Test_Reader::kTvNsecFieldNumber).ToUint64();
-    auto name = typedProtoTestReader.FindDataArea(Test_Reader::kNameFieldNumber).ToStdString();
-    auto isTest = typedProtoTestReader.FindDataArea(Test_Reader::kIsTestFieldNumber).ToBool();
-    auto state = typedProtoTestReader.FindDataArea(Test_Reader::kStateFieldNumber).ToInt32();
-    auto allocEvent = typedProtoTestReader.FindDataArea(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto number = typedProtoTestReader.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32();
+    auto tvNsec = typedProtoTestReader.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
+    auto name = typedProtoTestReader.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString();
+    auto isTest = typedProtoTestReader.FindDataArea(Test_Reader::kIsTestDataAreaNumber).ToBool();
+    auto state = typedProtoTestReader.FindDataArea(Test_Reader::kStateDataAreaNumber).ToInt32();
+    auto allocEvent = typedProtoTestReader.FindDataArea(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
 
     EXPECT_EQ(NUMBER, number);
     EXPECT_EQ(TVNSEC, tvNsec);
@@ -523,54 +523,54 @@ HWTEST_F(ProtoReaderTest, ParserMutiDataByPBReaderBase, TestSize.Level1)
     testParser.SerializeToString(&str);
 
     TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-    auto count = typedProtoTest.FindDataArea(TestParser_Reader::kCountFieldNumber).ToInt32();
+    auto count = typedProtoTest.FindDataArea(TestParser_Reader::kCountDataAreaNumber).ToInt32();
     EXPECT_EQ(COUNT, count);
-    auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresFieldNumber).ToBytes();
+    auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
     TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
-    auto repeate = typedProtoCpuInfoTest.GetRepeated<BytesView>(CpuInfoTest_Reader::kTestFieldNumber);
+    auto repeate = typedProtoCpuInfoTest.GetRepeated<BytesView>(CpuInfoTest_Reader::kTestDataAreaNumber);
 
     TypedProtoReader<7> typedProtoTestReader1(repeate->ToBytes().data_, repeate->ToBytes().size_);
-    auto number1 = typedProtoTestReader1.FindDataArea(Test_Reader::kNumberFieldNumber).ToInt32();
+    auto number1 = typedProtoTestReader1.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32();
     EXPECT_EQ(NUMBER1, number1);
-    auto tvNsec1 = typedProtoTestReader1.FindDataArea(Test_Reader::kTvNsecFieldNumber).ToUint64();
+    auto tvNsec1 = typedProtoTestReader1.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
     EXPECT_EQ(TVNSEC1, tvNsec1);
-    auto name1 = typedProtoTestReader1.FindDataArea(Test_Reader::kNameFieldNumber).ToStdString();
+    auto name1 = typedProtoTestReader1.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString();
     EXPECT_EQ(NAME1, name1);
-    auto isTest1 = typedProtoTestReader1.FindDataArea(Test_Reader::kIsTestFieldNumber).ToBool();
+    auto isTest1 = typedProtoTestReader1.FindDataArea(Test_Reader::kIsTestDataAreaNumber).ToBool();
     EXPECT_EQ(true, isTest1);
-    auto state1 = typedProtoTestReader1.FindDataArea(Test_Reader::kStateFieldNumber).ToInt32();
+    auto state1 = typedProtoTestReader1.FindDataArea(Test_Reader::kStateDataAreaNumber).ToInt32();
     EXPECT_EQ(::Test_State(0), state1);
-    auto allocEvent1 = typedProtoTestReader1.FindDataArea(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto allocEvent1 = typedProtoTestReader1.FindDataArea(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
     EXPECT_EQ(ALLOCEVENT1, allocEvent1);
 
     repeate++;
     TypedProtoReader<7> typedProtoTestReader2(repeate->ToBytes().data_, repeate->ToBytes().size_);
-    auto number2 = typedProtoTestReader2.FindDataArea(Test_Reader::kNumberFieldNumber).ToInt32();
+    auto number2 = typedProtoTestReader2.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32();
     EXPECT_EQ(NUMBER2, number2);
-    auto tvNsec2 = typedProtoTestReader2.FindDataArea(Test_Reader::kTvNsecFieldNumber).ToUint64();
+    auto tvNsec2 = typedProtoTestReader2.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
     EXPECT_EQ(TVNSEC2, tvNsec2);
-    auto name2 = typedProtoTestReader2.FindDataArea(Test_Reader::kNameFieldNumber).ToStdString();
+    auto name2 = typedProtoTestReader2.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString();
     EXPECT_EQ(NAME2, name2);
-    auto isTest2 = typedProtoTestReader2.FindDataArea(Test_Reader::kIsTestFieldNumber).ToBool();
+    auto isTest2 = typedProtoTestReader2.FindDataArea(Test_Reader::kIsTestDataAreaNumber).ToBool();
     EXPECT_EQ(false, isTest2);
-    auto state2 = typedProtoTestReader2.FindDataArea(Test_Reader::kStateFieldNumber).ToInt32();
+    auto state2 = typedProtoTestReader2.FindDataArea(Test_Reader::kStateDataAreaNumber).ToInt32();
     EXPECT_EQ(::Test_State(1), state2);
-    auto allocEvent2 = typedProtoTestReader2.FindDataArea(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto allocEvent2 = typedProtoTestReader2.FindDataArea(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
     EXPECT_EQ(ALLOCEVENT2, allocEvent2);
 
     repeate++;
     TypedProtoReader<7> typedProtoTestReader3(repeate->ToBytes().data_, repeate->ToBytes().size_);
-    auto number3 = typedProtoTestReader3.FindDataArea(Test_Reader::kNumberFieldNumber).ToInt32();
+    auto number3 = typedProtoTestReader3.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32();
     EXPECT_EQ(NUMBER3, number3);
-    auto tvNsec3 = typedProtoTestReader3.FindDataArea(Test_Reader::kTvNsecFieldNumber).ToUint64();
+    auto tvNsec3 = typedProtoTestReader3.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
     EXPECT_EQ(TVNSEC3, tvNsec3);
-    auto name3 = typedProtoTestReader3.FindDataArea(Test_Reader::kNameFieldNumber).ToStdString();
+    auto name3 = typedProtoTestReader3.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString();
     EXPECT_EQ(NAME3, name3);
-    auto isTest3 = typedProtoTestReader3.FindDataArea(Test_Reader::kIsTestFieldNumber).ToBool();
+    auto isTest3 = typedProtoTestReader3.FindDataArea(Test_Reader::kIsTestDataAreaNumber).ToBool();
     EXPECT_EQ(true, isTest3);
-    auto state3 = typedProtoTestReader3.FindDataArea(Test_Reader::kStateFieldNumber).ToInt32();
+    auto state3 = typedProtoTestReader3.FindDataArea(Test_Reader::kStateDataAreaNumber).ToInt32();
     EXPECT_EQ(::Test_State(0), state3);
-    auto allocEvent3 = typedProtoTestReader3.FindDataArea(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto allocEvent3 = typedProtoTestReader3.FindDataArea(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
     EXPECT_EQ(ALLOCEVENT3, allocEvent3);
 }
 
@@ -588,18 +588,18 @@ HWTEST_F(ProtoReaderTest, ParserNoDataByPBReaderBase, TestSize.Level1)
     testParser.SerializeToString(&str);
 
     TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-    auto count = typedProtoTest.FindDataArea(TestParser_Reader::kCountFieldNumber).ToInt32();
+    auto count = typedProtoTest.FindDataArea(TestParser_Reader::kCountDataAreaNumber).ToInt32();
     EXPECT_EQ(0, count);
-    auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresFieldNumber).ToBytes();
+    auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
     TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
-    auto typtest = typedProtoCpuInfoTest.FindDataArea(CpuInfoTest_Reader::kTestFieldNumber).ToBytes();
+    auto typtest = typedProtoCpuInfoTest.FindDataArea(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
     TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
-    auto number = typedProtoTestReader.FindDataArea(Test_Reader::kNumberFieldNumber).ToInt32();
-    auto tvNsec = typedProtoTestReader.FindDataArea(Test_Reader::kTvNsecFieldNumber).ToUint64();
-    auto name = typedProtoTestReader.FindDataArea(Test_Reader::kNameFieldNumber).ToStdString();
-    auto isTest = typedProtoTestReader.FindDataArea(Test_Reader::kIsTestFieldNumber).ToBool();
-    auto state = typedProtoTestReader.FindDataArea(Test_Reader::kStateFieldNumber).ToInt32();
-    auto allocEvent = typedProtoTestReader.FindDataArea(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto number = typedProtoTestReader.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32();
+    auto tvNsec = typedProtoTestReader.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
+    auto name = typedProtoTestReader.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString();
+    auto isTest = typedProtoTestReader.FindDataArea(Test_Reader::kIsTestDataAreaNumber).ToBool();
+    auto state = typedProtoTestReader.FindDataArea(Test_Reader::kStateDataAreaNumber).ToInt32();
+    auto allocEvent = typedProtoTestReader.FindDataArea(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
 
     EXPECT_EQ(0, number);
     EXPECT_EQ(0, tvNsec);
@@ -638,18 +638,18 @@ HWTEST_F(ProtoReaderTest, ParserDataByGet, TestSize.Level1)
     testParser.SerializeToString(&str);
 
     TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-    auto count = typedProtoTest.Get(TestParser_Reader::kCountFieldNumber).ToInt32();
+    auto count = typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32();
     EXPECT_EQ(COUNT, count);
-    auto core = typedProtoTest.Get(TestParser_Reader::kCoresFieldNumber).ToBytes();
+    auto core = typedProtoTest.Get(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
     TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
-    auto typtest = typedProtoCpuInfoTest.Get(CpuInfoTest_Reader::kTestFieldNumber).ToBytes();
+    auto typtest = typedProtoCpuInfoTest.Get(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
     TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
-    auto number = typedProtoTestReader.Get(Test_Reader::kNumberFieldNumber).ToInt32();
-    auto tvNsec = typedProtoTestReader.Get(Test_Reader::kTvNsecFieldNumber).ToUint64();
-    auto name = typedProtoTestReader.Get(Test_Reader::kNameFieldNumber).ToStdString();
-    auto isTest = typedProtoTestReader.Get(Test_Reader::kIsTestFieldNumber).ToBool();
-    auto state = typedProtoTestReader.Get(Test_Reader::kStateFieldNumber).ToInt32();
-    auto allocEvent = typedProtoTestReader.Get(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto number = typedProtoTestReader.Get(Test_Reader::kNumberDataAreaNumber).ToInt32();
+    auto tvNsec = typedProtoTestReader.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
+    auto name = typedProtoTestReader.Get(Test_Reader::kNameDataAreaNumber).ToStdString();
+    auto isTest = typedProtoTestReader.Get(Test_Reader::kIsTestDataAreaNumber).ToBool();
+    auto state = typedProtoTestReader.Get(Test_Reader::kStateDataAreaNumber).ToInt32();
+    auto allocEvent = typedProtoTestReader.Get(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
 
     EXPECT_EQ(NUMBER, number);
     EXPECT_EQ(TVNSEC, tvNsec);
@@ -712,54 +712,54 @@ HWTEST_F(ProtoReaderTest, ParserMutiDataByGet, TestSize.Level1)
     testParser.SerializeToString(&str);
 
     TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-    auto count = typedProtoTest.Get(TestParser_Reader::kCountFieldNumber).ToInt32();
+    auto count = typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32();
     EXPECT_EQ(COUNT, count);
-    auto core = typedProtoTest.Get(TestParser_Reader::kCoresFieldNumber).ToBytes();
+    auto core = typedProtoTest.Get(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
     TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
-    auto repeate = typedProtoCpuInfoTest.GetRepeated<BytesView>(CpuInfoTest_Reader::kTestFieldNumber);
+    auto repeate = typedProtoCpuInfoTest.GetRepeated<BytesView>(CpuInfoTest_Reader::kTestDataAreaNumber);
 
     TypedProtoReader<7> typedProtoTestReader1(repeate->ToBytes().data_, repeate->ToBytes().size_);
-    auto number1 = typedProtoTestReader1.Get(Test_Reader::kNumberFieldNumber).ToInt32();
+    auto number1 = typedProtoTestReader1.Get(Test_Reader::kNumberDataAreaNumber).ToInt32();
     EXPECT_EQ(NUMBER1, number1);
-    auto tvNsec1 = typedProtoTestReader1.Get(Test_Reader::kTvNsecFieldNumber).ToUint64();
+    auto tvNsec1 = typedProtoTestReader1.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
     EXPECT_EQ(TVNSEC1, tvNsec1);
-    auto name1 = typedProtoTestReader1.Get(Test_Reader::kNameFieldNumber).ToStdString();
+    auto name1 = typedProtoTestReader1.Get(Test_Reader::kNameDataAreaNumber).ToStdString();
     EXPECT_EQ(NAME1, name1);
-    auto isTest1 = typedProtoTestReader1.Get(Test_Reader::kIsTestFieldNumber).ToBool();
+    auto isTest1 = typedProtoTestReader1.Get(Test_Reader::kIsTestDataAreaNumber).ToBool();
     EXPECT_EQ(true, isTest1);
-    auto state1 = typedProtoTestReader1.Get(Test_Reader::kStateFieldNumber).ToInt32();
+    auto state1 = typedProtoTestReader1.Get(Test_Reader::kStateDataAreaNumber).ToInt32();
     EXPECT_EQ(::Test_State(0), state1);
-    auto allocEvent1 = typedProtoTestReader1.Get(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto allocEvent1 = typedProtoTestReader1.Get(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
     EXPECT_EQ(ALLOCEVENT1, allocEvent1);
 
     repeate++;
     TypedProtoReader<7> typedProtoTestReader2(repeate->ToBytes().data_, repeate->ToBytes().size_);
-    auto number2 = typedProtoTestReader2.Get(Test_Reader::kNumberFieldNumber).ToInt32();
+    auto number2 = typedProtoTestReader2.Get(Test_Reader::kNumberDataAreaNumber).ToInt32();
     EXPECT_EQ(NUMBER2, number2);
-    auto tvNsec2 = typedProtoTestReader2.Get(Test_Reader::kTvNsecFieldNumber).ToUint64();
+    auto tvNsec2 = typedProtoTestReader2.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
     EXPECT_EQ(TVNSEC2, tvNsec2);
-    auto name2 = typedProtoTestReader2.Get(Test_Reader::kNameFieldNumber).ToStdString();
+    auto name2 = typedProtoTestReader2.Get(Test_Reader::kNameDataAreaNumber).ToStdString();
     EXPECT_EQ(NAME2, name2);
-    auto isTest2 = typedProtoTestReader2.Get(Test_Reader::kIsTestFieldNumber).ToBool();
+    auto isTest2 = typedProtoTestReader2.Get(Test_Reader::kIsTestDataAreaNumber).ToBool();
     EXPECT_EQ(false, isTest2);
-    auto state2 = typedProtoTestReader2.Get(Test_Reader::kStateFieldNumber).ToInt32();
+    auto state2 = typedProtoTestReader2.Get(Test_Reader::kStateDataAreaNumber).ToInt32();
     EXPECT_EQ(::Test_State(1), state2);
-    auto allocEvent2 = typedProtoTestReader2.Get(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto allocEvent2 = typedProtoTestReader2.Get(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
     EXPECT_EQ(ALLOCEVENT2, allocEvent2);
 
     repeate++;
     TypedProtoReader<7> typedProtoTestReader3(repeate->ToBytes().data_, repeate->ToBytes().size_);
-    auto number3 = typedProtoTestReader3.Get(Test_Reader::kNumberFieldNumber).ToInt32();
+    auto number3 = typedProtoTestReader3.Get(Test_Reader::kNumberDataAreaNumber).ToInt32();
     EXPECT_EQ(NUMBER3, number3);
-    auto tvNsec3 = typedProtoTestReader3.Get(Test_Reader::kTvNsecFieldNumber).ToUint64();
+    auto tvNsec3 = typedProtoTestReader3.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
     EXPECT_EQ(TVNSEC3, tvNsec3);
-    auto name3 = typedProtoTestReader3.Get(Test_Reader::kNameFieldNumber).ToStdString();
+    auto name3 = typedProtoTestReader3.Get(Test_Reader::kNameDataAreaNumber).ToStdString();
     EXPECT_EQ(NAME3, name3);
-    auto isTest3 = typedProtoTestReader3.Get(Test_Reader::kIsTestFieldNumber).ToBool();
+    auto isTest3 = typedProtoTestReader3.Get(Test_Reader::kIsTestDataAreaNumber).ToBool();
     EXPECT_EQ(true, isTest3);
-    auto state3 = typedProtoTestReader3.Get(Test_Reader::kStateFieldNumber).ToInt32();
+    auto state3 = typedProtoTestReader3.Get(Test_Reader::kStateDataAreaNumber).ToInt32();
     EXPECT_EQ(::Test_State(0), state3);
-    auto allocEvent3 = typedProtoTestReader3.Get(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto allocEvent3 = typedProtoTestReader3.Get(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
     EXPECT_EQ(ALLOCEVENT3, allocEvent3);
 }
 
@@ -777,18 +777,18 @@ HWTEST_F(ProtoReaderTest, ParserNoDataByGet, TestSize.Level1)
     testParser.SerializeToString(&str);
 
     TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-    auto count = typedProtoTest.Get(TestParser_Reader::kCountFieldNumber).ToInt32();
+    auto count = typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32();
     EXPECT_EQ(0, count);
-    auto core = typedProtoTest.Get(TestParser_Reader::kCoresFieldNumber).ToBytes();
+    auto core = typedProtoTest.Get(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
     TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
-    auto typtest = typedProtoCpuInfoTest.Get(CpuInfoTest_Reader::kTestFieldNumber).ToBytes();
+    auto typtest = typedProtoCpuInfoTest.Get(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
     TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
-    auto number = typedProtoTestReader.Get(Test_Reader::kNumberFieldNumber).ToInt32();
-    auto tvNsec = typedProtoTestReader.Get(Test_Reader::kTvNsecFieldNumber).ToUint64();
-    auto name = typedProtoTestReader.Get(Test_Reader::kNameFieldNumber).ToStdString();
-    auto isTest = typedProtoTestReader.Get(Test_Reader::kIsTestFieldNumber).ToBool();
-    auto state = typedProtoTestReader.Get(Test_Reader::kStateFieldNumber).ToInt32();
-    auto allocEvent = typedProtoTestReader.Get(Test_Reader::kAllocEventFieldNumber).ToInt32();
+    auto number = typedProtoTestReader.Get(Test_Reader::kNumberDataAreaNumber).ToInt32();
+    auto tvNsec = typedProtoTestReader.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64();
+    auto name = typedProtoTestReader.Get(Test_Reader::kNameDataAreaNumber).ToStdString();
+    auto isTest = typedProtoTestReader.Get(Test_Reader::kIsTestDataAreaNumber).ToBool();
+    auto state = typedProtoTestReader.Get(Test_Reader::kStateDataAreaNumber).ToInt32();
+    auto allocEvent = typedProtoTestReader.Get(Test_Reader::kAllocEventDataAreaNumber).ToInt32();
 
     EXPECT_EQ(0, number);
     EXPECT_EQ(0, tvNsec);

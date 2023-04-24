@@ -35,6 +35,7 @@ public:
         NetworkSystemData networkSysData;
     };
     std::vector<TsNetworkData> networkData_;
+
 private:
     uint64_t lastLineSeq_ = 0;
     struct LastNetWorkDetail {

@@ -1,0 +1,77 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../src/ts.gni")
+ohos_source_set("hiperf_src") {
+  configs -= ["//gn:trace_cfg"]
+  configs += ["//gn:hiperf_trace_cfg"]
+  subsystem_name = "trace_streamer"
+  part_name = "hiperf_src"
+      cflags = [ "-D ALWAYSTRUE" ]
+  sources = [
+    "./src/callstack.cpp",
+    "./src/callstack.h",
+    "./src/dwarf_encoding.cpp",
+    "./src/dwarf_encoding.h",
+    "./src/elf_file.cpp",
+    "./src/elf_header.cpp",
+    "./src/elf_symbol.cpp",
+    "./src/hashlist.h",
+    "./src/option.cpp",
+    "./src/perf_event_record.cpp",
+    "./src/perf_file_format.cpp",
+    "./src/perf_file_reader.cpp",
+    "./src/program_header.cpp",
+    "./src/register.cpp",
+    "./src/register.h",
+    "./src/report.cpp",
+    "./src/section_header.cpp",
+    "./src/subcommand.cpp",
+    "./src/symbols_file.cpp",
+    "./src/utilities.cpp",
+    "./src/virtual_runtime.cpp",
+    "./src/virtual_thread.cpp",
+    "include/symbols_file.h",
+  ]
+  include_dirs = [
+    "linux",
+    "../",
+    "./",
+    "../../src/base",
+    "include",
+    "../../src/include",
+    "../../src/",
+    "../../src/trace_streamer",
+    "include/nonlinux",
+    "include/nonlinux/linux",
+  ]
+  include_dirs += [
+    "//third_party/perf_include/libbpf",
+    "//third_party/perf_include/musl",
+    "//third_party/libunwind/include",
+    "//third_party/libunwind/src",
+    "//third_party/libunwind/include/tdep-x86_64",
+  ]
+}
+
+group("hiperf") {
+  deps = [
+    ":hiperf_src",
+    "//third_party/protobuf:protobuf",
+    "//third_party/protobuf:protobuf_lite",
+  ]
+  if (target != "test" && !is_openharmony) {
+    deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
+  }
+}

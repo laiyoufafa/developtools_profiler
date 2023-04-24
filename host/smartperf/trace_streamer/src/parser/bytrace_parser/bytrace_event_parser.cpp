@@ -46,9 +46,9 @@ std::string GetFunctionName(const std::string_view& text, const std::string_view
 } // namespace
 
 BytraceEventParser::BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : EventParserBase(dataCache, filter),
-      printEventParser_(traceDataCache_, streamFilters_)
+    : EventParserBase(dataCache, filter), printEventParser_(traceDataCache_, streamFilters_)
 {
+    printEventParser_.SetTraceType(TRACE_FILETYPE_BY_TRACE);
     eventToFunctionMap_ = {
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
          bind(&BytraceEventParser::SchedSwitchEvent, this, std::placeholders::_1, std::placeholders::_2)},
@@ -130,6 +130,11 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
     auto nextPrioValue = base::StrToInt32(args.at("next_prio"));
     auto prevPidValue = base::StrToUInt32(args.at("prev_pid"));
     auto nextPidValue = base::StrToUInt32(args.at("next_pid"));
+    DataIndex nextInfo = INVALID_DATAINDEX;
+    auto nextInfoIt = args.find("next_info");
+    if (nextInfoIt != args.end()) {
+        nextInfo = traceDataCache_->GetDataIndex(std::string_view(args.at("next_info")));
+    }
     if (!(prevPidValue.has_value() && prevPrioValue.has_value() && nextPidValue.has_value() &&
           nextPrioValue.has_value())) {
         TS_LOGD("Failed to parse sched_switch event");
@@ -160,9 +165,9 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
     } else {
         uprevtid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, prevPidValue.value());
     }
-    streamFilters_->cpuFilter_->InsertSwitchEvent(line.ts, line.cpu, uprevtid,
-                                                  static_cast<uint64_t>(prevPrioValue.value()), prevState,
-                                                  nextInternalTid, static_cast<uint64_t>(nextPrioValue.value()));
+    streamFilters_->cpuFilter_->InsertSwitchEvent(
+        line.ts, line.cpu, uprevtid, static_cast<uint64_t>(prevPrioValue.value()), prevState, nextInternalTid,
+        static_cast<uint64_t>(nextPrioValue.value()), nextInfo);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -192,7 +197,8 @@ bool BytraceEventParser::BlockedReason(const ArgsMap& args, const BytraceLine& l
     }
     auto iTid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, tid.value());
 
-    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(line.ts, line.cpu, iTid, iowait.value(), caller, delayValue)) {
+    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(line.ts, line.cpu, iTid, iowait.value(), caller,
+                                                             delayValue)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
     } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
@@ -522,7 +528,7 @@ bool BytraceEventParser::IpiEntryEvent(const ArgsMap& args, const BytraceLine& l
 {
     UNUSED(args);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_ENTRY, STAT_EVENT_RECEIVED);
-    streamFilters_->irqFilter_->IpiHandlerEntry(line.ts, line.cpu, traceDataCache_->GetDataIndex(line.argsStr));    
+    streamFilters_->irqFilter_->IpiHandlerEntry(line.ts, line.cpu, traceDataCache_->GetDataIndex(line.argsStr));
     return true;
 }
 bool BytraceEventParser::IpiExitEvent(const ArgsMap& args, const BytraceLine& line) const
@@ -683,7 +689,11 @@ void BytraceEventParser::FilterAllEventsTemp()
     auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
         return a->eventTimestamp < b->eventTimestamp;
     };
+#ifdef IS_WASM
     std::sort(eventList_.begin(), eventList_.end(), cmp);
+#else
+    std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
+#endif
     auto endOfList = eventList_.begin() + maxBuffSize;
     for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
         EventInfo* event = itor->get();
@@ -716,7 +726,11 @@ void BytraceEventParser::FilterAllEvents()
     auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
         return a->eventTimestamp < b->eventTimestamp;
     };
+#ifdef IS_WASM
     std::sort(eventList_.begin(), eventList_.end(), cmp);
+#else
+    std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
+#endif
     size_t maxBuffSize = 1000 * 1000;
     while (eventList_.size()) {
         int size = std::min(maxBuffSize, eventList_.size());

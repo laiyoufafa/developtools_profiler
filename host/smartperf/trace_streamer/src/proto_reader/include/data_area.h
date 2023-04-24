@@ -23,7 +23,6 @@
 #include "string_help.h"
 namespace SysTuning {
 namespace ProtoReader {
-using namespace SysTuning::base;
 class DataArea {
 public:
     bool DataAreaValid() const
@@ -212,4 +211,4 @@ private:
 };
 } // namespace ProtoReader
 } // namespace SysTuning
-#endif  // PROTO_READER_FIELD_H
+#endif // PROTO_READER_FIELD_H

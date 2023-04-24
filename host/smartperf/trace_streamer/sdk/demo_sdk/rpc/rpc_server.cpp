@@ -22,8 +22,8 @@
 #include "log.h"
 #include "meta.h"
 
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 namespace SysTuning {
@@ -70,7 +70,6 @@ bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCall
     UNUSED(data);
     UNUSED(len);
     TS_LOGI("RPC reset trace_streamer");
-
     ts_->WaitForParserEnd();
     ts_ = std::make_unique<TraceStreamerSelector>();
     if (resultCallBack) {

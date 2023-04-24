@@ -31,7 +31,6 @@
 #include "ts_common.h"
 #include "ts_sdk_api.h"
 
-
 namespace SysTuning {
 namespace TraceStreamer {
 SDKDataParser::SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
@@ -79,9 +78,9 @@ int SDKDataParser::ParserClock(const uint8_t* data, int len)
 }
 
 int SDKDataParser::SetTableName(const char* counterTableName,
-                                              const char* counterObjectTableName,
-                                              const char* sliceTableName,
-                                              const char* sliceObjectName)
+                                const char* counterObjectTableName,
+                                const char* sliceTableName,
+                                const char* sliceObjectName)
 {
     if (!g_isUseExternalModify) {
         counterTableName_ = counterTableName;
@@ -127,7 +126,7 @@ int SDKDataParser::CreateTableByJson()
 }
 
 // 根据Json配置创建couter object表
-int SDKDataParser::CreateCounterObjectTable(std::string& tableName)
+int SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -138,7 +137,7 @@ int SDKDataParser::CreateCounterObjectTable(std::string& tableName)
 }
 
 // 根据Json配置创建couter表
-int SDKDataParser::CreateCounterTable(std::string& tableName)
+int SDKDataParser::CreateCounterTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -149,7 +148,7 @@ int SDKDataParser::CreateCounterTable(std::string& tableName)
 }
 
 // 根据Json配置创建slice object表
-int SDKDataParser::CreateSliceObjectTable(std::string& tableName)
+int SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -160,7 +159,7 @@ int SDKDataParser::CreateSliceObjectTable(std::string& tableName)
 }
 
 // 根据Json配置创建slice表
-int SDKDataParser::CreateSliceTable(std::string& tableName)
+int SDKDataParser::CreateSliceTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, tableName);

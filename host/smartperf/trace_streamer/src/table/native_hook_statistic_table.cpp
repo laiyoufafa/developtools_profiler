@@ -18,15 +18,15 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, IPID, TIMESTAMP, CALLCHAIN_ID, MEMORY_TYPE, APPLY_COUNT, RELEASE_COUNT, APPLY_SIZE, RELEASE_SIZE };
+enum Index { ID = 0, CALLCHAIN_ID, IPID, TS, MEMORY_TYPE, APPLY_COUNT, RELEASE_COUNT, APPLY_SIZE, RELEASE_SIZE };
 }
 NativeHookStatisticTable::NativeHookStatisticTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("timeStamp", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("memroy_type", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("apply_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("release_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("apply_size", "INTEGER"));
@@ -178,21 +178,23 @@ int NativeHookStatisticTable::Cursor::Column(int column) const
         case ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
-        case IPID:
-            if (nativeHookStatisticInfoObj_.Ipids()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookStatisticInfoObj_.Ipids()[CurrentRow()]));
-            }
-            break;
-        case TIMESTAMP:
-            sqlite3_result_int64(context_,
-                                 static_cast<int64_t>(nativeHookStatisticInfoObj_.TimeStamData()[CurrentRow()]));
-            break;
         case CALLCHAIN_ID:
             if (nativeHookStatisticInfoObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
                 sqlite3_result_int64(context_,
                                      static_cast<int64_t>(nativeHookStatisticInfoObj_.CallChainIds()[CurrentRow()]));
             } else {
                 sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
+            break;
+        case IPID:
+            if (nativeHookStatisticInfoObj_.Ipids()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookStatisticInfoObj_.Ipids()[CurrentRow()]));
+            }
+            break;
+        case TS:
+            if (nativeHookStatisticInfoObj_.TimeStampData()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookStatisticInfoObj_.TimeStampData()[CurrentRow()]));
             }
             break;
         case MEMORY_TYPE:

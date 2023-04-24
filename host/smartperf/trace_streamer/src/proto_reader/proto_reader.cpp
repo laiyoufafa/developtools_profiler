@@ -18,7 +18,6 @@
 
 namespace SysTuning {
 namespace ProtoReader {
-using namespace SysTuning::base;
 ProtoReaderBase::ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, const uint8_t* buffer, size_t length)
     : startAddr_(buffer),
       endAddr_(startAddr_ + length),

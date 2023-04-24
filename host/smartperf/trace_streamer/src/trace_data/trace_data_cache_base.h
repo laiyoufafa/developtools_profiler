@@ -16,7 +16,6 @@
 #ifndef TRACE_DATA_CACHE_BASE_H
 #define TRACE_DATA_CACHE_BASE_H
 
-
 #include <array>
 #include <deque>
 #include <map>
@@ -62,12 +61,27 @@ public:
     }
     DataIndex GetDataIndex(std::string_view str);
     DataIndex GetConstDataIndex(std::string_view str) const;
-    std::map<uint64_t, std::string> statusString_ = {
-        {TASK_RUNNABLE, "R"},    {TASK_INTERRUPTIBLE, "S"}, {TASK_UNINTERRUPTIBLE, "D"}, {TASK_RUNNING, "Running"},
-        {TASK_INTERRUPTED, "I"}, {TASK_TRACED, "T"},        {TASK_EXIT_DEAD, "X"},       {TASK_ZOMBIE, "Z"},
-        {TASK_KILLED, "I"},      {TASK_WAKEKILL, "R"},      {TASK_PARKED, "P"},          {TASK_INVALID, "U"},
-        {TASK_CLONE, "I"},       {TASK_DK, "DK"},           {TASK_TRACED_KILL, "TK"},    {TASK_FOREGROUND, "R+"},
-        {TASK_MAX, "S"}};
+    std::map<uint64_t, std::string> statusString_ = {{TASK_RUNNABLE, "R"},
+                                                     {TASK_INTERRUPTIBLE, "S"},
+                                                     {TASK_UNINTERRUPTIBLE, "D"},
+                                                     {TASK_UNINTERRUPTIBLE_IO, "D-IO"},
+                                                     {TASK_UNINTERRUPTIBLE_NIO, "D-NIO"},
+                                                     {TASK_RUNNING, "Running"},
+                                                     {TASK_INTERRUPTED, "I"},
+                                                     {TASK_TRACED, "T"},
+                                                     {TASK_EXIT_DEAD, "X"},
+                                                     {TASK_ZOMBIE, "Z"},
+                                                     {TASK_KILLED, "I"},
+                                                     {TASK_WAKEKILL, "R"},
+                                                     {TASK_PARKED, "P"},
+                                                     {TASK_INVALID, "U"},
+                                                     {TASK_CLONE, "I"},
+                                                     {TASK_DK, "DK"},
+                                                     {TASK_DK_IO, "DK-IO"},
+                                                     {TASK_DK_NIO, "DK-NIO"},
+                                                     {TASK_TRACED_KILL, "TK"},
+                                                     {TASK_FOREGROUND, "R+"},
+                                                     {TASK_MAX, "S"}};
     std::map<std::string, uint64_t> threadStatus2Value_ = {};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
@@ -138,6 +152,15 @@ public:
     FrameSlice frameSliceData_;
     FrameMaps frameMapsData_;
     GPUSlice gpuSliceData_;
+    JsHeapFiles JsHeapFilesData_;
+    JsHeapEdges JsHeapEdgesData_;
+    JsHeapInfo JsHeapInfoData_;
+    JsHeapLocation JsHeapLocationData_;
+    JsHeapNodes JsHeapNodesData_;
+    JsHeapSample JsHeapSampleData_;
+    JsHeapString JsHeapStringData_;
+    JsHeapTraceFuncInfo JsHeapTraceFuncInfoData_;
+    JsHeapTraceNode JsHeapTraceNodeData_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

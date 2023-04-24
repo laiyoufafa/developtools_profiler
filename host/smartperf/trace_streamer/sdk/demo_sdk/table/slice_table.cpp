@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { TS = 0, ENDTS = 1, VALUE = 2, SLICE_ID = 3};
+enum Index { TS = 0, ENDTS = 1, VALUE = 2, SLICE_ID = 3 };
 }
 SliceTable::SliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {

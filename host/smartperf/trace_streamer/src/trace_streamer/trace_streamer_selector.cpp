@@ -29,7 +29,7 @@
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
-#if IS_PBREADER
+#ifndef IS_PBDECODER
 #include "parser/htrace_pbreader_parser/htrace_parser.h"
 #else
 #include "parser/htrace_parser/htrace_parser.h"
@@ -77,7 +77,7 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
         return TRACE_FILETYPE_H_TRACE;
     }
     const std::regex bytraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
-                                            R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
+                                                 R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
     std::smatch matcheLine;
     std::string bytraceMode(reinterpret_cast<const char*>(data), size);
     if (std::regex_search(bytraceMode, matcheLine, bytraceMatcher)) {
@@ -217,12 +217,97 @@ int TraceStreamerSelector::ExportDatabase(const std::string& outputName, TraceDa
     return traceDataCache_->ExportDatabase(outputName, resultCallBack);
 }
 
+bool TraceStreamerSelector::ReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
+{
+    if (fileType_ == TRACE_FILETYPE_H_TRACE) {
+        htraceParser_->ReloadSymbolFiles(symbolsPaths);
+    }
+    return true;
+}
+bool TraceStreamerSelector::ParserFileSO(const std::string& filename, int count)
+{
+    symbolsPaths_.emplace_back(filename);
+    std::unique_ptr<ElfFile> elfFile = ElfFile::MakeUnique(filename);
+
+    if (elfFile == nullptr) {
+        TS_LOGE("elf load failed");
+        return false;
+    } else {
+        TS_LOGE("loaded elf %s", filename.c_str());
+    }
+    ElfSymbolTable symbolInfo;
+    GetSymbols(std::move(elfFile), symbolInfo, filename);
+    if ((access(filename.c_str(), F_OK)) != -1) {
+        remove(filename.c_str());
+    }
+    elfSymbolTable_.emplace_back(symbolInfo);
+    if (elfSymbolTable_.size() >= count) {
+        UpdateELFData();
+    }
+    return true;
+}
+
+void TraceStreamerSelector::GetSymbols(std::unique_ptr<ElfFile> elfPtr,
+                                       ElfSymbolTable& symbols,
+                                       const std::string& filename)
+{
+    symbols.filePathId = filename;
+    symbols.textVaddr = (std::numeric_limits<uint64_t>::max)();
+    for (auto& item : elfPtr->phdrs_) {
+        if ((item->type_ == PT_LOAD) && (item->flags_ & PF_X)) {
+            // find the min addr
+            if (symbols.textVaddr != (std::min)(symbols.textVaddr, item->vaddr_)) {
+                symbols.textVaddr = (std::min)(symbols.textVaddr, item->vaddr_);
+                symbols.textOffset = item->offset_;
+            }
+        }
+    }
+    if (symbols.textVaddr == (std::numeric_limits<uint64_t>::max)()) {
+        TS_LOGE("GetSymbols get textVaddr failed");
+        return;
+    }
+
+    std::string symSecName;
+    std::string strSecName;
+    if (elfPtr->shdrs_.find(".symtab") != elfPtr->shdrs_.end()) {
+        symSecName = ".symtab";
+        strSecName = ".strtab";
+    } else if (elfPtr->shdrs_.find(".dynsym") != elfPtr->shdrs_.end()) {
+        symSecName = ".dynsym";
+        strSecName = ".dynstr";
+    } else {
+        return;
+    }
+    const auto& sym = elfPtr->shdrs_[static_cast<const std::string>(symSecName)];
+    const uint8_t* symData = elfPtr->GetSectionData(sym->secIndex_);
+    const auto& str = elfPtr->shdrs_[static_cast<const std::string>(strSecName)];
+    const uint8_t* strData = elfPtr->GetSectionData(str->secIndex_);
+
+    if (sym->secSize_ == 0 || str->secSize_ == 0) {
+        TS_LOGE(
+            "GetSymbols get section size failed, \
+            sym size: %" PRIu64 ", str size: %" PRIu64 "",
+            sym->secSize_, str->secSize_);
+        return;
+    }
+    symbols.symEntSize = sym->secEntrySize_;
+    symbols.symTable.resize(sym->secSize_);
+    std::copy(symData, symData + sym->secSize_, symbols.symTable.data());
+    symbols.strTable.resize(str->secSize_);
+    std::copy(strData, strData + str->secSize_, symbols.strTable.data());
+}
+
+void TraceStreamerSelector::UpdateELFData()
+{
+    for (auto i = 0; i < elfSymbolTable_.size(); ++i) {
+    }
+}
 void TraceStreamerSelector::Clear()
 {
     traceDataCache_->Prepare();
     traceDataCache_->Clear();
 }
-int TraceStreamerSelector::SearchData()
+std::vector<std::string> TraceStreamerSelector::SearchData()
 {
     return traceDataCache_->SearchData();
 }
@@ -230,8 +315,7 @@ int TraceStreamerSelector::OperateDatabase(const std::string& sql)
 {
     return traceDataCache_->OperateDatabase(sql);
 }
-int TraceStreamerSelector::SearchDatabase(const std::string& sql,
-    TraceDataDB::ResultCallBack resultCallBack)
+int TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }

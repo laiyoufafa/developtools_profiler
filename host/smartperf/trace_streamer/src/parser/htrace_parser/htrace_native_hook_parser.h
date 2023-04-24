@@ -82,7 +82,7 @@ private:
     QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint32_t> frameToFrameId_;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::map<uint32_t, uint64_t> filePathIdToFilePathName_ = {};
-    std::map<uint32_t, uint64_t> callIdToLastCallerPathIndex_ = {};
+    std::unordered_map<uint32_t, uint64_t> callIdToLastCallerPathIndex_ = {};
     std::map<uint64_t, std::string> functionNameIndexToVaddr_ = {};
     std::deque<std::string> vaddrs_ = {};
     const size_t MAX_CACHE_SIZE = 200000;

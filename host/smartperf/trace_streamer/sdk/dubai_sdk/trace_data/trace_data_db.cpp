@@ -192,7 +192,7 @@ int TraceDataDB::SearchData()
             std::cout << "will not print result of query" << std::endl;
             printResult = false;
             continue;
-        } else if (line.find("-c:") == 0) {
+        } else if (line.find("-c:") != std::string::npos) {
             line = line.substr(strlen("-c:"));
             if (OperateDatabase(line) == SQLITE_OK) {
                 printf("operate SQL success\n");

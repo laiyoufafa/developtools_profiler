@@ -16,7 +16,6 @@
 #ifndef SRC_PROCESS_MEASURE_FILTER_TABLE_H
 #define SRC_PROCESS_MEASURE_FILTER_TABLE_H
 
-
 #include "table_base.h"
 #include "trace_data_cache.h"
 

@@ -18,7 +18,11 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, REPORT_TYPE, REPORT_VALUE, };
+enum Index {
+    ID = 0,
+    REPORT_TYPE,
+    REPORT_VALUE,
+};
 }
 PerfReportTable::PerfReportTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {

@@ -19,7 +19,6 @@
 #include <string>
 #include <unordered_map>
 
-
 #include "htrace_mem_parser.h"
 #include "parser/common_types.h"
 #include "trace_streamer_selector.h"

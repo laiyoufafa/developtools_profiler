@@ -27,8 +27,10 @@ public:
     BioLatencyDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~BioLatencyDataParser();
     void ParseBioLatencyEvent();
+
 protected:
     std::unique_ptr<HtracePluginTimeParser> timeParser_;
+
 private:
     uint64_t currentCallId_ = 0;
 };

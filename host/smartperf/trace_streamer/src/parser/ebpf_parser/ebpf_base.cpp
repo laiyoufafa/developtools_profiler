@@ -46,9 +46,8 @@ void EbpfBase::ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, u
         if (userIpsAddr[i] > MIN_USER_IP) {
             auto symbolAndFilePathIndex = GetSymbolAndFilePathIndex(pid, userIpsAddr[i]);
             auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
-            traceDataCache_->GetEbpfCallStack()->AppendNewData(callId, depth, ipIndex,
-                                                               symbolAndFilePathIndex.symbolIndex,
-                                                               symbolAndFilePathIndex.filePathIndex);
+            traceDataCache_->GetEbpfCallStack()->AppendNewData(
+                callId, depth, ipIndex, symbolAndFilePathIndex.symbolIndex, symbolAndFilePathIndex.filePathIndex);
             depth++;
         }
     }

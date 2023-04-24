@@ -92,8 +92,7 @@ private:
     {
         if (!package_.empty()) {
             auto strTmp = package_ + ".";
-            return descriptor->full_name().substr(descriptor->full_name().find(strTmp) +
-                                                  sizeof(strTmp));
+            return descriptor->full_name().substr(descriptor->full_name().find(strTmp) + sizeof(strTmp));
         } else {
             return descriptor->full_name();
         }

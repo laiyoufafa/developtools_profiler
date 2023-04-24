@@ -67,7 +67,7 @@ int NetworkTable::Cursor::Column(int column) const
 {
     switch (column) {
         case TS: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(networkDataObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(networkDataObj_.TimeStampData()[CurrentRow()]));
             break;
         }
         case TX: {

@@ -22,7 +22,9 @@
 namespace SysTuning {
 namespace TraceStreamer {
 FilterFilter::FilterFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter) {}
+    : FilterBase(dataCache, filter)
+{
+}
 
 FilterFilter::~FilterFilter() = default;
 

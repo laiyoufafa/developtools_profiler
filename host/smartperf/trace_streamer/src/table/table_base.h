@@ -39,13 +39,12 @@ public:
     TableBase(const TableBase&) = delete;
     TableBase& operator=(const TableBase&) = delete;
 
-    template<typename T>
+    template <typename T>
     static void TableDeclare(sqlite3& db, TraceDataCache* dataCache, const std::string& tableName)
     {
-        TableRegister(db, dataCache, tableName,
-            [](const TraceDataCache* cache) {
-                return std::unique_ptr<TableBase>(std::make_unique<T>(cache));
-            });
+        TableRegister(db, dataCache, tableName, [](const TraceDataCache* cache) {
+            return std::unique_ptr<TableBase>(std::make_unique<T>(cache));
+        });
         dataCache->AppendNewTable(tableName);
     }
     std::string CreateTableSql() const;
@@ -71,6 +70,7 @@ public:
         virtual int Column(int n) const = 0;
         virtual void FilterId(unsigned char op, sqlite3_value* argv);
         virtual void FilterEnd();
+
     public:
         sqlite3_context* context_;
         TableBase* table_ = nullptr;

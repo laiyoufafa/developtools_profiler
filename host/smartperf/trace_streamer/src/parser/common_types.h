@@ -19,7 +19,7 @@
 #include <atomic>
 #include <string>
 #include <unordered_map>
-#if IS_PBREADER
+#ifndef IS_PBDECODER
 #include "cpu_plugin_result.pbreader.h"
 #include "diskio_plugin_result.pbreader.h"
 #include "hidump_plugin_result.pbreader.h"
@@ -53,9 +53,8 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum ParseResult { ERROR = 0, SUCCESS };
+enum ParseResult { PARSE_ERROR = 0, PARSE_SUCCESS };
 enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
-
 
 struct BytraceLine {
     uint64_t ts = 0;
@@ -81,8 +80,7 @@ struct DataSegment {
     BytraceLine bufLine;
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
 };
-// 注意使用完之后恢复初始化状态，保证下次使用不会出现数据混乱。
-#if IS_PBREADER
+#ifndef IS_PBDECODER
 struct HtraceDataSegment {
     std::shared_ptr<std::string> seg;
     uint64_t timeStamp;
@@ -116,16 +114,16 @@ class TracePoint {
 public:
     TracePoint() {}
     TracePoint(const TracePoint& point)
-    : phase_(point.phase_),
-      tgid_(point.tgid_),
-      name_(point.name_),
-      value_(point.value_),
-      categoryGroup_(point.categoryGroup_),
-      chainId_(point.chainId_),
-      spanId_(point.spanId_),
-      parentSpanId_(point.parentSpanId_),
-      flag_(point.flag_),
-      args_(point.args_)
+        : phase_(point.phase_),
+          tgid_(point.tgid_),
+          name_(point.name_),
+          value_(point.value_),
+          categoryGroup_(point.categoryGroup_),
+          chainId_(point.chainId_),
+          spanId_(point.spanId_),
+          parentSpanId_(point.parentSpanId_),
+          flag_(point.flag_),
+          args_(point.args_)
     {
     }
     void operator=(const TracePoint& point)
@@ -159,17 +157,7 @@ public:
     std::string funcPrefix_ = "";
     std::string funcArgs_ = "";
 };
-#if IS_PBREADER
-struct NativeHookMetaData {
-    NativeHookMetaData(const std::shared_ptr<const std::string>& seg,
-                        std::unique_ptr<ProtoReader::NativeHookData_Reader> reader)
-        : seg_(seg), reader_(std::move(reader))
-    {
-    }
-    std::shared_ptr<const std::string> seg_;
-    std::unique_ptr<ProtoReader::NativeHookData_Reader> reader_;
-};
-#endif
+
 } // namespace TraceStreamer
 } // namespace SysTuning
 #endif // _BYTRACE_COMMON_TYPES_H_

@@ -38,7 +38,7 @@ public:
     DataIndex GetOrCreateFilterId(DataIndex eventSource, DataIndex appName);
     std::tuple<DataIndex, DataIndex> GetOrCreateFilterId(DataIndex eventSource, DataIndex appName, DataIndex key);
     DataIndex AppendNewValue(uint64_t serial,
-                             uint64_t timestamp,
+                             uint64_t timeStamp,
                              DataIndex appNameId,
                              DataIndex key,
                              int32_t type,

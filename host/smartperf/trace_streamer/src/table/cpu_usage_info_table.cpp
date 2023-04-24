@@ -50,7 +50,7 @@ int CpuUsageInfoTable::Cursor::Column(int column) const
 {
     switch (column) {
         case TS: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(cpuUsageInfoObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(cpuUsageInfoObj_.TimeStampData()[CurrentRow()]));
             break;
         }
         case DUR: {

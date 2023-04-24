@@ -35,7 +35,7 @@ public:
         stream_.InitFilter();
     }
 
-    void TearDown() const{}
+    void TearDown() const {}
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};

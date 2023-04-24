@@ -76,6 +76,21 @@ ohos_source_set("filter") {
     "//third_party/sqlite/include",
     ".",
   ]
+
+  if (!is_pbdecoder) {
+    sources += [
+      "native_hook_filter.cpp",
+      "native_hook_filter.h",
+      "offline_symbolization_filter.cpp",
+      "offline_symbolization_filter.h",
+    ]
+    include_dirs += [
+      "../proto_reader/include",
+      "${OHOS_PROTO_GEN}/types/plugins/native_hook",
+      "//third_party/perf_include/musl",
+    ]
+  }
+
   if (with_perf) {
     sources += [
       "perf_data_filter.cpp",

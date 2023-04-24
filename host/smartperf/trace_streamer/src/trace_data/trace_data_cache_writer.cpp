@@ -52,11 +52,11 @@ Thread* TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
     return &internalThreadsData_[internalTid];
 }
 
-void TraceDataCacheWriter::UpdateTraceTime(uint64_t timestamp)
+void TraceDataCacheWriter::UpdateTraceTime(uint64_t timeStamp)
 {
-    if (timestamp) {
-        traceStartTime_ = std::min(traceStartTime_, timestamp);
-        traceEndTime_ = std::max(traceEndTime_, timestamp);
+    if (timeStamp) {
+        traceStartTime_ = std::min(traceStartTime_, timeStamp);
+        traceEndTime_ = std::max(traceEndTime_, timeStamp);
     }
 }
 
@@ -191,6 +191,10 @@ NativeHookFrame* TraceDataCacheWriter::GetNativeHookFrameData()
     return &nativeHookFrameData_;
 }
 
+NativeHookStatistic* TraceDataCacheWriter::GetNativeHookStatisticsData()
+{
+    return &nativeHookStatisticData_;
+}
 Hidump* TraceDataCacheWriter::GetHidumpData()
 {
     return &hidumpData_;
@@ -321,6 +325,43 @@ FrameMaps* TraceDataCacheWriter::GetFrameMapsData()
 GPUSlice* TraceDataCacheWriter::GetGPUSliceData()
 {
     return &gpuSliceData_;
+}
+
+JsHeapFiles* TraceDataCacheWriter::GetJsHeapFilesData()
+{
+    return &JsHeapFilesData_;
+}
+JsHeapEdges* TraceDataCacheWriter::GetJsHeapEdgesData()
+{
+    return &JsHeapEdgesData_;
+}
+JsHeapInfo* TraceDataCacheWriter::GetJsHeapInfoData()
+{
+    return &JsHeapInfoData_;
+}
+JsHeapLocation* TraceDataCacheWriter::GetJsHeapLocationData()
+{
+    return &JsHeapLocationData_;
+}
+JsHeapNodes* TraceDataCacheWriter::GetJsHeapNodesData()
+{
+    return &JsHeapNodesData_;
+}
+JsHeapSample* TraceDataCacheWriter::GetJsHeapSampleData()
+{
+    return &JsHeapSampleData_;
+}
+JsHeapString* TraceDataCacheWriter::GetJsHeapStringData()
+{
+    return &JsHeapStringData_;
+}
+JsHeapTraceFuncInfo* TraceDataCacheWriter::GetJsHeapTraceFuncInfoData()
+{
+    return &JsHeapTraceFuncInfoData_;
+}
+JsHeapTraceNode* TraceDataCacheWriter::GetJsHeapTraceNodeData()
+{
+    return &JsHeapTraceNodeData_;
 }
 void TraceDataCacheWriter::Clear()
 {

@@ -93,8 +93,8 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
     auto seq = stream_.traceDataCache_->GetConstHilogData().HilogLineSeqs()[0];
     EXPECT_EQ(seq, LOG_ID);
 
-    auto timestamp = stream_.traceDataCache_->GetConstHilogData().TimeStamData()[0];
-    EXPECT_EQ(timestamp, (TV_NSEC + TV_SEC * SEC_TO_NS));
+    auto timeStamp = stream_.traceDataCache_->GetConstHilogData().TimeStampData()[0];
+    EXPECT_EQ(timeStamp, (TV_NSEC + TV_SEC * SEC_TO_NS));
 
     auto pid = stream_.traceDataCache_->GetConstHilogData().Pids()[0];
     EXPECT_EQ(pid, PID);
@@ -183,8 +183,8 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
     EXPECT_EQ(seqFirst, LOG_ID_01);
     EXPECT_EQ(seqSecond, LOG_ID_02);
 
-    auto timestampFirst = stream_.traceDataCache_->GetConstHilogData().TimeStamData()[0];
-    auto timestampSecond = stream_.traceDataCache_->GetConstHilogData().TimeStamData()[1];
+    auto timestampFirst = stream_.traceDataCache_->GetConstHilogData().TimeStampData()[0];
+    auto timestampSecond = stream_.traceDataCache_->GetConstHilogData().TimeStampData()[1];
     EXPECT_EQ(timestampFirst, (TV_NSEC_01 + TV_SEC_01 * SEC_TO_NS));
     EXPECT_EQ(timestampSecond, (TV_NSEC_02 + TV_SEC_02 * SEC_TO_NS));
 

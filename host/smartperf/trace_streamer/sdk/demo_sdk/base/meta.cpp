@@ -14,5 +14,5 @@
  */
 #include "meta.h"
 size_t g_loadSize = 0;
-std::string SDK_VERSION = "1.0.2";           // version
-std::string SDK_PUBLISHVERSION = "2023/3/13";  // publish datetime
+std::string SDK_VERSION = "1.0.2";            // version
+std::string SDK_PUBLISHVERSION = "2023/3/13"; // publish datetime

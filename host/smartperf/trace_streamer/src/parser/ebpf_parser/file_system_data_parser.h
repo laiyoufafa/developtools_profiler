@@ -27,8 +27,10 @@ public:
     FileSystemDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~FileSystemDataParser();
     void ParseFileSystemEvent();
+
 protected:
     std::unique_ptr<HtracePluginTimeParser> timeParser_;
+
 private:
     int32_t GetFileDescriptor(const FsFixedHeader* fsFixedHeader, uint32_t fucType);
     uint64_t currentCallId_ = 0;

@@ -88,7 +88,7 @@ HWTEST_F(HidumpParserTest, ParseLegalHidumpInfo, TestSize.Level1)
 
     auto Fps = stream_.traceDataCache_->GetConstHidumpData().Fpss()[0];
     EXPECT_EQ(FPS, Fps);
-    auto TimeSpec = stream_.traceDataCache_->GetConstHidumpData().TimeStamData()[0];
+    auto TimeSpec = stream_.traceDataCache_->GetConstHidumpData().TimeStampData()[0];
     EXPECT_EQ((TV_NSEC + TV_SEC * SEC_TO_NS), TimeSpec);
     auto Size = stream_.traceDataCache_->GetConstHidumpData().Size();
     EXPECT_EQ(1, Size);
@@ -146,9 +146,9 @@ HWTEST_F(HidumpParserTest, ParseMultipleReasonableHidumpInfo, TestSize.Level1)
     EXPECT_EQ(FPS_01, Fps_01);
     EXPECT_EQ(FPS_02, Fps_02);
 
-    auto TimeSpec_00 = stream_.traceDataCache_->GetConstHidumpData().TimeStamData()[0];
-    auto TimeSpec_01 = stream_.traceDataCache_->GetConstHidumpData().TimeStamData()[1];
-    auto TimeSpec_02 = stream_.traceDataCache_->GetConstHidumpData().TimeStamData()[2];
+    auto TimeSpec_00 = stream_.traceDataCache_->GetConstHidumpData().TimeStampData()[0];
+    auto TimeSpec_01 = stream_.traceDataCache_->GetConstHidumpData().TimeStampData()[1];
+    auto TimeSpec_02 = stream_.traceDataCache_->GetConstHidumpData().TimeStampData()[2];
     EXPECT_EQ((TV_NSEC_00 + TV_SEC_00 * SEC_TO_NS), TimeSpec_00);
     EXPECT_EQ((TV_NSEC_01 + TV_SEC_01 * SEC_TO_NS), TimeSpec_01);
     EXPECT_EQ((TV_NSEC_02 + TV_SEC_02 * SEC_TO_NS), TimeSpec_02);

@@ -64,7 +64,7 @@ HWTEST_F(SmapsParserTest, ParseSmapsParse, TestSize.Level1)
     SmapsEvent.Finish();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
 
-    EXPECT_TRUE(access(dbPath_.c_str(),F_OK) == 0);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     memInfo->clear_smapinfo();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SMAPS, STAT_EVENT_RECEIVED);
@@ -111,7 +111,7 @@ HWTEST_F(SmapsParserTest, ParseSmapsParseTestMeasureDataSize, TestSize.Level1)
     SmapsEvent.Finish();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
 
-    EXPECT_TRUE(access(dbPath_.c_str(),F_OK) == 0);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     memInfo->clear_smapinfo();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SMAPS, STAT_EVENT_RECEIVED);
@@ -193,7 +193,7 @@ HWTEST_F(SmapsParserTest, ParseSmapsParseTestMutiMeasureData, TestSize.Level1)
     SmapsEvent.Finish();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
 
-    EXPECT_TRUE(access(dbPath_.c_str(),F_OK) == 0);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     memInfo->clear_smapinfo();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SMAPS, STAT_EVENT_RECEIVED);
@@ -249,7 +249,7 @@ HWTEST_F(SmapsParserTest, ParseMutiEmptySmapsDataAndCountStatInfo, TestSize.Leve
     SmapsEvent.Finish();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
 
-    EXPECT_TRUE(access(dbPath_.c_str(),F_OK) == 0);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     memInfo->clear_smapinfo();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SMAPS, STAT_EVENT_RECEIVED);
@@ -276,7 +276,7 @@ HWTEST_F(SmapsParserTest, ParseEmptySmapsData, TestSize.Level1)
     SmapsEvent.Finish();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
 
-    EXPECT_TRUE(access(dbPath_.c_str(),F_OK) == 0);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     tracePacket.clear_processesinfo();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SMAPS, STAT_EVENT_RECEIVED);

@@ -23,7 +23,7 @@ enum Index { ID = 0, TIME_STAMP, START_ADDRESS, END_ADDRESS, DIRTY, SWAPPER, RSS
 SmapsTable::SmapsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("timestamp", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("timeStamp", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("start_addr", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("end_addr", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("dirty", "INTEGER"));

@@ -26,14 +26,14 @@ public:
     HtracePluginTimeParser(const HtracePluginTimeParser&) = delete;
     HtracePluginTimeParser& operator=(const HtracePluginTimeParser&) = delete;
     ~HtracePluginTimeParser() = default;
-    void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamep);
+    void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp);
     uint64_t GetPluginStartTime();
     uint64_t GetPluginEndTime();
-    uint64_t MinTs()
+    uint64_t MinTs() const
     {
         return minTs_;
     }
-    uint64_t MaxTs()
+    uint64_t MaxTs() const
     {
         return maxTs_;
     }

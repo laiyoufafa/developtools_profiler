@@ -83,7 +83,7 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToMonitonicTimeTwice, TestSize.Level1)
 
 /**
  * @tc.name: ConvertTimestampInvalid
- * @tc.desc: Convert timestamp invalid
+ * @tc.desc: Convert timeStamp invalid
  * @tc.type: FUNC
  */
 HWTEST_F(ClockFilterTest, ConvertTimestampInvalid, TestSize.Level1)
@@ -257,7 +257,7 @@ HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottimeTwiceWithTwoSnapshot, TestSiz
 
 /**
  * @tc.name: ConvertTimestamp
- * @tc.desc: muti type timestamp convert
+ * @tc.desc: muti type timeStamp convert
  * @tc.type: FUNC
  */
 HWTEST_F(ClockFilterTest, ConvertTimestamp, TestSize.Level1)
@@ -374,7 +374,7 @@ HWTEST_F(ClockFilterTest, ConvertToPrimaryTwice, TestSize.Level1)
 
 /**
  * @tc.name: ConvertToPrimaryTimestampLessThanSnapShop
- * @tc.desc: convert realtime to primary time type, and timestamp less than snapshop
+ * @tc.desc: convert realtime to primary time type, and timeStamp less than snapshop
  * @tc.type: FUNC
  */
 HWTEST_F(ClockFilterTest, ConvertToPrimaryTimestampLessThanSnapShop, TestSize.Level1)

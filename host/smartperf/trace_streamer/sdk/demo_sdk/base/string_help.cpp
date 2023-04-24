@@ -19,8 +19,8 @@
 #include <vector>
 namespace SysTuning {
 namespace base {
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 #if !is_mingw

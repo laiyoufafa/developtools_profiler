@@ -41,6 +41,15 @@
 #include "frame_maps_table.h"
 #include "frame_slice_table.h"
 #include "gpu_slice_table.h"
+#include "js_heap_edges_table.h"
+#include "js_heap_files_table.h"
+#include "js_heap_info_table.h"
+#include "js_heap_location_table.h"
+#include "js_heap_nodes_table.h"
+#include "js_heap_sample_table.h"
+#include "js_heap_string_table.h"
+#include "js_heap_trace_function_info_table.h"
+#include "js_heap_trace_node_table.h"
 #include "hidump_table.h"
 #include "instants_table.h"
 #include "irq_table.h"
@@ -52,6 +61,7 @@
 #include "native_hook_frame_table.h"
 #include "native_hook_statistic_table.h"
 #include "native_hook_table.h"
+#include "native_hook_statistic_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
 #if WITH_PERF
@@ -132,6 +142,15 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<ProcessMeasureFilterTable>(*db_, this, "process_measure_filter");
     TableBase::TableDeclare<ClockEventFilterTable>(*db_, this, "clock_event_filter");
     TableBase::TableDeclare<ClkEventFilterTable>(*db_, this, "clk_event_filter");
+    TableBase::TableDeclare<JsHeapFilesTable>(*db_, this, "js_heap_files");
+    TableBase::TableDeclare<JsHeapEdgesTable>(*db_, this, "js_heap_edges");
+    TableBase::TableDeclare<JsHeapInfoTable>(*db_, this, "js_heap_info");
+    TableBase::TableDeclare<JsHeapLocationTable>(*db_, this, "js_heap_location");
+    TableBase::TableDeclare<JsHeapNodesTable>(*db_, this, "js_heap_nodes");
+    TableBase::TableDeclare<JsHeapSampleTable>(*db_, this, "js_heap_sample");
+    TableBase::TableDeclare<JsHeapStringTable>(*db_, this, "js_heap_string");
+    TableBase::TableDeclare<JsHeapTraceFuncInfoTable>(*db_, this, "js_heap_trace_function_info");
+    TableBase::TableDeclare<JsHeapTraceNodeTable>(*db_, this, "js_heap_trace_node");
     TableBase::TableDeclare<ArgsTable>(*db_, this, "args");
 
     TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "sys_event_filter");
@@ -203,6 +222,15 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<ProcessMeasureFilterTable>(*db_, this, "_process_measure_filter");
     TableBase::TableDeclare<ClockEventFilterTable>(*db_, this, "_clock_event_filter");
     TableBase::TableDeclare<ClkEventFilterTable>(*db_, this, "_clk_event_filter");
+    TableBase::TableDeclare<JsHeapFilesTable>(*db_, this, "_js_heap_files");
+    TableBase::TableDeclare<JsHeapEdgesTable>(*db_, this, "_js_heap_edges");
+    TableBase::TableDeclare<JsHeapInfoTable>(*db_, this, "_js_heap_info");
+    TableBase::TableDeclare<JsHeapLocationTable>(*db_, this, "_js_heap_location");
+    TableBase::TableDeclare<JsHeapNodesTable>(*db_, this, "_js_heap_nodes");
+    TableBase::TableDeclare<JsHeapSampleTable>(*db_, this, "_js_heap_sample");
+    TableBase::TableDeclare<JsHeapStringTable>(*db_, this, "_js_heap_string");
+    TableBase::TableDeclare<JsHeapTraceFuncInfoTable>(*db_, this, "_js_heap_trace_function_info");
+    TableBase::TableDeclare<JsHeapTraceNodeTable>(*db_, this, "_js_heap_trace_node");
     TableBase::TableDeclare<ArgsTable>(*db_, this, "_args");
     TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "_sys_event_filter");
     TableBase::TableDeclare<DiskIOTable>(*db_, this, "_diskio");

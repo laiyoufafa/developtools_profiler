@@ -43,6 +43,7 @@ public:
     void FilterAllEventsTemp();
     void FilterAllEvents();
     void Clear();
+
 private:
     void DealEvent(const FtraceEvent& event);
     bool BinderTractionEvent(const MessageLite& event) const;
@@ -95,7 +96,7 @@ private:
                   uint32_t eventTid,
                   const FtraceEvent& cpuDetail)
             : common_(common),
-              eventTimestamp_(eventTimestamp),
+              eventTimeStamp_(eventTimestamp),
               eventCpu_(eventCpu),
               eventPid_(eventPid),
               eventTid_(eventTid),
@@ -103,7 +104,7 @@ private:
         {
         }
         std::string common_;
-        uint64_t eventTimestamp_;
+        uint64_t eventTimeStamp_;
         uint32_t eventCpu_;
         uint32_t eventPid_;
         uint32_t eventTid_;
@@ -111,7 +112,7 @@ private:
     };
     using FuncCall = std::function<bool(const MessageLite& event)>;
     uint32_t eventCpu_ = INVALID_UINT32;
-    uint64_t eventTimestamp_ = INVALID_UINT64;
+    uint64_t eventTimeStamp_ = INVALID_UINT64;
     std::string comm_ = "";
     uint32_t eventPid_ = INVALID_UINT32;
     uint32_t eventTid_ = INVALID_UINT32;

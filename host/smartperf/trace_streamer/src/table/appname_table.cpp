@@ -20,7 +20,7 @@ namespace TraceStreamer {
 namespace {
 enum Index { ID = 0, FLAG, APP_NAME, APP_KEY };
 }
-AppnameTable:: AppnameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+AppnameTable::AppnameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("flag", "INTEGER"));

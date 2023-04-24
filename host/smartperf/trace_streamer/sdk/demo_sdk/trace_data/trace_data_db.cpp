@@ -33,8 +33,8 @@
 const int ONCE_MAX_MB = 1024 * 1024 * 4;
 namespace SysTuning {
 namespace TraceStreamer {
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 using namespace SysTuning::base;
@@ -192,7 +192,7 @@ int TraceDataDB::SearchData()
             std::cout << "will not print result of query" << std::endl;
             printResult = false;
             continue;
-        } else if (line.find("-c:") == 0) {
+        } else if (line.find("-c:") != std::string::npos) {
             line = line.substr(strlen("-c:"));
             if (OperateDatabase(line) == SQLITE_OK) {
                 printf("operate SQL success\n");

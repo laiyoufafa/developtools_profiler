@@ -34,7 +34,7 @@ PerfSampleTable::PerfSampleTable(const TraceDataCache* dataCache) : TableBase(da
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("timestamp", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("timeStamp", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("event_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("event_type_id", "INTEGER"));
@@ -205,7 +205,7 @@ int PerfSampleTable::Cursor::Column(int column) const
             }
             break;
         case TIMESTAMP:
-            sqlite3_result_int64(context_, static_cast<int64_t>(perfSampleObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(perfSampleObj_.TimeStampData()[CurrentRow()]));
             break;
         case THREAD_ID:
             sqlite3_result_int64(context_, static_cast<int64_t>(perfSampleObj_.Tids()[CurrentRow()]));

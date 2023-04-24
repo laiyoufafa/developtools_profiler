@@ -13,20 +13,23 @@
  * limitations under the License.
  */
 #include "perf_data_parser.h"
+#include "file.h"
 #include "perf_data_filter.h"
 #include "stat_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx), frameToCallChainId_(INVALID_UINT32),
-    configNameIndex_(traceDataCache_->dataDict_.GetStringIndex("config_name")),
-    workloaderIndex_(traceDataCache_->dataDict_.GetStringIndex("workload_cmd")),
-    cmdlineIndex_(traceDataCache_->dataDict_.GetStringIndex("cmdline")),
-    runingStateIndex_(traceDataCache_->dataDict_.GetStringIndex("Running")),
-    suspendStatIndex_(traceDataCache_->dataDict_.GetStringIndex("Suspend")),
-    unkonwnStateIndex_(traceDataCache_->dataDict_.GetStringIndex("-"))
+    : HtracePluginTimeParser(dataCache, ctx),
+      configNameIndex_(traceDataCache_->dataDict_.GetStringIndex("config_name")),
+      workloaderIndex_(traceDataCache_->dataDict_.GetStringIndex("workload_cmd")),
+      cmdlineIndex_(traceDataCache_->dataDict_.GetStringIndex("cmdline")),
+      runingStateIndex_(traceDataCache_->dataDict_.GetStringIndex("Running")),
+      suspendStatIndex_(traceDataCache_->dataDict_.GetStringIndex("Suspend")),
+      unkonwnStateIndex_(traceDataCache_->dataDict_.GetStringIndex("-")),
+      frameToCallChainId_(INVALID_UINT32)
 {
+    SymbolsFile::onRecording_ = false;
 }
 void PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, uint64_t size)
 {
@@ -37,19 +40,59 @@ void PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, 
 }
 PerfDataParser::~PerfDataParser()
 {
+    (void)remove(tmpPerfData_.c_str());
     TS_LOGI("perf data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
+bool PerfDataParser::ReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
+{
+    if (access(tmpPerfData_.c_str(), F_OK) != 0) {
+        TS_LOGE("perf file:%s not exist", tmpPerfData_.c_str());
+        return false;
+    }
+    recordDataReader_ = PerfFileReader::Instance(tmpPerfData_);
+    report_ = std::make_unique<Report>();
+    report_->virtualRuntime_.SetSymbolsPaths(symbolsPaths);
+    if (recordDataReader_ == nullptr) {
+        return false;
+    }
+    if (Reload()) {
+        Finish();
+        return true;
+    } else {
+        return false;
+    }
+}
 bool PerfDataParser::LoadPerfData()
 {
-    TS_LOGI("enter");
     // try load the perf data
-    recordDataReader_ = PerfFileReader::Instance(buffer_.get(), bufferSize_);
+    int fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, 0600));
+    if (!fd) {
+        fprintf(stdout, "Failed to create file: %s", tmpPerfData_.c_str());
+        return false;
+    }
+    auto ret = ftruncate(fd, 0);
+    if (bufferSize_ != write(fd, buffer_.get(), bufferSize_)) {
+        close(fd);
+        return false;
+    }
+    recordDataReader_ = PerfFileReader::Instance(tmpPerfData_);
+    report_ = std::make_unique<Report>();
     buffer_.release();
     if (recordDataReader_ == nullptr) {
         return false;
     }
+    return Reload();
+}
+bool PerfDataParser::Reload()
+{
+    frameToCallChainId_.Clear();
+    fileDataDictIdToFileId_.clear();
+    tidToPid_.clear();
+    streamFilters_->perfDataFilter_->BeforeReload();
+    traceDataCache_->GetPerfSampleData()->Clear();
+    traceDataCache_->GetPerfThreadData()->Clear();
 
     if (!recordDataReader_->ReadFeatureSection()) {
         printf("record format error.\n");
@@ -96,12 +139,12 @@ void PerfDataParser::LoadEventDesc()
         const auto& fileAttr = sectionEventdesc.eventDesces_[i];
         TS_LOGI("event name[%zu]: %s ids: %s", i, fileAttr.name.c_str(), VectorToString(fileAttr.ids).c_str());
         for (uint64_t id : fileAttr.ids) {
-            report_.configIdIndexMaps_[id] = report_.configs_.size(); // setup index
-            TS_LOGI("add config id map %" PRIu64 " to %zu", id, report_.configs_.size());
+            report_->configIdIndexMaps_[id] = report_->configs_.size(); // setup index
+            TS_LOGI("add config id map %" PRIu64 " to %zu", id, report_->configs_.size());
         }
         // when cpuOffMode_ , don't use count mode , use time mode.
-        auto& config = report_.configs_.emplace_back(fileAttr.name, fileAttr.attr.type, fileAttr.attr.config,
-                                                     cpuOffMode_ ? false : true);
+        auto& config = report_->configs_.emplace_back(fileAttr.name, fileAttr.attr.type, fileAttr.attr.config,
+                                                      cpuOffMode_ ? false : true);
         config.ids_ = fileAttr.ids;
         TS_ASSERT(config.ids_.size() > 0);
 
@@ -143,17 +186,18 @@ void PerfDataParser::UpdateCmdlineInfo() const
 void PerfDataParser::UpdateSymbolAndFilesData()
 {
     // we need unwind it (for function name match) even not give us path
-    report_.virtualRuntime_.SetDisableUnwind(false);
+    report_->virtualRuntime_.SetDisableUnwind(false);
 
     // found symbols in file
     const auto featureSection = recordDataReader_->GetFeatureSection(FEATURE::HIPERF_FILES_SYMBOL);
     if (featureSection != nullptr) {
         const PerfFileSectionSymbolsFiles* sectionSymbolsFiles =
             static_cast<const PerfFileSectionSymbolsFiles*>(featureSection);
-        report_.virtualRuntime_.UpdateFromPerfData(sectionSymbolsFiles->symbolFileStructs_);
+        report_->virtualRuntime_.UpdateFromPerfData(sectionSymbolsFiles->symbolFileStructs_);
     }
+    // fileid, symbolIndex, filePathIndex
     uint64_t fileId = 0;
-    for (auto& symbolsFile : report_.virtualRuntime_.GetSymbolsFiles()) {
+    for (auto& symbolsFile : report_->virtualRuntime_.GetSymbolsFiles()) {
         auto filePathIndex = traceDataCache_->dataDict_.GetStringIndex(symbolsFile->filePath_.c_str());
         uint32_t serial = 0;
         for (auto& symbol : symbolsFile->GetSymbols()) {
@@ -177,7 +221,7 @@ void PerfDataParser::UpdateClockType()
 bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
 {
     // tell process tree what happend for rebuild symbols
-    report_.virtualRuntime_.UpdateFromRecord(*record);
+    report_->virtualRuntime_.UpdateFromRecord(*record);
 
     if (record->GetType() == PERF_RECORD_SAMPLE) {
         std::unique_ptr<PerfRecordSample> sample(static_cast<PerfRecordSample*>(record.release()));
@@ -266,13 +310,13 @@ void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<
     UpdatePluginTimeRange(perfToTSClockType_.at(clockId_), sample->data_.time, newTimeStamp);
 
     DataIndex threadStatIndex = unkonwnStateIndex_;
-    auto threadState = report_.GetConfigName(sample->data_.id);
+    auto threadState = report_->GetConfigName(sample->data_.id);
     if (threadState.compare(wakingEventName_) == 0) {
         threadStatIndex = runingStateIndex_;
     } else if (threadState.compare(cpuOffEventName_) == 0) {
         threadStatIndex = suspendStatIndex_;
     }
-    auto configIndex = report_.GetConfigIndex(sample->data_.id);
+    auto configIndex = report_->GetConfigIndex(sample->data_.id);
     perfSampleData->AppendNewPerfSample(callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
                                         configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex);
 }

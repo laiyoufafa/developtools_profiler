@@ -21,8 +21,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-IndexMap::IndexMap(TableRowId start, TableRowId end)
-    : current_(start), start_(start), end_(end), type_(COMPACT) {}
+IndexMap::IndexMap(TableRowId start, TableRowId end) : end_(end), current_(start), start_(start), type_(COMPACT) {}
 
 void IndexMap::CovertToIndexMap()
 {
@@ -41,7 +40,8 @@ void IndexMap::CovertToIndexMap()
     }
     indexType_ = INDEX_TYPE_OUTER_INDEX;
 }
-bool IndexMap::HasData() {
+bool IndexMap::HasData() const
+{
     return (start_ != 0 || end_ != INVALID_UINT32) || !empty_;
 }
 void IndexMap::Intersect(TableRowId start, TableRowId end)

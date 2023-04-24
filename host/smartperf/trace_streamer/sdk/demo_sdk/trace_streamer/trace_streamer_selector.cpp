@@ -50,9 +50,7 @@ MetaData* TraceStreamerSelector::GetMetaData()
     return traceDataCache_->GetMetaData();
 }
 
-void TraceStreamerSelector::WaitForParserEnd()
-{
-}
+void TraceStreamerSelector::WaitForParserEnd() {}
 
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size)
 {
@@ -84,8 +82,7 @@ int TraceStreamerSelector::OperateDatabase(const std::string& sql)
 {
     return traceDataCache_->OperateDatabase(sql);
 }
-int TraceStreamerSelector::SearchDatabase(const std::string& sql,
-    TraceDataDB::ResultCallBack resultCallBack)
+int TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }

@@ -22,10 +22,7 @@
 
 namespace SysTuning {
 namespace base {
-enum IntegerRadixType {
-    INTEGER_RADIX_TYPE_DEC = 10,
-    INTEGER_RADIX_TYPE_HEX = 16
-};
+enum IntegerRadixType { INTEGER_RADIX_TYPE_DEC = 10, INTEGER_RADIX_TYPE_HEX = 16 };
 inline uint16_t GetNameASCIISumNoNum(const std::string& str)
 {
     uint32_t sum = 0;
@@ -97,14 +94,17 @@ inline std::optional<int64_t> StrToInt64(const std::string& str, int base = INTE
     }
     return std::nullopt;
 }
-
 inline std::optional<double> StrToDouble(const std::string& str)
 {
     if (!str.empty()) {
+#ifdef WIN32_
+        char* end = nullptr;
+        double value = std::strtod(str.c_str(), &end);
+#else
         double value = std::stod(str);
+#endif
         return std::make_optional(value);
     }
-
     return std::nullopt;
 }
 } // namespace base
