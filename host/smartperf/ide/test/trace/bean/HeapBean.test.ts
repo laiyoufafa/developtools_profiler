@@ -14,15 +14,15 @@
  */
 
 // @ts-ignore
-import {HeapBean} from "../../../dist/trace/bean/HeapBean.js"
+import { HeapBean } from '../../../dist/trace/bean/HeapBean.js';
 
-describe('HeapBean Test', ()=>{
+describe('HeapBean Test', () => {
     let heapBean = new HeapBean();
 
     it('HeapBeanTest01', function () {
         heapBean = {
-            MoudleName: "MoudleName",
-            AllocationFunction: "AllocationFunction",
+            MoudleName: 'MoudleName',
+            AllocationFunction: 'AllocationFunction',
             Allocations: 0,
             Deallocations: 0,
             AllocationSize: 0,
@@ -30,18 +30,21 @@ describe('HeapBean Test', ()=>{
             Total: 0,
             RemainingSize: 0,
             depth: 0,
-        }
-        expect(heapBean).not.toBeUndefined()
-        expect(heapBean).toMatchInlineSnapshot({
-  MoudleName: expect.any(String),
-  AllocationFunction: expect.any(String),
-  Allocations: expect.any(Number),
-  Deallocations: expect.any(Number),
-  AllocationSize: expect.any(Number),
-  DeAllocationSize: expect.any(Number),
-  Total: expect.any(Number),
-  RemainingSize: expect.any(Number),
-  depth: expect.any(Number) }, `
+        };
+        expect(heapBean).not.toBeUndefined();
+        expect(heapBean).toMatchInlineSnapshot(
+            {
+                MoudleName: expect.any(String),
+                AllocationFunction: expect.any(String),
+                Allocations: expect.any(Number),
+                Deallocations: expect.any(Number),
+                AllocationSize: expect.any(Number),
+                DeAllocationSize: expect.any(Number),
+                Total: expect.any(Number),
+                RemainingSize: expect.any(Number),
+                depth: expect.any(Number),
+            },
+            `
 Object {
   "AllocationFunction": Any<String>,
   "AllocationSize": Any<Number>,
@@ -53,6 +56,7 @@ Object {
   "Total": Any<Number>,
   "depth": Any<Number>,
 }
-`)
+`
+        );
     });
-})
+});

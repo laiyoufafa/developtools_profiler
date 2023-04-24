@@ -13,22 +13,27 @@
  * limitations under the License.
  */
 
-import {BaseBean} from "./BaseBean.js";
+import { BaseBean } from './BaseBean.js';
 
 export class USBHead extends Object implements BaseBean {
-    private _flag: number[];// uint8_t 'flag', ct.c_uint8 * 2 flag[2] 2
+    private _flag: number[]; // uint8_t 'flag', ct.c_uint8 * 2 flag[2] 2
     private _option: number; // uint8_t 1
-    private _sessionId: number;  // uint32_t 4
+    private _sessionId: number; // uint32_t 4
     private _dataSize: number; // uint32_t 4
 
-    constructor(flag: number[], option: number, sessionId: number, dataSize: number) {
+    constructor(
+        flag: number[],
+        option: number,
+        sessionId: number,
+        dataSize: number
+    ) {
         super();
         this._flag = flag;
         this._option = option;
         this._sessionId = sessionId;
         this._dataSize = dataSize;
     }
-   static getFlag0Length() {
+    static getFlag0Length() {
         return 1;
     }
 
@@ -71,7 +76,6 @@ export class USBHead extends Object implements BaseBean {
         return new USBHead([flagZero, flagOne], option, sessionId, dataSize);
     }
 
-
     get flag(): number[] {
         return this._flag;
     }
@@ -105,9 +109,15 @@ export class USBHead extends Object implements BaseBean {
     }
 
     toString(): string {
-        return "flag: " + this._flag
-            + " option: " + this._option
-            + " sessionId: " + this._sessionId
-            + " dataSize: " + this._dataSize;
+        return (
+            'flag: ' +
+            this._flag +
+            ' option: ' +
+            this._option +
+            ' sessionId: ' +
+            this._sessionId +
+            ' dataSize: ' +
+            this._dataSize
+        );
     }
 }

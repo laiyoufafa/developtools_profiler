@@ -14,15 +14,16 @@
  */
 
 // @ts-ignore
-import {SpChartManager} from "../../../../dist/trace/component/chart/SpChartManager.js";
+import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
 // @ts-ignore
-import {SpCpuChart} from "../../../../dist/trace/component/chart/SpCpuChart.js";
-import {queryCpuMax} from "../../../../src/trace/database/SqlLite.js";
+import { SpCpuChart } from '../../../../dist/trace/component/chart/SpCpuChart.js';
+import { queryCpuMax } from '../../../../src/trace/database/SqlLite.js';
 
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -30,12 +31,11 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 describe('SpCpuChart Test', () => {
     let MockqueryCpuMax = sqlit.queryCpuMax;
-    MockqueryCpuMax.mockResolvedValue([{cpu:1}])
+    MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
     let ss = new SpChartManager();
     let trace = new SpCpuChart(ss);
     it('SpMpsChart01', function () {
-        trace.init()
+        trace.init();
         expect(trace).toBeDefined();
     });
-
-})
+});

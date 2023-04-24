@@ -13,158 +13,212 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {SelectionData, SelectionParam} from "../../../../bean/BoxSelection";
-import {LitTable} from "../../../../../base-ui/table/lit-table";
-import {JankFramesStruct} from "../../../../bean/JankFramesStruct.js";
-import {JanksStruct} from "../../../../bean/JanksStruct.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { JankFramesStruct } from '../../../../bean/JankFramesStruct.js';
+import { JanksStruct } from '../../../../bean/JanksStruct.js';
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
     private litTable: LitTable | null | undefined;
     private range: HTMLLabelElement | null | undefined;
-    private source: Array<any> = []
+    private source: Array<any> = [];
     set data(val: SelectionParam | any) {
-        this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
-        this.queryDataByDB(val)
+        this.range!.textContent =
+            'Selected range: ' +
+            parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) +
+            ' ms';
+        this.queryDataByDB(val);
     }
 
-
     queryDataByDB(val: SelectionParam | any) {
-        let tablelist = new Array<JankFramesStruct>()
+        let tablelist = new Array<JankFramesStruct>();
         let sumRes: JankFramesStruct = new JankFramesStruct();
         let appJank: JankFramesStruct = new JankFramesStruct();
         let rsJank: JankFramesStruct = new JankFramesStruct();
         let noJank: JankFramesStruct = new JankFramesStruct();
-        val.jankFramesData.forEach((data:Array<JanksStruct>) => {
-            sumRes.occurrences += data.length
-            data.forEach((da:JanksStruct) => {
+        val.jankFramesData.forEach((data: Array<JanksStruct>) => {
+            sumRes.occurrences += data.length;
+            data.forEach((da: JanksStruct) => {
                 if (da.dur == null || da.dur == undefined) {
                     da.dur = 0;
                 }
                 if (da.frame_type == 'app') {
                     if (da.jank_tag) {
-                        appJank.flag = da.jank_tag
-                        appJank.jankType = 'APP Deadline Missed'
-                        appJank.occurrences += 1
-                        appJank.maxDuration = Math.max(da.dur , appJank.maxDuration!)
+                        appJank.flag = da.jank_tag;
+                        appJank.jankType = 'APP Deadline Missed';
+                        appJank.occurrences += 1;
+                        appJank.maxDuration = Math.max(
+                            da.dur,
+                            appJank.maxDuration!
+                        );
                         if (appJank.minDuration == -1) {
-                            appJank.minDuration =  da.dur
+                            appJank.minDuration = da.dur;
                         } else {
-                            appJank.minDuration = Math.min(da.dur,appJank.minDuration!)
+                            appJank.minDuration = Math.min(
+                                da.dur,
+                                appJank.minDuration!
+                            );
                         }
                         if (appJank.meanDuration == -1) {
-                            appJank.meanDuration = da.dur
+                            appJank.meanDuration = da.dur;
                         } else {
-                            appJank.meanDuration = Number(((da.dur + appJank.meanDuration!) /2).toFixed(2));
+                            appJank.meanDuration = Number(
+                                ((da.dur + appJank.meanDuration!) / 2).toFixed(
+                                    2
+                                )
+                            );
                         }
                     } else {
-                        noJank.flag =  da.jank_tag
-                        noJank.jankType = 'None'
-                        noJank.occurrences += 1
-                        noJank.maxDuration = Math.max(da.dur, noJank.maxDuration!)
+                        noJank.flag = da.jank_tag;
+                        noJank.jankType = 'None';
+                        noJank.occurrences += 1;
+                        noJank.maxDuration = Math.max(
+                            da.dur,
+                            noJank.maxDuration!
+                        );
                         if (noJank.minDuration == -1) {
-                            noJank.minDuration =  da.dur
+                            noJank.minDuration = da.dur;
                         } else {
-                            noJank.minDuration = Math.min(da.dur,noJank.minDuration!)
+                            noJank.minDuration = Math.min(
+                                da.dur,
+                                noJank.minDuration!
+                            );
                         }
                         if (noJank.meanDuration == -1) {
-                            noJank.meanDuration = da.dur
+                            noJank.meanDuration = da.dur;
                         } else {
-                            noJank.meanDuration = Number(((da.dur + noJank.meanDuration!) /2).toFixed(2));
+                            noJank.meanDuration = Number(
+                                ((da.dur + noJank.meanDuration!) / 2).toFixed(2)
+                            );
                         }
                     }
-                } else if(da.frame_type == 'renderService') {
+                } else if (da.frame_type == 'renderService') {
                     if (da.jank_tag) {
-                        rsJank.flag = da.jank_tag
-                        rsJank.jankType = 'RenderService Deadline Missed'
-                        rsJank.occurrences += 1
-                        rsJank.maxDuration = Math.max(da.dur, rsJank.maxDuration!)
+                        rsJank.flag = da.jank_tag;
+                        rsJank.jankType = 'RenderService Deadline Missed';
+                        rsJank.occurrences += 1;
+                        rsJank.maxDuration = Math.max(
+                            da.dur,
+                            rsJank.maxDuration!
+                        );
                         if (rsJank.minDuration == -1) {
-                            rsJank.minDuration =  da.dur
+                            rsJank.minDuration = da.dur;
                         } else {
-                            rsJank.minDuration = Math.min(da.dur,rsJank.minDuration!)
+                            rsJank.minDuration = Math.min(
+                                da.dur,
+                                rsJank.minDuration!
+                            );
                         }
                         if (rsJank.meanDuration == -1) {
-                            rsJank.meanDuration = da.dur
+                            rsJank.meanDuration = da.dur;
                         } else {
-                            rsJank.meanDuration = Number(((da.dur + rsJank.meanDuration!) /2).toFixed(2));
+                            rsJank.meanDuration = Number(
+                                ((da.dur + rsJank.meanDuration!) / 2).toFixed(2)
+                            );
                         }
                     } else {
-                        noJank.flag =  da.jank_tag
-                        noJank.jankType = 'None'
-                        noJank.occurrences += 1
-                        noJank.maxDuration = Math.max(da.dur, noJank.maxDuration)
+                        noJank.flag = da.jank_tag;
+                        noJank.jankType = 'None';
+                        noJank.occurrences += 1;
+                        noJank.maxDuration = Math.max(
+                            da.dur,
+                            noJank.maxDuration
+                        );
                         if (noJank.minDuration == -1) {
-                            noJank.minDuration =  da.dur
+                            noJank.minDuration = da.dur;
                         } else {
-                            noJank.minDuration = Math.min(da.dur,noJank.minDuration!)
+                            noJank.minDuration = Math.min(
+                                da.dur,
+                                noJank.minDuration!
+                            );
                         }
                         if (noJank.meanDuration == -1) {
-                            noJank.meanDuration = da.dur
+                            noJank.meanDuration = da.dur;
                         } else {
-                            noJank.meanDuration = Number(((da.dur + noJank.meanDuration) /2).toFixed(2));
+                            noJank.meanDuration = Number(
+                                ((da.dur + noJank.meanDuration) / 2).toFixed(2)
+                            );
                         }
                     }
                 } else {
                     // frameTime
                     if (da.jank_tag) {
-                        appJank.flag = da.jank_tag
-                        appJank.jankType = 'Deadline Missed'
-                        appJank.occurrences += 1
-                        appJank.maxDuration = Math.max(da.dur, appJank.maxDuration)
-                        appJank.minDuration = Math.min(da.dur,appJank.minDuration)
+                        appJank.flag = da.jank_tag;
+                        appJank.jankType = 'Deadline Missed';
+                        appJank.occurrences += 1;
+                        appJank.maxDuration = Math.max(
+                            da.dur,
+                            appJank.maxDuration
+                        );
+                        appJank.minDuration = Math.min(
+                            da.dur,
+                            appJank.minDuration
+                        );
                         if (appJank.minDuration == -1) {
-                            appJank.minDuration =  da.dur
+                            appJank.minDuration = da.dur;
                         } else {
-                            appJank.minDuration = Math.min(da.dur,appJank.minDuration!)
+                            appJank.minDuration = Math.min(
+                                da.dur,
+                                appJank.minDuration!
+                            );
                         }
                         if (appJank.meanDuration == -1) {
-                            appJank.meanDuration = da.dur
+                            appJank.meanDuration = da.dur;
                         } else {
-                            appJank.meanDuration = Number(((da.dur + appJank.meanDuration) /2).toFixed(2));
+                            appJank.meanDuration = Number(
+                                ((da.dur + appJank.meanDuration) / 2).toFixed(2)
+                            );
                         }
                     } else {
-                        noJank.flag =  da.jank_tag
-                        noJank.jankType = 'None'
-                        noJank.occurrences += 1
-                        noJank.maxDuration = Math.max(da.dur, noJank.maxDuration)
+                        noJank.flag = da.jank_tag;
+                        noJank.jankType = 'None';
+                        noJank.occurrences += 1;
+                        noJank.maxDuration = Math.max(
+                            da.dur,
+                            noJank.maxDuration
+                        );
                         if (noJank.minDuration == -1) {
-                            noJank.minDuration =  da.dur
+                            noJank.minDuration = da.dur;
                         } else {
-                            noJank.minDuration = Math.min(da.dur,noJank.minDuration!)
+                            noJank.minDuration = Math.min(
+                                da.dur,
+                                noJank.minDuration!
+                            );
                         }
                         if (noJank.meanDuration == -1) {
-                            noJank.meanDuration = da.dur
+                            noJank.meanDuration = da.dur;
                         } else {
-                            noJank.meanDuration = Number(((da.dur + noJank.meanDuration) /2).toFixed(2));
+                            noJank.meanDuration = Number(
+                                ((da.dur + noJank.meanDuration) / 2).toFixed(2)
+                            );
                         }
-
                     }
                 }
-            })
-        })
-        tablelist.push(sumRes)
-        if (appJank.occurrences > 0){
-            appJank.maxDurationStr = appJank.maxDuration + ""
-            appJank.minDurationStr = appJank.minDuration  + ""
-            appJank.meanDurationStr = appJank.meanDuration  + ""
-            tablelist.push(appJank)
+            });
+        });
+        tablelist.push(sumRes);
+        if (appJank.occurrences > 0) {
+            appJank.maxDurationStr = appJank.maxDuration + '';
+            appJank.minDurationStr = appJank.minDuration + '';
+            appJank.meanDurationStr = appJank.meanDuration + '';
+            tablelist.push(appJank);
         }
-        if (rsJank.occurrences > 0){
-            rsJank.maxDurationStr = rsJank.maxDuration  + ""
-            rsJank.minDurationStr = rsJank.minDuration  + ""
-            rsJank.meanDurationStr = rsJank.meanDuration  + ""
-            tablelist.push(rsJank)
+        if (rsJank.occurrences > 0) {
+            rsJank.maxDurationStr = rsJank.maxDuration + '';
+            rsJank.minDurationStr = rsJank.minDuration + '';
+            rsJank.meanDurationStr = rsJank.meanDuration + '';
+            tablelist.push(rsJank);
         }
-        if (noJank.occurrences > 0){
-            noJank.maxDurationStr = noJank.maxDuration  + ""
-            noJank.minDurationStr = noJank.minDuration + ""
-            noJank.meanDurationStr = noJank.meanDuration + ""
-            tablelist.push(noJank)
+        if (noJank.occurrences > 0) {
+            noJank.maxDurationStr = noJank.maxDuration + '';
+            noJank.minDurationStr = noJank.minDuration + '';
+            noJank.meanDurationStr = noJank.meanDuration + '';
+            tablelist.push(noJank);
         }
-        this.source = tablelist
-        this.litTable!.recycleDataSource = tablelist
+        this.source = tablelist;
+        this.litTable!.recycleDataSource = tablelist;
     }
 
     initElements(): void {
@@ -172,7 +226,7 @@ export class TabPaneFrames extends BaseElement {
         this.range = this.shadowRoot?.querySelector('#time-range');
         this.litTable!.addEventListener('column-click', (evt) => {
             // @ts-ignore
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -181,10 +235,10 @@ export class TabPaneFrames extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.litTable?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.litTable?.reMeauseHeight()
+                this.litTable?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.litTable?.reMeauseHeight();
             }
-        }).observe(this.parentElement!)
+        }).observe(this.parentElement!);
     }
 
     initHtml(): string {
@@ -216,7 +270,7 @@ export class TabPaneFrames extends BaseElement {
         // @ts-ignore
         function compare(property, sort, type) {
             return function (a: SelectionData, b: SelectionData) {
-                if (a.process == " " || b.process == " ") {
+                if (a.process == ' ' || b.process == ' ') {
                     return 0;
                 }
                 if (type === 'number') {
@@ -226,7 +280,8 @@ export class TabPaneFrames extends BaseElement {
                     // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
+                    } else {
+                        // @ts-ignore
                         if (b[property] == a[property]) {
                             return 0;
                         } else {
@@ -234,13 +289,13 @@ export class TabPaneFrames extends BaseElement {
                         }
                     }
                 }
-            }
+            };
         }
 
-        if (detail.key === "jankType") {
-            this.source.sort(compare(detail.key, detail.sort, 'string'))
+        if (detail.key === 'jankType') {
+            this.source.sort(compare(detail.key, detail.sort, 'string'));
         } else {
-            this.source.sort(compare(detail.key, detail.sort, 'number'))
+            this.source.sort(compare(detail.key, detail.sort, 'number'));
         }
         this.litTable!.recycleDataSource = this.source;
     }

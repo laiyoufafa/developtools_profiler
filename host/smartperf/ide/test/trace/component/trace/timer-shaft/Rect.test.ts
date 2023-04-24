@@ -14,14 +14,17 @@
  */
 
 // @ts-ignore
-import {Rect, Point} from "../../../../../dist/trace/component/trace/timer-shaft/Rect.js"
+import {
+    Rect,
+    Point,
+} from '../../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 
-describe('Rect Test', ()=>{
+describe('Rect Test', () => {
     let rect = new Rect(20, 20, 100, 100);
-    let point = new Point()
+    let point = new Point();
 
     it('RectTest01', function () {
-        expect(rect.contains(4,5)).toBeFalsy();
+        expect(rect.contains(4, 5)).toBeFalsy();
     });
 
     it('RectTest02', function () {
@@ -29,7 +32,7 @@ describe('Rect Test', ()=>{
     });
 
     it('RectTest03', function () {
-        expect(rect.containsWithPadding(4,5, 2, 2)).toBeFalsy();
+        expect(rect.containsWithPadding(4, 5, 2, 2)).toBeFalsy();
     });
 
     it('RectTest04', function () {
@@ -37,14 +40,14 @@ describe('Rect Test', ()=>{
     });
 
     it('RectTest05', function () {
-        expect(rect.containsWithMargin(1,2,1,2,4,5,)).toBeFalsy();
+        expect(rect.containsWithMargin(1, 2, 1, 2, 4, 5)).toBeFalsy();
     });
 
     it('RectTest06', function () {
-        expect(Rect.containsWithMargin(1,2,1,2,4,5,)).toBeFalsy();
+        expect(Rect.containsWithMargin(1, 2, 1, 2, 4, 5)).toBeFalsy();
     });
 
     it('RectTest07', function () {
         expect(rect.intersect([])).toBeFalsy();
     });
-})
+});

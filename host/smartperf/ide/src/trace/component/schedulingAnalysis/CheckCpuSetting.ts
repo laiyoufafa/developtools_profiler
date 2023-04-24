@@ -13,130 +13,145 @@
  * limitations under the License.
  */
 
+import { BaseElement, element } from '../../../base-ui/BaseElement.js';
+import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox.js';
+import '../../../base-ui/checkbox/LitCheckBox.js';
+import { SpSchedulingAnalysis } from './SpSchedulingAnalysis.js';
 
-import {BaseElement, element} from "../../../base-ui/BaseElement.js";
-import {LitCheckBox} from "../../../base-ui/checkbox/LitCheckBox.js";
-import "../../../base-ui/checkbox/LitCheckBox.js"
-import {SpSchedulingAnalysis} from "./SpSchedulingAnalysis.js";
-
-export class CpuSetting{
-    cpu:number = 0;
-    big:boolean = false;
-    middle:boolean = true;
-    small:boolean = false;
+export class CpuSetting {
+    cpu: number = 0;
+    big: boolean = false;
+    middle: boolean = true;
+    small: boolean = false;
 }
 
 @element('check-cpu-setting')
 export class CheckCpuSetting extends BaseElement {
+    static mid_cores: number[] = [];
+    static big_cores: number[] = [];
+    static small_cores: number[] = [];
+    static init_setting: boolean = false;
 
-    static mid_cores:number[] = []
-    static big_cores:number[] = []
-    static small_cores:number[] = []
-    static init_setting:boolean = false
-
-    private table:HTMLDivElement | null | undefined
-    private setUpload:HTMLDivElement | null | undefined
-    private listener?:()=>void | undefined
+    private table: HTMLDivElement | null | undefined;
+    private setUpload: HTMLDivElement | null | undefined;
+    private listener?: () => void | undefined;
 
     initElements(): void {
-        this.table = this.shadowRoot!.querySelector<HTMLDivElement>("#tb_cpu_setting")
-        this.setUpload = this.shadowRoot!.querySelector<HTMLDivElement>("#set_upload")
-        this.setUpload!.addEventListener("click",(e)=>{
+        this.table =
+            this.shadowRoot!.querySelector<HTMLDivElement>('#tb_cpu_setting');
+        this.setUpload =
+            this.shadowRoot!.querySelector<HTMLDivElement>('#set_upload');
+        this.setUpload!.addEventListener('click', (e) => {
             CheckCpuSetting.init_setting = true;
-            this.listener?.()
-        })
+            this.listener?.();
+        });
     }
 
-    set cpuSetListener(listener:()=>void | undefined){
+    set cpuSetListener(listener: () => void | undefined) {
         this.listener = listener;
     }
 
-    init(){
-        this.initDefaultSetting()
-        let data:any[] = [];
-        this.table!.innerHTML = ''
-        this.createHeaderDiv()
+    init() {
+        this.initDefaultSetting();
+        let data: any[] = [];
+        this.table!.innerHTML = '';
+        this.createHeaderDiv();
         for (let i = 0; i < SpSchedulingAnalysis.cpuCount; i++) {
             let obj = {
-                cpu:i,
-                big:CheckCpuSetting.big_cores.includes(i),
-                middle:CheckCpuSetting.mid_cores.includes(i),
-                small:CheckCpuSetting.small_cores.includes(i),
-            }
-            data.push(obj)
-            this.createTableLine(obj)
+                cpu: i,
+				// @ts-ignore
+                big: CheckCpuSetting.big_cores.includes(i),
+				// @ts-ignore
+                middle: CheckCpuSetting.mid_cores.includes(i),
+				// @ts-ignore
+                small: CheckCpuSetting.small_cores.includes(i),
+            };
+            data.push(obj);
+            this.createTableLine(obj);
         }
     }
 
-    initDefaultSetting(){
-        if(!CheckCpuSetting.init_setting){
-            CheckCpuSetting.mid_cores = []
-            CheckCpuSetting.big_cores = []
-            CheckCpuSetting.small_cores = []
+    initDefaultSetting() {
+        if (!CheckCpuSetting.init_setting) {
+            CheckCpuSetting.mid_cores = [];
+            CheckCpuSetting.big_cores = [];
+            CheckCpuSetting.small_cores = [];
             for (let i = 0; i < SpSchedulingAnalysis.cpuCount; i++) {
-                CheckCpuSetting.mid_cores.push(i)
+                CheckCpuSetting.mid_cores.push(i);
             }
         }
     }
 
-    createTableLine(cpuSetting:CpuSetting){
-        let div = document.createElement("div")
-        div.className = "setting_line"
-        div.textContent = cpuSetting.cpu+""
-        let bigCheckBox : LitCheckBox = new LitCheckBox()
+    createTableLine(cpuSetting: CpuSetting) {
+        let div = document.createElement('div');
+        div.className = 'setting_line';
+        div.textContent = cpuSetting.cpu + '';
+        let bigCheckBox: LitCheckBox = new LitCheckBox();
         bigCheckBox.checked = cpuSetting.big;
-        let midCheckBox : LitCheckBox = new LitCheckBox()
+        let midCheckBox: LitCheckBox = new LitCheckBox();
         midCheckBox.checked = cpuSetting.middle;
-        let smallCheckBox : LitCheckBox = new LitCheckBox()
+        let smallCheckBox: LitCheckBox = new LitCheckBox();
         smallCheckBox.checked = cpuSetting.small;
-        bigCheckBox.addEventListener("change",(e)=>{
-            midCheckBox.checked = false
-            smallCheckBox.checked = false
-            cpuSetting.big = true
-            CheckCpuSetting.big_cores.push(cpuSetting.cpu)
-            CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter(it => it !== cpuSetting.cpu)
-            CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter(it => it !== cpuSetting.cpu)
-        })
-        midCheckBox.addEventListener("change",(e)=>{
-            bigCheckBox.checked = false
-            smallCheckBox.checked = false
-            cpuSetting.middle = true
-            CheckCpuSetting.mid_cores.push(cpuSetting.cpu)
-            CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter(it => it !== cpuSetting.cpu)
-            CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter(it => it !== cpuSetting.cpu)
-        })
-        smallCheckBox.addEventListener("change",(e)=>{
-            midCheckBox.checked = false
-            bigCheckBox.checked = false
-            cpuSetting.small = true
-            CheckCpuSetting.small_cores.push(cpuSetting.cpu)
-            CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter(it => it !== cpuSetting.cpu)
-            CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter(it => it !== cpuSetting.cpu)
-        })
-        this.table?.append(...[div,bigCheckBox,midCheckBox,smallCheckBox])
+        bigCheckBox.addEventListener('change', (e) => {
+            midCheckBox.checked = false;
+            smallCheckBox.checked = false;
+            cpuSetting.big = true;
+            CheckCpuSetting.big_cores.push(cpuSetting.cpu);
+            CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter(
+                (it) => it !== cpuSetting.cpu
+            );
+            CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter(
+                (it) => it !== cpuSetting.cpu
+            );
+        });
+        midCheckBox.addEventListener('change', (e) => {
+            bigCheckBox.checked = false;
+            smallCheckBox.checked = false;
+            cpuSetting.middle = true;
+            CheckCpuSetting.mid_cores.push(cpuSetting.cpu);
+            CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter(
+                (it) => it !== cpuSetting.cpu
+            );
+            CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter(
+                (it) => it !== cpuSetting.cpu
+            );
+        });
+        smallCheckBox.addEventListener('change', (e) => {
+            midCheckBox.checked = false;
+            bigCheckBox.checked = false;
+            cpuSetting.small = true;
+            CheckCpuSetting.small_cores.push(cpuSetting.cpu);
+            CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter(
+                (it) => it !== cpuSetting.cpu
+            );
+            CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter(
+                (it) => it !== cpuSetting.cpu
+            );
+        });
+        this.table?.append(...[div, bigCheckBox, midCheckBox, smallCheckBox]);
     }
 
-    createHeaderDiv(){
-        let column1 = document.createElement("div")
-        column1.className = "setting_line"
-        column1.style.fontWeight = "bold"
-        column1.textContent = "cpu_id"
-        let column2 = document.createElement("div")
-        column2.className = "setting_line"
-        column2.style.fontWeight = "bold"
-        column2.textContent = "big"
-        let column3 = document.createElement("div")
-        column3.className = "setting_line"
-        column3.style.fontWeight = "bold"
-        column3.textContent = "middle"
-        let column4 = document.createElement("div")
-        column4.className = "setting_line"
-        column4.style.fontWeight = "bold"
-        column4.textContent = "small"
-        this.table?.append(...[column1,column2,column3,column4])
+    createHeaderDiv() {
+        let column1 = document.createElement('div');
+        column1.className = 'setting_line';
+        column1.style.fontWeight = 'bold';
+        column1.textContent = 'cpu_id';
+        let column2 = document.createElement('div');
+        column2.className = 'setting_line';
+        column2.style.fontWeight = 'bold';
+        column2.textContent = 'big';
+        let column3 = document.createElement('div');
+        column3.className = 'setting_line';
+        column3.style.fontWeight = 'bold';
+        column3.textContent = 'middle';
+        let column4 = document.createElement('div');
+        column4.className = 'setting_line';
+        column4.style.fontWeight = 'bold';
+        column4.textContent = 'small';
+        this.table?.append(...[column1, column2, column3, column4]);
     }
 
-    static resetCpuSettings(){
+    static resetCpuSettings() {
         CheckCpuSetting.init_setting = false;
         CheckCpuSetting.big_cores = [];
         CheckCpuSetting.small_cores = [];
@@ -198,31 +213,6 @@ export class CheckCpuSetting extends BaseElement {
                 <div id="set_upload" class="upload_bt">Upload</div>
             </div>
             <div class="cpu_setting_div" id="tb_cpu_setting" >
-<!--            -->
-<!--            <lit-table id="tb_cpu_setting" style="height: 50vh">-->
-<!--                <lit-table-column width="1fr" title="cpu_id" data-index="cpuId" key="cpuId" align="flex-start"></lit-table-column>-->
-<!--                <lit-table-column width="1fr" title="big" data-index="big" key="big" align="flex-start">-->
-<!--                    <template>-->
-<!--                        <div class="td" idx="{{index}}" name="big">-->
-<!--                            <lit-check-box id="big-check-{{index}}" {{big?"checked":""}} class="cs-check-box-type"></lit-check-box>-->
-<!--                        </div>-->
-<!--                    </template>-->
-<!--                </lit-table-column>-->
-<!--                <lit-table-column width="1fr" title="middle" data-index="middle" key="middle" align="flex-start">-->
-<!--                    <template>-->
-<!--                        <div class="td" idx="{{index}}" name="middle">-->
-<!--                            <lit-check-box id="mid-check-{{index}}" {{middle?"checked":""}} class="cs-check-box-type"></lit-check-box>-->
-<!--                        </div>-->
-<!--                    </template>-->
-<!--                </lit-table-column>-->
-<!--                <lit-table-column width="1fr" title="small" data-index="small" key="small" align="flex-start">-->
-<!--                    <template>-->
-<!--                        <div class="td" idx="{{index}}" name="small">-->
-<!--                            <lit-check-box id="small-check-{{index}}" {{small?"checked":""}} class="cs-check-box-type"></lit-check-box>-->
-<!--                        </div>-->
-<!--                    </template>-->
-<!--                </lit-table-column>    -->
-<!--            </lit-table>-->
             </div>
         </div>
         

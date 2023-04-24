@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {procedurePool,ProcedureThread} from "../../../dist/trace/database/Procedure.js"
+import {
+    procedurePool,
+    ProcedureThread,
+} from '../../../dist/trace/database/Procedure.js';
 
 describe('procedure Test', () => {
-
     it('ProfilerClientTest02', function () {
         expect(procedurePool.isIdle()).not.toBeUndefined();
     });
@@ -24,5 +26,4 @@ describe('procedure Test', () => {
     it('ProfilerClientTest01', function () {
         expect(procedurePool.submitWithName()).toBeUndefined();
     });
-
-})
+});

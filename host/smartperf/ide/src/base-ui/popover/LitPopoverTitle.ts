@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
 
-@element("lit-popover-title")
+@element('lit-popover-title')
 export class LitPopoverTitle extends BaseElement {
     private titleText: HTMLElement | null | undefined;
 
     static get observedAttributes() {
-        return ['title']
+        return ['title'];
     }
 
     initElements(): void {
@@ -47,12 +47,11 @@ export class LitPopoverTitle extends BaseElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         switch (name) {
-            case "title":
-                if (this.titleText) this.titleText.textContent = newValue
+            case 'title':
+                if (this.titleText) this.titleText.textContent = newValue;
                 break;
             default:
                 break;
         }
     }
-
 }

@@ -14,31 +14,28 @@
  */
 
 // @ts-ignore
-import {TabPaneFileSystemDescHistory} from "../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFileSystemDescHistory.js"
-window.ResizeObserver = window.ResizeObserver ||
+import { TabPaneFileSystemDescHistory } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFileSystemDescHistory.js';
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 describe('TabPaneFileSystemDescHistory Test', () => {
+    document.body.innerHTML = `<tabpane-filesystem-desc-history id="history"></tabpane-filesystem-desc-history>`;
+    let tabPaneFileSystemDescHistory =
+        document.querySelector<TabPaneFileSystemDescHistory>('#history');
 
-     document.body.innerHTML = `<tabpane-filesystem-desc-history id="history"></tabpane-filesystem-desc-history>`
-     let tabPaneFileSystemDescHistory = document.querySelector<TabPaneFileSystemDescHistory>('#history')
+    it('TabPaneFileSystemDescHistoryTest01', function () {
+        expect(tabPaneFileSystemDescHistory.setProcessFilter).toBeUndefined();
+    });
 
-     it('TabPaneFileSystemDescHistoryTest01', function () {
-         expect(tabPaneFileSystemDescHistory.setProcessFilter).toBeUndefined();
+    it('TabPaneFileSystemDescHistoryTest02', function () {
+        expect(tabPaneFileSystemDescHistory.filterData).toBeUndefined();
+    });
 
-     });
-
-     it('TabPaneFileSystemDescHistoryTest02', function () {
-         expect(tabPaneFileSystemDescHistory.filterData).toBeUndefined();
-
-     });
-
-     it('TabPaneFileSystemDescHistoryTest03', function () {
-         expect(tabPaneFileSystemDescHistory.data).toBeUndefined();
-
-     });
-
- })
+    it('TabPaneFileSystemDescHistoryTest03', function () {
+        expect(tabPaneFileSystemDescHistory.data).toBeUndefined();
+    });
+});

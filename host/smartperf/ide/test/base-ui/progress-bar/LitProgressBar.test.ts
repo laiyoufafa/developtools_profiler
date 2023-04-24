@@ -14,18 +14,18 @@
  */
 
 // @ts-ignore
-import {LitProgressBar} from "../../../dist/base-ui/progress-bar/LitProgressBar.js";
+import { LitProgressBar } from '../../../dist/base-ui/progress-bar/LitProgressBar.js';
 
-describe('LitProgressBar Test', ()=>{
+describe('LitProgressBar Test', () => {
     let litProgressBar = new LitProgressBar();
-    litProgressBar.loading = ''
-    litProgressBar.loading = 'load'
+    litProgressBar.loading = '';
+    litProgressBar.loading = 'load';
 
-    it('LitProgressBarTest01', ()=>{
+    it('LitProgressBarTest01', () => {
         expect(litProgressBar.loading).toBeTruthy();
-    })
+    });
 
-    it('LitProgressBarTest02', ()=>{
+    it('LitProgressBarTest02', () => {
         expect(litProgressBar.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
@@ -74,5 +74,5 @@ describe('LitProgressBar Test', ()=>{
         </div>
         "
 `);
-    })
-})
+    });
+});

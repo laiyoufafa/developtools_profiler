@@ -13,34 +13,57 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
+
 // @ts-ignore
-import {mem, ProcessMemStruct,MemRender} from "../../../../dist/trace/database/ui-worker/ProcedureWorkerMem.js";
+import {
+    mem,
+    ProcessMemStruct,
+    MemRender,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerMem.js';
 // @ts-ignore
-import {Rect} from "../../../../dist/trace/component/trace/timer-shaft/Rect.js";
+import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 
 describe(' Test', () => {
-
-    let frame={
-        x:0,
-        y:9,
-        width:10,
-        height:10
-    }
+    let frame = {
+        x: 0,
+        y: 9,
+        width: 10,
+        height: 10,
+    };
     it('MemTest01', () => {
         let dataList = new Array();
-        dataList.push({startTime: 0, duration: 10, frame: {x:0, y:9, width:10, height:10}})
-        dataList.push({startTime: 1, duration: 111, frame: {x:0, y:9, width:10, height:10}})
+        dataList.push({
+            startTime: 0,
+            duration: 10,
+            frame: { x: 0, y: 9, width: 10, height: 10 },
+        });
+        dataList.push({
+            startTime: 1,
+            duration: 111,
+            frame: { x: 0, y: 9, width: 10, height: 10 },
+        });
         let rect = new Rect(0, 10, 10, 10);
-        mem(dataList, [{length:0}], 2, 100254, 100254, frame,false)
-    })
+        mem(dataList, [{ length: 0 }], 2, 100254, 100254, frame, false);
+    });
 
     it('MemTest02', () => {
         let dataList = new Array();
-        dataList.push({startTime: 0, duration: 10, frame: {x:0, y:9, width:10, height:10}})
-        dataList.push({startTime: 1, duration: 111, frame: {x:0, y:9, width:10, height:10}})
+        dataList.push({
+            startTime: 0,
+            duration: 10,
+            frame: { x: 0, y: 9, width: 10, height: 10 },
+        });
+        dataList.push({
+            startTime: 1,
+            duration: 111,
+            frame: { x: 0, y: 9, width: 10, height: 10 },
+        });
         let rect = new Rect(0, 10, 10, 10);
-        mem(dataList, [{length:0}], 2, 100254, 100254, frame,true)
-    })
+        mem(dataList, [{ length: 0 }], 2, 100254, 100254, frame, true);
+    });
 
     it('MemTest03', () => {
         const canvas = document.createElement('canvas');
@@ -53,53 +76,53 @@ describe(' Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             startNS: 200,
-            value: 50
-        }
-        expect(ProcessMemStruct.draw(ctx, data)).toBeUndefined()
-    })
+            value: 50,
+        };
+        expect(ProcessMemStruct.draw(ctx, data)).toBeUndefined();
+    });
 
     it('MemTest04', function () {
-        let memRender = new MemRender()
-        let  req = {
-            lazyRefresh:true,
-            type:"",
-            startNS:1,
-            endNS:1,
-            totalNS:1,
+        let memRender = new MemRender();
+        let req = {
+            lazyRefresh: true,
+            type: '',
+            startNS: 1,
+            endNS: 1,
+            totalNS: 1,
             frame: {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
-            useCache:false,
-            range:{
-                refresh:"",
+            useCache: false,
+            range: {
+                refresh: '',
             },
-            canvas:'',
-            context:{
-                font:"11px sans-serif",
-                fillStyle:"#ec407a",
-                globalAlpha:0.6,
+            canvas: '',
+            context: {
+                font: '11px sans-serif',
+                fillStyle: '#ec407a',
+                globalAlpha: 0.6,
             },
-            lineColor:'',
-            isHover:'',
-            hoverX:1,
-            params:'',
-            wakeupBean:undefined,
-            flagMoveInfo:'',
-            flagSelectedInfo:'',
-            slicesTime:3,
-            id:1,
+            lineColor: '',
+            isHover: '',
+            hoverX: 1,
+            params: '',
+            wakeupBean: undefined,
+            flagMoveInfo: '',
+            flagSelectedInfo: '',
+            slicesTime: 3,
+            id: 1,
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        window.postMessage = jest.fn(()=>true)
-        expect(memRender.render(req,[],[])).toBeUndefined()
+            height: 100,
+        };
+        window.postMessage = jest.fn(() => true);
+        expect(memRender.render(req, [], [])).toBeUndefined();
     });
 });

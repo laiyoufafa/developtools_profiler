@@ -13,17 +13,20 @@
  * limitations under the License.
  */
 
-
 export interface LitChartColumnConfig {
-    data: any[]
-    appendPadding: number
-    xField: string
-    yField: string
-    seriesField: string,
-    color: (a:any)=>string
-    tip:((a:any)=>string)|undefined
-    label: ({
-        offset: number
-        content: (it: any) => string
-    }|undefined|null)
+    data: any[];
+    appendPadding: number;
+    xField: string;
+    yField: string;
+    seriesField: string;
+    color: (a: any) => string;
+    tip: ((a: any) => string) | undefined;
+    hoverHandler?: (no: number) => void;
+    label:
+        | {
+              offset: number;
+              content: (it: any) => string;
+          }
+        | undefined
+        | null;
 }

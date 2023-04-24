@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-
 export function element(tag: string) {
     return (el: any) => {
         if (!customElements.get(tag)) {
             customElements.define(tag, el);
         }
-    }
+    };
 }
 
 export abstract class BaseElement extends HTMLElement {
@@ -28,7 +27,7 @@ export abstract class BaseElement extends HTMLElement {
     public constructor(args: any | undefined | null = null) {
         super();
         this.args = args;
-        this.attachShadow({mode: 'open'}).innerHTML = this.initHtml();
+        this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
         this.initElements();
     }
 
@@ -36,15 +35,15 @@ export abstract class BaseElement extends HTMLElement {
 
     abstract initHtml(): string;
 
-    public connectedCallback() {
-    }
+    public connectedCallback() {}
 
-    public disconnectedCallback() {
-    }
+    public disconnectedCallback() {}
 
-    public adoptedCallback() {
-    }
+    public adoptedCallback() {}
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    }
+    attributeChangedCallback(
+        name: string,
+        oldValue: string,
+        newValue: string
+    ) {}
 }

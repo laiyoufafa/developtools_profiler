@@ -13,24 +13,26 @@
  * limitations under the License.
  */
 
-import {info} from "../../../log/Log.js";
+import { info } from '../../../log/Log.js';
 
-export const initMemoryAggStrategy = (metricData: Array<any>): ProcessValuesListItem => {
-    info("Memory Agg Strategy data length is:", metricData.length)
-    let processValuesListItems: Array<ProcessValuesItem> = []
-    const splitChar: string = ','
+export const initMemoryAggStrategy = (
+    metricData: Array<any>
+): ProcessValuesListItem => {
+    info('Memory Agg Strategy data length is:', metricData.length);
+    let processValuesListItems: Array<ProcessValuesItem> = [];
+    const splitChar: string = ',';
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let processNames = metricData[sqlIndex].processName;
         let processInfoSource: ProcessValuesItem = {
             processName: processNames,
-        }
+        };
         if (metricData[sqlIndex].name == null) {
             let values = metricData[sqlIndex].value.split(splitChar);
             let times = metricData[sqlIndex].ts.split(splitChar);
             let oomScoreValue = 0;
             for (let index = 0; index < values.length; index++) {
-                if (!processInfoSource) continue
-                processValuesListItems?.push(processInfoSource)
+                if (!processInfoSource) continue;
+                processValuesListItems?.push(processInfoSource);
             }
         } else {
             let names = metricData[sqlIndex].name.split(splitChar);
@@ -38,7 +40,7 @@ export const initMemoryAggStrategy = (metricData: Array<any>): ProcessValuesList
             let times = metricData[sqlIndex].ts.split(splitChar);
             let oomScoreValue = 0;
             for (let indexScore = 0; indexScore < names.length; indexScore++) {
-                if ("oom_score_adj" === names[indexScore]) {
+                if ('oom_score_adj' === names[indexScore]) {
                     oomScoreValue = values[indexScore];
                     break;
                 }
@@ -48,31 +50,31 @@ export const initMemoryAggStrategy = (metricData: Array<any>): ProcessValuesList
                     ts: times[index],
                     oom_score: oomScoreValue,
                     value: values[index],
+                };
+                if (!processInfoSource) continue;
+                if ('mem.rss.anon' === names[index]) {
+                    processInfoSource.anonRss = typeItem;
                 }
-                if (!processInfoSource) continue
-                if ("mem.rss.anon" === names[index]) {
-                    processInfoSource.anonRss = typeItem
+                if ('mem.swap' === names[index]) {
+                    processInfoSource.swap = typeItem;
                 }
-                if ("mem.swap" === names[index]) {
-                    processInfoSource.swap = typeItem
+                if ('mem.rss.file' === names[index]) {
+                    processInfoSource.fileRss = typeItem;
                 }
-                if ("mem.rss.file" === names[index]) {
-                    processInfoSource.fileRss = typeItem
-                }
-                if ("oom_score_adj" === names[index]) {
-                    processInfoSource.anonAndSwap = typeItem
+                if ('oom_score_adj' === names[index]) {
+                    processInfoSource.anonAndSwap = typeItem;
                 }
             }
         }
-        processValuesListItems?.push(processInfoSource)
+        processValuesListItems?.push(processInfoSource);
     }
     return {
-        processValues: processValuesListItems
-    }
-}
+        processValues: processValuesListItems,
+    };
+};
 
 export interface ProcessValuesListItem {
-    processValues: Array<ProcessValuesItem>
+    processValues: Array<ProcessValuesItem>;
 }
 
 export interface ProcessValuesItem {

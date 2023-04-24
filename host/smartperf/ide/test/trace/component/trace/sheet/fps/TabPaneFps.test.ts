@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 //@ts-ignore
-import {TabPaneFps} from "../../../../../../dist/trace/component/trace/sheet/fps/TabPaneFps.js";
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+import { TabPaneFps } from '../../../../../../dist/trace/component/trace/sheet/fps/TabPaneFps.js';
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -28,22 +29,17 @@ describe('TabPaneFps Test', () => {
     let tabPaneFps = new TabPaneFps();
 
     it('TabPaneFpsTest01', function () {
-        let mockgetTabFps = sqlit.getTabFps
-        mockgetTabFps.mockResolvedValue(
-            [
-            {   leftNs  : 10,
-                rightNs: 10,
-            }]
-        )
-        let a = {rightNs: 1, leftNs:1}
-        expect(tabPaneFps.data = a).toBeTruthy();
+        let mockgetTabFps = sqlit.getTabFps;
+        mockgetTabFps.mockResolvedValue([{ leftNs: 10, rightNs: 10 }]);
+        let a = { rightNs: 1, leftNs: 1 };
+        expect((tabPaneFps.data = a)).toBeTruthy();
     });
 
     it('TabPaneFpsTest02', function () {
-        let mockgetTabFps = sqlit.getTabFps
-        mockgetTabFps.mockResolvedValue([])
-        let a = {rightNs: 1, leftNs:1}
-        expect(tabPaneFps.data = a).toBeTruthy();
+        let mockgetTabFps = sqlit.getTabFps;
+        mockgetTabFps.mockResolvedValue([]);
+        let a = { rightNs: 1, leftNs: 1 };
+        expect((tabPaneFps.data = a)).toBeTruthy();
     });
 
     it('TabPaneFpsTest03', function () {
@@ -64,6 +60,6 @@ describe('TabPaneFps Test', () => {
             </lit-table-column>
         </lit-table>
         "
-`)
+`);
     });
-})
+});

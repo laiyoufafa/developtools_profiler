@@ -18,23 +18,34 @@ class PerfCallChainThread extends Worker {
     taskMap: any = {};
     uuid(): string {
         // @ts-ignore
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11)
-            .replace(/[018]/g, (c: any) => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
+            /[018]/g,
+            (c: any) =>
+                (
+                    c ^
+                    (crypto.getRandomValues(new Uint8Array(1))[0] &
+                        (15 >> (c / 4)))
+                ).toString(16)
+        );
     }
 
-    queryFunc(name: string, args: any, handler: Function, action: string | null) {
+    queryFunc(
+        name: string,
+        args: any,
+        handler: Function,
+        action: string | null
+    ) {
         this.busy = true;
         let id = this.uuid();
-        this.taskMap[id] = handler
+        this.taskMap[id] = handler;
         let msg = {
             id: id,
             name: name,
-            action: action || "exec",
+            action: action || 'exec',
             params: args,
-        }
+        };
         this.postMessage(msg);
     }
-
 }
 
 export class PerfCallChainPool {
@@ -47,11 +58,14 @@ export class PerfCallChainPool {
             thread.terminate();
         }
         this.works.length = 0;
-    }
+    };
 
     init = async () => {
         await this.close();
-        let thread = new PerfCallChainThread("trace/component/chart/PerfDataQuery.js", {type: "module"})//trace/component/chart/PerfDataQuery.js
+        let thread = new PerfCallChainThread(
+            'trace/component/chart/PerfDataQuery.js',
+            { type: 'module' }
+        ); //trace/component/chart/PerfDataQuery.js
         thread!.onmessage = (event: MessageEvent) => {
             thread.busy = false;
             let fun = thread.taskMap[event.data.id];
@@ -59,27 +73,26 @@ export class PerfCallChainPool {
                 fun(event.data.results);
             }
             Reflect.deleteProperty(thread.taskMap, event.data.id);
-        }
-        thread!.onmessageerror = e => {
-        }
-        thread!.onerror = e => {
-        }
+        };
+        thread!.onmessageerror = (e) => {};
+        thread!.onerror = (e) => {};
         thread!.busy = false;
         this.works?.push(thread!);
-    }
+    };
 
     submit(name: string, args: any, handler: Function, action: string | null) {
-        let noBusyThreads = this.works.filter(it => !it.busy);
-        let thread: PerfCallChainThread
-        if (noBusyThreads.length > 0) { //取第一个空闲的线程进行任务
+        let noBusyThreads = this.works.filter((it) => !it.busy);
+        let thread: PerfCallChainThread;
+        if (noBusyThreads.length > 0) {
+            //取第一个空闲的线程进行任务
             thread = noBusyThreads[0];
-            thread.queryFunc(name, args, handler, action)
-        } else { // 随机插入一个线程中
-            thread = this.works[Math.floor(Math.random() * this.works.length)]
-            thread.queryFunc(name, args, handler, action)
+            thread.queryFunc(name, args, handler, action);
+        } else {
+            // 随机插入一个线程中
+            thread = this.works[Math.floor(Math.random() * this.works.length)];
+            thread.queryFunc(name, args, handler, action);
         }
     }
-
 }
 
-export const callChainsPool = new PerfCallChainPool()
+export const callChainsPool = new PerfCallChainPool();

@@ -14,49 +14,59 @@
  */
 
 // @ts-ignore
-import LitSwitch from "../../../dist/base-ui/switch/lit-switch";
+import LitSwitch from '../../../dist/base-ui/switch/lit-switch';
 
-describe('LitSwitch Test', ()=>{
+describe('LitSwitch Test', () => {
     let litSwitch = new LitSwitch();
-    litSwitch.checked = true
-    litSwitch.checked = false
-    litSwitch.disabled = true
-    litSwitch.disabled =false
+    litSwitch.checked = true;
+    litSwitch.checked = false;
+    litSwitch.disabled = true;
+    litSwitch.disabled = false;
 
-    it('LitSwitchTest01', ()=>{
+    it('LitSwitchTest01', () => {
         expect(litSwitch.name).toBeNull();
-    })
+    });
 
-    it('LitSwitchTest02', ()=>{
+    it('LitSwitchTest02', () => {
         expect(litSwitch.disabled).toBeFalsy();
-    })
+    });
 
-    it('LitSwitchTest03', ()=>{
+    it('LitSwitchTest03', () => {
         expect(litSwitch.checked).toBeFalsy();
-    })
+    });
 
-    it('LitSwitchTest04', ()=>{
-        LitSwitch.switch = document.querySelector("#switch") as HTMLInputElement;
-        expect(litSwitch.connectedCallback()).toBeUndefined()
-    })
+    it('LitSwitchTest04', () => {
+        LitSwitch.switch = document.querySelector(
+            '#switch'
+        ) as HTMLInputElement;
+        expect(litSwitch.connectedCallback()).toBeUndefined();
+    });
 
-    it('LitSwitchTest05', ()=>{
-        expect(litSwitch.attributeChangedCallback('disabled', 'disabled', '')).toBeUndefined()
-    })
+    it('LitSwitchTest05', () => {
+        expect(
+            litSwitch.attributeChangedCallback('disabled', 'disabled', '')
+        ).toBeUndefined();
+    });
 
-    it('LitSwitchTest06', ()=>{
-        expect(litSwitch.attributeChangedCallback('disabled', 'disabled', null)).toBeUndefined()
-    })
+    it('LitSwitchTest06', () => {
+        expect(
+            litSwitch.attributeChangedCallback('disabled', 'disabled', null)
+        ).toBeUndefined();
+    });
 
-    it('LitSwitchTest07', ()=>{
-        expect(litSwitch.attributeChangedCallback('checked', 'disabled', '')).toBeUndefined()
-    })
+    it('LitSwitchTest07', () => {
+        expect(
+            litSwitch.attributeChangedCallback('checked', 'disabled', '')
+        ).toBeUndefined();
+    });
 
-    it('LitSwitchTest08', ()=>{
-        expect(litSwitch.attributeChangedCallback('checked', 'disabled', null)).toBeUndefined()
-    })
+    it('LitSwitchTest08', () => {
+        expect(
+            litSwitch.attributeChangedCallback('checked', 'disabled', null)
+        ).toBeUndefined();
+    });
 
-    it('LitSwitchTest09', ()=>{
+    it('LitSwitchTest09', () => {
         expect(litSwitch.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
@@ -65,14 +75,14 @@ describe('LitSwitch Test', ()=>{
             -webkit-tap-highlight-color: transparent;
         }
         #name{
-            cursor:pointer;
-            display:flex;
-            width:2.4em;
-            height:1.2em;
-            padding:.125em;
-            border-radius:1.2em;
+            transition:0.31s width,0.31s height,0.31s background-color;
+            width:2.41em;
+            height:1.21em;
             background: #3391FF;
-            transition:.3s width,.3s height,.3s background-color;
+            display:flex;
+            padding:0.124em;
+            border-radius:1.21em;
+            cursor:pointer;
         }
         
         :host(:not([checked])) #name {
@@ -128,5 +138,5 @@ describe('LitSwitch Test', ()=>{
         <input type=\\"checkbox\\" id=\\"switch\\"><label id=\\"name\\" for=\\"switch\\"></label>
         "
 `);
-    })
-})
+    });
+});

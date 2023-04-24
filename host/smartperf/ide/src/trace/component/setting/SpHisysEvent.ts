@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../base-ui/BaseElement.js";
-import LitSwitch from "../../../base-ui/switch/lit-switch.js";
-import "../../../base-ui/select/LitAllocationSelect.js";
+import { BaseElement, element } from '../../../base-ui/BaseElement.js';
+import LitSwitch from '../../../base-ui/switch/lit-switch.js';
+import '../../../base-ui/select/LitAllocationSelect.js';
 
-import "../../../base-ui/switch/lit-switch.js";
-import {LitAllocationSelect} from "../../../base-ui/select/LitAllocationSelect.js";
-import {SpRecordTrace} from "../SpRecordTrace.js";
-import {Cmd} from "../../../command/Cmd.js";
-import {CmdConstant} from "../../../command/CmdConstant.js";
-import {HdcDeviceManager} from "../../../hdc/HdcDeviceManager.js";
+import '../../../base-ui/switch/lit-switch.js';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
+import { SpRecordTrace } from '../SpRecordTrace.js';
+import { Cmd } from '../../../command/Cmd.js';
+import { CmdConstant } from '../../../command/CmdConstant.js';
+import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
 
-@element("sp-hisys-event")
+@element('sp-hisys-event')
 export class SpHisysEvent extends BaseElement {
     private processInput: LitAllocationSelect | undefined | null;
     private selectProcess: HTMLInputElement | undefined | null;
@@ -32,11 +32,14 @@ export class SpHisysEvent extends BaseElement {
 
     set startSamp(start: boolean) {
         if (start) {
-            this.setAttribute("startSamp", "");
-            this.selectProcess!.removeAttribute("readonly");
+            this.setAttribute('startSamp', '');
         } else {
-            this.removeAttribute("startSamp")
-            this.selectProcess!.setAttribute("readonly", "readonly")
+            this.removeAttribute('startSamp');
+            let input =
+                this.processInput?.shadowRoot?.querySelector<HTMLInputElement>(
+                    '#singleInput'
+                );
+            input!.value = '';
         }
     }
 
@@ -44,51 +47,54 @@ export class SpHisysEvent extends BaseElement {
         if (this.processInput!.value.length > 0) {
             return this.processInput!.value;
         }
-        return ""
+        return '';
     }
 
     get startSamp(): boolean {
-        return this.hasAttribute("startSamp");
+        return this.hasAttribute('startSamp');
     }
 
     initElements(): void {
         this.initConfigList();
-        let configList = this.shadowRoot?.querySelector<HTMLDivElement>(".configList");
-        this.configList.forEach(config => {
-            let div = document.createElement("div");
+        let configList =
+            this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
+        this.configList.forEach((config) => {
+            let div = document.createElement('div');
             if (config.hidden) {
-                div.className = "config-div hidden";
+                div.className = 'config-div hidden';
             } else {
-                div.className = "config-div";
+                div.className = 'config-div';
             }
-            let headDiv = document.createElement("div");
+            let headDiv = document.createElement('div');
             div.appendChild(headDiv);
-            let title = document.createElement("span");
-            title.className = "title";
+            let title = document.createElement('span');
+            title.className = 'title';
             title.textContent = config.title;
             headDiv.appendChild(title);
-            let des = document.createElement("span");
+            let des = document.createElement('span');
             des.textContent = config.des;
-            des.className = "des";
+            des.className = 'des';
             headDiv.appendChild(des);
             switch (config.type) {
-                case "select":
+                case 'select':
                     let html1 = '';
-                    html1 += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`
-                    html1 += `</lit-allocation-select>`
+                    html1 += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+                    html1 += `</lit-allocation-select>`;
                     div.innerHTML = div.innerHTML + html1;
                     break;
-                case "switch":
-                    let switch1 = document.createElement("lit-switch") as LitSwitch;
-                    switch1.className = "config";
+                case 'switch':
+                    let switch1 = document.createElement(
+                        'lit-switch'
+                    ) as LitSwitch;
+                    switch1.className = 'config';
                     switch1.title = config.title;
                     if (config.value) {
                         switch1.checked = true;
                     } else {
                         switch1.checked = false;
                     }
-                    if (config.title == "Start Hisystem Event Tracker Record") {
-                        switch1.addEventListener("change", (event: any) => {
+                    if (config.title == 'Start Hisystem Event Tracker Record') {
+                        switch1.addEventListener('change', (event: any) => {
                             let detail = event.detail;
                             if (detail.checked) {
                                 this.startSamp = true;
@@ -97,7 +103,7 @@ export class SpHisysEvent extends BaseElement {
                                 this.startSamp = false;
                                 this.disable();
                             }
-                        })
+                        });
                     }
                     headDiv.appendChild(switch1);
                     break;
@@ -106,66 +112,88 @@ export class SpHisysEvent extends BaseElement {
             }
             configList!.appendChild(div);
         });
-        this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>("lit-allocation-select[title='AppName']");
-        let inputDiv = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement
-        this.selectProcess = this.processInput!.shadowRoot?.querySelector("input") as HTMLInputElement;
-        let processData: Array<string> = []
-        inputDiv!.addEventListener('mousedown', ev => {
+        this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>(
+            "lit-allocation-select[title='AppName']"
+        );
+        let inputDiv = this.processInput?.shadowRoot?.querySelector(
+            '.multipleSelect'
+        ) as HTMLDivElement;
+        this.selectProcess = this.processInput!.shadowRoot?.querySelector(
+            'input'
+        ) as HTMLInputElement;
+        let processData: Array<string> = [];
+        inputDiv!.addEventListener('mousedown', (ev) => {
             if (SpRecordTrace.serialNumber == '') {
-                this.processInput!.processData = []
-                this.processInput!.initData()
+                this.processInput!.processData = [];
+                this.processInput!.initData();
             }
-        })
+        });
         inputDiv!.addEventListener('mouseup', () => {
             if (SpRecordTrace.serialNumber == '') {
-                this.processInput!.processData = []
-                this.processInput!.initData()
+                this.processInput!.processData = [];
+                this.processInput!.initData();
             } else {
                 if (SpRecordTrace.isVscode) {
-                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_APP_NMAE_DEVICES, [SpRecordTrace.serialNumber])
+                    let cmd = Cmd.formatString(
+                        CmdConstant.CMD_GET_APP_NMAE_DEVICES,
+                        [SpRecordTrace.serialNumber]
+                    );
                     Cmd.execHdcCmd(cmd, (res: string) => {
-                        processData = []
-                        let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+                        processData = [];
+                        let lineValues: string[] = res
+                            .replace(/\r\n/g, '\r')
+                            .replace(/\n/g, '\r')
+                            .split(/\r/);
                         for (let lineVal of lineValues) {
-                            if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("CMD") != -1) {
+                            if (
+                                lineVal.indexOf('__progname') != -1 ||
+                                lineVal.indexOf('CMD') != -1
+                            ) {
                                 continue;
                             }
                             let process = lineVal.trim();
-                            if (process != "") {
-                                processData.push(process)
+                            if (process != '') {
+                                processData.push(process);
                             }
                         }
-                        if (processData.length > 0 && this.startSamp) {
-                            this.processInput!.setAttribute("readonly", "readonly")
-                        }
-                        this.processInput!.processData = processData
-                        this.processInput!.initData()
-                    })
+                        this.processInput!.processData = processData;
+                        this.processInput!.initData();
+                    });
                 } else {
-                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(conn => {
-                        if (conn) {
-                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_APP_NMAE, false).then(res => {
-                                processData = []
-                                if (res) {
-                                    let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
-                                    for (let lineVal of lineValues) {
-                                        if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("CMD") != -1) {
-                                            continue;
-                                        }
-                                        let process = lineVal.trim();
-                                        if (process != "") {
-                                            processData.push(process)
+                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(
+                        (conn) => {
+                            if (conn) {
+                                HdcDeviceManager.shellResultAsString(
+                                    CmdConstant.CMD_GET_APP_NMAE,
+                                    false
+                                ).then((res) => {
+                                    processData = [];
+                                    if (res) {
+                                        let lineValues: string[] = res
+                                            .replace(/\r\n/g, '\r')
+                                            .replace(/\n/g, '\r')
+                                            .split(/\r/);
+                                        for (let lineVal of lineValues) {
+                                            if (
+                                                lineVal.indexOf('__progname') !=
+                                                    -1 ||
+                                                lineVal.indexOf('CMD') != -1
+                                            ) {
+                                                continue;
+                                            }
+                                            let process = lineVal.trim();
+                                            if (process != '') {
+                                                processData.push(process);
+                                            }
                                         }
                                     }
-                                }
-                                if (processData.length > 0 && this.startSamp) {
-                                    this.selectProcess!.setAttribute("readonly", "readonly")
-                                }
-                                this.processInput!.processData = processData
-                                this.processInput!.initData()
-                            })
+                                    this.processInput!.processData =
+                                        processData;
+                                    this.processInput!.initData();
+                                });
+                            }
                         }
-                    })
+                    );
                 }
             }
         });
@@ -173,40 +201,40 @@ export class SpHisysEvent extends BaseElement {
     }
 
     private unDisable() {
-        let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>(".config");
-        configVal!.forEach(configVal1 => {
-            configVal1.removeAttribute("disabled")
-        })
+        let configVal =
+            this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+        configVal!.forEach((configVal1) => {
+            configVal1.removeAttribute('disabled');
+        });
     }
 
     private disable() {
-        let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>(".config");
-        configVal!.forEach(configVal1 => {
-            if (configVal1.title != "Start Hisystem Event Tracker Record") {
-                configVal1.setAttribute("disabled", '')
+        let configVal =
+            this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+        configVal!.forEach((configVal1) => {
+            if (configVal1.title != 'Start Hisystem Event Tracker Record') {
+                configVal1.setAttribute('disabled', '');
             }
-        })
+        });
     }
 
     initConfigList(): void {
         this.configList = [
             {
-                title: "Start Hisystem Event Tracker Record",
-                des: "",
+                title: 'Start Hisystem Event Tracker Record',
+                des: '',
                 hidden: false,
-                type: "switch",
-                value: false
+                type: 'switch',
+                value: false,
             },
             {
-                title: "AppName",
-                des: "Record AppName",
+                title: 'AppName',
+                des: 'Record AppName',
                 hidden: false,
-                type: "select",
-                selectArray: [
-                    ''
-                ]
-            }
-        ]
+                type: 'select',
+                selectArray: [''],
+            },
+        ];
     }
 
     initHtml(): string {

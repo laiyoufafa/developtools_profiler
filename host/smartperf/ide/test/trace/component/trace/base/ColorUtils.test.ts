@@ -14,40 +14,36 @@
  */
 
 // @ts-ignore
-import {ColorUtils} from "../../../../../dist/trace/component/trace/base/ColorUtils.js";
+import { ColorUtils } from '../../../../../dist/trace/component/trace/base/ColorUtils.js';
 
-describe("testColorUtils Test", () => {
-    beforeAll(() => {
-    })
+describe('testColorUtils Test', () => {
+    beforeAll(() => {});
     it('testColorUtils01', () => {
-        expect(ColorUtils.hash("mm",ColorUtils.MD_PALETTE.length)).toBe(0);
+        expect(ColorUtils.hash('mm', ColorUtils.MD_PALETTE.length)).toBe(0);
     });
     it('testColorUtils02', () => {
         // @ts-ignore
-        expect(ColorUtils.colorForThread(null)).toEqual("#f0f0f0");
+        expect(ColorUtils.colorForThread(null)).toEqual('#f0f0f0');
     });
 
     it('testColorUtils03', () => {
         // @ts-ignore
-        let thread = {processId:1}
-        expect(ColorUtils.colorForThread(thread)).toEqual("#7AD7E6");
+        let thread = { processId: 1 };
+        expect(ColorUtils.colorForThread(thread)).toEqual('#9785D3');
     });
 
     it('testColorUtils03', () => {
         // @ts-ignore
         let thread = {
-                processId:0,
-                tid:1
-        }
-        expect(ColorUtils.colorForThread(thread)).toEqual("#7AD7E6");
+            processId: 0,
+            tid: 1,
+        };
+        expect(ColorUtils.colorForThread(thread)).toEqual('#9785D3');
     });
 
     it('testColorUtils04', () => {
-        expect(ColorUtils.formatNumberComma(2)).toEqual("2");
+        expect(ColorUtils.formatNumberComma(2)).toEqual('2');
     });
 
-    afterAll(() => {
-    })
-})
-
-
+    afterAll(() => {});
+});

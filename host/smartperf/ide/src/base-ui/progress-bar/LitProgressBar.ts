@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
+import { BaseElement, element } from '../BaseElement.js';
 
-import {BaseElement, element} from "../BaseElement.js";
-
-@element("lit-progress-bar")
+@element('lit-progress-bar')
 export class LitProgressBar extends BaseElement {
     static get observedAttributes() {
-        return ['loading']
+        return ['loading'];
     }
 
     get loading(): boolean {
-        return this.hasAttribute("loading");
+        return this.hasAttribute('loading');
     }
 
     set loading(value: boolean) {
@@ -34,8 +33,7 @@ export class LitProgressBar extends BaseElement {
         }
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `

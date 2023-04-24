@@ -13,22 +13,25 @@
  * limitations under the License.
  */
 
-import {convertJSON, LogicHandler} from "./ProcedureLogicWorkerCommon.js";
+import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon.js';
 
 export class ProcedureLogicWorkerCpuState extends LogicHandler {
-
-    currentEventId: string = ""
+    currentEventId: string = '';
 
     handle(data: any): void {
-        this.currentEventId = data.id
+        this.currentEventId = data.id;
         if (data && data.type) {
             switch (data.type) {
-                case "CpuState-getCpuState":
-                    if(data.params.list){
-                        let arr = convertJSON(data.params.list) || []
-                        self.postMessage({id: data.id, action: data.action, results: this.supplementCpuState(arr)})
+                case 'CpuState-getCpuState':
+                    if (data.params.list) {
+                        let arr = convertJSON(data.params.list) || [];
+                        self.postMessage({
+                            id: data.id,
+                            action: data.action,
+                            results: this.supplementCpuState(arr),
+                        });
                         arr = [];
-                    }else{
+                    } else {
                         this.getCpuState(data.params.cpu);
                     }
                     break;
@@ -42,12 +45,14 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
             type: queryName,
             isQuery: true,
             args: args,
-            sql: sql
-        })
+            sql: sql,
+        });
     }
 
-    getCpuState(cpu:number){
-        this.queryData("CpuState-getCpuState", `
+    getCpuState(cpu: number) {
+        this.queryData(
+            'CpuState-getCpuState',
+            `
             select (A.ts - B.start_ts) as startTs,
                 A.dur,
                 (A.ts - B.start_ts + A.dur) as endTs,
@@ -58,15 +63,17 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
                     else 3 end)    as value
                 from thread_state A,trace_range B
             where cpu = $cpu and startTs >= 0;
-        `, {$cpu:cpu});
+        `,
+            { $cpu: cpu }
+        );
     }
 
-    supplementCpuState(arr:Array<CpuState>):Array<CpuState>{
-        let source:Array<CpuState> = [];
-        if(arr.length > 0){
+    supplementCpuState(arr: Array<CpuState>): Array<CpuState> {
+        let source: Array<CpuState> = [];
+        if (arr.length > 0) {
             let first = arr[0];
-            if(first.startTs > 0){
-                let cs:CpuState = new CpuState();
+            if (first.startTs > 0) {
+                let cs: CpuState = new CpuState();
                 cs.startTs = 0;
                 cs.value = 3;
                 cs.dur = first.startTs;
@@ -74,11 +81,11 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
                 source.push(cs);
             }
             source.push(first);
-            for (let i = 1,len = arr.length; i < len; i++) {
-                let last = arr[i-1];
+            for (let i = 1, len = arr.length; i < len; i++) {
+                let last = arr[i - 1];
                 let current = arr[i];
-                if(current.startTs > last.endTs){
-                    let cs:CpuState = new CpuState();
+                if (current.startTs > last.endTs) {
+                    let cs: CpuState = new CpuState();
                     cs.startTs = last.endTs;
                     cs.value = 3;
                     cs.dur = current.startTs - last.endTs;
@@ -90,13 +97,11 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
         }
         return source;
     }
-
 }
 
-export class CpuState{
-    startTs:number = 0
-    endTs:number = 0
-    dur:number = 0
-    value:number = 0
+export class CpuState {
+    startTs: number = 0;
+    endTs: number = 0;
+    dur: number = 0;
+    value: number = 0;
 }
-

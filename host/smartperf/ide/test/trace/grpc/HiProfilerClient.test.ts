@@ -14,16 +14,16 @@
  */
 
 // @ts-ignore
-import {HiProfilerClient} from "../../../dist/trace/grpc/HiProfilerClient.js"
+import { HiProfilerClient } from '../../../dist/trace/grpc/HiProfilerClient.js';
 
-describe('HiProfilerClient Test', ()=>{
+describe('HiProfilerClient Test', () => {
     let hiProfilerClient = new HiProfilerClient();
     it('HiProfilerClientTest01', function () {
         expect(hiProfilerClient.address).toBeUndefined();
     });
 
     it('HiProfilerClientTest02', function () {
-        hiProfilerClient.address=true;
+        hiProfilerClient.address = true;
         expect(hiProfilerClient.address).toBeTruthy();
     });
 
@@ -32,12 +32,11 @@ describe('HiProfilerClient Test', ()=>{
     });
 
     it('HiProfilerClientTest04', function () {
-        hiProfilerClient.client=true;
+        hiProfilerClient.client = true;
         expect(hiProfilerClient.client).toBeTruthy();
     });
 
     it('HiProfilerClientTest05', function () {
         expect(hiProfilerClient.getProfilerClient()).toBeTruthy();
     });
-
-})
+});

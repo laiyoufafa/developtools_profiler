@@ -33,8 +33,7 @@ export class ClientContainer {
         this._host = value;
     }
 
-    public registryClient(target: any, path: string) {
-    };
+    public registryClient(target: any, path: string) {}
 
     public start() {
         this.loadSettings();
@@ -42,13 +41,12 @@ export class ClientContainer {
     }
 
     private loadSettings() {
-        let {host, port} = SettingRegistry.settings;
+        let { host, port } = SettingRegistry.settings;
         this._host = host;
         this._port = port;
     }
 
-    private _registryClient() {
-    }
+    private _registryClient() {}
 }
 
 export class SettingRegistry {

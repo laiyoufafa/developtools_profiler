@@ -14,61 +14,60 @@
  */
 
 // @ts-ignore
-import {LitPopover} from "../../../dist/base-ui/popover/LitPopoverV.js";
+import { LitPopover } from '../../../dist/base-ui/popover/LitPopoverV.js';
 
-describe("LitPopoverV Test", () => {
+describe('LitPopoverV Test', () => {
     it('LitPopoverV01', () => {
         let litPopover = new LitPopover();
-        expect(litPopover).not.toBeUndefined()
-        expect(litPopover).not.toBeNull()
+        expect(litPopover).not.toBeUndefined();
+        expect(litPopover).not.toBeNull();
     });
     it('LitPopoverV02', () => {
         let litPopoverV = new LitPopover();
-        expect(litPopoverV.visible).toBe("false");
+        expect(litPopoverV.visible).toBe('false');
     });
     it('LitPopoverV03', () => {
         let litPopoverV = new LitPopover();
         litPopoverV.visible = true;
-        expect(litPopoverV.visible).toBe("true");
+        expect(litPopoverV.visible).toBe('true');
     });
     it('LitPopoverV04', () => {
         let litPopoverV = new LitPopover();
         litPopoverV.visible = false;
-        expect(litPopoverV.visible).toBe("false");
+        expect(litPopoverV.visible).toBe('false');
     });
     it('LitPopoverV05', () => {
         let litPopoverV = new LitPopover();
-        expect(litPopoverV.trigger).toBe("hover");
+        expect(litPopoverV.trigger).toBe('hover');
     });
     it('LitPopoverV06', () => {
         let litPopoverV = new LitPopover();
-        litPopoverV.trigger = "click";
-        expect(litPopoverV.trigger).toBe("click");
+        litPopoverV.trigger = 'click';
+        expect(litPopoverV.trigger).toBe('click');
     });
 
     it('LitPopoverV07', () => {
         let litPopoverV = new LitPopover();
-        litPopoverV.title = "test";
-        expect(litPopoverV.title).toBe("test");
+        litPopoverV.title = 'test';
+        expect(litPopoverV.title).toBe('test');
     });
 
     it('LitPopoverV08', () => {
         let litPopoverV = new LitPopover();
-        litPopoverV.width = "10px";
-        expect(litPopoverV.width).toBe("10px");
+        litPopoverV.width = '10px';
+        expect(litPopoverV.width).toBe('10px');
     });
 
     it('LitPopoverV09', () => {
         let litPopoverV = new LitPopover();
-        litPopoverV.width = "10px";
-        expect(litPopoverV.width).toBe("10px");
+        litPopoverV.width = '10px';
+        expect(litPopoverV.width).toBe('10px');
     });
 
     it('LitPopoverV10', () => {
         let litPopoverV = new LitPopover();
-        expect(litPopoverV.width).toBe("max-content");
+        expect(litPopoverV.width).toBe('max-content');
     });
-
 
     it('LitPopoverV11', () => {
         let litPopoverV = new LitPopover();
@@ -76,8 +75,8 @@ describe("LitPopoverV Test", () => {
     });
 
     it('LitPopoverV12', () => {
-        document.body.innerHTML =  `<lit-popover id="litpop"></lit-popover>`
-        let popver = document.querySelector("#litpop") as LitPopover;
+        document.body.innerHTML = `<lit-popover id="litpop"></lit-popover>`;
+        let popver = document.querySelector('#litpop') as LitPopover;
         expect(popver.haveRadio).toBeNull();
     });
 
@@ -439,8 +438,8 @@ describe("LitPopoverV Test", () => {
 `);
     });
     it('LitPopoverV14', () => {
-        document.body.innerHTML =  `<lit-popover id="litpop"></lit-popover>`
-        let popver = document.querySelector("#litpop") as LitPopover;
-        expect(popver.adoptedCallback()).toBeUndefined()
+        document.body.innerHTML = `<lit-popover id="litpop"></lit-popover>`;
+        let popver = document.querySelector('#litpop') as LitPopover;
+        expect(popver.adoptedCallback()).toBeUndefined();
     });
 });

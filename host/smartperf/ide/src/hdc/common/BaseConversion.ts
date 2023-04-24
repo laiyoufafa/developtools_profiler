@@ -48,8 +48,11 @@ export function toHex64(num: number): string {
     return padded + num.toString(16);
 }
 
-export function uint8ArrayToString(array: Uint8Array, convertToHex16: boolean): string {
-    let result: string = "";
+export function uint8ArrayToString(
+    array: Uint8Array,
+    convertToHex16: boolean
+): string {
+    let result: string = '';
     for (let i = 0; i < array.length; i++) {
         if (convertToHex16) {
             result = result + toHex16(array[i]);
@@ -58,9 +61,8 @@ export function uint8ArrayToString(array: Uint8Array, convertToHex16: boolean): 
         }
     }
     return result;
-
 }
 
 export const Sleep = (ms: number) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};

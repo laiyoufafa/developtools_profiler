@@ -14,19 +14,27 @@
  */
 
 // @ts-ignore
-import {SpAbilityMonitorChart} from "../../../../dist/trace/component/chart/SpAbilityMonitorChart.js";
-import "../../../../dist/trace/component/chart/SpAbilityMonitorChart.js";
+import { SpAbilityMonitorChart } from '../../../../dist/trace/component/chart/SpAbilityMonitorChart.js';
+import '../../../../dist/trace/component/chart/SpAbilityMonitorChart.js';
 // @ts-ignore
-import {SpSystemTrace} from "../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
 import {
     queryCPuAbilityMaxData,
     queryMemoryMaxData,
-    queryNetWorkMaxData
-} from "../../../../src/trace/database/SqlLite.js";
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+    queryNetWorkMaxData,
+} from '../../../../src/trace/database/SqlLite.js';
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+const intersectionObserverMock = () => ({
+    observe: () => null,
+});
+window.IntersectionObserver = jest
+    .fn()
+    .mockImplementation(intersectionObserverMock);
+
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -36,58 +44,65 @@ describe('SpAbilityMonitorChart Test', () => {
     let MockqueryAbilityExits = sqlit.queryAbilityExits;
     MockqueryAbilityExits.mockResolvedValue([
         {
-            event_name: "trace_cpu_usage",
-            stat_type: "received",
-            count: 1
+            event_name: 'trace_cpu_usage',
+            stat_type: 'received',
+            count: 1,
         },
         {
-            event_name: "sys_memory",
-            stat_type: "received",
-            count: 1
+            event_name: 'sys_memory',
+            stat_type: 'received',
+            count: 1,
         },
         {
-            event_name: "trace_diskio",
-            stat_type: "received",
-            count: 1
+            event_name: 'trace_diskio',
+            stat_type: 'received',
+            count: 1,
         },
         {
-            event_name: "trace_diskio",
-            stat_type: "received",
-            count: 1
-        }
-    ])
+            event_name: 'trace_diskio',
+            stat_type: 'received',
+            count: 1,
+        },
+    ]);
     let cpudata = sqlit.queryCPuAbilityMaxData;
-    cpudata.mockResolvedValue([{
-        totalLoad: 1,
-        userLoad: 1,
-        systemLoad: 1
-    }])
+    cpudata.mockResolvedValue([
+        {
+            totalLoad: 1,
+            userLoad: 1,
+            systemLoad: 1,
+        },
+    ]);
     let memorydata = sqlit.queryMemoryMaxData;
-    memorydata.mockResolvedValue([{
-        maxValue: 1,
-        filter_id: 1
-    }])
+    memorydata.mockResolvedValue([
+        {
+            maxValue: 1,
+            filter_id: 1,
+        },
+    ]);
 
     let queryDiskIo = sqlit.queryDiskIoMaxData;
-    queryDiskIo.mockResolvedValue([{
-        bytesRead: 1,
-        bytesWrite: 1,
-        readOps: 1,
-        writeOps:1
-    }])
+    queryDiskIo.mockResolvedValue([
+        {
+            bytesRead: 1,
+            bytesWrite: 1,
+            readOps: 1,
+            writeOps: 1,
+        },
+    ]);
 
     let netWorkDiskIo = sqlit.queryNetWorkMaxData;
-    netWorkDiskIo.mockResolvedValue([{
-        maxIn: 1,
-        maxOut: 1,
-        maxPacketIn: 1,
-        maxPacketOut:1
-    }])
+    netWorkDiskIo.mockResolvedValue([
+        {
+            maxIn: 1,
+            maxOut: 1,
+            maxPacketIn: 1,
+            maxPacketOut: 1,
+        },
+    ]);
     let spSystemTrace = new SpSystemTrace();
     let trace = new SpAbilityMonitorChart(spSystemTrace);
     it('SpAbilityMonitorChart01', function () {
-        trace.init()
+        trace.init();
         expect(trace).toBeDefined();
     });
-
-})
+});

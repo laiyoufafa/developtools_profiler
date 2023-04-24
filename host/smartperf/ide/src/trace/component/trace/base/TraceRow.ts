@@ -13,78 +13,78 @@
  * limitations under the License.
  */
 
-import {element} from "../../../../base-ui/BaseElement.js";
-import {TimeRange} from "../timer-shaft/RangeRuler.js";
-import '../../../../base-ui/icon/LitIcon.js'
-import {Rect} from "../timer-shaft/Rect.js";
-import {BaseStruct} from "../../../bean/BaseStruct.js";
-import {SpSystemTrace} from "../../SpSystemTrace.js";
-import {ns2x} from "../TimerShaftElement.js";
-import {TraceRowObject} from "./TraceRowObject.js";
-import {LitCheckBox} from "../../../../base-ui/checkbox/LitCheckBox.js";
-import {LitIcon} from "../../../../base-ui/icon/LitIcon";
-import "../../../../base-ui/popover/LitPopoverV.js"
-import {LitPopover} from "../../../../base-ui/popover/LitPopoverV.js";
-import {info} from "../../../../log/Log.js";
-import {ColorUtils} from "./ColorUtils.js";
-import {drawSelectionRange} from "../../../database/ui-worker/ProcedureWorkerCommon.js";
+import { element } from '../../../../base-ui/BaseElement.js';
+import { TimeRange } from '../timer-shaft/RangeRuler.js';
+import '../../../../base-ui/icon/LitIcon.js';
+import { Rect } from '../timer-shaft/Rect.js';
+import { BaseStruct } from '../../../bean/BaseStruct.js';
+import { SpSystemTrace } from '../../SpSystemTrace.js';
+import { ns2x } from '../TimerShaftElement.js';
+import { TraceRowObject } from './TraceRowObject.js';
+import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
+import { LitIcon } from '../../../../base-ui/icon/LitIcon';
+import '../../../../base-ui/popover/LitPopoverV.js';
+import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
+import { info } from '../../../../log/Log.js';
+import { ColorUtils } from './ColorUtils.js';
+import { drawSelectionRange } from '../../../database/ui-worker/ProcedureWorkerCommon.js';
 
 export class RangeSelectStruct {
-    startX: number | undefined
-    endX: number | undefined
-    startNS: number | undefined
-    endNS: number | undefined
+    startX: number | undefined;
+    endX: number | undefined;
+    startNS: number | undefined;
+    endNS: number | undefined;
 }
 
 let collectList: Array<any> = [];
 let rowDragElement: EventTarget | undefined | null;
-let dragDirection: string = "";
+let dragDirection: string = '';
 
 @element('trace-row')
 export class TraceRow<T extends BaseStruct> extends HTMLElement {
-    static ROW_TYPE_CPU = "cpu-data"
-    static ROW_TYPE_CPU_STATE = "cpu-state"
-    static ROW_TYPE_CPU_FREQ = "cpu-freq"
-    static ROW_TYPE_CPU_FREQ_LIMIT = "cpu-limit-freq"
-    static ROW_TYPE_FPS = "fps"
-    static ROW_TYPE_NATIVE_MEMORY = "native-memory"
-    static ROW_TYPE_HIPERF = "hiperf"
-    static ROW_TYPE_DELIVER_INPUT_EVENT = "DeliverInputEvent"
-    static ROW_TYPE_HIPERF_CPU = "hiperf-cpu"
-    static ROW_TYPE_HIPERF_PROCESS = "hiperf-process"
-    static ROW_TYPE_HIPERF_THREAD = "hiperf-thread"
-    static ROW_TYPE_HIPERF_REPORT = "hiperf-report"
-    static ROW_TYPE_HIPERF_EVENT = "hiperf-event"
-    static ROW_TYPE_PROCESS = "process"
-    static ROW_TYPE_THREAD = "thread"
-    static ROW_TYPE_MEM = "mem"
-    static ROW_TYPE_VIRTUAL_MEMORY_GROUP = "virtual-memory-group"
-    static ROW_TYPE_VIRTUAL_MEMORY = "virtual-memory-cell"
-    static ROW_TYPE_FILE_SYSTEM_GROUP = "file-system-group"
-    static ROW_TYPE_FILE_SYSTEM = "file-system-cell"
-    static ROW_TYPE_HEAP = "heap"
-    static ROW_TYPE_FUNC = "func"
-    static ROW_TYPE_MONITOR = "ability-monitor"
-    static ROW_TYPE_CPU_ABILITY = "cpu-ability"
-    static ROW_TYPE_MEMORY_ABILITY = "memory-ability"
-    static ROW_TYPE_DISK_ABILITY = "disk-ability"
-    static ROW_TYPE_NETWORK_ABILITY = "network-ability"
-    static ROW_TYPE_SDK = "sdk"
-    static ROW_TYPE_SDK_COUNTER = "sdk-counter"
-    static ROW_TYPE_SDK_SLICE = "sdk-slice"
-    static ROW_TYPE_ENERGY = "energy"
-    static ROW_TYPE_ANOMALY_ENERGY = "anomaly-energy"
-    static ROW_TYPE_SYSTEM_ENERGY = "system-energy"
-    static ROW_TYPE_POWER_ENERGY = "power-energy"
-    static ROW_TYPE_STATE_ENERGY = "state-energy"
-    static ROW_TYPE_SMAPS = "smaps"
-    static ROW_TYPE_CLOCK_GROUP = "clock-group"
-    static ROW_TYPE_CLOCK = "clock"
-    static ROW_TYPE_IRQ_GROUP = "irq-group"
-    static ROW_TYPE_IRQ = "irq"
-    static ROW_TYPE_JANK = "janks"
+    static ROW_TYPE_CPU = 'cpu-data';
+    static ROW_TYPE_CPU_STATE = 'cpu-state';
+    static ROW_TYPE_CPU_FREQ = 'cpu-freq';
+    static ROW_TYPE_CPU_FREQ_LIMIT = 'cpu-limit-freq';
+    static ROW_TYPE_FPS = 'fps';
+    static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
+    static ROW_TYPE_HIPERF = 'hiperf';
+    static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
+    static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
+    static ROW_TYPE_HIPERF_PROCESS = 'hiperf-process';
+    static ROW_TYPE_HIPERF_THREAD = 'hiperf-thread';
+    static ROW_TYPE_HIPERF_REPORT = 'hiperf-report';
+    static ROW_TYPE_HIPERF_EVENT = 'hiperf-event';
+    static ROW_TYPE_PROCESS = 'process';
+    static ROW_TYPE_THREAD = 'thread';
+    static ROW_TYPE_MEM = 'mem';
+    static ROW_TYPE_VIRTUAL_MEMORY_GROUP = 'virtual-memory-group';
+    static ROW_TYPE_VIRTUAL_MEMORY = 'virtual-memory-cell';
+    static ROW_TYPE_FILE_SYSTEM_GROUP = 'file-system-group';
+    static ROW_TYPE_FILE_SYSTEM = 'file-system-cell';
+    static ROW_TYPE_HEAP = 'heap';
+    static ROW_TYPE_FUNC = 'func';
+    static ROW_TYPE_MONITOR = 'ability-monitor';
+    static ROW_TYPE_CPU_ABILITY = 'cpu-ability';
+    static ROW_TYPE_MEMORY_ABILITY = 'memory-ability';
+    static ROW_TYPE_DISK_ABILITY = 'disk-ability';
+    static ROW_TYPE_NETWORK_ABILITY = 'network-ability';
+    static ROW_TYPE_SDK = 'sdk';
+    static ROW_TYPE_SDK_COUNTER = 'sdk-counter';
+    static ROW_TYPE_SDK_SLICE = 'sdk-slice';
+    static ROW_TYPE_ENERGY = 'energy';
+    static ROW_TYPE_ANOMALY_ENERGY = 'anomaly-energy';
+    static ROW_TYPE_SYSTEM_ENERGY = 'system-energy';
+    static ROW_TYPE_POWER_ENERGY = 'power-energy';
+    static ROW_TYPE_STATE_ENERGY = 'state-energy';
+    static ROW_TYPE_SMAPS = 'smaps';
+    static ROW_TYPE_CLOCK_GROUP = 'clock-group';
+    static ROW_TYPE_CLOCK = 'clock';
+    static ROW_TYPE_IRQ_GROUP = 'irq-group';
+    static ROW_TYPE_IRQ = 'irq';
+    static ROW_TYPE_JANK = 'janks';
     static range: TimeRange | undefined | null;
-    static rangeSelectObject: RangeSelectStruct | undefined
+    static rangeSelectObject: RangeSelectStruct | undefined;
     public obj: TraceRowObject<any> | undefined | null;
     isHover: boolean = false;
     hoverX: number = 0;
@@ -103,80 +103,114 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     public tipEL: HTMLDivElement | null | undefined;
     public checkBoxEL: LitCheckBox | null | undefined;
     public collectEL: LitIcon | null | undefined;
-    public onThreadHandler: ((useCache: boolean, buf: ArrayBuffer | undefined | null) => void) | undefined | null
-    public onDrawTypeChangeHandler: ((type: number) => void) | undefined | null
-    public supplier: (() => Promise<Array<T>>) | undefined | null
-    public favoriteChangeHandler: ((fav: TraceRow<any>) => void) | undefined | null
-    public selectChangeHandler: ((list: Array<TraceRow<any>>) => void) | undefined | null
+    public onThreadHandler:
+        | ((useCache: boolean, buf: ArrayBuffer | undefined | null) => void)
+        | undefined
+        | null;
+    public onDrawTypeChangeHandler: ((type: number) => void) | undefined | null;
+    public supplier: (() => Promise<Array<T>>) | undefined | null;
+    public favoriteChangeHandler:
+        | ((fav: TraceRow<any>) => void)
+        | undefined
+        | null;
+    public selectChangeHandler:
+        | ((list: Array<TraceRow<any>>) => void)
+        | undefined
+        | null;
     dpr = window.devicePixelRatio || 1;
     // @ts-ignore
     offscreen: Array<OffscreenCanvas | undefined> = [];
-    canvasWidth = 0
-    canvasHeight = 0
+    canvasWidth = 0;
+    canvasHeight = 0;
     public _frame: Rect | undefined;
-    public isLoading: boolean = false
+    public isLoading: boolean = false;
     public readonly args: any;
     private rootEL: HTMLDivElement | null | undefined;
     private nameEL: HTMLLabelElement | null | undefined;
     private _rangeSelect: boolean = false;
-    private _drawType: number = 0
+    private _drawType: number = 0;
     private folderIconEL: LitIcon | null | undefined;
     online: boolean = false;
     static isUserInteraction: boolean;
     asyncFuncName: string | undefined | null;
     asyncFuncNamePID: number | undefined | null;
-    translateY: number = 0;//single canvas offsetY;
+    translateY: number = 0; //single canvas offsetY;
     focusHandler?: (ev: MouseEvent) => void | undefined;
 
-    constructor(args: { canvasNumber: number, alpha: boolean, contextId: string, isOffScreen: boolean, skeleton?: boolean } = {
-        canvasNumber: 1, alpha: false, contextId: "2d", isOffScreen: true, skeleton: false
-    }) {
+    constructor(
+        args: {
+            canvasNumber: number;
+            alpha: boolean;
+            contextId: string;
+            isOffScreen: boolean;
+            skeleton?: boolean;
+        } = {
+            canvasNumber: 1,
+            alpha: false,
+            contextId: '2d',
+            isOffScreen: true,
+            skeleton: false,
+        }
+    ) {
         super();
         this.args = args;
-        this.attachShadow({mode: 'open'}).innerHTML = this.initHtml();
+        this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
         this.initElements();
     }
 
     static skeleton<T extends BaseStruct>(): TraceRow<T> {
         let tr = new TraceRow<T>({
-            alpha: false, canvasNumber: 0, contextId: "", isOffScreen: false, skeleton: true
+            alpha: false,
+            canvasNumber: 0,
+            contextId: '',
+            isOffScreen: false,
+            skeleton: true,
         });
         tr.isTransferCanvas = true;
         return tr;
     }
 
     static get observedAttributes() {
-        return ["folder", "name", "expansion", "children", "height", "row-type", "row-id", "row-parent-id", "sleeping",
-            "check-type",
-            "collect-type",
-            "disabled-check",
-            "row-discard",
+        return [
+            'folder',
+            'name',
+            'expansion',
+            'children',
+            'height',
+            'row-type',
+            'row-id',
+            'row-parent-id',
+            'sleeping',
+            'check-type',
+            'collect-type',
+            'disabled-check',
+            'row-discard',
         ];
     }
 
     get rowDiscard(): boolean {
-        return this.hasAttribute("row-discard");
+        return this.hasAttribute('row-discard');
     }
 
     set rowDiscard(value: boolean) {
         if (value) {
-            this.setAttribute("row-discard", "")
-            this.style.display = "none";
+            this.setAttribute('row-discard', '');
+            this.style.display = 'none';
         } else {
-            this.removeAttribute("row-discard")
-            this.style.display = "block";
+            this.removeAttribute('row-discard');
+            this.style.display = 'block';
         }
     }
 
     get collect() {
-        return this.hasAttribute("collect-type")
+        return this.hasAttribute('collect-type');
     }
 
     set collect(value) {
         if (value) {
-            this.setAttribute("collect-type", "")
+            this.setAttribute('collect-type', '');
         } else {
-            this.removeAttribute("collect-type")
+            this.removeAttribute('collect-type');
         }
     }
 
@@ -188,93 +222,108 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this._rangeSelect = value;
     }
 
-    sleeping:boolean = false
+    sleeping: boolean = false;
 
     get rowType(): string | undefined | null {
-        return this.getAttribute("row-type");
+        return this.getAttribute('row-type');
     }
 
     set rowType(val) {
-        this.setAttribute("row-type", val || "")
+        this.setAttribute('row-type', val || '');
     }
 
     get rowId(): string | undefined | null {
-        return this.getAttribute("row-id");
+        return this.getAttribute('row-id');
     }
 
     set rowId(val) {
-        this.setAttribute("row-id", val || "")
+        this.setAttribute('row-id', val || '');
     }
 
     get rowParentId(): string | undefined | null {
-        return this.getAttribute("row-parent-id");
+        return this.getAttribute('row-parent-id');
     }
 
     set rowParentId(val) {
-        this.setAttribute("row-parent-id", val || "")
+        this.setAttribute('row-parent-id', val || '');
     }
 
     set rowHidden(val: boolean) {
         if (val) {
-            this.setAttribute("row-hidden", "")
+            this.setAttribute('row-hidden', '');
         } else {
-            this.removeAttribute("row-hidden")
+            this.removeAttribute('row-hidden');
         }
     }
 
     get name(): string {
-        return this.getAttribute("name") || ""
+        return this.getAttribute('name') || '';
     }
 
     set name(value: string) {
-        this.setAttribute("name", value)
+        this.setAttribute('name', value);
     }
 
     get folder(): boolean {
-        return this.hasAttribute("folder");
+        return this.hasAttribute('folder');
     }
 
     set folder(value: boolean) {
         if (value) {
-            this.setAttribute("folder", '')
+            this.setAttribute('folder', '');
         } else {
-            this.removeAttribute('folder')
+            this.removeAttribute('folder');
         }
     }
 
     get expansion(): boolean {
-        return this.hasAttribute("expansion")
+        return this.hasAttribute('expansion');
+    }
+
+    expansionChildrenNode(
+        fragment: DocumentFragment,
+        parentId: string,
+        value: boolean
+    ) {
+        this.parentElement
+            ?.querySelectorAll<any>(`[row-parent-id='${parentId}']`)
+            .forEach((it) => {
+                fragment.appendChild(it);
+                if (!it.collect) {
+                    it.rowHidden = !value;
+                }
+                if (it.folder && !value && it.expansion) {
+                    it.expansion = value;
+                }
+                if (it.folder) {
+                    this.expansionChildrenNode(
+                        fragment,
+                        it.rowId,
+                        it.expansion
+                    );
+                }
+            });
     }
 
     set expansion(value) {
         if (value) {
-            this.setAttribute("expansion", '');
+            this.setAttribute('expansion', '');
         } else {
-            this.removeAttribute('expansion')
+            this.removeAttribute('expansion');
         }
-        const fragment = document.createDocumentFragment()
-        let node;
-        this.parentElement?.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.rowId}']`).forEach(it => {
-            node = it
-            fragment.appendChild(node)
-        })
-        Array.prototype.slice.call(fragment.childNodes).forEach(it => {
-            if (!it.collect) {
-                it.rowHidden = !this.expansion;
-            }
-            if (it.folder && !value && it.expansion) {
-                it.expansion = value;
-            }
-        })
-        this.insertAfter(fragment,this)
-        this.dispatchEvent(new CustomEvent("expansion-change", {
-            detail: {
-                expansion: this.expansion,
-                rowType: this.rowType,
-                rowId: this.rowId,
-                rowParentId: this.rowParentId
-            }
-        }))
+        const fragment = document.createDocumentFragment();
+        this.expansionChildrenNode(fragment, this.rowId!, value);
+        this.insertAfter(fragment, this);
+        this.dispatchEvent(
+            new CustomEvent('expansion-change', {
+                detail: {
+                    expansion: this.expansion,
+                    rowType: this.rowType,
+                    rowId: this.rowId,
+                    rowParentId: this.rowParentId,
+                },
+            })
+        );
     }
 
     insertAfter(newEl: DocumentFragment, targetEl: HTMLElement) {
@@ -294,11 +343,21 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
     get frame(): Rect | any {
         if (this._frame) {
-            this._frame.width = (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth;
-            this._frame.height = this.clientHeight ;
+            this._frame.width =
+                (this.parentElement?.clientWidth || 0) -
+                248 -
+                SpSystemTrace.scrollViewWidth;
+            this._frame.height = this.clientHeight;
             return this._frame;
         } else {
-            this._frame = new Rect(0, 0, (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth, this.clientHeight || 40);
+            this._frame = new Rect(
+                0,
+                0,
+                (this.parentElement?.clientWidth || 0) -
+                    248 -
+                    SpSystemTrace.scrollViewWidth,
+                this.clientHeight || 40
+            );
             return this._frame;
         }
     }
@@ -308,53 +367,53 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
 
     get disabledCheck(): boolean {
-        return this.hasAttribute("disabled-check");
+        return this.hasAttribute('disabled-check');
     }
 
     set disabledCheck(value: boolean) {
         if (value) {
-            this.setAttribute("disabled-check", '')
-            this.checkBoxEL!.style.display = "none";
+            this.setAttribute('disabled-check', '');
+            this.checkBoxEL!.style.display = 'none';
         } else {
-            this.removeAttribute('disabled-check')
-            this.checkBoxEL!.style.display = "flex";
+            this.removeAttribute('disabled-check');
+            this.checkBoxEL!.style.display = 'flex';
         }
     }
 
     get checkType(): string {
-        return this.getAttribute("check-type") || "";
+        return this.getAttribute('check-type') || '';
     }
 
     set checkType(value: string) {
         if (!value || value.length == 0) {
-            this.removeAttribute("check-type");
+            this.removeAttribute('check-type');
             return;
         }
-        this.setAttribute("check-type", value);
-        if (this.hasAttribute("disabled-check")) {
-            this.checkBoxEL!.style.display = "none";
+        this.setAttribute('check-type', value);
+        if (this.hasAttribute('disabled-check')) {
+            this.checkBoxEL!.style.display = 'none';
             return;
         }
         switch (value) {
-            case "-1":
-                this.checkBoxEL!.style.display = "none";
+            case '-1':
+                this.checkBoxEL!.style.display = 'none';
                 this.rangeSelect = false;
                 break;
-            case "0":
-                this.checkBoxEL!.style.display = "flex";
+            case '0':
+                this.checkBoxEL!.style.display = 'flex';
                 this.checkBoxEL!.checked = false;
                 this.checkBoxEL!.indeterminate = false;
                 this.rangeSelect = false;
                 break;
-            case "1":
-                this.checkBoxEL!.style.display = "flex";
-                this.checkBoxEL!.checked = false
+            case '1':
+                this.checkBoxEL!.style.display = 'flex';
+                this.checkBoxEL!.checked = false;
                 this.checkBoxEL!.indeterminate = true;
                 this.rangeSelect = false;
                 break;
-            case "2":
+            case '2':
                 this.rangeSelect = true;
-                this.checkBoxEL!.style.display = "flex";
+                this.checkBoxEL!.style.display = 'flex';
                 this.checkBoxEL!.checked = true;
                 this.checkBoxEL!.indeterminate = false;
                 break;
@@ -367,58 +426,68 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
     set drawType(value: number) {
         this._drawType = value;
-        let radioList: NodeListOf<any> = this.shadowRoot!.querySelectorAll("input[type=radio][name=status]")
+        let radioList: NodeListOf<any> = this.shadowRoot!.querySelectorAll(
+            'input[type=radio][name=status]'
+        );
         if (radioList!.length > 0) {
-            radioList[Number(value)].checked = true
+            radioList[Number(value)].checked = true;
         }
     }
 
     get highlight(): boolean {
-        return this.hasAttribute("expansion");
+        return this.hasAttribute('expansion');
     }
 
     set highlight(value: boolean) {
         if (value) {
-            this.setAttribute("highlight", '')
+            this.setAttribute('highlight', '');
         } else {
-            this.removeAttribute('highlight')
+            this.removeAttribute('highlight');
         }
     }
 
     set folderPaddingLeft(value: number) {
-        this.folderIconEL!.style.marginLeft = value + "px";
+        this.folderIconEL!.style.marginLeft = value + 'px';
     }
 
     initElements(): void {
-        this.rootEL = this.shadowRoot?.querySelector('.root')
-        this.checkBoxEL = this.shadowRoot?.querySelector<LitCheckBox>('.lit-check-box')
-        this.collectEL = this.shadowRoot?.querySelector<LitIcon>('.collect')
-        this.describeEl = this.shadowRoot?.querySelector('.describe')
-        this.folderIconEL = this.shadowRoot?.querySelector<LitIcon>('.icon')
-        this.nameEL = this.shadowRoot?.querySelector('.name')
-        this.canvasContainer = this.shadowRoot?.querySelector('.panel-container')
-        this.tipEL = this.shadowRoot?.querySelector('.tip')
-        let canvasNumber = this.args["canvasNumber"];
-        if (!this.args["skeleton"]) {
+        this.rootEL = this.shadowRoot?.querySelector('.root');
+        this.checkBoxEL =
+            this.shadowRoot?.querySelector<LitCheckBox>('.lit-check-box');
+        this.collectEL = this.shadowRoot?.querySelector<LitIcon>('.collect');
+        this.describeEl = this.shadowRoot?.querySelector('.describe');
+        this.folderIconEL = this.shadowRoot?.querySelector<LitIcon>('.icon');
+        this.nameEL = this.shadowRoot?.querySelector('.name');
+        this.canvasContainer =
+            this.shadowRoot?.querySelector('.panel-container');
+        this.tipEL = this.shadowRoot?.querySelector('.tip');
+        let canvasNumber = this.args['canvasNumber'];
+        if (!this.args['skeleton']) {
             for (let i = 0; i < canvasNumber; i++) {
                 let canvas = document.createElement('canvas');
-                canvas.className = "panel";
+                canvas.className = 'panel';
                 this.canvas.push(canvas);
-                if(this.canvasContainer){
+                if (this.canvasContainer) {
                     this.canvasContainer.appendChild(canvas);
                 }
             }
         }
         this.describeEl?.addEventListener('click', () => {
             if (this.folder) {
-                this.expansion = !this.expansion
+                this.expansion = !this.expansion;
             }
-        })
+        });
     }
 
     initCanvas(list: Array<HTMLCanvasElement>): void {
-        let timerShaftEL = document!.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-system-trace")!.shadowRoot!.querySelector("div > timer-shaft-element");
-        let timerShaftCanvas = timerShaftEL!.shadowRoot!.querySelector<HTMLCanvasElement>("canvas");
+        let timerShaftEL = document!
+            .querySelector('body > sp-application')!
+            .shadowRoot!.querySelector('#sp-system-trace')!
+            .shadowRoot!.querySelector('div > timer-shaft-element');
+        let timerShaftCanvas =
+            timerShaftEL!.shadowRoot!.querySelector<HTMLCanvasElement>(
+                'canvas'
+            );
         let tempHeight: number = 0;
         if (this.rowType == TraceRow.ROW_TYPE_FUNC) {
             tempHeight = 20;
@@ -435,7 +504,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         this.dpr = window.devicePixelRatio || 1;
         list.forEach((canvas, i) => {
-            this.rootEL!.style.height = `${this.getAttribute("height") || '40'}px`
+            this.rootEL!.style.height = `${
+                this.getAttribute('height') || '40'
+            }px`;
             canvas.style.width = timerShaftCanvas!.style.width;
             canvas.style.height = tempHeight + 'px';
             this.canvasWidth = timerShaftCanvas!.width;
@@ -444,7 +515,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             canvas.height = this.canvasHeight;
             // @ts-ignore
             this.offscreen.push(canvas!.transferControlToOffscreen());
-        })
+        });
     }
 
     updateWidth(width: number) {
@@ -466,94 +537,118 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         if (this.canvas.length > 1) {
             tempHeight = 20;
         }
-        this.canvas.forEach(it => {
-            this.canvasWidth = Math.ceil((width - (this.describeEl?.clientWidth || 248)) * this.dpr);
+        this.canvas.forEach((it) => {
+            this.canvasWidth = Math.ceil(
+                (width - (this.describeEl?.clientWidth || 248)) * this.dpr
+            );
             this.canvasHeight = Math.ceil(tempHeight * this.dpr);
-            it!.style.width = (width - (this.describeEl?.clientWidth || 248)) + 'px';
+            it!.style.width =
+                width - (this.describeEl?.clientWidth || 248) + 'px';
             if (this.args.isOffScreen) {
                 this.draw(true);
             }
-        })
+        });
     }
 
-    drawLine(item: HTMLDivElement, direction: string/*string[top|bottom]*/) {
+    drawLine(item: HTMLDivElement, direction: string /*string[top|bottom]*/) {
         if (!item) return;
         switch (direction) {
-            case "top":
-                item.classList.remove("line-bottom");
-                item.classList.add("line-top");
+            case 'top':
+                item.classList.remove('line-bottom');
+                item.classList.add('line-top');
                 break;
-            case "bottom":
-                item.classList.remove("line-top");
-                item.classList.add("line-bottom");
+            case 'bottom':
+                item.classList.remove('line-top');
+                item.classList.add('line-bottom');
                 break;
-            case "":
-                item.classList.remove("line-top");
-                item.classList.remove("line-bottom");
+            case '':
+                item.classList.remove('line-top');
+                item.classList.remove('line-bottom');
                 break;
         }
     }
 
     connectedCallback() {
         this.checkBoxEL!.onchange = (ev: any) => {
-            info("checkBoxEL onchange ");
+            info('checkBoxEL onchange ');
             if (!ev.target.checked) {
-                info("checkBoxEL target not checked");
+                info('checkBoxEL target not checked');
                 this.rangeSelect = false;
-                this.checkType = "0"
+                this.checkType = '0';
                 this.draw();
             } else {
                 this.rangeSelect = true;
-                this.checkType = "2"
+                this.checkType = '2';
                 this.draw();
             }
             this.setCheckBox(ev.target.checked);
-        }
+        };
         this.describeEl!.ondragstart = (ev: DragEvent) => this.rowDragstart(ev);
         this.describeEl!.ondragleave = (ev: any) => {
             this.drawLine(ev.currentTarget, '');
             return undefined;
-        }
+        };
         this.describeEl!.ondragend = (ev: any) => {
             rowDragElement = null;
-            ev.target.classList.remove("drag")
+            ev.target.classList.remove('drag');
             this.drawLine(ev.currentTarget, '');
             return undefined;
-        }
+        };
         this.describeEl!.ondragover = (ev: any) => {
             if (!this.collect) return;
             if (rowDragElement === this) return;
             let rect = ev.currentTarget.getBoundingClientRect();
-            if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {//上面
+            if (
+                ev.clientY >= rect.top &&
+                ev.clientY < rect.top + rect.height / 2
+            ) {
+                //上面
                 dragDirection = 'top';
                 this.drawLine(ev.currentTarget, 'top');
-            } else if (ev.clientY <= rect.bottom && ev.clientY > rect.top + rect.height / 2) {//下面
+            } else if (
+                ev.clientY <= rect.bottom &&
+                ev.clientY > rect.top + rect.height / 2
+            ) {
+                //下面
                 dragDirection = 'bottom';
                 this.drawLine(ev.currentTarget, 'bottom');
             }
             return undefined;
-        }
+        };
         this.describeEl!.ondrop = (ev: any) => {
             if (!this.collect) return;
             this.drawLine(ev.currentTarget, '');
-            let spacer = this.parentElement!.previousElementSibling! as HTMLDivElement;
-            let startDragNode = collectList.findIndex((it) => it === rowDragElement);
+            let spacer = this.parentElement!
+                .previousElementSibling! as HTMLDivElement;
+            let startDragNode = collectList.findIndex(
+                (it) => it === rowDragElement
+            );
             let endDragNode = collectList.findIndex((it) => it === this);
             if (startDragNode === -1 || endDragNode === -1) return;
-            if (startDragNode < endDragNode && dragDirection === "top") {
+            if (startDragNode < endDragNode && dragDirection === 'top') {
                 endDragNode--;
-            } else if (startDragNode > endDragNode && dragDirection === "bottom") {
+            } else if (
+                startDragNode > endDragNode &&
+                dragDirection === 'bottom'
+            ) {
                 endDragNode++;
             }
-            collectList.splice(endDragNode, 0, ...collectList.splice(startDragNode, 1))
+            collectList.splice(
+                endDragNode,
+                0,
+                ...collectList.splice(startDragNode, 1)
+            );
             collectList.forEach((it, i) => {
                 if (i == 0) {
                     it.style.top = `${spacer.offsetTop + 48}px`;
                 } else {
-                    it.style.top = `${collectList[i - 1].offsetTop + collectList[i - 1].offsetHeight}px`;
+                    it.style.top = `${
+                        collectList[i - 1].offsetTop +
+                        collectList[i - 1].offsetHeight
+                    }px`;
                 }
-            })
-        }
+            });
+        };
         this.collectEL!.onclick = (e) => {
             this.collect = !this.collect;
             if (this.collect) {
@@ -561,105 +656,144 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             } else {
                 this.describeEl!.draggable = false;
             }
-            document.dispatchEvent(new CustomEvent("collect",{
-                detail:{
-                    type:e.type,
-                    row:this
-                }
-            }))
-            this.favoriteChangeHandler?.(this)
-        }
-        if (!this.args["skeleton"]) {
+            document.dispatchEvent(
+                new CustomEvent('collect', {
+                    detail: {
+                        type: e.type,
+                        row: this,
+                    },
+                })
+            );
+            this.favoriteChangeHandler?.(this);
+        };
+        if (!this.args['skeleton']) {
             this.initCanvas(this.canvas);
         }
-        let radioList = this.shadowRoot!.querySelectorAll("input[type=radio][name=status]")
-        let popover = this.shadowRoot!.querySelector<LitPopover>(".popover")
-        this.shadowRoot?.querySelector<HTMLDivElement>("#first-radio")?.addEventListener("click", (e) => {
-            // @ts-ignore
-            radioList[0]!.checked = true;
-            // @ts-ignore
-            popover!.visible = false
-            setTimeout(() => {
-                this.onDrawTypeChangeHandler?.(0);
-            }, 300);
-        })
-        this.shadowRoot?.querySelector<HTMLDivElement>("#second-radio")?.addEventListener('click', (e) => {
-            // @ts-ignore
-            radioList[1]!.checked = true;
-            // @ts-ignore
-            popover!.visible = false
-            setTimeout(() => {
-                this.onDrawTypeChangeHandler?.(1);
-            }, 300);
-        })
+        let radioList = this.shadowRoot!.querySelectorAll(
+            'input[type=radio][name=status]'
+        );
+        let popover = this.shadowRoot!.querySelector<LitPopover>('.popover');
+        this.shadowRoot
+            ?.querySelector<HTMLDivElement>('#first-radio')
+            ?.addEventListener('click', (e) => {
+                // @ts-ignore
+                radioList[0]!.checked = true;
+                // @ts-ignore
+                popover!.visible = false;
+                setTimeout(() => {
+                    this.onDrawTypeChangeHandler?.(0);
+                }, 300);
+            });
+        this.shadowRoot
+            ?.querySelector<HTMLDivElement>('#second-radio')
+            ?.addEventListener('click', (e) => {
+                // @ts-ignore
+                radioList[1]!.checked = true;
+                // @ts-ignore
+                popover!.visible = false;
+                setTimeout(() => {
+                    this.onDrawTypeChangeHandler?.(1);
+                }, 300);
+            });
     }
 
     rowDragstart(ev: any) {
         rowDragElement = this;
-        ev.target.classList.add("drag")
+        ev.target.classList.add('drag');
     }
 
     setCheckBox(isCheck: boolean) {
         if (this.folder) {
-            let allRow = this.parentElement?.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.rowId}'][check-type]`)
+            let allRow = this.parentElement?.querySelectorAll<TraceRow<any>>(
+                `trace-row[row-parent-id='${this.rowId}'][check-type]`
+            );
             allRow!.forEach((ck) => {
-                ck.setAttribute("check-type", isCheck ? "2" : "0")
-                let allCheck: LitCheckBox | null | undefined = ck?.shadowRoot?.querySelector(".lit-check-box")
-                allCheck!.checked = isCheck
-            })
-        } else if (this.rowParentId == "" && !this.folder) {
-            this.selectChangeHandler?.([...this.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']")])
+                ck.setAttribute('check-type', isCheck ? '2' : '0');
+                let allCheck: LitCheckBox | null | undefined =
+                    ck?.shadowRoot?.querySelector('.lit-check-box');
+                allCheck!.checked = isCheck;
+            });
+        } else if (this.rowParentId == '' && !this.folder) {
+            this.selectChangeHandler?.([
+                ...this.parentElement!.querySelectorAll<TraceRow<any>>(
+                    "trace-row[check-type='2']"
+                ),
+            ]);
             return;
         }
-        let checkList = this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="2"]`)
-        let unselectedList = this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="0"]`)
-        let parentRow = this.parentElement?.querySelector<TraceRow<any>>(`trace-row[row-id='${this.folder ? this.rowId : this.rowParentId}'][folder]`)
-        let parentCheck: LitCheckBox | null | undefined = parentRow?.shadowRoot?.querySelector(".lit-check-box")
+        let checkList = this.parentElement!.parentElement!.querySelectorAll<
+            TraceRow<any>
+        >(
+            `trace-row[row-parent-id='${
+                this.folder ? this.rowId : this.rowParentId
+            }'][check-type="2"]`
+        );
+        let unselectedList =
+            this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(
+                `trace-row[row-parent-id='${
+                    this.folder ? this.rowId : this.rowParentId
+                }'][check-type="0"]`
+            );
+        let parentRow = this.parentElement?.querySelector<TraceRow<any>>(
+            `trace-row[row-id='${
+                this.folder ? this.rowId : this.rowParentId
+            }'][folder]`
+        );
+        let parentCheck: LitCheckBox | null | undefined =
+            parentRow?.shadowRoot?.querySelector('.lit-check-box');
         if (unselectedList?.length == 0) {
-            parentRow?.setAttribute("check-type", "2")
-            if(parentCheck){
-                parentCheck!.checked = true
+            parentRow?.setAttribute('check-type', '2');
+            if (parentCheck) {
+                parentCheck!.checked = true;
                 parentCheck!.indeterminate = false;
             }
             checkList?.forEach((it) => {
-                it.checkType = "2";
+                it.checkType = '2';
                 it.rangeSelect = true;
-                it.draw()
-            })
+                it.draw();
+            });
         } else {
-            parentRow?.setAttribute("check-type", "1")
-            if(parentCheck){
-                parentCheck!.checked = false
+            parentRow?.setAttribute('check-type', '1');
+            if (parentCheck) {
+                parentCheck!.checked = false;
                 parentCheck!.indeterminate = true;
             }
             checkList?.forEach((it) => {
-                it.checkType = "2";
+                it.checkType = '2';
                 it.rangeSelect = true;
-                it.draw()
-            })
+                it.draw();
+            });
             unselectedList?.forEach((it) => {
-                it.checkType = "0";
+                it.checkType = '0';
                 it.rangeSelect = false;
-                it.draw()
-            })
+                it.draw();
+            });
         }
 
         if (checkList?.length == 0) {
-            parentRow?.setAttribute("check-type", "0")
-            if(parentCheck) {
-                parentCheck!.checked = false
+            parentRow?.setAttribute('check-type', '0');
+            if (parentCheck) {
+                parentCheck!.checked = false;
                 parentCheck!.indeterminate = false;
             }
             unselectedList?.forEach((it) => {
-                it.checkType = "0";
+                it.checkType = '0';
                 it.rangeSelect = false;
-                it.draw()
-            })
+                it.draw();
+            });
         }
-        this.selectChangeHandler?.([...this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']")])
+        this.selectChangeHandler?.([
+            ...this.parentElement!.parentElement!.querySelectorAll<
+                TraceRow<any>
+            >("trace-row[check-type='2']"),
+        ]);
     }
 
-    onMouseHover(x: number, y: number, tip: boolean = true): T | undefined | null {
+    onMouseHover(
+        x: number,
+        y: number,
+        tip: boolean = true
+    ): T | undefined | null {
         if (this.tipEL) {
             this.tipEL.style.display = 'none';
         }
@@ -669,12 +803,17 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     setTipLeft(x: number, struct: any) {
         if (struct == null && this.tipEL) {
             this.tipEL.style.display = 'none';
-            return
+            return;
         }
         if (this.tipEL) {
             this.tipEL.style.display = 'flex';
-            if (x + this.tipEL.clientWidth > (this.canvasContainer!.clientWidth || 0)) {
-                this.tipEL.style.transform = `translateX(${x - this.tipEL.clientWidth - 1}px)`;
+            if (
+                x + this.tipEL.clientWidth >
+                (this.canvasContainer!.clientWidth || 0)
+            ) {
+                this.tipEL.style.transform = `translateX(${
+                    x - this.tipEL.clientWidth - 1
+                }px)`;
             } else {
                 this.tipEL.style.transform = `translateX(${x}px)`;
             }
@@ -694,7 +833,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         if (this.online) {
             if (!useCache && !TraceRow.isUserInteraction) {
-                this.supplier?.().then(res => {
+                this.supplier?.().then((res) => {
                     this.onThreadHandler?.(useCache, res as any);
                 });
             }
@@ -708,16 +847,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 if (this.supplier) {
                     let promise = this.supplier();
                     if (promise) {
-                        promise.then(res => {
-                            this.dataList = res
+                        promise.then((res) => {
+                            this.dataList = res;
                             if (this.onComplete) {
                                 this.onComplete();
                             }
-                            window.publish(window.SmartEvent.UI.TraceRowComplete, this);
+                            window.publish(
+                                window.SmartEvent.UI.TraceRowComplete,
+                                this
+                            );
                             this.isComplete = true;
                             this.isLoading = false;
                             this.draw(false);
-                        })
+                        });
                     } else {
                         this.isLoading = false;
                         this.draw(false);
@@ -725,9 +867,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 }
             }
         } else {
-            if (!this.hasAttribute("row-hidden")) {
+            if (!this.hasAttribute('row-hidden')) {
                 if (this.onThreadHandler && this.dataList) {
-                    this.onThreadHandler!(useCache, null);
+                    this.onThreadHandler!(false, null);
                 }
             }
         }
@@ -748,9 +890,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
     clearCanvas(ctx: CanvasRenderingContext2D) {
         if (ctx) {
-            this.canvas.forEach(it => {
-                ctx.clearRect(0, 0, it!.clientWidth || 0, it!.clientHeight || 0)
-            })
+            this.canvas.forEach((it) => {
+                ctx.clearRect(
+                    0,
+                    0,
+                    it!.clientWidth || 0,
+                    it!.clientHeight || 0
+                );
+            });
         }
     }
 
@@ -758,41 +905,72 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         if (ctx) {
             ctx.lineWidth = 1;
             ctx.strokeStyle = this.getLineColor();
-            TraceRow.range?.xs.forEach(it => {
-                ctx.moveTo(Math.floor(it), 0)
-                ctx.lineTo(Math.floor(it), this.shadowRoot?.host.clientHeight || 0)
-            })
+            TraceRow.range?.xs.forEach((it) => {
+                ctx.moveTo(Math.floor(it), 0);
+                ctx.lineTo(
+                    Math.floor(it),
+                    this.shadowRoot?.host.clientHeight || 0
+                );
+            });
             ctx.stroke();
         }
     }
 
     getLineColor() {
-        return window.getComputedStyle(this.rootEL!, null).getPropertyValue("border-bottom-color")
+        return window
+            .getComputedStyle(this.rootEL!, null)
+            .getPropertyValue('border-bottom-color');
     }
 
     drawSelection(ctx: CanvasRenderingContext2D) {
         if (this.rangeSelect) {
-            TraceRow.rangeSelectObject!.startX = Math.floor(ns2x(TraceRow.rangeSelectObject!.startNS!, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS!, this.frame));
-            TraceRow.rangeSelectObject!.endX = Math.floor(ns2x(TraceRow.rangeSelectObject!.endNS!, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS!, this.frame));
+            TraceRow.rangeSelectObject!.startX = Math.floor(
+                ns2x(
+                    TraceRow.rangeSelectObject!.startNS!,
+                    TraceRow.range!.startNS,
+                    TraceRow.range!.endNS,
+                    TraceRow.range!.totalNS!,
+                    this.frame
+                )
+            );
+            TraceRow.rangeSelectObject!.endX = Math.floor(
+                ns2x(
+                    TraceRow.rangeSelectObject!.endNS!,
+                    TraceRow.range!.startNS,
+                    TraceRow.range!.endNS,
+                    TraceRow.range!.totalNS!,
+                    this.frame
+                )
+            );
             if (ctx) {
-                ctx.globalAlpha = 0.5
-                ctx.fillStyle = "#666666"
-                ctx.fillRect(TraceRow.rangeSelectObject!.startX!, this.frame.y, TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!, this.frame.height)
-                ctx.globalAlpha = 1
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = '#666666';
+                ctx.fillRect(
+                    TraceRow.rangeSelectObject!.startX!,
+                    this.frame.y,
+                    TraceRow.rangeSelectObject!.endX! -
+                        TraceRow.rangeSelectObject!.startX!,
+                    this.frame.height
+                );
+                ctx.globalAlpha = 1;
             }
         }
     }
 
     isInTimeRange(startTime: number, duration: number): boolean {
-        return ((startTime || 0) + (duration || 0) > (TraceRow.range?.startNS || 0) && (startTime || 0) < (TraceRow.range?.endNS || 0));
+        return (
+            (startTime || 0) + (duration || 0) >
+                (TraceRow.range?.startNS || 0) &&
+            (startTime || 0) < (TraceRow.range?.endNS || 0)
+        );
     }
 
     buildArgs(obj: any) {
         let result: any = {
             list: this.must ? this.dataList : undefined,
-            offscreen: !this.isTransferCanvas ? this.offscreen[0] : undefined,//是否离屏
-            dpr: this.dpr,//屏幕dpr值
-            xs: TraceRow.range?.xs,//线条坐标信息
+            offscreen: !this.isTransferCanvas ? this.offscreen[0] : undefined, //是否离屏
+            dpr: this.dpr, //屏幕dpr值
+            xs: TraceRow.range?.xs, //线条坐标信息
             isHover: this.isHover,
             hoverX: this.hoverX,
             hoverY: this.hoverY,
@@ -810,11 +988,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             frame: this.frame,
             flagMoveInfo: null,
             flagSelectedInfo: null,
-            wakeupBean: null
+            wakeupBean: null,
         };
-        Reflect.ownKeys(obj).forEach(it => {
+        Reflect.ownKeys(obj).forEach((it) => {
             result[it] = obj[it];
-        })
+        });
         return result;
     }
 
@@ -831,23 +1009,23 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         switch (name) {
-            case "name":
+            case 'name':
                 if (this.nameEL) {
                     this.nameEL.textContent = newValue;
                     this.nameEL.title = newValue;
                 }
                 break;
-            case "height":
+            case 'height':
                 if (newValue != oldValue) {
                     if (!this.args.isOffScreen) {
                     }
                 }
                 break;
-            case "check-type":
-                if (newValue === "check") {
-                    this.checkBoxEL?.setAttribute("checked", "");
+            case 'check-type':
+                if (newValue === 'check') {
+                    this.checkBoxEL?.setAttribute('checked', '');
                 } else {
-                    this.checkBoxEL?.removeAttribute("checked");
+                    this.checkBoxEL?.removeAttribute('checked');
                 }
                 break;
         }
@@ -858,7 +1036,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         let myRect = this.getBoundingClientRect();
         let x = e.offsetX;
         let y = e.offsetY + _y;
-        if (x >= myRect.x && x <= myRect.x + myRect.width && y >= myRect.y && y <= myRect.y + myRect.height) {
+        if (
+            x >= myRect.x &&
+            x <= myRect.x + myRect.width &&
+            y >= myRect.y &&
+            y <= myRect.y + myRect.height
+        ) {
             this.hoverX = x - this.describeEl!.clientWidth;
             this.hoverY = y - myRect.y;
             this.isHover = true;
@@ -935,12 +1118,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             margin-left: 10px;
             font-size: .9rem;
             font-weight: normal;
-            width: 100%;
+            width: 80%;
             max-height: 100%;
             text-align: left;
             overflow: hidden;
             user-select: none;
             text-overflow: ellipsis;
+            white-space:nowrap
         }
         :host([highlight]) .name{
             color: #4b5766;
@@ -1091,25 +1275,25 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
         </style>
         <div class="root">
-            <div class="describe flash">
-                <lit-icon class="icon" name="caret-down" size="13"></lit-icon>
+            <div class="describe flash" style="position: inherit">
+                <lit-icon class="icon" name="caret-down" size="19"></lit-icon>
                 <label class="name"></label>
-                <lit-icon class="collect" name="star-fill" size="17"></lit-icon>
-                <lit-popover placement="bottomLeft" trigger="click" id = "nativeRadioList" class="popover" haveRadio="true">
+                <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
+                <lit-popover placement="bottomLeft" trigger="click" id = "nativeRadioList" class="popover" haveRadio="true" style="z-index: 1;position: absolute;left: 230px">
                     <div style="display: block" slot="content">
                         <div id="first-radio" style="margin-bottom: 5px">
                         <input class="radio" name="status" type="radio" value="0" />Current Bytes</div>
                         <div id="second-radio" style="margin-bottom: 5px">
                         <input class="radio" name="status" type="radio" value="1" />Native Memory Density</div>
                     </div>
-                    <lit-icon name="setting" size="17" id="setting"></lit-icon>
+                    <lit-icon name="setting" size="19" id="setting"></lit-icon>
                 </lit-popover>
-                <lit-popover placement="bottomLeft" trigger="click" id="appNameList" class="popover" haveRadio="true">
+                <lit-popover placement="bottomLeft" trigger="click" id="appNameList" class="popover" haveRadio="true" style="z-index: 1;position: absolute;left: 230px">
                     <div slot="content" id="listprocess" style="height:200px;overflow-y:auto">
                     </div>
-                    <lit-icon name="setting" size="17" id="setting"></lit-icon>
+                    <lit-icon name="setting" size="19" id="setting"></lit-icon>
                 </lit-popover>
-                <lit-check-box class="lit-check-box"></lit-check-box>
+                <lit-check-box class="lit-check-box" style="margin-right: 10px;"></lit-check-box>
             </div>
         </div>
         `;

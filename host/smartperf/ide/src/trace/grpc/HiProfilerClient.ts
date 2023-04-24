@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {Address, ProfilerClient} from "./ProfilerClient.js";
+import { Address, ProfilerClient } from './ProfilerClient.js';
 
 export class HiProfilerClient {
     private _client: ProfilerClient;
@@ -22,7 +22,7 @@ export class HiProfilerClient {
     public constructor(clients: ProfilerClient, addr: Address) {
         this._client = clients;
         this._address = addr;
-    };
+    }
 
     get client(): ProfilerClient {
         return this._client;

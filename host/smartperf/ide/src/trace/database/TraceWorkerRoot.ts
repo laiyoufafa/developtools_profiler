@@ -12,25 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-let worker:Worker;
-self.onmessage = (e)=>{
-    if (e.data.action === "open") {
-        worker = new Worker("TraceWorker.js")
-        worker.onmessage = (msg)=>{
+
+let worker: Worker;
+self.onmessage = (e) => {
+    if (e.data.action === 'open') {
+        worker = new Worker('TraceWorker.js');
+        worker.onmessage = (msg) => {
             self.postMessage(msg.data);
-        }
-        worker.postMessage(e.data,[e.data.buffer]);
-    } else if (e.data.action === "exec") {
+        };
+        worker.postMessage(e.data, [e.data.buffer]);
+    } else if (e.data.action === 'exec') {
         worker.postMessage(e.data);
-    } else if (e.data.action == "exec-buf") {
+    } else if (e.data.action == 'exec-buf') {
         // @ts-ignore
         worker.postMessage(e.data);
     }
-}
-self.onerror = event => {
+};
+self.onerror = (event) => {
     worker.terminate();
-}
+};
 self.onclose = () => {
     worker.terminate();
-}
+};

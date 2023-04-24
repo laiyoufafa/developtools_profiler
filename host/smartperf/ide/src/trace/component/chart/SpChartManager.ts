@@ -13,31 +13,34 @@
  * limitations under the License.
  */
 
-import {SpSystemTrace} from "../SpSystemTrace.js";
-import {SpHiPerf} from "./SpHiPerf.js";
-import {SpCpuChart} from "./SpCpuChart.js";
-import {SpFreqChart} from "./SpFreqChart.js";
-import {SpFpsChart} from "./SpFpsChart.js";
+import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpHiPerf } from './SpHiPerf.js';
+import { SpCpuChart } from './SpCpuChart.js';
+import { SpFreqChart } from './SpFreqChart.js';
+import { SpFpsChart } from './SpFpsChart.js';
 import {
-    getCpuUtilizationRate, queryDataDICT,
-    queryTotalTime
-} from "../../database/SqlLite.js";
-import {info} from "../../../log/Log.js";
-import {SpNativeMemoryChart} from "./SpNativeMemoryChart.js";
-import {SpAbilityMonitorChart} from "./SpAbilityMonitorChart.js";
-import {SpProcessChart} from "./SpProcessChart.js";
-import {perfDataQuery} from "./PerfDataQuery.js";
-import {SpVirtualMemChart} from "./SpVirtualMemChart.js";
-import {SpFileSystemChart} from "./SpFileSystemChart.js";
-import {SpSdkChart} from "./SpSdkChart.js";
-import {SpHiSysEventChart} from "./SpHiSysEventChart.js";
-import {SmapsChart} from "./SmapsChart.js";
-import {SpClockChart} from "./SpClockChart.js";
-import {SpIrqChart} from "./SpIrqChart.js";
-import {renders} from "../../database/ui-worker/ProcedureWorker.js";
-import {EmptyRender} from "../../database/ui-worker/ProcedureWorkerCPU.js";
-import {TraceRow} from "../trace/base/TraceRow.js";
-import {SpFrameTimeChart} from "./SpFrameTimeChart.js";
+    getCpuUtilizationRate,
+    queryDataDICT,
+    queryThreadAndProcessName,
+    queryTotalTime,
+} from '../../database/SqlLite.js';
+import { info } from '../../../log/Log.js';
+import { SpNativeMemoryChart } from './SpNativeMemoryChart.js';
+import { SpAbilityMonitorChart } from './SpAbilityMonitorChart.js';
+import { SpProcessChart } from './SpProcessChart.js';
+import { perfDataQuery } from './PerfDataQuery.js';
+import { SpVirtualMemChart } from './SpVirtualMemChart.js';
+import { SpFileSystemChart } from './SpFileSystemChart.js';
+import { SpSdkChart } from './SpSdkChart.js';
+import { SpHiSysEventChart } from './SpHiSysEventChart.js';
+import { SmapsChart } from './SmapsChart.js';
+import { SpClockChart } from './SpClockChart.js';
+import { SpIrqChart } from './SpIrqChart.js';
+import { renders } from '../../database/ui-worker/ProcedureWorker.js';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import { TraceRow } from '../trace/base/TraceRow.js';
+import { SpFrameTimeChart } from './SpFrameTimeChart.js';
+import { Utils } from '../trace/base/Utils.js';
 
 export class SpChartManager {
     private trace: SpSystemTrace;
@@ -45,14 +48,14 @@ export class SpChartManager {
     private cpu: SpCpuChart;
     private freq: SpFreqChart;
     private virtualMemChart: SpVirtualMemChart;
-    private fps: SpFpsChart
+    private fps: SpFpsChart;
     private nativeMemory: SpNativeMemoryChart;
     private abilityMonitor: SpAbilityMonitorChart;
     private process: SpProcessChart;
     private fileSystem: SpFileSystemChart;
     private sdkChart: SpSdkChart;
     private hiSyseventChart: SpHiSysEventChart;
-    private smapsChart:SmapsChart;
+    private smapsChart: SmapsChart;
     private clockChart: SpClockChart;
     private irqChart: SpIrqChart;
     private frameTimeChart: SpFrameTimeChart;
@@ -72,69 +75,83 @@ export class SpChartManager {
         this.hiSyseventChart = new SpHiSysEventChart(trace);
         this.smapsChart = new SmapsChart(trace);
         this.clockChart = new SpClockChart(trace);
-        this.irqChart = new SpIrqChart(trace)
-        this.frameTimeChart = new SpFrameTimeChart(trace)
+        this.irqChart = new SpIrqChart(trace);
+        this.frameTimeChart = new SpFrameTimeChart(trace);
     }
 
     async init(progress: Function) {
-        progress("load data dict", 50);
+        progress('load data dict', 50);
         SpSystemTrace.DATA_DICT.clear();
         let dict = await queryDataDICT();
         dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
-        progress("time range", 65);
+        progress('time range', 65);
         await this.initTotalTime();
-        info("timerShaftEL Data initialized")
-        progress("cpu", 70);
+        let ptArr = await queryThreadAndProcessName();
+        this.handleProcessThread(ptArr);
+        info('timerShaftEL Data initialized');
+        progress('cpu', 70);
         await this.cpu.init();
-        info("cpu Data initialized")
-        progress("process/thread state", 73);
+        info('cpu Data initialized');
+        progress('process/thread state', 73);
         await this.cpu.initProcessThreadStateData(progress);
         await this.cpu.initCpuIdle0Data(progress);
         await this.cpu.initSchedulingPTData(progress);
         await this.cpu.initSchedulingFreqData(progress);
-        info("ProcessThreadState Data initialized")
-        progress("cpu rate", 75);
+        info('ProcessThreadState Data initialized');
+        progress('cpu rate', 75);
         await this.initCpuRate();
-        info("Cpu Rate Data initialized")
-        progress("cpu freq", 80);
+        info('Cpu Rate Data initialized');
+        progress('cpu freq', 80);
         await this.freq.init();
-        progress("Clock init", 82);
+        progress('Clock init', 82);
         await this.clockChart.init();
-        progress("Irq init", 84);
+        progress('Irq init', 84);
         await this.irqChart.init();
-        info("Cpu Freq Data initialized")
+        info('Cpu Freq Data initialized');
         await this.virtualMemChart.init();
-        progress("fps", 85);
+        progress('fps', 85);
         await this.fps.init();
-        info("FPS Data initialized")
-        progress("native memory", 86);
-        await this.nativeMemory.initNativeMemory()
-        progress("native memory", 87);
+        info('FPS Data initialized');
+        progress('native memory', 86);
+        await this.nativeMemory.initNativeMemory();
+        progress('native memory', 87);
         await this.nativeMemory.initChart();
-        info("Native Memory Data initialized")
-        progress("ability monitor", 88);
+        info('Native Memory Data initialized');
+        progress('ability monitor', 88);
         await this.abilityMonitor.init();
-        progress("hiSysevent", 88.2);
+        progress('hiSysevent', 88.2);
         await this.hiSyseventChart.init();
-        info("Perf Files Data initialized")
-        progress("vm tracker", 88.4);
+        info('Perf Files Data initialized');
+        progress('vm tracker', 88.4);
         await this.smapsChart.init();
-        progress("sdk", 88.6);
+        progress('sdk', 88.6);
         await this.sdkChart.init();
-        progress("perf", 88.8);
+        progress('perf', 88.8);
         await this.perf!.init();
-        progress("file system", 89);
+        progress('file system', 89);
         await this.fileSystem!.init();
-        info("Ability Monitor Data initialized")
-        await perfDataQuery.initPerfCache()
-        info("HiPerf Data initialized")
+        info('Ability Monitor Data initialized');
+        await perfDataQuery.initPerfCache();
+        info('HiPerf Data initialized');
         await this.frameTimeChart.init();
-        progress("process", 90);
+        progress('process', 90);
         await this.process.initAsyncFuncData();
         await this.process.initDeliverInputEvent();
         await this.process.init();
-        info("Process Data initialized")
-        progress("display", 95);
+        info('Process Data initialized');
+        progress('display', 95);
+    }
+
+    handleProcessThread(arr: { id: number; name: string; type: string }[]) {
+        Utils.PROCESS_MAP.clear();
+        Utils.THREAD_MAP.clear();
+        for (let pt of arr) {
+            if (pt.type === 'p') {
+                Utils.PROCESS_MAP.set(pt.id, pt.name);
+            } else {
+                Utils.THREAD_MAP.set(pt.id, pt.name);
+            }
+        }
     }
 
     initTotalTime = async () => {
@@ -143,9 +160,9 @@ export class SpChartManager {
             let total = res[0].total;
             let startNS = res[0].recordStartNS;
             let endNS = res[0].recordEndNS;
-            if (total===0 && startNS=== endNS) {
+            if (total === 0 && startNS === endNS) {
                 total = 1;
-                endNS = startNS+1;
+                endNS = startNS + 1;
             }
             this.trace.timerShaftEL.totalNS = total;
             (window as any).recordStartNS = startNS;
@@ -153,34 +170,44 @@ export class SpChartManager {
             (window as any).totalNS = total;
             this.trace.timerShaftEL.loadComplete = true;
         }
-    }
+    };
 
     initCpuRate = async () => {
-        let rates = await getCpuUtilizationRate(0, this.trace.timerShaftEL?.totalNS || 0);
+        let rates = await getCpuUtilizationRate(
+            0,
+            this.trace.timerShaftEL?.totalNS || 0
+        );
         if (this.trace.timerShaftEL) this.trace.timerShaftEL.cpuUsage = rates;
-        info("Cpu UtilizationRate data size is: ", rates.length)
-    }
-
+        info('Cpu UtilizationRate data size is: ', rates.length);
+    };
 }
 
 export const FolderSupplier = () => {
-    return () => new Promise<Array<any>>((resolve) => resolve([]))
-}
-export const FolderThreadHandler = (row:TraceRow<any>,trace:SpSystemTrace)=>{
-    return (useCache:boolean) => {
+    return () => new Promise<Array<any>>((resolve) => resolve([]));
+};
+export const FolderThreadHandler = (
+    row: TraceRow<any>,
+    trace: SpSystemTrace
+) => {
+    return (useCache: boolean) => {
         row.canvasSave(trace.canvasPanelCtx!);
         if (row.expansion) {
-            trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
+            trace.canvasPanelCtx?.clearRect(
+                0,
+                0,
+                row.frame.width,
+                row.frame.height
+            );
         } else {
-            (renders["empty"] as EmptyRender).renderMainThread(
+            (renders['empty'] as EmptyRender).renderMainThread(
                 {
                     context: trace.canvasPanelCtx,
                     useCache: useCache,
                     type: ``,
                 },
-                row,
+                row
             );
         }
         row.canvasRestore(trace.canvasPanelCtx!);
-    }
-}
+    };
+};

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
-import {LitSelectOption} from "./LitSelectOption.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { LitSelectOption } from './LitSelectOption.js';
 
 @element('lit-select-v')
 export class LitSelectV extends BaseElement {
@@ -47,26 +47,26 @@ export class LitSelectV extends BaseElement {
     }
 
     get rounded() {
-        return this.hasAttribute("rounded");
+        return this.hasAttribute('rounded');
     }
 
     set rounded(rounded: boolean) {
         if (rounded) {
-            this.setAttribute("rounded", '');
+            this.setAttribute('rounded', '');
         } else {
-            this.removeAttribute("rounded");
+            this.removeAttribute('rounded');
         }
     }
 
     get placement(): string {
-        return this.getAttribute("placement") || "";
+        return this.getAttribute('placement') || '';
     }
 
     set placement(placement: string) {
         if (placement) {
-            this.setAttribute("placement", placement);
+            this.setAttribute('placement', placement);
         } else {
-            this.removeAttribute("placement");
+            this.removeAttribute('placement');
         }
     }
 
@@ -117,55 +117,61 @@ export class LitSelectV extends BaseElement {
     dataSource(value: Array<string>, valueStr: string) {
         this.options!.innerHTML = '';
         if (value.length > 0) {
-            this.body!.style.display = "block"
+            this.body!.style.display = 'block';
             this.valueStr = valueStr;
             this.itemValue = value;
-            if (valueStr != "") {
-                let option = document.createElement("lit-select-option");
+            if (valueStr != '') {
+                let option = document.createElement('lit-select-option');
                 if (this.all) {
-                    option.setAttribute("selected", "");
-                    this.showItems = value
+                    option.setAttribute('selected', '');
+                    this.showItems = value;
                 }
                 option.setAttribute('value', valueStr);
                 option.textContent = valueStr;
                 this.options!.appendChild(option);
                 this.initDataItem(value);
-                this.initCustomOptions()
+                this.initCustomOptions();
             } else {
                 this.initDataItem(value);
-                this.initOptions()
+                this.initOptions();
             }
         } else {
-            this.body!.style.display = "none"
+            this.body!.style.display = 'none';
         }
         if (this.title == 'Event List') {
-            let inputElement = this.shadowRoot?.querySelector('input') as HTMLInputElement;
-            inputElement.readOnly = false
+            let inputElement = this.shadowRoot?.querySelector(
+                'input'
+            ) as HTMLInputElement;
+            inputElement.readOnly = false;
         }
     }
 
     initDataItem(value: Array<string>) {
-        value.forEach(
-            item => {
-                let option = document.createElement("lit-select-option");
-                if (this.showItems.indexOf(item) > -1 || this.all) {
-                    option.setAttribute("selected", "")
-                }
-                option.className = 'option';
-                option.setAttribute('value', item);
-                option.textContent = item;
-                this.options!.appendChild(option);
+        value.forEach((item) => {
+            let option = document.createElement('lit-select-option');
+            if (this.showItems.indexOf(item) > -1 || this.all) {
+                option.setAttribute('selected', '');
             }
-        )
+            option.className = 'option';
+            option.setAttribute('value', item);
+            option.textContent = item;
+            this.options!.appendChild(option);
+        });
     }
 
     initElements(): void {
         this.tabIndex = 0;
         this.focused = false;
-        this.inputElement = this.shadowRoot!.querySelector('#select-input') as HTMLInputElement;
-        this.searchInputElement = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
+        this.inputElement = this.shadowRoot!.querySelector(
+            '#select-input'
+        ) as HTMLInputElement;
+        this.searchInputElement = this.shadowRoot!.querySelector(
+            '#search-input'
+        ) as HTMLInputElement;
         this.body = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
-        this.options = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
+        this.options = this.shadowRoot!.querySelector(
+            '.body-opt'
+        ) as HTMLDivElement;
         this.iconElement = this.shadowRoot!.querySelector('.icon');
         this.onclick = (ev: any) => {
             if (this.focused === false) {
@@ -173,27 +179,33 @@ export class LitSelectV extends BaseElement {
             } else {
                 this.focused = false;
             }
-        }
+        };
         this.searchInputElement?.addEventListener('keyup', () => {
-            let options = [...this.shadowRoot!.querySelectorAll<LitSelectOption>('.option')]
+            let options = [
+                ...this.shadowRoot!.querySelectorAll<LitSelectOption>(
+                    '.option'
+                ),
+            ];
             options.filter((a: LitSelectOption) => {
-                if (a.textContent!.indexOf(this.searchInputElement!.value) <= -1) {
-                    a.style.display = "none";
+                if (
+                    a.textContent!.indexOf(this.searchInputElement!.value) <= -1
+                ) {
+                    a.style.display = 'none';
                 } else {
-                    a.style.display = "flex";
+                    a.style.display = 'flex';
                 }
             });
-        })
+        });
 
-        this.onmouseout = this.onblur = ev => {
+        this.onmouseout = this.onblur = (ev) => {
             this.focused = false;
-        }
+        };
         this.inputElement.onfocus = (ev: any) => {
             if (this.hasAttribute('disabled')) return;
-        }
+        };
         this.inputElement.onblur = (ev: any) => {
             if (this.hasAttribute('disabled')) return;
-        }
+        };
     }
 
     initHtml() {
@@ -387,26 +399,27 @@ export class LitSelectV extends BaseElement {
                <slot name="footer"></slot>
             </div>
         </div>     
-        `
+        `;
     }
 
-    connectedCallback() {
-    }
+    connectedCallback() {}
 
     initCustomOptions() {
-        let querySelector = this.shadowRoot?.querySelector(`lit-select-option[value="${this.valueStr}"]`) as LitSelectOption;
-        this.shadowRoot?.querySelectorAll('lit-select-option').forEach(a => {
+        let querySelector = this.shadowRoot?.querySelector(
+            `lit-select-option[value="${this.valueStr}"]`
+        ) as LitSelectOption;
+        this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
             a.setAttribute('check', '');
             a.addEventListener('onSelected', (e: any) => {
-                if (a.hasAttribute("selected")) {
+                if (a.hasAttribute('selected')) {
                     let number = this.showItems.indexOf(a.textContent!);
                     if (number > -1) {
                         this.showItems!.splice(number, 1);
                         this.inputElement!.value = this.showItems;
                     }
-                    this.all = false
-                    querySelector.removeAttribute("selected");
-                    a.removeAttribute("selected");
+                    this.all = false;
+                    querySelector.removeAttribute('selected');
+                    a.removeAttribute('selected');
                     return;
                 } else {
                     let index = this.itemValue.indexOf(a.textContent!);
@@ -416,82 +429,85 @@ export class LitSelectV extends BaseElement {
                         this.inputElement!.value = this.showItems;
                     }
                     if (this.showItems.length >= this.itemValue.length) {
-                        querySelector.setAttribute('selected', '')
+                        querySelector.setAttribute('selected', '');
                         this.all = true;
                     } else {
-                        querySelector.removeAttribute('selected')
+                        querySelector.removeAttribute('selected');
                         this.all = false;
                     }
-                    a.setAttribute('selected', '')
+                    a.setAttribute('selected', '');
                 }
-            })
-        })
+            });
+        });
         this.selectAll(querySelector);
     }
 
-
     initOptions() {
-        this.options!.addEventListener('click', ev => {
-            let items = this.inputElement!.value.split(",");
-            this.customItem = []
+        this.options!.addEventListener('click', (ev) => {
+            let items = this.inputElement!.value.split(',');
+            this.customItem = [];
             items.forEach((item: string) => {
-                if (item.trim() != "") {
+                if (item.trim() != '') {
                     let indexItem = this.itemValue.indexOf(item.trim());
                     if (indexItem == -1) {
-                        this.customItem.push(item.trim())
+                        this.customItem.push(item.trim());
                     }
                 }
             });
             if (this.customItem.length > 0) {
-                this.inputElement.value = this.customItem.concat(this.showItems);
+                this.inputElement.value = this.customItem.concat(
+                    this.showItems
+                );
             } else {
-                this.inputElement.value = this.showItems
+                this.inputElement.value = this.showItems;
             }
-        })
-        this.shadowRoot?.querySelectorAll('lit-select-option').forEach(a => {
+        });
+        this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
             a.setAttribute('check', '');
             a.addEventListener('onSelected', (e: any) => {
-                if (a.hasAttribute("selected")) {
+                if (a.hasAttribute('selected')) {
                     let number = this.showItems.indexOf(a.textContent!);
                     if (number > -1) {
-                        this.showItems.splice(number, 1)
+                        this.showItems.splice(number, 1);
                     }
-                    a.removeAttribute("selected");
+                    a.removeAttribute('selected');
                     return;
                 } else {
                     let index = this.itemValue.indexOf(a.textContent!);
                     if (index > -1) {
                         this.showItems.push(a.textContent!);
                     }
-                    a.setAttribute('selected', '')
+                    a.setAttribute('selected', '');
                 }
-            })
-        })
+            });
+        });
     }
 
     selectAll(querySelector: LitSelectOption) {
-        querySelector?.addEventListener("click", ev => {
-            if (querySelector.hasAttribute("selected")) {
-                this.shadowRoot?.querySelectorAll('lit-select-option').forEach(a => {
-                    a.setAttribute('selected', '');
-                    this.all = true
-                })
-                this.itemValue.forEach(i => {
-                    this.showItems.push(i)
-                })
+        querySelector?.addEventListener('click', (ev) => {
+            if (querySelector.hasAttribute('selected')) {
+                this.shadowRoot
+                    ?.querySelectorAll('lit-select-option')
+                    .forEach((a) => {
+                        a.setAttribute('selected', '');
+                        this.all = true;
+                    });
+                this.itemValue.forEach((i) => {
+                    this.showItems.push(i);
+                });
                 this.inputElement.value = this.itemValue;
             } else {
-                this.shadowRoot?.querySelectorAll('lit-select-option').forEach(i => {
-                    i.removeAttribute('selected');
-                    this.all = false
-                })
+                this.shadowRoot
+                    ?.querySelectorAll('lit-select-option')
+                    .forEach((i) => {
+                        i.removeAttribute('selected');
+                        this.all = false;
+                    });
                 this.showItems = [];
-                this.inputElement.value = "";
+                this.inputElement.value = '';
             }
-        })
+        });
     }
 
-    attributeChangedCallback(name: any, oldValue: any, newValue: any) {
-    }
-
+    attributeChangedCallback(name: any, oldValue: any, newValue: any) {}
 }

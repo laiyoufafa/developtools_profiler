@@ -13,25 +13,31 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {ColorUtils} from "../../base/ColorUtils.js";
-import {Utils} from "../../base/Utils.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { ColorUtils } from '../../base/ColorUtils.js';
+import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-freq-limit')
 export class TabPaneFreqLimit extends BaseElement {
     private tbl: LitTable | null | undefined;
 
-    set data(freq:any) {
-        if(freq){
-            this.tbl!.dataSource = [{
-                startNs:Utils.getTimeString(freq.startNs >=0?freq.startNs:0),
-                absoluteTime:(freq.startNs + (window as any).recordStartNS)/1000000000,
-                dur:Utils.getProbablyTime(freq.dur),
-                maxFreq:`${ColorUtils.formatNumberComma(freq.max!)} kHz`,
-                minFreq:`${ColorUtils.formatNumberComma(freq.min!)} kHz`,
-                cpu:`Cpu ${freq.cpu}`
-            }]
+    set data(freq: any) {
+        if (freq) {
+            this.tbl!.dataSource = [
+                {
+                    startNs: Utils.getTimeString(
+                        freq.startNs >= 0 ? freq.startNs : 0
+                    ),
+                    absoluteTime:
+                        (freq.startNs + (window as any).recordStartNS) /
+                        1000000000,
+                    dur: Utils.getProbablyTime(freq.dur),
+                    maxFreq: `${ColorUtils.formatNumberComma(freq.max!)} kHz`,
+                    minFreq: `${ColorUtils.formatNumberComma(freq.min!)} kHz`,
+                    cpu: `Cpu ${freq.cpu}`,
+                },
+            ];
         }
     }
 
@@ -44,10 +50,10 @@ export class TabPaneFreqLimit extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
-        }).observe(this.parentElement!)
+        }).observe(this.parentElement!);
     }
 
     initHtml(): string {
@@ -75,5 +81,4 @@ export class TabPaneFreqLimit extends BaseElement {
         </lit-table>
         `;
     }
-
 }

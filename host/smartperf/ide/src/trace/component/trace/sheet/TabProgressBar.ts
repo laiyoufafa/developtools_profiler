@@ -13,31 +13,42 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
-
+import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
 
 @element('tab-progress-bar')
 export class TabProgressBar extends BaseElement {
-
     initElements(): void {
-        let data: Array<string> = this.getAttribute("data")!.split(",")
-        let first: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector<HTMLDivElement>("#first")
-        let second: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector<HTMLDivElement>("#second")
-        if (data!.length > 0 && data && data![2] != "0") {
+        let data: Array<string> = this.getAttribute('data')!.split(',');
+        let first: HTMLDivElement | undefined | null =
+            this.shadowRoot?.querySelector<HTMLDivElement>('#first');
+        let second: HTMLDivElement | undefined | null =
+            this.shadowRoot?.querySelector<HTMLDivElement>('#second');
+        if (data!.length > 0 && data && data![2] != '0') {
             if (parseInt(data[0]) < 0) {
-                first!.style.width = (Number((Math.abs(parseInt(data[0])) / parseInt(data[2])) * 100)).toFixed(2) + "%"
-                first!.style.background = "#FC74FF"
+                first!.style.width =
+                    Number(
+                        (Math.abs(parseInt(data[0])) / parseInt(data[2])) * 100
+                    ).toFixed(2) + '%';
+                first!.style.background = '#FC74FF';
             } else {
-                first!.style.width = (Number((parseInt(data[0]) / parseInt(data[2])) * 100)).toFixed(2) + "%"
+                first!.style.width =
+                    Number(
+                        (parseInt(data[0]) / parseInt(data[2])) * 100
+                    ).toFixed(2) + '%';
             }
             if (parseInt(data[1]) < 0) {
-                second!.style.width = (Number((Math.abs(parseInt(data[1])) / parseInt(data[2])) * 100)).toFixed(2) + "%"
-                first!.style.background = "#CC34CF"
+                second!.style.width =
+                    Number(
+                        (Math.abs(parseInt(data[1])) / parseInt(data[2])) * 100
+                    ).toFixed(2) + '%';
+                first!.style.background = '#CC34CF';
             } else {
-                second!.style.width = (Number((parseInt(data[1]) / parseInt(data[2])) * 100)).toFixed(2) + "%"
+                second!.style.width =
+                    Number(
+                        (parseInt(data[1]) / parseInt(data[2])) * 100
+                    ).toFixed(2) + '%';
             }
         }
-
     }
 
     initHtml(): string {

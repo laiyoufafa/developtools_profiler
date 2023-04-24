@@ -13,19 +13,25 @@
  * limitations under the License.
  */
 
-import {AuthType} from "./AuthType.js";
-import {HANDSHAKE_MESSAGE} from "../common/ConstantType.js";
-import {BaseBean} from "./BaseBean.js";
+import { AuthType } from './AuthType.js';
+import { HANDSHAKE_MESSAGE } from '../common/ConstantType.js';
+import { BaseBean } from './BaseBean.js';
 
-export class SessionHandShake extends Object implements BaseBean{
+export class SessionHandShake extends Object implements BaseBean {
     private _banner: string = HANDSHAKE_MESSAGE; //  string  must first index
     private _authType: number = AuthType.AUTH_NONE; // uint8_t auth none
     private _sessionId: number = 0; // uint32_t
-    private _connectKey: string = "";  // string
-    private _buf: string = "";  // string
-    private _version:string = "";
+    private _connectKey: string = ''; // string
+    private _buf: string = ''; // string
+    private _version: string = '';
 
-    constructor(banner: string, authType: number, sessionId: number, connectKey: string, buf: string) {
+    constructor(
+        banner: string,
+        authType: number,
+        sessionId: number,
+        connectKey: string,
+        buf: string
+    ) {
         super();
         this._banner = banner;
         this._authType = authType;
@@ -88,11 +94,19 @@ export class SessionHandShake extends Object implements BaseBean{
     }
 
     toString(): string {
-        return "banner: " + this._banner
-            + " authType: " + this._authType
-            + " sessionId: " + this._sessionId
-            + " connectKey: " + this._connectKey
-            + " buf: " + this._buf
-            + " version: " + this._version;
+        return (
+            'banner: ' +
+            this._banner +
+            ' authType: ' +
+            this._authType +
+            ' sessionId: ' +
+            this._sessionId +
+            ' connectKey: ' +
+            this._connectKey +
+            ' buf: ' +
+            this._buf +
+            ' version: ' +
+            this._version
+        );
     }
 }

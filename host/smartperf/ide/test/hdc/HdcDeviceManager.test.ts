@@ -14,15 +14,14 @@
  */
 
 // @ts-ignore
-import {HdcDeviceManager} from "../../dist/hdc/HdcDeviceManager.js";
+import { HdcDeviceManager } from '../../dist/hdc/HdcDeviceManager.js';
 
 describe('HdcDeviceManager', () => {
-
     it('HdcDeviceManagerTest_01', () => {
-        expect(HdcDeviceManager.disConnect(1)).toBeTruthy()
-    })
+        expect(HdcDeviceManager.disConnect(1)).toBeTruthy();
+    });
 
     it('HdcDeviceManagerTest_02', () => {
-        expect(HdcDeviceManager.fileRecv("1")).toBeTruthy()
-    })
-})
+        expect(HdcDeviceManager.fileRecv('1')).toBeTruthy();
+    });
+});

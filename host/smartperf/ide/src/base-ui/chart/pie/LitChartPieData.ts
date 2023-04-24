@@ -17,34 +17,44 @@ export function randomRgbColor() {
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)]
+        color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
 }
 
-export function isPointIsCircle(x1:number,y1:number,x2:number,y2:number,radius:number):boolean {
-    return Math.sqrt(Math.pow(Math.abs(x2 - x1), 2) + Math.pow(Math.abs(y2 - y1), 2))<radius;
+export function isPointIsCircle(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    radius: number
+): boolean {
+    return (
+        Math.sqrt(
+            Math.pow(Math.abs(x2 - x1), 2) + Math.pow(Math.abs(y2 - y1), 2)
+        ) < radius
+    );
 }
 
 export const pieChartColors = [
-    "#5b8ff9",
-    "#5ad8a6",
-    "#5d7092",
-    "#f6bd16",
-    "#e8684a",
-    "#6DC8EC",
-    "#9270CA",
-    "#FF9D4D",
-    "#269A99",
-    "#FF99C3",
-    "#0039AC",
-    "#229D00",
-    "#AEAEAE",
-    "#FFEE00",
-    "#FF3000",
-    "#CBE1FF",
-    "#6000FF",
-    "#A24900",
-    "#70FFFE",
-    "#FF00C4"
-]
+    '#5b8ff9',
+    '#5ad8a6',
+    '#5d7092',
+    '#f6bd16',
+    '#e8684a',
+    '#6DC8EC',
+    '#9270CA',
+    '#FF9D4D',
+    '#269A99',
+    '#FF99C3',
+    '#0039AC',
+    '#229D00',
+    '#AEAEAE',
+    '#FFEE00',
+    '#FF3000',
+    '#CBE1FF',
+    '#6000FF',
+    '#A24900',
+    '#70FFFE',
+    '#FF00C4',
+];

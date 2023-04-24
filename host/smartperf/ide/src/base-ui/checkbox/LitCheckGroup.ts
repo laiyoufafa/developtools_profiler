@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
-import {LitCheckBox} from "./LitCheckBox.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { LitCheckBox } from './LitCheckBox.js';
 
 @element('lit-check-group')
 export class LitCheckGroup extends BaseElement {
-
     get direction() {
-        return this.getAttribute("direction")
+        return this.getAttribute('direction');
     }
 
     get value(): Array<string> {
-        let values = []
-        for (const litCheckBoxElement of this.querySelectorAll<LitCheckBox>('lit-check-box[checked]')) {
-            values.push(litCheckBoxElement.value)
+        let values = [];
+        for (const litCheckBoxElement of this.querySelectorAll<LitCheckBox>(
+            'lit-check-box[checked]'
+        )) {
+            values.push(litCheckBoxElement.value);
         }
         return values;
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `

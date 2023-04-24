@@ -13,35 +13,35 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabCpuAbilityData,} from "../../../../database/SqlLite.js";
-import {SystemCpuSummary} from "../../../../bean/AbilityMonitor.js";
-import {Utils} from "../../base/Utils.js";
-import {ColorUtils} from "../../base/ColorUtils.js";
-import "../../../SpFilter.js";
-import {log} from "../../../../../log/Log.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { getTabCpuAbilityData } from '../../../../database/SqlLite.js';
+import { SystemCpuSummary } from '../../../../bean/AbilityMonitor.js';
+import { Utils } from '../../base/Utils.js';
+import { ColorUtils } from '../../base/ColorUtils.js';
+import '../../../SpFilter.js';
+import { log } from '../../../../../log/Log.js';
 
 @element('tabpane-cpu-ability')
 export class TabPaneCpuAbility extends BaseElement {
     private tbl: LitTable | null | undefined;
     private source: Array<SystemCpuSummary> = [];
-    private queryResult: Array<SystemCpuSummary> = []
+    private queryResult: Array<SystemCpuSummary> = [];
     private float: HTMLDivElement | null | undefined;
-    private search: HTMLInputElement | undefined | null
+    private search: HTMLInputElement | undefined | null;
 
     set data(val: SelectionParam | any) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-        this.queryDataByDB(val)
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.queryDataByDB(val);
     }
 
     initElements(): void {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-ability');
         this.tbl!.addEventListener('column-click', (evt) => {
             // @ts-ignore
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -50,8 +50,8 @@ export class TabPaneCpuAbility extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
@@ -59,56 +59,67 @@ export class TabPaneCpuAbility extends BaseElement {
     filterData() {
         if (this.queryResult.length > 0) {
             let filter = this.queryResult.filter((item) => {
-                let array = this.toCpuAbilityArray(item)
-                let isInclude = array.filter(value => value.indexOf(this.search!.value) > -1);
-                return isInclude.length > 0
+                let array = this.toCpuAbilityArray(item);
+                let isInclude = array.filter(
+                    (value) => value.indexOf(this.search!.value) > -1
+                );
+                return isInclude.length > 0;
             });
             if (filter.length > 0) {
                 this.source = filter;
                 this.tbl!.recycleDataSource = this.source;
             } else {
-                this.source = []
+                this.source = [];
                 this.tbl!.recycleDataSource = [];
             }
         }
     }
 
     toCpuAbilityArray(systemCpuSummary: SystemCpuSummary): any[] {
-        let array: Array<string> = []
-        array.push(systemCpuSummary.startTimeStr)
-        array.push(systemCpuSummary.durationStr)
-        array.push(systemCpuSummary.totalLoadStr)
-        array.push(systemCpuSummary.userLoadStr)
-        array.push(systemCpuSummary.systemLoadStr)
-        array.push(systemCpuSummary.threadsStr)
-        return array
+        let array: Array<string> = [];
+        array.push(systemCpuSummary.startTimeStr);
+        array.push(systemCpuSummary.durationStr);
+        array.push(systemCpuSummary.totalLoadStr);
+        array.push(systemCpuSummary.userLoadStr);
+        array.push(systemCpuSummary.systemLoadStr);
+        array.push(systemCpuSummary.threadsStr);
+        return array;
     }
 
     queryDataByDB(val: SelectionParam | any) {
-        getTabCpuAbilityData(val.leftNs, val.rightNs).then(result => {
-            log("getTabCpuAbilityData size :" + result.length);
+        getTabCpuAbilityData(val.leftNs, val.rightNs).then((result) => {
+            log('getTabCpuAbilityData size :' + result.length);
             if (result.length != null && result.length > 0) {
                 for (const systemCpuSummary of result) {
                     if (systemCpuSummary.startTime == 0) {
                         systemCpuSummary.startTimeStr = '0:000.000.000';
                     } else {
-                        systemCpuSummary.startTimeStr = Utils.getTimeStampHMS(systemCpuSummary.startTime);
+                        systemCpuSummary.startTimeStr = Utils.getTimeStampHMS(
+                            systemCpuSummary.startTime
+                        );
                     }
-                    systemCpuSummary.durationStr = Utils.getDurString(systemCpuSummary.duration);
-                    systemCpuSummary.totalLoadStr = (systemCpuSummary.totalLoad).toFixed(2) + "%"
-                    systemCpuSummary.userLoadStr = (systemCpuSummary.userLoad).toFixed(2) + "%"
-                    systemCpuSummary.systemLoadStr = (systemCpuSummary.systemLoad).toFixed(2) + "%"
-                    systemCpuSummary.threadsStr = ColorUtils.formatNumberComma(systemCpuSummary.threads);
+                    systemCpuSummary.durationStr = Utils.getDurString(
+                        systemCpuSummary.duration
+                    );
+                    systemCpuSummary.totalLoadStr =
+                        systemCpuSummary.totalLoad.toFixed(2) + '%';
+                    systemCpuSummary.userLoadStr =
+                        systemCpuSummary.userLoad.toFixed(2) + '%';
+                    systemCpuSummary.systemLoadStr =
+                        systemCpuSummary.systemLoad.toFixed(2) + '%';
+                    systemCpuSummary.threadsStr = ColorUtils.formatNumberComma(
+                        systemCpuSummary.threads
+                    );
                 }
-                this.source = result
+                this.source = result;
                 this.queryResult = result;
-                this.tbl!.recycleDataSource = this.source
+                this.tbl!.recycleDataSource = this.source;
             } else {
-                this.source = []
-                this.queryResult = []
-                this.tbl!.recycleDataSource = []
+                this.source = [];
+                this.queryResult = [];
+                this.tbl!.recycleDataSource = [];
             }
-        })
+        });
     }
 
     initHtml(): string {
@@ -146,18 +157,27 @@ export class TabPaneCpuAbility extends BaseElement {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 } else if (type === 'durationStr') {
-                    return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+                    return sort === 2
+                        ? b.duration - a.duration
+                        : a.duration - b.duration;
                 } else if (type === 'totalLoadStr') {
-                    return sort === 2 ? b.totalLoad - a.totalLoad : a.totalLoad - b.totalLoad;
+                    return sort === 2
+                        ? b.totalLoad - a.totalLoad
+                        : a.totalLoad - b.totalLoad;
                 } else if (type === 'userLoadStr') {
-                    return sort === 2 ? b.userLoad - a.userLoad : a.userLoad - b.userLoad;
+                    return sort === 2
+                        ? b.userLoad - a.userLoad
+                        : a.userLoad - b.userLoad;
                 } else if (type === 'systemLoadStr') {
-                    return sort === 2 ? b.systemLoad - a.systemLoad : a.systemLoad - b.systemLoad;
+                    return sort === 2
+                        ? b.systemLoad - a.systemLoad
+                        : a.systemLoad - b.systemLoad;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
+                    } else {
+                        // @ts-ignore
                         if (b[property] == a[property]) {
                             return 0;
                         } else {
@@ -165,23 +185,22 @@ export class TabPaneCpuAbility extends BaseElement {
                         }
                     }
                 }
-            }
+            };
         }
 
         if (detail.key === 'startTime') {
-            this.source.sort(compare(detail.key, detail.sort, 'string'))
+            this.source.sort(compare(detail.key, detail.sort, 'string'));
         } else if (detail.key === 'durationStr') {
-            this.source.sort(compare(detail.key, detail.sort, 'durationStr'))
+            this.source.sort(compare(detail.key, detail.sort, 'durationStr'));
         } else if (detail.key === 'totalLoadStr') {
-            this.source.sort(compare(detail.key, detail.sort, 'totalLoadStr'))
+            this.source.sort(compare(detail.key, detail.sort, 'totalLoadStr'));
         } else if (detail.key === 'userLoadStr') {
-            this.source.sort(compare(detail.key, detail.sort, 'userLoadStr'))
+            this.source.sort(compare(detail.key, detail.sort, 'userLoadStr'));
         } else if (detail.key === 'systemLoadStr') {
-            this.source.sort(compare(detail.key, detail.sort, 'systemLoadStr'))
+            this.source.sort(compare(detail.key, detail.sort, 'systemLoadStr'));
         } else {
-            this.source.sort(compare(detail.key, detail.sort, 'number'))
+            this.source.sort(compare(detail.key, detail.sort, 'number'));
         }
         this.tbl!.recycleDataSource = this.source;
     }
-
 }

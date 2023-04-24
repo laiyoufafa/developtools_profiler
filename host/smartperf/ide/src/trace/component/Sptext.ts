@@ -13,18 +13,21 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../base-ui/BaseElement.js";
-import "../../base-ui/popover/LitPopover.js"
-import {LitPopover} from "../../base-ui/popover/LitPopover.js";
+import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import '../../base-ui/popover/LitPopover.js';
+import { LitPopover } from '../../base-ui/popover/LitPopover.js';
 
 @element('sp-text')
 export class SpText extends BaseElement {
     initElements(): void {
-        let litPopover = this.shadowRoot?.querySelector<LitPopover>('lit-popover');
-        litPopover!.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        },]
+        let litPopover =
+            this.shadowRoot?.querySelector<LitPopover>('lit-popover');
+        litPopover!.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
     }
 
     initHtml(): string {

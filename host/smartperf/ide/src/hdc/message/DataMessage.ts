@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import {USBHead} from "./USBHead.js";
-import {debug, log} from "../../log/Log.js";
-import {PayloadHead} from "./PayloadHead.js";
-import {Serialize} from "../common/Serialize.js";
-import {Utils} from "../common/Utils.js";
-import {HdcCommand} from "../hdcclient/HdcCommand.js";
+import { USBHead } from './USBHead.js';
+import { debug, log } from '../../log/Log.js';
+import { PayloadHead } from './PayloadHead.js';
+import { Serialize } from '../common/Serialize.js';
+import { Utils } from '../common/Utils.js';
+import { HdcCommand } from '../hdcclient/HdcCommand.js';
 
-export class DataMessage extends Object{
+export class DataMessage extends Object {
     body?: DataView;
 
     private _usbHead: USBHead;
@@ -28,7 +28,7 @@ export class DataMessage extends Object{
     private _result: string = '';
     private _channelClose: boolean = false;
     private _resArrayBuffer: ArrayBuffer | undefined;
-    private _commandFlag:number = -1;
+    private _commandFlag: number = -1;
 
     constructor(usbHead: USBHead, body?: DataView) {
         super();
@@ -40,20 +40,30 @@ export class DataMessage extends Object{
     }
 
     splitData() {
-        let playHeadArray = this.body!.buffer.slice(0, 11)
-        let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
+        let playHeadArray = this.body!.buffer.slice(0, 11);
+        let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(
+            new DataView(playHeadArray)
+        );
         let headSize = resultPayloadHead.headSize;
         let dataSize = resultPayloadHead.dataSize;
-        let resultPlayProtectBuffer = this.body!.buffer.slice(11, 11 + headSize);
-        let payloadProtect = Serialize.parsePayloadProtect(resultPlayProtectBuffer);
+        let resultPlayProtectBuffer = this.body!.buffer.slice(
+            11,
+            11 + headSize
+        );
+        let payloadProtect = Serialize.parsePayloadProtect(
+            resultPlayProtectBuffer
+        );
         this._channelId = payloadProtect.channelId;
         this._commandFlag = payloadProtect.commandFlag;
         if (payloadProtect.commandFlag == HdcCommand.CMD_KERNEL_CHANNEL_CLOSE) {
-            log("commandFlag: " + payloadProtect.commandFlag)
+            log('commandFlag: ' + payloadProtect.commandFlag);
             this._channelClose = true;
         } else {
             if (dataSize > 0) {
-                this._resArrayBuffer = this.body!.buffer.slice(11 + headSize, 11 + headSize + dataSize);
+                this._resArrayBuffer = this.body!.buffer.slice(
+                    11 + headSize,
+                    11 + headSize + dataSize
+                );
             }
         }
     }
@@ -121,10 +131,17 @@ export class DataMessage extends Object{
     }
 
     toString(): string {
-        return "usbHead: " + this._usbHead
-            + " channelId: " + this._channelId
-            + " result: " + this._result
-            + " channelClose: " + this._channelClose
-            + " commandFlag: " + this._commandFlag;
+        return (
+            'usbHead: ' +
+            this._usbHead +
+            ' channelId: ' +
+            this._channelId +
+            ' result: ' +
+            this._result +
+            ' channelClose: ' +
+            this._channelClose +
+            ' commandFlag: ' +
+            this._commandFlag
+        );
     }
 }

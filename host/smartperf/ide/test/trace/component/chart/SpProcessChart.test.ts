@@ -14,43 +14,54 @@
  */
 
 // @ts-ignore
-import {SpProcessChart} from "../../../../dist/trace/component/chart/SpProcessChart.js";
+import { SpProcessChart } from '../../../../dist/trace/component/chart/SpProcessChart.js';
 // @ts-ignore
-import {SpSystemTrace} from "../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
 import {
-    queryProcess,
-    queryProcessAsyncFunc,
-    queryProcessContentCount, queryProcessMem,
-    queryProcessThreads, queryProcessThreadsByTable
-} from "../../../../src/trace/database/SqlLite.js";
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+    getMaxDepthByTid,
+    queryAllActualData,
+    queryAllExpectedData,
+    queryAllJankProcess,
+} from '../../../../src/trace/database/SqlLite.js';
+// @ts-ignore
+import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+const intersectionObserverMock = () => ({
+    observe: () => null,
+});
+window.IntersectionObserver = jest
+    .fn()
+    .mockImplementation(intersectionObserverMock);
+
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-describe('SpProcessChart Test', ()=> {
+describe('SpProcessChart Test', () => {
     let MockqueryProcessAsyncFunc = sqlit.queryProcessAsyncFunc;
+
     MockqueryProcessAsyncFunc.mockResolvedValue([
         {
             tid: 1,
             pid: 2,
-            threadName: "1",
+            threadName: '1',
             track_id: 3,
             startTs: 1111,
             dur: 2000000,
-            funName: "func",
+            funName: 'func',
             parent_id: 4,
             id: 5,
-            cookie: "ff",
+            cookie: 'ff',
             depth: 5,
-            argsetid: 6
-        }
-    ])
+            argsetid: 6,
+        },
+    ]);
     let processContentCount = sqlit.queryProcessContentCount;
     processContentCount.mockResolvedValue([
         {
@@ -58,9 +69,9 @@ describe('SpProcessChart Test', ()=> {
             switch_count: 2,
             thread_count: 3,
             slice_count: 4,
-            mem_count: 5
-        }
-    ])
+            mem_count: 5,
+        },
+    ]);
     let queryProcessThreads = sqlit.queryProcessThreads;
     queryProcessThreads.mockResolvedValue([
         {
@@ -68,63 +79,133 @@ describe('SpProcessChart Test', ()=> {
             hasSched: 0,
             pid: 3,
             tid: 4,
-            processName: "process",
-            threadName: "thread"
-        }
-    ])
+            processName: 'process',
+            threadName: 'thread',
+        },
+    ]);
     let queryProcessThreadsByTable = sqlit.queryProcessThreadsByTable;
     queryProcessThreadsByTable.mockResolvedValue([
         {
             pid: 1,
             tid: 0,
-            processName: "process",
-            threadName: "thread"
-        }
-    ])
+            processName: 'process',
+            threadName: 'thread',
+        },
+    ]);
     let getAsyncEvents = sqlit.getAsyncEvents;
     getAsyncEvents.mockResolvedValue([
         {
             pid: 1,
-            startTime: 100000
-        }
-    ])
+            startTime: 100000,
+        },
+    ]);
     let queryProcessMem = sqlit.queryProcessMem;
     queryProcessMem.mockResolvedValue([
         {
             trackId: 1,
-            trackName: "trackName",
+            trackName: 'trackName',
             upid: 2,
             pid: 3,
-            processName: "processName"
-        }
-    ])
+            processName: 'processName',
+        },
+    ]);
     let queryEventCountMap = sqlit.queryEventCountMap;
     queryEventCountMap.mockResolvedValue([
         {
-            eventName: "eventName",
-            count: 1
-        }
-    ])
+            eventName: 'eventName',
+            count: 1,
+        },
+    ]);
     let queryProcess = sqlit.queryProcess;
     queryProcess.mockResolvedValue([
         {
             pid: 1,
-            processName: "processName"
-        }
-    ])
+            processName: 'processName',
+        },
+    ]);
 
     let queryProcessByTable = sqlit.queryProcessByTable;
     queryProcessByTable.mockResolvedValue([
         {
             pid: 2,
-            processName: "processName"
-        }
-    ])
+            processName: 'processName',
+        },
+    ]);
+
+    let getMaxDepthByTid = sqlit.getMaxDepthByTid;
+    getMaxDepthByTid.mockResolvedValue([
+        {
+            tid: 1,
+            maxDepth: 1,
+        },
+        {
+            tid: 2,
+            maxDepth: 2,
+        },
+    ]);
+    let queryAllJankProcess = sqlit.queryAllJankProcess;
+    queryAllJankProcess.mockResolvedValue([
+        {
+            pid: 1,
+        },
+    ]);
+
+    let queryAllExpectedData = sqlit.queryAllExpectedData;
+    queryAllExpectedData.mockResolvedValue([
+        {
+            id: 41,
+            ts: 749660047,
+            name: 1159,
+            type: 1,
+            dur: 16657682,
+            pid: 1242,
+            cmdline: 'render_service',
+        },
+        {
+            id: 45,
+            ts: 766321174,
+            name: 1160,
+            type: 1,
+            dur: 16657682,
+            pid: 1242,
+            cmdline: 'render_service',
+        },
+    ]);
+
+    let queryAllActualData = sqlit.queryAllActualData;
+    queryAllActualData.mockResolvedValue([
+        {
+            id: 40,
+            ts: 750328000,
+            name: 1159,
+            type: 0,
+            dur: 22925000,
+            src_slice: '36',
+            jank_tag: 1,
+            dst_slice: null,
+            pid: 1242,
+            cmdline: 'render_service',
+            frame_type: 'render_service',
+        },
+        {
+            id: 44,
+            ts: 773315000,
+            name: 1160,
+            type: 0,
+            dur: 17740000,
+            src_slice: '38,42',
+            jank_tag: 1,
+            dst_slice: null,
+            pid: 1242,
+            cmdline: 'render_service',
+            frame_type: 'render_service',
+        },
+    ]);
 
     let spSystemTrace = new SpSystemTrace();
     let spProcessChart = new SpProcessChart(spSystemTrace);
     it('SpProcessChart01', function () {
-        spProcessChart.init()
+        spProcessChart.init();
         expect(spProcessChart).toBeDefined();
     });
-})
+});

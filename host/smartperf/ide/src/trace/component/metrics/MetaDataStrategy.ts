@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
-import {info} from "../../../log/Log.js";
+import { info } from '../../../log/Log.js';
 
 export const initMetaDataStrategy = (metricData: Array<any>): TraceMetadata => {
-    info("Meta Strategy data length is:", metricData.length)
-    let traceMetaDataList: Array<TraceMetadataItem> = []
+    info('Meta Strategy data length is:', metricData.length);
+    let traceMetaDataList: Array<TraceMetadataItem> = [];
     let statDataArray = [];
     let jsonText = `{`;
     for (let index = 0; index < metricData.length; index++) {
         let name = metricData[index].name;
         let value = metricData[index].valueText;
         if (!value.match('^-?\\d+$')) {
-            value = "\"" + value.replace('\r|\n', '') + '\"'
+            value = '"' + value.replace('\r|\n', '') + '"';
         }
-        jsonText += `'` + name + `'` + `: ` + `'` + value.toString() + `'` + `,`;
+        jsonText +=
+            `'` + name + `'` + `: ` + `'` + value.toString() + `'` + `,`;
         if (index >= metricData.length - 1) {
             jsonText += `}`;
         }
@@ -36,25 +37,24 @@ export const initMetaDataStrategy = (metricData: Array<any>): TraceMetadata => {
         let name = metricData[sqlIndex].name;
         let value = metricData[sqlIndex].valueText;
         if (!value.match('^-?\\d+$')) {
-            value = "\"" + value.replace('\r|\n', '') + '\"'
+            value = '"' + value.replace('\r|\n', '') + '"';
         }
         let traceMetaData = {
             name: name,
-            value: value
-        }
+            value: value,
+        };
         traceMetaDataList?.push(traceMetaData);
     }
     return {
-        traceMetadata: traceMetaDataList
-    }
-}
+        traceMetadata: traceMetaDataList,
+    };
+};
 
 export interface TraceMetadata {
-    traceMetadata: Array<TraceMetadataItem>
+    traceMetadata: Array<TraceMetadataItem>;
 }
 
 export interface TraceMetadataItem {
-    name: string
-    value: string
+    name: string;
+    value: string;
 }
-

@@ -14,37 +14,35 @@
  */
 
 // @ts-ignore
-import {LitMainMenuGroup} from "../../../dist/base-ui/menu/LitMainMenuGroup.js";
+import { LitMainMenuGroup } from '../../../dist/base-ui/menu/LitMainMenuGroup.js';
 
-describe("litMainMenuGroup Test", () => {
-
+describe('litMainMenuGroup Test', () => {
     it('litMainMenuGroup01', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        expect(litMainMenuGroup).not.toBeUndefined()
-        expect(litMainMenuGroup).not.toBeNull()
+        expect(litMainMenuGroup).not.toBeUndefined();
+        expect(litMainMenuGroup).not.toBeNull();
     });
 
     it('litMainMenuGroup02', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        expect(litMainMenuGroup.collapsed).toBeFalsy()
+        expect(litMainMenuGroup.collapsed).toBeFalsy();
     });
-
 
     it('litMainMenuGroup03', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        litMainMenuGroup.collapsed = true
-        expect(litMainMenuGroup.collapsed).toBeTruthy()
+        litMainMenuGroup.collapsed = true;
+        expect(litMainMenuGroup.collapsed).toBeTruthy();
     });
 
     it('litMainMenuGroup04', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        litMainMenuGroup.collapsed = false
-        expect(litMainMenuGroup.collapsed).toBeFalsy()
+        litMainMenuGroup.collapsed = false;
+        expect(litMainMenuGroup.collapsed).toBeFalsy();
     });
 
     it('litMainMenuGroup06', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        expect(litMainMenuGroup.radius).toBeFalsy()
+        expect(litMainMenuGroup.radius).toBeFalsy();
     });
 
     it('litMainMenuGroup07', () => {
@@ -115,18 +113,18 @@ describe("litMainMenuGroup Test", () => {
 
     it('litMainMenuGroup04', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        litMainMenuGroup.nocollapsed = true
-        expect(litMainMenuGroup.nocollapsed).toBeTruthy()
+        litMainMenuGroup.nocollapsed = true;
+        expect(litMainMenuGroup.nocollapsed).toBeTruthy();
     });
 
     it('litMainMenuGroup04', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        litMainMenuGroup.nocollapsed = false
-        expect(litMainMenuGroup.nocollapsed).toBeFalsy()
+        litMainMenuGroup.nocollapsed = false;
+        expect(litMainMenuGroup.nocollapsed).toBeFalsy();
     });
 
     it('litMainMenuGroup05', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
-        expect(litMainMenuGroup.collapsed).toBeFalsy()
+        expect(litMainMenuGroup.collapsed).toBeFalsy();
     });
-})
+});

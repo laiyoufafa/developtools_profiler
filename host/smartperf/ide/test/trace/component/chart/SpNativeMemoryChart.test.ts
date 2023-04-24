@@ -14,35 +14,48 @@
  */
 
 // @ts-ignore
-import {SpSystemTrace} from "../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
 // @ts-ignore
-import {SpNativeMemoryChart} from "../../../../dist/trace/component/chart/SpNativeMemoryChart.js";
+import { SpNativeMemoryChart } from '../../../../dist/trace/component/chart/SpNativeMemoryChart.js';
 
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}));
+const intersectionObserverMock = () => ({
+    observe: () => null,
+});
+window.IntersectionObserver = jest
+    .fn()
+    .mockImplementation(intersectionObserverMock);
+
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 describe('SpNativeMemoryChart Test', () => {
-    let spNativeMemoryChart = new SpNativeMemoryChart(new SpSystemTrace())
+    let spNativeMemoryChart = new SpNativeMemoryChart(new SpSystemTrace());
 
     let nativeHookProcess = sqlit.queryNativeHookProcess;
-    nativeHookProcess.mockResolvedValue([{
-        ipid: 0,
-        pid: 0,
-        name: "name"
-    }])
+    nativeHookProcess.mockResolvedValue([
+        {
+            ipid: 0,
+            pid: 0,
+            name: 'name',
+        },
+    ]);
 
     let heapGroupByEvent = sqlit.queryHeapGroupByEvent;
-    heapGroupByEvent.mockResolvedValue([{
-        eventType: "AllocEvent",
-        sumHeapSize: 10
-    }])
+    heapGroupByEvent.mockResolvedValue([
+        {
+            eventType: 'AllocEvent',
+            sumHeapSize: 10,
+        },
+    ]);
 
     it('SpNativeMemoryChart01', function () {
         expect(spNativeMemoryChart.initChart()).toBeDefined();
     });
-})
+});

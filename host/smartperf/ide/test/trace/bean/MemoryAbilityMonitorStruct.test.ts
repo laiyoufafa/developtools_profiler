@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {MemoryAbilityMonitorStruct} from "../../../dist/trace/bean/MemoryAbilityMonitorStruct.js"
+import { MemoryAbilityMonitorStruct } from '../../../dist/trace/bean/MemoryAbilityMonitorStruct.js';
 
-describe('MemoryAbilityMonitorStruct Test', ()=> {
+describe('MemoryAbilityMonitorStruct Test', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -26,32 +26,30 @@ describe('MemoryAbilityMonitorStruct Test', ()=> {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         startNS: 200,
-        value: 50
-    }
-
+        value: 50,
+    };
 
     const Sourcedata = {
         frame: {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         maxMemoryByte: 200,
-        value: 50
-    }
+        value: 50,
+    };
 
     it('MemoryAbilityMonitorStructTest01', function () {
-        expect(MemoryAbilityMonitorStruct.draw(ctx, data)).toBeUndefined()
+        expect(MemoryAbilityMonitorStruct.draw(ctx, data)).toBeUndefined();
     });
 
     it('MemoryAbilityMonitorStructTest02', function () {
-        expect(MemoryAbilityMonitorStruct.draw(ctx, Sourcedata)).toBeUndefined()
+        expect(
+            MemoryAbilityMonitorStruct.draw(ctx, Sourcedata)
+        ).toBeUndefined();
     });
-
-
-
-})
+});

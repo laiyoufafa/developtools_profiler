@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
-import {info} from "../../../log/Log.js";
+import { info } from '../../../log/Log.js';
 
-export const initTraceStateStrategy = (metricData: Array<any>): StatListItem => {
-    info("Trace State Strategy data length is:", metricData.length)
-    let statListItems: Array<StatItem> = []
+export const initTraceStateStrategy = (
+    metricData: Array<any>
+): StatListItem => {
+    info('Trace State Strategy data length is:', metricData.length);
+    let statListItems: Array<StatItem> = [];
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let names = metricData[sqlIndex].event_name;
         let counts = metricData[sqlIndex].count;
@@ -27,22 +29,22 @@ export const initTraceStateStrategy = (metricData: Array<any>): StatListItem => 
             name: names,
             count: counts,
             source: sources,
-            severity: severities
-        }
-        statListItems?.push(statListItem)
+            severity: severities,
+        };
+        statListItems?.push(statListItem);
     }
     return {
-        stat: statListItems
-    }
-}
+        stat: statListItems,
+    };
+};
 
 export interface StatListItem {
-    stat: Array<StatItem>
+    stat: Array<StatItem>;
 }
 
 export interface StatItem {
-    name: string
-    count: string
-    source: string
-    severity: string
+    name: string;
+    count: string;
+    source: string;
+    severity: string;
 }

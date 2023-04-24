@@ -14,28 +14,50 @@
  */
 
 //@ts-ignore
-import {TabPaneNMemory} from "../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMemory.js"
+import {
+    TabPaneNMemory,
+    initFilterTypes,
+} from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMemory.js';
 // @ts-ignore
-import {TabPaneNMSampleList} from "../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMSampleList.js";
+import { TabPaneNMSampleList } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMSampleList.js';
 
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+// @ts-ignore
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import crypto from 'crypto';
+// @ts-ignore
+import {
+    queryNativeHookEventTid,
+    queryNativeHookSnapshotTypes,
+} from '../../../../../../dist/trace/database/SqlLite.js';
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}));
+Object.defineProperty(global.self, 'crypto', {
+    value: {
+        getRandomValues: (arr: string | any[]) =>
+            crypto.randomBytes(arr.length),
+    },
+});
+
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 
 describe('TabPaneNMemory Test', () => {
-    let tabPaneNMemory = new TabPaneNMemory();
+    document.body.innerHTML =
+        '<tabpane-native-memory id="tnm">' +
+        '</tabpane-native-memory><tabpane-native-memory id="filter"></tabpane-native-memory>';
+    let tabPaneNMemory = document.querySelector<TabPaneNMemory>('#tnm');
     let val = {
         statisticsSelectData: {
-            memoryTap: 1
-        }
-    }
-    let hook = {eventId: 1}
-
+            memoryTap: 1,
+        },
+    };
+    let hook = { eventId: 1 };
 
     it('TabPaneNMemoryTest01', function () {
         expect(tabPaneNMemory.initFilterTypes()).toBeUndefined();
@@ -43,30 +65,28 @@ describe('TabPaneNMemory Test', () => {
 
     it('TabPaneNMemoryTest02', function () {
         let MockqueryNativeHookEventTid = sqlit.queryNativeHookEventTid;
-        MockqueryNativeHookEventTid.mockResolvedValue([{
-            eventId: 0,
-            eventType: "MmapEvent",
-            heap_size: 2,
-            addr: "addr",
-            startTs: 0,
-            endTs: 500,
-            tid: 2,
-            threadName: "threadName"
-        }])
+        MockqueryNativeHookEventTid.mockResolvedValue([
+            {
+                eventId: 0,
+                eventType: 'MmapEvent',
+                heap_size: 2,
+                addr: 'addr',
+                startTs: 0,
+                endTs: 500,
+                tid: 2,
+                threadName: 'threadName',
+            },
+        ]);
 
         let MockNativeHookSnapshotTypes = sqlit.queryNativeHookSnapshotTypes;
-        MockNativeHookSnapshotTypes.mockResolvedValue([{
-            eventType: "MmapEvent",
-            subType: ""
-        }])
-
-        let tab = new TabPaneNMSampleList()
-        tabPaneNMemory.startWorker = jest.fn(() => true)
-        tabPaneNMemory.data = {
-            leftNs: 0,
-            rightNs: 500,
-            nativeMemory: "All Anonymous VM"
-        }
+        MockNativeHookSnapshotTypes.mockResolvedValue([
+            {
+                eventType: 'MmapEvent',
+                subType: '',
+            },
+        ]);
+        let tab = new TabPaneNMSampleList();
+        tabPaneNMemory.startWorker = jest.fn(() => true);
         expect(tabPaneNMemory.initFilterTypes()).toBeUndefined();
     });
 
@@ -149,44 +169,81 @@ describe('TabPaneNMemory Test', () => {
     });
 
     it('TabPaneNMemoryTest09', function () {
-        tabPaneNMemory.tblData = jest.fn(() => undefined)
-        tabPaneNMemory.tblData.recycleDataSource = jest.fn(() => true)
-        tabPaneNMemory.startWorker = jest.fn(() => true)
+        tabPaneNMemory.tblData = jest.fn(() => undefined);
+        tabPaneNMemory.tblData.recycleDataSource = jest.fn(() => true);
+        tabPaneNMemory.startWorker = jest.fn(() => true);
         expect(tabPaneNMemory.setRightTableData(hook)).toBeUndefined();
     });
     it('TabPaneNMemoryTest010', function () {
-        let column = "index";
+        let column = 'index';
         let sort = 0;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
     it('TabPaneNMemoryTest011', function () {
-        let column = "index";
+        let column = 'index';
         let sort = 1;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
     it('TabPaneNMemoryTest012', function () {
-        let column = "addr"
+        let column = 'addr';
         let sort = 1;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
     it('TabPaneNMemoryTest013', function () {
-        let column = "timestamp"
+        let column = 'timestamp';
         let sort = 1;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
     it('TabPaneNMemoryTest014', function () {
-        let column = "heapSizeUnit"
+        let column = 'heapSizeUnit';
         let sort = 1;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
     it('TabPaneNMemoryTest015', function () {
-        let column = "library"
+        let column = 'library';
         let sort = 1;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
     it('TabPaneNMemoryTest016', function () {
-        let column = "symbol"
+        let column = 'symbol';
         let sort = 1;
         expect(tabPaneNMemory.sortByColumn(column, sort)).toBeUndefined();
     });
-})
+
+    it('TabPaneNMemoryTest017', function () {
+        let a = {
+            recordStartNs: 1502031374794922000,
+            rightNs: 1,
+            leftNs: 0,
+            nativeMemory: [
+                'All Heap & Anonymous VM',
+                'All Heap',
+                'All Anonymous VM',
+            ],
+        };
+        let queryNativeHookSnapshotTypes = sqlit.queryNativeHookSnapshotTypes;
+        queryNativeHookSnapshotTypes.mockResolvedValue(
+            { event_type: 11, data: 111 },
+            {
+                event_type: 222,
+                data: 142446,
+            }
+        );
+        let queryNativeHookEventTid = sqlit.queryNativeHookEventTid;
+        queryNativeHookEventTid.mockResolvedValue(
+            { callchain_id: 1, event_type: '2', heap_size: 66 },
+            {
+                callchain_id: 2,
+                event_type: '5',
+                heap_size: 666,
+            }
+        );
+        TabPaneNMSampleList.serSelection = jest.fn().mockResolvedValue({});
+        tabPaneNMemory.data = a;
+        expect(tabPaneNMemory).toBeTruthy();
+    });
+
+    it('TabPaneNMemoryTest018', function () {
+        expect(tabPaneNMemory.fromStastics(val)).toBeUndefined();
+    });
+});

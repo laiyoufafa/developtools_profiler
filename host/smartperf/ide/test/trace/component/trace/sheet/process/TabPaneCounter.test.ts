@@ -14,77 +14,85 @@
  */
 
 // @ts-ignore
-import {TabPaneCounter} from "../../../../../../dist/trace/component/trace/sheet/process/TabPaneCounter.js"
+import { TabPaneCounter } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneCounter.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 describe('TabPaneCounter Test', () => {
     let tabPaneCounter = new TabPaneCounter();
     it('TabPaneCounterTest01', function () {
-        expect(tabPaneCounter.groupByTrackIdToMap([{
-            id: 0,
-            trackId: 0,
-            name: "",
-            value: 0,
-            startTime: 0,
-        }]))
+        expect(
+            tabPaneCounter.groupByTrackIdToMap([
+                {
+                    id: 0,
+                    trackId: 0,
+                    name: '',
+                    value: 0,
+                    startTime: 0,
+                },
+            ])
+        );
     });
 
     it('TabPaneCounterTest02', function () {
-        expect(tabPaneCounter.createSelectCounterData([{
-            id: 0,
-            trackId: 0,
-            name: "",
-            value: 0,
-            startTime: 0,
-        }], 0, 1))
+        expect(
+            tabPaneCounter.createSelectCounterData(
+                [
+                    {
+                        id: 0,
+                        trackId: 0,
+                        name: '',
+                        value: 0,
+                        startTime: 0,
+                    },
+                ],
+                0,
+                1
+            )
+        );
     });
 
     it('TabPaneCounterTest03', function () {
-        expect(tabPaneCounter.sortByColumn({
-            key: 'name',
-            sort: () => {
-            }
-        })).toBeUndefined();
+        expect(
+            tabPaneCounter.sortByColumn({
+                key: 'name',
+                sort: () => {},
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneCounterTest06', function () {
-        expect(tabPaneCounter.sortByColumn({
-            key: 'number',
-            sort: () => {
-            }
-        })).toBeUndefined();
+        expect(
+            tabPaneCounter.sortByColumn({
+                key: 'number',
+                sort: () => {},
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneCounterTest04', function () {
-        let mockgetTabCounters = sqlit.getTabCounters
+        let mockgetTabCounters = sqlit.getTabCounters;
         mockgetTabCounters.mockResolvedValue(
-            {trackId : 11,
-            name: "test",
-            value:111,
-            startTime:142445,
-            },{trackId : 11,
-                name: "test",
-                value:222,
-                startTime:142446,
-            })
-        let a = {rightNs: 1, trackIds: [11, 12, 13]}
-        expect(tabPaneCounter.data = a).toBeTruthy();
+            { trackId: 11, name: 'test', value: 111, startTime: 142445 },
+            { trackId: 11, name: 'test', value: 222, startTime: 142446 }
+        );
+        let a = { rightNs: 1, trackIds: [11, 12, 13] };
+        expect((tabPaneCounter.data = a)).toBeTruthy();
     });
 
     it('TabPaneCounterTest05', function () {
-        let mockgetTabCounters = sqlit.getTabCounters
-        mockgetTabCounters.mockResolvedValue([]
-        )
-        let a = {rightNs: 1, trackIds: [11, 12, 13]}
-        expect(tabPaneCounter.data = a).toBeTruthy();
+        let mockgetTabCounters = sqlit.getTabCounters;
+        mockgetTabCounters.mockResolvedValue([]);
+        let a = { rightNs: 1, trackIds: [11, 12, 13] };
+        expect((tabPaneCounter.data = a)).toBeTruthy();
     });
 
     it('TabPaneCounterTest06', function () {
@@ -121,4 +129,4 @@ describe('TabPaneCounter Test', () => {
         "
 `);
     });
-})
+});

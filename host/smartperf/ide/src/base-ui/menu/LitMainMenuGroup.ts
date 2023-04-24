@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
+let textColor = '';
 
 @element('lit-main-menu-group')
 export class LitMainMenuGroup extends BaseElement {
@@ -23,35 +23,35 @@ export class LitMainMenuGroup extends BaseElement {
     private groupDescEl: HTMLElement | null | undefined;
 
     static get observedAttributes() {
-        return ['title', 'describe', 'collapsed', 'nocollapse', "radius"]
+        return ['title', 'describe', 'collapsed', 'nocollapse', 'radius'];
     }
 
     get collapsed(): boolean {
-        return this.hasAttribute('collapsed')
+        return this.hasAttribute('collapsed');
     }
 
     set collapsed(value: boolean) {
         if (value) {
-            this.setAttribute('collapsed', '')
+            this.setAttribute('collapsed', '');
         } else {
-            this.removeAttribute('collapsed')
+            this.removeAttribute('collapsed');
         }
     }
 
     get nocollapsed() {
-        return this.hasAttribute('nocollapsed')
+        return this.hasAttribute('nocollapsed');
     }
 
     set nocollapsed(value: boolean) {
         if (value) {
-            this.setAttribute('nocollapsed', '')
+            this.setAttribute('nocollapsed', '');
         } else {
-            this.removeAttribute('nocollapsed')
+            this.removeAttribute('nocollapsed');
         }
     }
 
     get radius() {
-        return this.hasAttribute("radius")
+        return this.hasAttribute('radius');
     }
 
     initElements(): void {
@@ -61,8 +61,14 @@ export class LitMainMenuGroup extends BaseElement {
             if (this.nocollapsed) {
                 return;
             }
-            this.collapsed = !this.collapsed
-        })
+            this.collapsed = !this.collapsed;
+        });
+        let backgroundColor = sessionStorage.getItem('backgroundColor');
+        if (backgroundColor == 'rgb(38, 47, 60)') {
+            textColor = 'white';
+        } else {
+            textColor = 'black';
+        }
     }
 
     initHtml(): string {
@@ -76,7 +82,7 @@ export class LitMainMenuGroup extends BaseElement {
             display: flex;
             flex-direction: column;
             width: 248px;
-            background-color: var(--dark-background,#FFFFFF);
+            background-color: var(--dark-background);
             cursor: pointer;
         }
         :host(:not([collapsed])) ::slotted(lit-main-menu-item){
@@ -90,7 +96,7 @@ export class LitMainMenuGroup extends BaseElement {
             display: flex;
             flex-direction: column;
             width: 248px;
-            background-color: var(--dark-background,#FFFFFF);
+            background-color: var(--dark-background);
             cursor: pointer;
         }
         :host([collapsed]):hover){
@@ -109,14 +115,14 @@ export class LitMainMenuGroup extends BaseElement {
         .group-name{
             font-family: Helvetica;
             font-size: 14px;
-            color: var(--dark-color1,#212121);
+            color: ${textColor};
             text-align: left;
             line-height: 16px;
             font-weight: 400;
             padding: 20px 24px 0px 24px;
         }
         .group-describe{
-            color:#92959b;
+            color: ${textColor};
             padding: 4px 24px 20px 24px;
             font-size: .6rem;
         }
@@ -130,11 +136,11 @@ export class LitMainMenuGroup extends BaseElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         switch (name) {
-            case "title":
-                if (this.groupNameEl) this.groupNameEl.textContent = newValue
+            case 'title':
+                if (this.groupNameEl) this.groupNameEl.textContent = newValue;
                 break;
-            case "describe":
-                if (this.groupDescEl) this.groupDescEl.textContent = newValue
+            case 'describe':
+                if (this.groupDescEl) this.groupDescEl.textContent = newValue;
                 break;
         }
     }

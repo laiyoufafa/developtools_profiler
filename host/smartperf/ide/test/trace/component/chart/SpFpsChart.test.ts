@@ -14,24 +14,29 @@
  */
 
 // @ts-ignore
-import {SpFpsChart} from "../../../../dist/trace/component/chart/SpFpsChart.js";
+import { SpFpsChart } from '../../../../dist/trace/component/chart/SpFpsChart.js';
 // @ts-ignore
-import {SpChartManager} from "../../../../dist/trace/component/chart/SpChartManager.js";
+import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
 
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}));
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 describe('spFpsChart Test', () => {
-    let spFpsChart = new SpFpsChart(new SpChartManager())
+    let spFpsChart = new SpFpsChart(new SpChartManager());
     let fpsMock = sqlit.getFps;
-    fpsMock.mockResolvedValue([{startNS: 0, fps: 1,},{startNS: 2, fps: 3,}])
+    fpsMock.mockResolvedValue([
+        { startNS: 0, fps: 1 },
+        { startNS: 2, fps: 3 },
+    ]);
 
     it('spFpsChart01', function () {
         expect(spFpsChart.init()).toBeDefined();
     });
-})
+});

@@ -14,38 +14,43 @@
  */
 
 // @ts-ignore
-import {TabPaneCpuByProcess} from "../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuByProcess.js"
+import { TabPaneCpuByProcess } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuByProcess.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 describe('TabPaneCpuByProcess Test', () => {
     let tabPaneCpuByProcess = new TabPaneCpuByProcess();
-    // tabPaneCpuByProcess.sortByColumn = jest.fn(()=> true)
 
     it('TabPaneCpuByProcessTest01', function () {
-        expect(tabPaneCpuByProcess.sortByColumn({
-            key: 'number',
-        })).toBeUndefined();
+        expect(
+            tabPaneCpuByProcess.sortByColumn({
+                key: 'number',
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuByProcessTest05', function () {
-        expect(tabPaneCpuByProcess.sortByColumn({
-            sort: () => {
-            }
-        })).toBeUndefined();
+        expect(
+            tabPaneCpuByProcess.sortByColumn({
+                sort: () => {},
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuByProcessTest04', function () {
-        expect(tabPaneCpuByProcess.sortByColumn({
-            key: 'pid'||'wallDuration'||'avgDuration'||'occurrences',
-        })).toBeUndefined();
+        expect(
+            tabPaneCpuByProcess.sortByColumn({
+                key: 'pid' || 'wallDuration' || 'avgDuration' || 'occurrences',
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuByProcessTest04', function () {
@@ -72,6 +77,6 @@ describe('TabPaneCpuByProcess Test', () => {
             </lit-table-column>
         </lit-table>
         "
-`)
+`);
     });
-})
+});

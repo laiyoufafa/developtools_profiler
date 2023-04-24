@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-select')
 export class LitSelect extends BaseElement {
@@ -48,26 +48,26 @@ export class LitSelect extends BaseElement {
     }
 
     get rounded() {
-        return this.hasAttribute("rounded");
+        return this.hasAttribute('rounded');
     }
 
     set rounded(rounded: boolean) {
         if (rounded) {
-            this.setAttribute("rounded", '');
+            this.setAttribute('rounded', '');
         } else {
-            this.removeAttribute("rounded");
+            this.removeAttribute('rounded');
         }
     }
 
     get placement(): string {
-        return this.getAttribute("placement") || "";
+        return this.getAttribute('placement') || '';
     }
 
     set placement(placement: string) {
         if (placement) {
-            this.setAttribute("placement", placement);
+            this.setAttribute('placement', placement);
         } else {
-            this.removeAttribute("placement");
+            this.removeAttribute('placement');
         }
     }
 
@@ -95,16 +95,16 @@ export class LitSelect extends BaseElement {
         return this.getAttribute('placeholder') || '请选择';
     }
 
-    set canInsert(can:boolean) {
+    set canInsert(can: boolean) {
         if (can) {
-            this.setAttribute("canInsert",'');
+            this.setAttribute('canInsert', '');
         } else {
-            this.removeAttribute("canInsert")
+            this.removeAttribute('canInsert');
         }
     }
 
     get canInsert() {
-        return this.hasAttribute("canInsert")
+        return this.hasAttribute('canInsert');
     }
     get showSearch() {
         return this.hasAttribute('show-search');
@@ -134,7 +134,7 @@ export class LitSelect extends BaseElement {
         if (value) {
             this.setAttribute('loading', '');
         } else {
-            this.removeAttribute('loading')
+            this.removeAttribute('loading');
         }
     }
 
@@ -143,13 +143,12 @@ export class LitSelect extends BaseElement {
             let option = document.createElement('lit-select-option');
             option.setAttribute('value', a.key);
             option.textContent = a.val;
-            this.append(option)
-        })
+            this.append(option);
+        });
         this.initOptions();
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml() {
         return `
@@ -348,7 +347,9 @@ export class LitSelect extends BaseElement {
         </style>
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
-            <input placeholder="${this.placeholder}" autocomplete="off" ${this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0"></div>
+            <input placeholder="${this.placeholder}" autocomplete="off" ${
+            this.showSearch || this.canInsert ? '' : 'readonly'
+        } tabindex="0"></div>
             <lit-loading class="loading" size="12"></lit-loading>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
             <lit-icon class="clear" name='close-circle-fill'></lit-icon>
@@ -358,18 +359,21 @@ export class LitSelect extends BaseElement {
             <slot></slot>
             <slot name="footer"></slot>
         </div>
-        `
+        `;
     }
 
     isMultiple() {
-        return this.hasAttribute('mode') && this.getAttribute('mode') === 'multiple'
+        return (
+            this.hasAttribute('mode') &&
+            this.getAttribute('mode') === 'multiple'
+        );
     }
 
     newTag(value: any, text: any) {
         let tag: any = document.createElement('div');
         let icon: any = document.createElement('lit-icon');
-        icon.classList.add('tag-close')
-        icon.name = 'close'
+        icon.classList.add('tag-close');
+        icon.name = 'close';
         let span = document.createElement('span');
         tag.classList.add('tag');
         span.dataset['value'] = value;
@@ -378,13 +382,15 @@ export class LitSelect extends BaseElement {
         tag.append(icon);
         icon.onclick = (ev: any) => {
             tag.parentElement.removeChild(tag);
-            this.querySelector(`lit-select-option[value=${value}]`)!.removeAttribute('selected')
+            this.querySelector(
+                `lit-select-option[value=${value}]`
+            )!.removeAttribute('selected');
             if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
                 this.inputElement.style.width = 'auto';
                 this.inputElement.placeholder = this.defaultPlaceholder;
             }
             ev.stopPropagation();
-        }
+        };
         tag.value = value;
         tag.dataset['value'] = value;
         tag.text = text;
@@ -399,15 +405,16 @@ export class LitSelect extends BaseElement {
         this.clearElement = this.shadowRoot!.querySelector('.clear');
         this.iconElement = this.shadowRoot!.querySelector('.icon');
         this.searchElement = this.shadowRoot!.querySelector('.search');
-        this.multipleRootElement = this.shadowRoot!.querySelector('.multipleRoot');
+        this.multipleRootElement =
+            this.shadowRoot!.querySelector('.multipleRoot');
         this.clearElement.onclick = (ev: any) => {
             if (this.isMultiple()) {
-                let delNodes: Array<any> = []
+                let delNodes: Array<any> = [];
                 this.multipleRootElement.childNodes.forEach((a: any) => {
                     if (a.tagName === 'DIV') {
                         delNodes.push(a);
                     }
-                })
+                });
                 for (let i = 0; i < delNodes.length; i++) {
                     delNodes[i].remove();
                 }
@@ -416,14 +423,16 @@ export class LitSelect extends BaseElement {
                     this.inputElement.placeholder = this.defaultPlaceholder;
                 }
             }
-            this.querySelectorAll('lit-select-option').forEach(a => a.removeAttribute('selected'));
-            this.inputElement.value = ''
+            this.querySelectorAll('lit-select-option').forEach((a) =>
+                a.removeAttribute('selected')
+            );
+            this.inputElement.value = '';
             this.clearElement.style.display = 'none';
             this.iconElement.style.display = 'flex';
             this.blur();
             ev.stopPropagation();
-            this.dispatchEvent(new CustomEvent('onClear', {detail: ev}))
-        }
+            this.dispatchEvent(new CustomEvent('onClear', { detail: ev }));
+        };
         this.initOptions();
         this.onclick = (ev: any) => {
             if (ev.target.tagName === 'LIT-SELECT') {
@@ -435,10 +444,13 @@ export class LitSelect extends BaseElement {
                     this.focused = false;
                 }
             }
-        }
-        this.onmouseover = this.onfocus = ev => {
-            if (this.focused === false && this.hasAttribute("adaptive-expansion")) {
-                let body = this.shadowRoot!.querySelector(".body");
+        };
+        this.onmouseover = this.onfocus = (ev) => {
+            if (
+                this.focused === false &&
+                this.hasAttribute('adaptive-expansion')
+            ) {
+                let body = this.shadowRoot!.querySelector('.body');
                 if (this.parentElement!.offsetTop < body!.clientHeight) {
                     body!.classList.add('body-bottom');
                 } else {
@@ -446,37 +458,40 @@ export class LitSelect extends BaseElement {
                 }
             }
             if (this.hasAttribute('allow-clear')) {
-                if (this.inputElement.value.length > 0 || this.inputElement.placeholder !== this.defaultPlaceholder) {
-                    this.clearElement.style.display = 'flex'
+                if (
+                    this.inputElement.value.length > 0 ||
+                    this.inputElement.placeholder !== this.defaultPlaceholder
+                ) {
+                    this.clearElement.style.display = 'flex';
                     this.iconElement.style.display = 'none';
                 } else {
-                    this.clearElement.style.display = 'none'
+                    this.clearElement.style.display = 'none';
                     this.iconElement.style.display = 'flex';
                 }
             }
-        }
-        this.onmouseout = this.onblur = ev => {
+        };
+        this.onmouseout = this.onblur = (ev) => {
             if (this.hasAttribute('allow-clear')) {
                 this.clearElement.style.display = 'none';
                 this.iconElement.style.display = 'flex';
             }
             this.focused = false;
-        }
+        };
         this.inputElement.onfocus = (ev: any) => {
             if (this.hasAttribute('disabled')) return;
             if (this.inputElement.value.length > 0) {
                 this.inputElement.placeholder = this.inputElement.value;
-                this.inputElement.value = ''
+                this.inputElement.value = '';
             }
             if (this.hasAttribute('show-search')) {
                 this.searchElement.style.display = 'flex';
                 this.iconElement.style.display = 'none';
             }
-            this.querySelectorAll('lit-select-option').forEach(a => {
+            this.querySelectorAll('lit-select-option').forEach((a) => {
                 // @ts-ignore
                 a.style.display = 'flex';
-            })
-        }
+            });
+        };
         this.inputElement.onblur = (ev: any) => {
             if (this.hasAttribute('disabled')) return;
             if (this.isMultiple()) {
@@ -494,72 +509,99 @@ export class LitSelect extends BaseElement {
                     this.iconElement.style.display = 'flex';
                 }
             }
-        }
+        };
         this.inputElement.oninput = (ev: any) => {
             let els = [...this.querySelectorAll('lit-select-option')];
-            if(this.hasAttribute("show-search")) {
+            if (this.hasAttribute('show-search')) {
                 if (!ev.target.value) {
-                    els.forEach((a: any) => a.style.display = 'flex');
+                    els.forEach((a: any) => (a.style.display = 'flex'));
                 } else {
                     els.forEach((a: any) => {
                         let value = a.getAttribute('value');
-                        if (value.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1 ||
-                            a.textContent.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1) {
+                        if (
+                            value
+                                .toLowerCase()
+                                .indexOf(ev.target.value.toLowerCase()) !==
+                                -1 ||
+                            a.textContent
+                                .toLowerCase()
+                                .indexOf(ev.target.value.toLowerCase()) !== -1
+                        ) {
                             a.style.display = 'flex';
                         } else {
                             a.style.display = 'none';
                         }
-                    })
+                    });
                 }
             } else {
-                this.value = ev.target.value
+                this.value = ev.target.value;
             }
-        }
+        };
         this.inputElement.onkeydown = (ev: any) => {
             if (ev.key === 'Backspace') {
                 if (this.isMultiple()) {
-                    let tag = this.multipleRootElement.lastElementChild.previousElementSibling;
+                    let tag =
+                        this.multipleRootElement.lastElementChild
+                            .previousElementSibling;
                     if (tag) {
-                        this.querySelector(`lit-select-option[value=${tag.value}]`)?.removeAttribute('selected');
-                        tag.remove()
-                        if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
+                        this.querySelector(
+                            `lit-select-option[value=${tag.value}]`
+                        )?.removeAttribute('selected');
+                        tag.remove();
+                        if (
+                            this.shadowRoot!.querySelectorAll('.tag').length ==
+                            0
+                        ) {
                             this.inputElement.style.width = 'auto';
-                            this.inputElement.placeholder = this.defaultPlaceholder;
+                            this.inputElement.placeholder =
+                                this.defaultPlaceholder;
                         }
                     }
                 } else {
                     this.clear();
-                    this.dispatchEvent(new CustomEvent('onClear', {detail: ev}))//向外派发清理事件
+                    this.dispatchEvent(
+                        new CustomEvent('onClear', { detail: ev })
+                    ); //向外派发清理事件
                 }
             } else if (ev.key === 'Enter') {
                 if (!this.canInsert) {
-                    let filter = [...this.querySelectorAll('lit-select-option')].filter((a: any) => a.style.display !== 'none');
+                    let filter = [
+                        ...this.querySelectorAll('lit-select-option'),
+                    ].filter((a: any) => a.style.display !== 'none');
                     if (filter.length > 0) {
                         this.inputElement.value = filter[0].textContent;
                         this.inputElement.placeholder = filter[0].textContent;
                         this.blur();
                         // @ts-ignore
-                        this.value = filter[0].getAttribute('value')
-                        this.dispatchEvent(new CustomEvent('change', {
-                            detail: {
-                                selected: true,
-                                value: filter[0].getAttribute('value'),
-                                text: filter[0].textContent
-                            }
-                        }));
+                        this.value = filter[0].getAttribute('value');
+                        this.dispatchEvent(
+                            new CustomEvent('change', {
+                                detail: {
+                                    selected: true,
+                                    value: filter[0].getAttribute('value'),
+                                    text: filter[0].textContent,
+                                },
+                            })
+                        );
                     }
                 }
             }
-        }
+        };
     }
 
     initOptions() {
-        this.querySelectorAll('lit-select-option').forEach(a => {
+        this.querySelectorAll('lit-select-option').forEach((a) => {
             if (this.isMultiple()) {
                 a.setAttribute('check', '');
                 if (a.getAttribute('value') === this.defaultValue) {
-                    let tag = this.newTag(a.getAttribute('value'), a.textContent);
-                    this.multipleRootElement.insertBefore(tag, this.inputElement);
+                    let tag = this.newTag(
+                        a.getAttribute('value'),
+                        a.textContent
+                    );
+                    this.multipleRootElement.insertBefore(
+                        tag,
+                        this.inputElement
+                    );
                     this.inputElement.placeholder = '';
                     this.inputElement.value = '';
                     this.inputElement.style.width = '1px';
@@ -571,23 +613,28 @@ export class LitSelect extends BaseElement {
                     a.setAttribute('selected', '');
                 }
             }
-            a.addEventListener('mouseup',(e)=>{
-               e.stopPropagation()
+            a.addEventListener('mouseup', (e) => {
+                e.stopPropagation();
             });
-            a.addEventListener('mousedown',(e)=>{
-                e.stopPropagation()
+            a.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
             });
             a.addEventListener('onSelected', (e: any) => {
                 if (this.isMultiple()) {
                     if (a.hasAttribute('selected')) {
-                        let tag = this.shadowRoot!.querySelector(`div[data-value=${e.detail.value}]`) as HTMLElement;
-                        if (tag)  {
+                        let tag = this.shadowRoot!.querySelector(
+                            `div[data-value=${e.detail.value}]`
+                        ) as HTMLElement;
+                        if (tag) {
                             tag.parentElement!.removeChild(tag);
                         }
                         e.detail.selected = false;
                     } else {
                         let tag = this.newTag(e.detail.value, e.detail.text);
-                        this.multipleRootElement.insertBefore(tag, this.inputElement);
+                        this.multipleRootElement.insertBefore(
+                            tag,
+                            this.inputElement
+                        );
                         this.inputElement.placeholder = '';
                         this.inputElement.value = '';
                         this.inputElement.style.width = '1px';
@@ -598,21 +645,25 @@ export class LitSelect extends BaseElement {
                     }
                     this.inputElement.focus();
                 } else {
-                    [...this.querySelectorAll('lit-select-option')].forEach(a => a.removeAttribute('selected'))
+                    [...this.querySelectorAll('lit-select-option')].forEach(
+                        (a) => a.removeAttribute('selected')
+                    );
                     this.blur();
                     // @ts-ignore
                     this.inputElement.value = e.detail.text;
                 }
                 if (a.hasAttribute('selected')) {
-                    a.removeAttribute('selected')
+                    a.removeAttribute('selected');
                 } else {
-                    a.setAttribute('selected', '')
+                    a.setAttribute('selected', '');
                 }
                 // @ts-ignore
                 this.value = e.detail.value;
-                this.dispatchEvent(new CustomEvent('change', {detail: e.detail}));//向外层派发change事件，返回当前选中项
-            })
-        })
+                this.dispatchEvent(
+                    new CustomEvent('change', { detail: e.detail })
+                ); //向外层派发change事件，返回当前选中项
+            });
+        });
     }
 
     clear() {
@@ -621,37 +672,35 @@ export class LitSelect extends BaseElement {
     }
 
     reset() {
-        this.querySelectorAll('lit-select-option').forEach(a => {
-            [...this.querySelectorAll('lit-select-option')].forEach(a => a.removeAttribute('selected'))
+        this.querySelectorAll('lit-select-option').forEach((a) => {
+            [...this.querySelectorAll('lit-select-option')].forEach((a) =>
+                a.removeAttribute('selected')
+            );
             if (a.getAttribute('value') === this.defaultValue) {
                 this.inputElement.value = a.textContent;
                 a.setAttribute('selected', '');
             }
-        })
+        });
     }
 
-    disconnectedCallback() {
+    disconnectedCallback() {}
 
-    }
-
-    adoptedCallback() {
-    }
+    adoptedCallback() {}
 
     attributeChangedCallback(name: any, oldValue: any, newValue: any) {
         if (name === 'value' && this.inputElement) {
             if (newValue) {
-                [...this.querySelectorAll('lit-select-option')].forEach(a => {
+                [...this.querySelectorAll('lit-select-option')].forEach((a) => {
                     if (a.getAttribute('value') === newValue) {
                         a.setAttribute('selected', '');
                         this.inputElement.value = a.textContent;
                     } else {
-                        a.removeAttribute('selected')
+                        a.removeAttribute('selected');
                     }
-                })
+                });
             } else {
                 this.clear();
             }
         }
     }
-
 }

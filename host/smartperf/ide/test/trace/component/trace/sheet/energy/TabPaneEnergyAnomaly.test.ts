@@ -14,17 +14,18 @@
  */
 
 // @ts-ignore
-import {TabPaneEnergyAnomaly} from "../../../../../../dist/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly.js"
-import "../../../../../../dist/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly.js"
+import { TabPaneEnergyAnomaly } from '../../../../../../dist/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly.js';
+import '../../../../../../dist/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 describe('TabPanePowerBattery Test', () => {
     it('TabPaneEnergyAnomalyTest01', function () {
@@ -33,43 +34,50 @@ describe('TabPanePowerBattery Test', () => {
         let battery = [
             {
                 ts: 11611696002,
-                eventName: "ANOMALY_SCREEN_OFF_ENERGY",
-                appKey: "BATTERY_DRAIN",
-                Value: "10"
-            }, {
+                eventName: 'ANOMALY_SCREEN_OFF_ENERGY',
+                appKey: 'BATTERY_DRAIN',
+                Value: '10',
+            },
+            {
                 ts: 11611696002,
-                eventName: "ANOMALY_SCREEN_OFF_ENERGY",
-                appKey: "BATTERY_GAS_GUAGE",
-                Value: "980"
-            }, {
+                eventName: 'ANOMALY_SCREEN_OFF_ENERGY',
+                appKey: 'BATTERY_GAS_GUAGE',
+                Value: '980',
+            },
+            {
                 ts: 15612568649,
-                eventName: "ANOMALY_RUNNINGLOCK",
-                appKey: "APPNAME",
-                Value: "com.example.powerhap"
-            }, {
+                eventName: 'ANOMALY_RUNNINGLOCK',
+                appKey: 'APPNAME',
+                Value: 'com.example.powerhap',
+            },
+            {
                 ts: 15612568649,
-                eventName: "ANOMALY_RUNNINGLOCK",
-                appKey: "COUNT",
-                Value: "1"
-            }, {
+                eventName: 'ANOMALY_RUNNINGLOCK',
+                appKey: 'COUNT',
+                Value: '1',
+            },
+            {
                 ts: 17611804002,
-                eventName: "ANORMALY_APP_ENERGY",
-                appKey: "APPNAME",
-                Value: "*dpm_others*,*dpm_rom*,/system/bin/hilogd," +
-                    "/system/bin/render_service," +
-                    "/system/bin/wifi_hal_service," +
-                    "bluetooth_servi,com.example.baseanimation," +
-                    "com.example.ohos_location_js," +
-                    "com.ohos.launcher,com.ohos.settings," +
-                    "hidumper_servic,hwc_host," +
-                    "kernel_kworker,softbus_server"
-            }, {
+                eventName: 'ANORMALY_APP_ENERGY',
+                appKey: 'APPNAME',
+                Value:
+                    '*dpm_others*,*dpm_rom*,/system/bin/hilogd,' +
+                    '/system/bin/render_service,' +
+                    '/system/bin/wifi_hal_service,' +
+                    'bluetooth_servi,com.example.baseanimation,' +
+                    'com.example.ohos_location_js,' +
+                    'com.ohos.launcher,com.ohos.settings,' +
+                    'hidumper_servic,hwc_host,' +
+                    'kernel_kworker,softbus_server',
+            },
+            {
                 ts: 17611804002,
-                eventName: "ANORMALY_APP_ENERGY",
-                appKey: "BGENERGY",
-                Value: "11726,79745,6209,249329,1680,8694,3061,457,402,17064,4087,16403,32965,2895"
-            }]
-        MockAnomalyDetailedData.mockResolvedValue(battery)
+                eventName: 'ANORMALY_APP_ENERGY',
+                appKey: 'BGENERGY',
+                Value: '11726,79745,6209,249329,1680,8694,3061,457,402,17064,4087,16403,32965,2895',
+            },
+        ];
+        MockAnomalyDetailedData.mockResolvedValue(battery);
         let tabPaneAnomalyDetailedData = {
             cpus: [],
             threadIds: [],
@@ -92,12 +100,11 @@ describe('TabPanePowerBattery Test', () => {
             perfAll: false,
             systemEnergy: [0, 1, 2],
             powerEnergy: [0, 1, 2],
-            anomalyEnergy: [0, 1, 2]
-        }
+            anomalyEnergy: [0, 1, 2],
+        };
 
-        tabPaneEnergyAnomaly.data = tabPaneAnomalyDetailedData
-    })
-
+        tabPaneEnergyAnomaly.data = tabPaneAnomalyDetailedData;
+    });
 
     it('TabPaneEnergyAnomalyTest02', function () {
         let tabPaneEnergyAnomaly = new TabPaneEnergyAnomaly();
@@ -146,4 +153,4 @@ describe('TabPanePowerBattery Test', () => {
         "
 `);
     });
-})
+});

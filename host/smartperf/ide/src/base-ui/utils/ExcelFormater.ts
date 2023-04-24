@@ -14,135 +14,161 @@
  */
 
 export class ExcelFormater {
-    static tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>'
+    static tmplCellXML =
+        '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>';
     static base64 = function (s: any) {
-        return window.btoa(unescape(encodeURIComponent(s)))
-    }
+        return window.btoa(unescape(encodeURIComponent(s)));
+    };
 
     static format(s: any, c: any): string {
         return s.replace(/{(\w+)}/g, function (m: any, p: any) {
             return c[p];
-        })
+        });
     }
 
     static createExcelRow(columns: any[], data: any): string {
-        let rowsXML = "";
+        let rowsXML = '';
         rowsXML += '<Row>';
         for (let k = 0; k < columns.length; k++) {
-            let dataIndex = columns[k].getAttribute('data-index')
-            let columnName = columns[k].getAttribute('title')
-            if (columnName == "") {
-                columnName = dataIndex
+            let dataIndex = columns[k].getAttribute('data-index');
+            let columnName = columns[k].getAttribute('title');
+            if (columnName == '') {
+                columnName = dataIndex;
             }
             let ctx = {
                 attributeStyleID: '',
                 nameType: 'String',
-                data: data ? (data[dataIndex] || "") : columnName,
-                attributeFormula: ''
+                data: data ? data[dataIndex] || '' : columnName,
+                attributeFormula: '',
             };
             rowsXML += this.format(this.tmplCellXML, ctx);
         }
-        rowsXML += '</Row>'
+        rowsXML += '</Row>';
         if (data && data.children != undefined && data.children.length > 0) {
             data.children.forEach((child: any) => {
-                rowsXML += this.createExcelRow(columns, child)
-            })
+                rowsXML += this.createExcelRow(columns, child);
+            });
         }
-        return rowsXML
+        return rowsXML;
     }
 
     static addImage(baseStr: string) {
-        return `<Row>${
-            this.format(this.tmplCellXML, {
-                attributeStyleID: '',
-                nameType: 'String',
-                data: `<div><img src="${baseStr}"></img></div>`,
-                attributeFormula: ''
-            })
-        }</Row>`
+        return `<Row>${this.format(this.tmplCellXML, {
+            attributeStyleID: '',
+            nameType: 'String',
+            data: `<div><img src="${baseStr}"></img></div>`,
+            attributeFormula: '',
+        })}</Row>`;
     }
 
-    static testExport(dataSource: { columns: any[], tables: any[], sheetName: string }[],fileName: string){
-        this.tablesToHtmlExcelMultipleSheet(dataSource,fileName)
+    static testExport(
+        dataSource: { columns: any[]; tables: any[]; sheetName: string }[],
+        fileName: string
+    ) {
+        this.tablesToHtmlExcelMultipleSheet(dataSource, fileName);
     }
 
-    static tablesToHtmlExcelMultipleSheet(dataSource: { columns: any[], tables: any[], sheetName: string }[],fileName: string, image?: string){
-        let sheets:any[] = []
-        dataSource.forEach((data)=>{
-            sheets.push(this.createTableData(data.columns,data.tables,image))
-        })
-        this.tablesToExcelTestSheet(sheets,fileName,dataSource)
+    static tablesToHtmlExcelMultipleSheet(
+        dataSource: { columns: any[]; tables: any[]; sheetName: string }[],
+        fileName: string,
+        image?: string
+    ) {
+        let sheets: any[] = [];
+        dataSource.forEach((data) => {
+            sheets.push(this.createTableData(data.columns, data.tables, image));
+        });
+        this.tablesToExcelTestSheet(sheets, fileName, dataSource);
     }
 
-    static createTableData(columns:any[],dataSource:any[],image?:string){
-        let tableData = "";
-        let columnDatas = columns.map((column)=>{
-            let dataIndex = column.getAttribute('data-index')
-            let columnName = column.getAttribute('title')
-            if (columnName == "") {
-                columnName = dataIndex
+    static createTableData(columns: any[], dataSource: any[], image?: string) {
+        let tableData = '';
+        let columnDatas = columns.map((column) => {
+            let dataIndex = column.getAttribute('data-index');
+            let columnName = column.getAttribute('title');
+            if (columnName == '') {
+                columnName = dataIndex;
             }
             return {
-                columnName:columnName,
-                dataIndex:dataIndex
-            }
-        })
-        tableData+=this.createTHead(columnDatas.map((item)=>{
-            return item.columnName
-        }))
-        let columnDataIndexes = columnDatas.map(item=>item.dataIndex)
-        dataSource.forEach((data,index)=>{
-            if(index == 0&&image){
-                tableData+=this.createTableRow(columnDataIndexes,data,image)
-            }else {
-                tableData+=this.createTableRow(columnDataIndexes,data)
-            }
-        })
-        return tableData
-    }
-
-    static createTHead(columns:any[]){
-        let header = "<thead>"
-        columns.forEach((column)=>{
-            header+=`<td>${column}</td>`
-        })
-        header+="</thrad>"
-        return header
-    }
-
-    static createTableRow(columns:any[],data:any,image?:any){
-        let childrenData = ""
-        if(data.children !== undefined){
-            data.children.forEach((child:any)=>{
-                if(child){
-                    childrenData +=this.createTableRow(columns,child)
-                }
+                columnName: columnName,
+                dataIndex: dataIndex,
+            };
+        });
+        tableData += this.createTHead(
+            columnDatas.map((item) => {
+                return item.columnName;
             })
-        }
-        return `<tr>${columns.map((column)=>{
-            return `<td>${(data[column]+"").replace("μ","u")}</td>`||''
-        }).join("")}${image?`<td><div><img src="${image}"></img></div></td>`:""}</tr>${childrenData}`
+        );
+        let columnDataIndexes = columnDatas.map((item) => item.dataIndex);
+        dataSource.forEach((data, index) => {
+            if (index == 0 && image) {
+                tableData += this.createTableRow(
+                    columnDataIndexes,
+                    data,
+                    image
+                );
+            } else {
+                tableData += this.createTableRow(columnDataIndexes, data);
+            }
+        });
+        return tableData;
     }
 
-    static tablesToExcelTestSheet(tables:any[], filename:string, dataSource: { columns: any[], tables: any[], sheetName: string }[]) {
-        let uri = 'data:application/vnd.ms-excel;base64,'
-            , html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`
-            , template_ExcelWorksheet = `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`
-            , template_ListWorksheet = `<o:File HRef="sheet{SheetIndex}.htm"/>`
-            , template_HTMLWorksheet = `
+    static createTHead(columns: any[]) {
+        let header = '<thead>';
+        columns.forEach((column) => {
+            header += `<td>${column}</td>`;
+        });
+        header += '</thrad>';
+        return header;
+    }
+
+    static createTableRow(columns: any[], data: any, image?: any) {
+        let childrenData = '';
+        if (data.children !== undefined) {
+            data.children.forEach((child: any) => {
+                if (child) {
+                    childrenData += this.createTableRow(columns, child);
+                }
+            });
+        }
+        return `<tr>${columns
+            .map((column) => {
+                return (
+                    `<td>${(data[column] + '').replace('μ', 'u')}</td>` || ''
+                );
+            })
+            .join('')}${
+            image ? `<td><div><img src="${image}"></img></div></td>` : ''
+        }</tr>${childrenData}`;
+    }
+
+    static tablesToExcelTestSheet(
+        tables: any[],
+        filename: string,
+        dataSource: { columns: any[]; tables: any[]; sheetName: string }[]
+    ) {
+        let uri = 'data:application/vnd.ms-excel;base64,',
+            html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`,
+            template_ExcelWorksheet = `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`,
+            template_ListWorksheet = `<o:File HRef="sheet{SheetIndex}.htm"/>`,
+            template_HTMLWorksheet =
+                `
 ------=_NextPart_dummy
 Content-Location: sheet{SheetIndex}.htm
 Content-Type: text/html; charset=windows-1252
 
-` + html_start + `
+` +
+                html_start +
+                `
 <head>
     <meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
     <link id="Main-File" rel="Main-File" href="../WorkBook.htm">
     <link rel="File-List" href="filelist.xml">
 </head>
 <body><table>{SheetContent}</table></body>
-</html>`
-            , template_WorkBook = `MIME-Version: 1.0
+</html>`,
+            template_WorkBook =
+                `MIME-Version: 1.0
 X-Document-Type: Workbook
 Content-Type: multipart/related; boundary="----=_NextPart_dummy"
 
@@ -150,7 +176,9 @@ Content-Type: multipart/related; boundary="----=_NextPart_dummy"
 Content-Location: WorkBook.htm
 Content-Type: text/html; charset=windows-1252
 
-` + html_start + `
+` +
+                html_start +
+                `
 <head>
 <meta name="Excel Workbook Frameset">
 <meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
@@ -177,29 +205,39 @@ Content-Type: text/xml; charset="utf-8"
     <o:File HRef="filelist.xml"/>
 </xml>
 ------=_NextPart_dummy--
-`
+`;
         let context_WorkBook = {
-            ExcelWorksheets: ''
-            , HTMLWorksheets: ''
-            , ListWorksheets: ''
+            ExcelWorksheets: '',
+            HTMLWorksheets: '',
+            ListWorksheets: '',
         };
-        tables.forEach((item,sheetIndex)=>{
-            context_WorkBook.ExcelWorksheets += this.format(template_ExcelWorksheet, {
-                SheetIndex: sheetIndex
-                , SheetName: dataSource[sheetIndex].sheetName
-            });
-            context_WorkBook.HTMLWorksheets += this.format(template_HTMLWorksheet, {
-                SheetIndex: sheetIndex
-                , SheetContent: item
-            });
-            context_WorkBook.ListWorksheets += this.format(template_ListWorksheet, {
-                SheetIndex: sheetIndex
-            });
-        })
-        let link = document.createElement('a')
-        link.href = uri + this.base64(this.format(template_WorkBook, context_WorkBook));
-        link.download = filename+'.xls';
+        tables.forEach((item, sheetIndex) => {
+            context_WorkBook.ExcelWorksheets += this.format(
+                template_ExcelWorksheet,
+                {
+                    SheetIndex: sheetIndex,
+                    SheetName: dataSource[sheetIndex].sheetName,
+                }
+            );
+            context_WorkBook.HTMLWorksheets += this.format(
+                template_HTMLWorksheet,
+                {
+                    SheetIndex: sheetIndex,
+                    SheetContent: item,
+                }
+            );
+            context_WorkBook.ListWorksheets += this.format(
+                template_ListWorksheet,
+                {
+                    SheetIndex: sheetIndex,
+                }
+            );
+        });
+        let link = document.createElement('a');
+        link.href =
+            uri + this.base64(this.format(template_WorkBook, context_WorkBook));
+        link.download = filename + '.xls';
         link.target = '_blank';
-        link.click()
+        link.click();
     }
 }

@@ -14,50 +14,51 @@
  */
 
 // @ts-ignore
-import {Cmd} from "../../dist/command/Cmd.js";
+import { Cmd } from '../../dist/command/Cmd.js';
 
 describe('Cmd', () => {
-
     it('CmdTest_01', () => {
-        expect(Cmd.execObjDump("","")).toBeUndefined()
+        expect(Cmd.execObjDump('', '')).toBeUndefined();
     });
 
     it('CmdTest_02', () => {
-        expect(Cmd.execHdcCmd("")).toBeUndefined()
+        expect(Cmd.execHdcCmd('')).toBeUndefined();
     });
 
     it('CmdTest_03', () => {
-        expect(Cmd.execFileRecv("","")).toBeTruthy()
+        expect(Cmd.execFileRecv('', '')).toBeTruthy();
     });
 
     it('CmdTest_04', () => {
-        expect(Cmd.execHdcTraceCmd("","")).toBeUndefined()
+        expect(Cmd.execHdcTraceCmd('', '')).toBeUndefined();
     });
 
     it('CmdTest_05', () => {
-        let params = [{
-            length:0
-        }]
-        expect(Cmd.formatString("",params)).toBe("")
+        let params = [
+            {
+                length: 0,
+            },
+        ];
+        expect(Cmd.formatString('', params)).toBe('');
     });
 
     it('CmdTest_06', () => {
-        expect(Cmd.showSaveFile()).toBeUndefined()
+        expect(Cmd.showSaveFile()).toBeUndefined();
     });
 
     it('CmdTest_07', () => {
-        expect(Cmd.uploadFile()).toBeUndefined()
+        expect(Cmd.uploadFile()).toBeUndefined();
     });
 
     it('CmdTest_08', () => {
-        expect(Cmd.copyFile("","")).toBeUndefined()
+        expect(Cmd.copyFile('', '')).toBeUndefined();
     });
 
     it('CmdTest_09', () => {
-        expect(Cmd.openFileDialog()).toBeTruthy()
+        expect(Cmd.openFileDialog()).toBeTruthy();
     });
 
     it('CmdTest_10', () => {
-        expect(Cmd.formatString("",[])).toBe("")
+        expect(Cmd.formatString('', [])).toBe('');
     });
-})
+});

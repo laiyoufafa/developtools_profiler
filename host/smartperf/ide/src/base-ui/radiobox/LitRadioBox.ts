@@ -13,18 +13,17 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
-import {LitRadioGroup} from "./LitRadioGroup.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { LitRadioGroup } from './LitRadioGroup.js';
 
 @element('lit-radio')
 export class LitRadioBox extends BaseElement {
-
-    private group: LitRadioGroup | undefined | null
-    private parent: LitRadioGroup | undefined | null
-    private radio: HTMLInputElement | undefined | null
+    private group: LitRadioGroup | undefined | null;
+    private parent: LitRadioGroup | undefined | null;
+    private radio: HTMLInputElement | undefined | null;
 
     static get observedAttributes() {
-        return ['checked', 'value']
+        return ['checked', 'value'];
     }
 
     get checked() {
@@ -44,8 +43,8 @@ export class LitRadioBox extends BaseElement {
     }
 
     get value() {
-        let slot = this.shadowRoot?.getElementById("slot")
-        return slot!.textContent || this.textContent || "";
+        let slot = this.shadowRoot?.getElementById('slot');
+        return slot!.textContent || this.textContent || '';
     }
 
     set value(value: string) {
@@ -53,7 +52,7 @@ export class LitRadioBox extends BaseElement {
     }
 
     set dis(dis: string) {
-        this.setAttribute('dis', dis)
+        this.setAttribute('dis', dis);
     }
 
     initHtml(): string {
@@ -195,22 +194,30 @@ export class LitRadioBox extends BaseElement {
     }
 
     initElements(): void {
-        this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
+        this.radio = this.shadowRoot?.getElementById(
+            'radio'
+        ) as HTMLInputElement;
     }
 
     connectedCallback() {
         this.group = this.closest('lit-radio-group') as LitRadioGroup;
         this.parent = this.group || this.getRootNode();
-        this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
+        this.radio = this.shadowRoot?.getElementById(
+            'radio'
+        ) as HTMLInputElement;
         this.checked = this.checked;
         this.radio.addEventListener('change', () => {
-            const selector = this.group ? `lit-radio[checked]` : `lit-radio[name="${this.name}"][checked]`;
-            const siblingNode = this.parent?.querySelector(selector) as LitRadioBox;
+            const selector = this.group
+                ? `lit-radio[checked]`
+                : `lit-radio[name="${this.name}"][checked]`;
+            const siblingNode = this.parent?.querySelector(
+                selector
+            ) as LitRadioBox;
             if (siblingNode) {
                 siblingNode.checked = false;
             }
             this.checked = true;
-        })
+        });
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -218,8 +225,8 @@ export class LitRadioBox extends BaseElement {
             this.radio.checked = newValue !== null;
         }
         if (name == 'value') {
-            let slot = this.shadowRoot?.getElementById("slot")
-            slot!.textContent = newValue
+            let slot = this.shadowRoot?.getElementById('slot');
+            slot!.textContent = newValue;
         }
     }
 }

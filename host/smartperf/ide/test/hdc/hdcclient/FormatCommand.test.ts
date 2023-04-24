@@ -13,36 +13,62 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {FormatCommand} from "../../../dist/hdc/hdcclient/FormatCommand.js";
+import { FormatCommand } from '../../../dist/hdc/hdcclient/FormatCommand.js';
 // @ts-ignore
-import {CmdConstant} from "../../../dist/command/CmdConstant.js";
+import { CmdConstant } from '../../../dist/command/CmdConstant.js';
 
 describe('FormatCommandTest', () => {
     it('FormatCommandTest_FormatCommand_01', () => {
-        expect(FormatCommand.string2FormatCommand(CmdConstant.CMD_TRACE_FILE_SIZE)).toEqual({"bJumpDo": true, "cmdFlag": -1, "parameters": ""})
-    })
+        expect(
+            FormatCommand.string2FormatCommand(CmdConstant.CMD_TRACE_FILE_SIZE)
+        ).toEqual({ bJumpDo: true, cmdFlag: -1, parameters: '' });
+    });
 
     it('FormatCommandTest_FormatCommand_02', () => {
-        expect(FormatCommand.string2FormatCommand("shell ps")).toEqual({"bJumpDo": false, "cmdFlag": 1001, "parameters": "ps"})
-    })
+        expect(FormatCommand.string2FormatCommand('shell ps')).toEqual({
+            bJumpDo: false,
+            cmdFlag: 1001,
+            parameters: 'ps',
+        });
+    });
 
     it('FormatCommandTest_FormatCommand_03', () => {
-        expect(FormatCommand.string2FormatCommand("shell")).toEqual({"bJumpDo": false, "cmdFlag": 2000, "parameters": ""})
-    })
+        expect(FormatCommand.string2FormatCommand('shell')).toEqual({
+            bJumpDo: false,
+            cmdFlag: 2000,
+            parameters: '',
+        });
+    });
 
     it('FormatCommandTest_FormatCommand_04', () => {
-        expect(FormatCommand.string2FormatCommand("file recv demo")).toEqual({"bJumpDo": false, "cmdFlag":3000, "parameters": "demo"})
-    })
+        expect(FormatCommand.string2FormatCommand('file recv demo')).toEqual({
+            bJumpDo: false,
+            cmdFlag: 3000,
+            parameters: 'demo',
+        });
+    });
 
     it('FormatCommandTest_FormatCommand_05', () => {
-        expect(FormatCommand.string2FormatCommand("file send demo")).toEqual({"bJumpDo": false, "cmdFlag": 3000, "parameters": "demo"})
-    })
+        expect(FormatCommand.string2FormatCommand('file send demo')).toEqual({
+            bJumpDo: false,
+            cmdFlag: 3000,
+            parameters: 'demo',
+        });
+    });
 
     it('FormatCommandTest_FormatCommand_06', () => {
-        expect(FormatCommand.string2FormatCommand(CmdConstant.CMD_GET_HIPERF_EVENTS)).toEqual({"bJumpDo": true, "cmdFlag": -1, "parameters": ""})
-    })
+        expect(
+            FormatCommand.string2FormatCommand(
+                CmdConstant.CMD_GET_HIPERF_EVENTS
+            )
+        ).toEqual({ bJumpDo: true, cmdFlag: -1, parameters: '' });
+    });
 
     it('FormatCommandTest_FormatCommand_07', () => {
-        expect(FormatCommand.string2FormatCommand("null")).toEqual({"bJumpDo": true, "cmdFlag": -1, "parameters": ""})
-    })
+        expect(FormatCommand.string2FormatCommand('null')).toEqual({
+            bJumpDo: true,
+            cmdFlag: -1,
+            parameters: '',
+        });
+    });
 });

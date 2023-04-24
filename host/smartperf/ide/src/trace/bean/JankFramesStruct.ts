@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 export class JankFramesStruct {
-    jankType: string = "";
+    jankType: string = '';
     minDuration: number = -1;
-    minDurationStr:string = "";
+    minDurationStr: string = '';
     maxDuration: number = -1;
-    maxDurationStr:string = "";
+    maxDurationStr: string = '';
     meanDuration: number = -1;
-    meanDurationStr:string = ""
+    meanDurationStr: string = '';
     occurrences: number = 0;
     flag: boolean = false;
 }

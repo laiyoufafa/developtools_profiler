@@ -14,33 +14,35 @@
  */
 
 // @ts-ignore
-import {LitButton, LitSelect} from "../../../dist/base-ui/select/LitSelect.js";
-import {LitSelectOption} from "../../../src/base-ui/select/LitSelectOption";
+import {
+    LitButton,
+    LitSelect,
+} from '../../../dist/base-ui/select/LitSelect.js';
+import { LitSelectOption } from '../../../src/base-ui/select/LitSelectOption';
 
-describe('LitSelect Test', ()=>{
-
+describe('LitSelect Test', () => {
     it('LitSelectTest01', function () {
         let litSelect = new LitSelect();
-        expect(litSelect).not.toBeUndefined()
+        expect(litSelect).not.toBeUndefined();
     });
 
     it('LitSelectTest02', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect"></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        expect(select).not.toBeUndefined()
+        document.body.innerHTML = `<lit-select id="litSelect"></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        expect(select).not.toBeUndefined();
     });
 
     it('LitSelectTest03', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect"></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.value = "value"
+        document.body.innerHTML = `<lit-select id="litSelect"></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.value = 'value';
         expect(select.value).toBe('value');
     });
 
     it('LitSelectTest04', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect"></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.border = "value"
+        document.body.innerHTML = `<lit-select id="litSelect"></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.border = 'value';
         expect(select.border).toBe('true');
     });
     it('LitSelectTest05', function () {
@@ -48,104 +50,101 @@ describe('LitSelect Test', ()=>{
         expect(lit.border).toBe('true');
     });
     it('LitSelectTest06', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
         select.listHeight = true;
         expect(select.listHeight).toBe('true');
     });
 
     it('LitSelectTest07', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
         select.defaultValue = true;
         expect(select.defaultValue).toBe('true');
     });
 
     it('LitSelectTest08', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.loading = 1
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.loading = 1;
         expect(select.loading).toBe(true);
     });
 
     it('LitSelectTest09', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
         expect(select.isMultiple()).toBe(false);
     });
 
     it('LitSelectTest10', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.inputElement.value = "3333";
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.inputElement.value = '3333';
         select.click();
         expect(select.focused).toBe(true);
     });
 
     it('LitSelectTest11', function () {
-        document.body.innerHTML =  `<lit-select allow-clear id="litSelect" ></lit-selectallow-clear>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.clear()
-        expect(select.inputElement.value).toBe("");
+        document.body.innerHTML = `<lit-select allow-clear id="litSelect" ></lit-selectallow-clear>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.clear();
+        expect(select.inputElement.value).toBe('');
     });
 
     it('LitSelectTest12', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
         expect(select.reset()).toBeUndefined();
     });
 
     it('LitSelectTest13', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        let newTag =select.newTag("111","111");
-        expect(newTag.text).toBe("111");
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        let newTag = select.newTag('111', '111');
+        expect(newTag.text).toBe('111');
     });
     it('LitSelectTest14', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.dataSource =  [{key:"111"}]
+        document.body.innerHTML = `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.dataSource = [{ key: '111' }];
         let cleart = select.clearElement as HTMLElement;
         cleart.click();
-        expect(select.inputElement.value).toBe("");
-
+        expect(select.inputElement.value).toBe('');
     });
 
     it('LitSelectTest15', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
+        document.body.innerHTML = `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
         let input = select.inputElement as HTMLInputElement;
-        input.value = "11"
-        expect(select.inputElement.value).toBe("11");
-
+        input.value = '11';
+        expect(select.inputElement.value).toBe('11');
     });
 
     it('LitSelectTest16', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.dataSource =  [{key:"111"}]
-        expect(select.inputElement.value).toBe("");
-
+        document.body.innerHTML = `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.dataSource = [{ key: '111' }];
+        expect(select.inputElement.value).toBe('');
     });
 
     it('LitSelectTest17', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
         select.placeholder = true;
         expect(select.placeholder).toBe('true');
     });
     it('LitSelectTest20', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.rounded = 1
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.rounded = 1;
         expect(select.rounded).toBe(true);
     });
 
     it('LitSelectTest21', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.placement = 1
-        expect(select.placement).toBe("1");
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.placement = 1;
+        expect(select.placement).toBe('1');
     });
 
     it('LitSelectTest18', function () {
@@ -362,40 +361,40 @@ describe('LitSelect Test', ()=>{
     });
 
     it('LitSelectTest23', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.canInsert = true
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.canInsert = true;
         expect(select.canInsert).toBeTruthy();
     });
     it('LitSelectTest24', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.rounded =false
-        expect(select.rounded).toBeFalsy()
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.rounded = false;
+        expect(select.rounded).toBeFalsy();
     });
     it('LitSelectTest25', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.placement =false
-        expect(select.placement).toBeFalsy()
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.placement = false;
+        expect(select.placement).toBeFalsy();
     });
     it('LitSelectTest26', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.border =true
-        expect(select.border).toBeTruthy()
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.border = true;
+        expect(select.border).toBeTruthy();
     });
     it('LitSelectTest27', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.canInsert =false
-        expect(select.canInsert).toBeFalsy()
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.canInsert = false;
+        expect(select.canInsert).toBeFalsy();
     });
     it('LitSelectTest28', function () {
-        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
-        let select = document.querySelector("#litSelect") as LitSelect;
-        select.loading =false
-        expect(select.loading).toBeFalsy()
+        document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
+        let select = document.querySelector('#litSelect') as LitSelect;
+        select.loading = false;
+        expect(select.loading).toBeFalsy();
     });
 
     it('LitSelectTest29', function () {
@@ -405,11 +404,12 @@ describe('LitSelect Test', ()=>{
     });
 
     it('LitSelectTest30', function () {
-        let litSelect = document.body.innerHTML =  `<lit-select id="litSelect" allow-clear>
+        let litSelect = (document.body.innerHTML =
+            `<lit-select id="litSelect" allow-clear>
             <lit-select-option id="litSelectOption1" selected></lit-select-option>
             <lit-select-option id="litSelectOption2"></lit-select-option>
-        </lit-select>` as LitSelect;
-        let select = document.querySelector("#litSelect") as LitSelect;
+        </lit-select>` as LitSelect);
+        let select = document.querySelector('#litSelect') as LitSelect;
         expect(select.reset()).toBeUndefined();
     });
-})
+});

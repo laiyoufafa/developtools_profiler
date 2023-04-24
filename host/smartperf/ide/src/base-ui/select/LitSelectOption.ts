@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import {BaseElement} from "../BaseElement.js";
-import "../icon/LitIcon.js"
+import { BaseElement } from '../BaseElement.js';
+import '../icon/LitIcon.js';
 
 export class LitSelectOption extends BaseElement {
     static get observedAttributes() {
-        return ['selected', 'disabled', 'check']
+        return ['selected', 'disabled', 'check'];
     }
 
     initHtml() {
@@ -69,46 +69,40 @@ export class LitSelectOption extends BaseElement {
         }
         </style>
         <div class="selected-box">
-            <lit-icon class="selected" name="check"></lit-icon>
+            <lit-icon class="selected" name="check" size="20"></lit-icon>
         </div>
         <slot></slot>
 <!--        <lit-icon class="check" name="check"></lit-icon>-->
-        `
+        `;
     }
 
-    initElements(): void {
-
-    }
+    initElements(): void {}
 
     //当 custom element首次被插入文档DOM时，被调用。
     connectedCallback() {
         if (!this.hasAttribute('disabled')) {
-            this.onclick = ev => {
-                this.dispatchEvent(new CustomEvent('onSelected', {
-                    detail: {
-                        selected: true,
-                        value: this.getAttribute('value'),
-                        text: this.textContent
-                    }
-                }))
-            }
+            this.onclick = (ev) => {
+                this.dispatchEvent(
+                    new CustomEvent('onSelected', {
+                        detail: {
+                            selected: true,
+                            value: this.getAttribute('value'),
+                            text: this.textContent,
+                        },
+                    })
+                );
+            };
         }
-
     }
 
     //当 custom element从文档DOM中删除时，被调用。
-    disconnectedCallback() {
-
-    }
+    disconnectedCallback() {}
 
     //当 custom element被移动到新的文档时，被调用。
-    adoptedCallback() {
-    }
+    adoptedCallback() {}
 
     //当 custom element增加、删除、修改自身属性时，被调用。
-    attributeChangedCallback(name: any, oldValue: any, newValue: any) {
-
-    }
+    attributeChangedCallback(name: any, oldValue: any, newValue: any) {}
 }
 
 if (!customElements.get('lit-select-option')) {

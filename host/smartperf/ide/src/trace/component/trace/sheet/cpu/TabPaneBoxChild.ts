@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {BoxJumpParam, SelectionData} from "../../../../bean/BoxSelection.js";
-import {getTabBoxChildData} from "../../../../database/SqlLite.js";
-import {Utils} from "../../base/Utils.js";
-import {SpSystemTrace} from "../../../SpSystemTrace.js";
-import {SPTChild} from "../../../../bean/StateProcessThread.js";
-import {TraceRow} from "../../base/TraceRow.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection.js';
+import { getTabBoxChildData } from '../../../../database/SqlLite.js';
+import { Utils } from '../../base/Utils.js';
+import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { SPTChild } from '../../../../bean/StateProcessThread.js';
+import { TraceRow } from '../../base/TraceRow.js';
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {
@@ -31,18 +31,27 @@ export class TabPaneBoxChild extends BaseElement {
 
     set data(val: BoxJumpParam) {
         // @ts-ignore
-        this.tbl?.shadowRoot?.querySelector(".table")?.style?.height = (this.parentElement!.clientHeight - 45) + "px";
-        this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
-        if(val.state != null && val.state != undefined && val.processId && val.threadId){
+        this.tbl?.shadowRoot?.querySelector('.table')?.style?.height =
+            this.parentElement!.clientHeight - 45 + 'px';
+        this.range!.textContent =
+            'Selected range: ' +
+            parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) +
+            ' ms';
+        if (
+            val.state != null &&
+            val.state != undefined &&
+            val.processId &&
+            val.threadId
+        ) {
             this.tbl!.recycleDataSource = [];
             if (this.loadDataInCache) {
                 this.getDataByCache(val).then((arr) => {
                     this.source = arr;
                     // @ts-ignore
                     this.tbl?.recycleDataSource = arr;
-                })
+                });
             } else {
-                this.getDataByDB(val)
+                this.getDataByDB(val);
             }
         }
     }
@@ -52,7 +61,7 @@ export class TabPaneBoxChild extends BaseElement {
         this.range = this.shadowRoot?.querySelector('#time-range');
         this.tbl!.addEventListener('column-click', (evt) => {
             // @ts-ignore
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -61,58 +70,122 @@ export class TabPaneBoxChild extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
 
     getDataByDB(val: BoxJumpParam) {
-        getTabBoxChildData(val.leftNs, val.rightNs, val.state, val.processId, val.threadId).then((result) => {
+        getTabBoxChildData(
+            val.leftNs,
+            val.rightNs,
+            val.state,
+            val.processId,
+            val.threadId
+        ).then((result) => {
             if (result.length != null && result.length > 0) {
                 result.map((e) => {
-                    e.startTime = Utils.getTimeString(e.startNs)
-                    e.absoluteTime = ((window as any).recordStartNS + e.startNs)/1000000000
-                    e.state = Utils.getEndState(e.state)!
-                    e.prior = e.priority == undefined || e.priority == null ? "-" : e.priority + ""
-                    e.core = e.cpu == undefined || e.cpu == null ? "-" : "CPU" + e.cpu
-                    e.processName = (e.process == undefined || e.process == null ? "process" : e.process) + "(" + e.processId + ")"
-                    e.threadName = (e.thread == undefined || e.thread == null ? "thread" : e.thread) + "(" + e.threadId + ")"
-                    e.note = "-"
-                })
+                    e.startTime = Utils.getTimeString(e.startNs);
+                    e.absoluteTime =
+                        ((window as any).recordStartNS + e.startNs) /
+                        1000000000;
+                    e.state = Utils.getEndState(e.state)!;
+                    e.prior =
+                        e.priority == undefined || e.priority == null
+                            ? '-'
+                            : e.priority + '';
+                    e.core =
+                        e.cpu == undefined || e.cpu == null
+                            ? '-'
+                            : 'CPU' + e.cpu;
+                    e.processName =
+                        (e.process == undefined || e.process == null
+                            ? 'process'
+                            : e.process) +
+                        '(' +
+                        e.processId +
+                        ')';
+                    e.threadName =
+                        (e.thread == undefined || e.thread == null
+                            ? 'thread'
+                            : e.thread) +
+                        '(' +
+                        e.threadId +
+                        ')';
+                    e.note = '-';
+                });
                 this.source = result;
                 // @ts-ignore
                 this.tbl?.recycleDataSource = result;
             } else {
                 this.source = [];
                 // @ts-ignore
-                this.tbl?.recycleDataSource = []
+                this.tbl?.recycleDataSource = [];
             }
-        })
+        });
     }
 
     getDataByCache(val: BoxJumpParam): Promise<Array<SPTChild>> {
         return new Promise<Array<SPTChild>>((resolve, reject) => {
             let arr: Array<SPTChild> = [];
             SpSystemTrace.SPT_DATA.map((spt) => {
-                let b1 = (val.state != undefined && val.state != '') ? spt.state == val.state : true
-                let b2 = (val.processId != undefined && val.processId != -1) ? spt.processId == val.processId : true
-                let b3 = (val.threadId != undefined && val.threadId != -1) ? spt.threadId == val.threadId : true
-                if (!(spt.end_ts < val.leftNs || spt.start_ts > val.rightNs) && b1 && b2 && b3) {
+                let b1 =
+                    val.state != undefined && val.state != ''
+                        ? spt.state == val.state
+                        : true;
+                let b2 =
+                    val.processId != undefined && val.processId != -1
+                        ? spt.processId == val.processId
+                        : true;
+                let b3 =
+                    val.threadId != undefined && val.threadId != -1
+                        ? spt.threadId == val.threadId
+                        : true;
+                if (
+                    !(spt.end_ts < val.leftNs || spt.start_ts > val.rightNs) &&
+                    b1 &&
+                    b2 &&
+                    b3
+                ) {
                     let sptChild = new SPTChild();
-                    sptChild.startTime = Utils.getTimeString(spt.start_ts)
-                    sptChild.absoluteTime = ((window as any).recordStartNS + spt.start_ts)/1000000000
-                    sptChild.startNs = spt.start_ts
-                    sptChild.state = Utils.getEndState(spt.state)!
-                    sptChild.prior = spt.priority == undefined || spt.priority == null ? "-" : spt.priority + ""
-                    sptChild.core = spt.cpu == undefined || spt.cpu == null ? "-" : "CPU" + spt.cpu
-                    sptChild.processName = (spt.process == undefined || spt.process == null || spt.process == "" ? "process" : spt.process) + "(" + spt.processId + ")"
-                    sptChild.threadName = (spt.thread == undefined || spt.thread == null || spt.thread == "" ? "thread" : spt.thread) + "(" + spt.threadId + ")"
+                    sptChild.startTime = Utils.getTimeString(spt.start_ts);
+                    sptChild.absoluteTime =
+                        ((window as any).recordStartNS + spt.start_ts) /
+                        1000000000;
+                    sptChild.startNs = spt.start_ts;
+                    sptChild.state = Utils.getEndState(spt.state)!;
+                    sptChild.prior =
+                        spt.priority == undefined || spt.priority == null
+                            ? '-'
+                            : spt.priority + '';
+                    sptChild.core =
+                        spt.cpu == undefined || spt.cpu == null
+                            ? '-'
+                            : 'CPU' + spt.cpu;
+                    sptChild.processName =
+                        (spt.process == undefined ||
+                        spt.process == null ||
+                        spt.process == ''
+                            ? 'process'
+                            : spt.process) +
+                        '(' +
+                        spt.processId +
+                        ')';
+                    sptChild.threadName =
+                        (spt.thread == undefined ||
+                        spt.thread == null ||
+                        spt.thread == ''
+                            ? 'thread'
+                            : spt.thread) +
+                        '(' +
+                        spt.threadId +
+                        ')';
                     arr.push(sptChild);
                 }
-            })
+            });
             resolve(arr);
-        })
+        });
     }
 
     initHtml(): string {
@@ -157,7 +230,8 @@ export class TabPaneBoxChild extends BaseElement {
                     // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
+                    } else {
+                        // @ts-ignore
                         if (b[property] == a[property]) {
                             return 0;
                         } else {
@@ -165,12 +239,11 @@ export class TabPaneBoxChild extends BaseElement {
                         }
                     }
                 }
-            }
+            };
         }
 
         // @ts-ignore
-        this.source.sort(compare(detail.key, detail.sort, 'string'))
+        this.source.sort(compare(detail.key, detail.sort, 'string'));
         this.tbl!.recycleDataSource = this.source;
     }
-
 }

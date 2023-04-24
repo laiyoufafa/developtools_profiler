@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-export class TransferConfig extends Object{
+export class TransferConfig extends Object {
     private _fileSize: number = -1; // uint64_t
-    private _atime: number = -1;  // uint64_t ns
-    private _mtime: number = -1;  //  uint64_t ns
-    private _options: string = '';  //  string
+    private _atime: number = -1; // uint64_t ns
+    private _mtime: number = -1; //  uint64_t ns
+    private _options: string = ''; //  string
     private _path: string = '';
     private _optionalName: string = '';
     private _updateIfNew: boolean = false; //bool
@@ -28,9 +28,21 @@ export class TransferConfig extends Object{
     private _reserve1: string = '';
     private _reserve2: string = '';
 
-    constructor(fileSize: number, atime: number, mtime: number, options: string, path: string,
-                optionalName: string, updateIfNew: boolean, compressType: number, holdTimestamp: boolean,
-                functionName: string, clientCwd: string, reserve1: string, reserve2: string) {
+    constructor(
+        fileSize: number,
+        atime: number,
+        mtime: number,
+        options: string,
+        path: string,
+        optionalName: string,
+        updateIfNew: boolean,
+        compressType: number,
+        holdTimestamp: boolean,
+        functionName: string,
+        clientCwd: string,
+        reserve1: string,
+        reserve2: string
+    ) {
         super();
         this._fileSize = fileSize;
         this._atime = atime;
@@ -46,7 +58,6 @@ export class TransferConfig extends Object{
         this._reserve1 = reserve1;
         this._reserve2 = reserve2;
     }
-
 
     get fileSize(): number {
         return this._fileSize;
@@ -153,20 +164,41 @@ export class TransferConfig extends Object{
     }
 
     toString(): string {
-        return "fileSize: " + this._fileSize
-            + " atime: " + this._atime
-            + " mtime: " + this._mtime
-            + " options: " + this._options
-            + " path: " + this._path
-            + " optionalName: " + this._optionalName
-            + " updateIfNew: " + this._updateIfNew
-            + " compressType: " + this._compressType
-            + " holdTimestamp: " + this._holdTimestamp
-            + " functionName: " + this._functionName
-            + " clientCwd: " + this._clientCwd
-            + " reserve1: " + this._reserve1
-            + " reserve2: " + this._reserve2;
+        return (
+            'fileSize: ' +
+            this._fileSize +
+            ' atime: ' +
+            this._atime +
+            ' mtime: ' +
+            this._mtime +
+            ' options: ' +
+            this._options +
+            ' path: ' +
+            this._path +
+            ' optionalName: ' +
+            this._optionalName +
+            ' updateIfNew: ' +
+            this._updateIfNew +
+            ' compressType: ' +
+            this._compressType +
+            ' holdTimestamp: ' +
+            this._holdTimestamp +
+            ' functionName: ' +
+            this._functionName +
+            ' clientCwd: ' +
+            this._clientCwd +
+            ' reserve1: ' +
+            this._reserve1 +
+            ' reserve2: ' +
+            this._reserve2
+        );
     }
 }
 
-enum CompressType { COMPRESS_NONE, COMPRESS_LZ4, COMPRESS_LZ77, COMPRESS_LZMA, COMPRESS_BROTLI };
+enum CompressType {
+    COMPRESS_NONE,
+    COMPRESS_LZ4,
+    COMPRESS_LZ77,
+    COMPRESS_LZMA,
+    COMPRESS_BROTLI,
+}

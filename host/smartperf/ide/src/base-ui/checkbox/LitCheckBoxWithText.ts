@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
-import {SpCheckDesBox} from "../../trace/component/setting/SpCheckDesBox.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { SpCheckDesBox } from '../../trace/component/setting/SpCheckDesBox.js';
 
 @element('lit-check-text')
 export class LitCheckBoxWithText extends BaseElement {
@@ -23,35 +23,35 @@ export class LitCheckBoxWithText extends BaseElement {
     private _upLimit: HTMLInputElement | undefined;
 
     static get observedAttributes() {
-        return ['text', 'lowerLimit', 'upLimit', 'checked']
+        return ['text', 'lowerLimit', 'upLimit', 'checked'];
     }
 
     get text(): string {
-        return this.getAttribute("text") || ""
+        return this.getAttribute('text') || '';
     }
 
     set text(text: string) {
-        this.setAttribute("text", text)
+        this.setAttribute('text', text);
     }
 
     get lowerLimit(): string {
-        return this.getAttribute("lowerLimit") || "0"
+        return this.getAttribute('lowerLimit') || '0';
     }
 
     set lowerLimit(lower: string) {
-        this.setAttribute("lowerLimit", lower)
+        this.setAttribute('lowerLimit', lower);
     }
 
     get upLimit(): string {
-        return this.getAttribute("upLimit") || "∞"
+        return this.getAttribute('upLimit') || '∞';
     }
 
     set upLimit(upLimit: string) {
-        this.setAttribute("upLimit", upLimit)
+        this.setAttribute('upLimit', upLimit);
     }
 
     get checked() {
-        return this.getAttribute("checked") != null;
+        return this.getAttribute('checked') != null;
     }
 
     set checked(checked: boolean) {
@@ -63,9 +63,15 @@ export class LitCheckBoxWithText extends BaseElement {
     }
 
     initElements(): void {
-        this._checkBox = this.shadowRoot?.getElementById('checkbox') as SpCheckDesBox;
-        this._lowerLimit = this.shadowRoot?.getElementById('textLowerLimit') as HTMLInputElement;
-        this._upLimit = this.shadowRoot?.getElementById('_upLimit') as HTMLInputElement;
+        this._checkBox = this.shadowRoot?.getElementById(
+            'checkbox'
+        ) as SpCheckDesBox;
+        this._lowerLimit = this.shadowRoot?.getElementById(
+            'textLowerLimit'
+        ) as HTMLInputElement;
+        this._upLimit = this.shadowRoot?.getElementById(
+            '_upLimit'
+        ) as HTMLInputElement;
     }
 
     initHtml(): string {
@@ -100,11 +106,10 @@ export class LitCheckBoxWithText extends BaseElement {
             this._checkBox?.setAttribute('value', newValue);
         }
         if (name == 'lowerLimit') {
-            this._lowerLimit!.textContent = newValue
+            this._lowerLimit!.textContent = newValue;
         }
         if (name == 'upLimit') {
-            this._upLimit!.textContent = newValue
+            this._upLimit!.textContent = newValue;
         }
     }
-
 }

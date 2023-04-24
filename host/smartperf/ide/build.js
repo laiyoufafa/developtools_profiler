@@ -14,93 +14,97 @@
  */
 
 const path = require('path');
-const fs = require("fs");
-const child_process = require("child_process");
-const os = require("os");
-const log4js = require("log4js");
+const fs = require('fs');
+const child_process = require('child_process');
+const os = require('os');
+const log4js = require('log4js');
 
-const compileServer = true
-const outDir = "dist"
+const compileServer = true;
+const outDir = 'dist';
 
 const sdkWams = [
-    "trace_streamer_sdk_builtin.js",
-    "trace_streamer_sdk_builtin.wasm",
-    "trace_streamer_dubai_builtin.js",
-    "trace_streamer_dubai_builtin.wasm"
-]
+    'trace_streamer_sdk_builtin.js',
+    'trace_streamer_sdk_builtin.wasm',
+    'trace_streamer_dubai_builtin.js',
+    'trace_streamer_dubai_builtin.wasm',
+];
 
-const staticPath = [
-    "/src/img",
-    "/server/cert",
-    "/src/doc",
-    "/src/figures",
-]
+const staticPath = ['/src/img', '/server/cert', '/src/doc', '/src/figures'];
 
 const staticFiles = [
-    "/server/version.txt",
-    "/src/index.html",
-    "/src/base-ui/icon.svg",
-    "/server/wasm.json"
-]
+    '/server/version.txt',
+    '/src/index.html',
+    '/src/base-ui/icon.svg',
+    '/server/wasm.json',
+];
 
 const thirdParty = [
-    {srcFilePath: "/third-party/sql-wasm.wasm", distFilePath: "/trace/database/sql-wasm.wasm"},
-    {srcFilePath: "/third-party/sql-wasm.js", distFilePath: "/trace/database/sql-wasm.js"},
-    {srcFilePath: "/third-party/worker.sql-wasm.js", distFilePath: "/trace/database/worker.sql-wasm.js"}
-]
+    {
+        srcFilePath: '/third-party/sql-wasm.wasm',
+        distFilePath: '/trace/database/sql-wasm.wasm',
+    },
+    {
+        srcFilePath: '/third-party/sql-wasm.js',
+        distFilePath: '/trace/database/sql-wasm.js',
+    },
+    {
+        srcFilePath: '/third-party/worker.sql-wasm.js',
+        distFilePath: '/trace/database/worker.sql-wasm.js',
+    },
+];
 
 let log;
 
 function cpFile(from, to) {
     if (fs.existsSync(from)) {
-        fs.writeFileSync(to, fs.readFileSync(from))
-        log.info("cp file %s  to  %s", from, to)
+        fs.writeFileSync(to, fs.readFileSync(from));
+        log.info('cp file %s  to  %s', from, to);
     } else {
-        log.warn("file %s  is not exists", from, to)
+        log.warn('file %s  is not exists', from, to);
     }
 }
 
 function checkEnvironment() {
-    let goVersion = child_process.execSync("go version", {
-        encoding: "utf-8"
-    })
-    log.info("go is", goVersion)
-    let nodeVersion = child_process.execSync("node -v", {
-        encoding: "utf-8"
-    })
-    log.info("node version is", nodeVersion)
-    let tscVersion = child_process.execSync("tsc -v", {
-        encoding: "utf-8"
-    })
-    log.info("tsc version is", tscVersion)
-    if (goVersion == "" || nodeVersion == "" || tscVersion == "") {
+    let goVersion = child_process.execSync('go version', {
+        encoding: 'utf-8',
+    });
+    log.info('go is', goVersion);
+    let nodeVersion = child_process.execSync('node -v', {
+        encoding: 'utf-8',
+    });
+    log.info('node version is', nodeVersion);
+    let tscVersion = child_process.execSync('tsc -v', {
+        encoding: 'utf-8',
+    });
+    log.info('tsc version is', tscVersion);
+    if (goVersion == '' || nodeVersion == '' || tscVersion == '') {
         return false;
     }
-    let traceStreamer = path.normalize(path.join(__dirname, "/bin"));
-    if (!checkDirExist(traceStreamer + "/trace_streamer_builtin.js")) {
-        log.error(traceStreamer + "/trace_streamer_builtin.js" + " Must exist")
+    let traceStreamer = path.normalize(path.join(__dirname, '/bin'));
+    if (!checkDirExist(traceStreamer + '/trace_streamer_builtin.js')) {
+        log.error(traceStreamer + '/trace_streamer_builtin.js' + ' Must exist');
         return false;
     }
-    if (!checkDirExist(traceStreamer + "/trace_streamer_builtin.wasm")) {
-        log.error(traceStreamer + "/trace_streamer_builtin.wasm" + " Must exist")
+    if (!checkDirExist(traceStreamer + '/trace_streamer_builtin.wasm')) {
+        log.error(
+            traceStreamer + '/trace_streamer_builtin.wasm' + ' Must exist'
+        );
         return false;
     }
     return true;
 }
 
-
 function initLog() {
     log4js.configure({
         appenders: {
-            out: {type: "stdout"},
+            out: { type: 'stdout' },
         },
         categories: {
-            default: {appenders: ["out"], level: "debug"},
+            default: { appenders: ['out'], level: 'debug' },
         },
     });
-    return log4js.getLogger("smartPerf");
+    return log4js.getLogger('smartPerf');
 }
-
 
 function main() {
     log = initLog();
@@ -108,90 +112,126 @@ function main() {
         return;
     }
     // clean outDir
-    let outPath = path.normalize(path.join(__dirname, "/", outDir));
+    let outPath = path.normalize(path.join(__dirname, '/', outDir));
     if (checkDirExist(outPath)) {
-        log.info("delete the last compilation result")
-        removeDir(outPath)
-        log.info("delete the last compilation success")
+        log.info('delete the last compilation result');
+        removeDir(outPath);
+        log.info('delete the last compilation success');
     }
     // run tsc compile
-    log.info("start compiling typeScript code")
-    let rootPath = path.join(__dirname, "/");
-    child_process.execSync("tsc -p " + rootPath, {
-        encoding: "utf-8"
-    })
-    log.info("compiling typeScript code success")
+    log.info('start compiling typeScript code');
+    let rootPath = path.join(__dirname, '/');
+    child_process.execSync('tsc -p ' + rootPath, {
+        encoding: 'utf-8',
+    });
+    log.info('compiling typeScript code success');
     // run cp to mv all staticFile
-    staticFiles.forEach(value => {
-        let filePath = path.join(__dirname, value)
+    staticFiles.forEach((value) => {
+        let filePath = path.join(__dirname, value);
         let distFile;
-        if (value.startsWith("/src")) {
-            distFile = path.join(__dirname, outDir, value.substring(4, value.length + 1))
-        } else if (value.startsWith("/server")) {
-            distFile = path.join(__dirname, outDir, value.substring(7, value.length + 1))
+        if (value.startsWith('/src')) {
+            distFile = path.join(
+                __dirname,
+                outDir,
+                value.substring(4, value.length + 1)
+            );
+        } else if (value.startsWith('/server')) {
+            distFile = path.join(
+                __dirname,
+                outDir,
+                value.substring(7, value.length + 1)
+            );
         }
         cpFile(filePath, distFile);
-    })
-    staticPath.forEach(value => {
-        let pa = path.join(__dirname, value)
+    });
+    staticPath.forEach((value) => {
+        let pa = path.join(__dirname, value);
         let distPath;
-        if (value.startsWith("/src")) {
-            distPath = path.join(__dirname, outDir, value.substring(4, value.length + 1))
-        } else if (value.startsWith("/server")) {
-            distPath = path.join(__dirname, outDir, value.substring(7, value.length + 1))
+        if (value.startsWith('/src')) {
+            distPath = path.join(
+                __dirname,
+                outDir,
+                value.substring(4, value.length + 1)
+            );
+        } else if (value.startsWith('/server')) {
+            distPath = path.join(
+                __dirname,
+                outDir,
+                value.substring(7, value.length + 1)
+            );
         }
         copyDirectory(pa, distPath);
-    })
-    thirdParty.forEach(value => {
-        let thirdFile = path.join(__dirname, value.srcFilePath)
-        let thirdDistFile = path.join(__dirname, outDir, value.distFilePath)
+    });
+    thirdParty.forEach((value) => {
+        let thirdFile = path.join(__dirname, value.srcFilePath);
+        let thirdDistFile = path.join(__dirname, outDir, value.distFilePath);
         cpFile(thirdFile, thirdDistFile);
-    })
-    let traceStreamer = path.normalize(path.join(__dirname, "/bin"));
+    });
+    let traceStreamer = path.normalize(path.join(__dirname, '/bin'));
     if (checkDirExist(traceStreamer)) {
-        let dest = path.normalize(path.join(__dirname, outDir, "/bin"));
-        copyDirectory(traceStreamer, dest)
+        let dest = path.normalize(path.join(__dirname, outDir, '/bin'));
+        copyDirectory(traceStreamer, dest);
         // to mv traceStream Wasm and js
-        cpFile(traceStreamer + "/trace_streamer_builtin.js", rootPath + outDir + "/trace/database/trace_streamer_builtin.js")
-        cpFile(traceStreamer + "/trace_streamer_builtin.wasm", rootPath + outDir + "/trace/database/trace_streamer_builtin.wasm")
+        cpFile(
+            traceStreamer + '/trace_streamer_builtin.js',
+            rootPath + outDir + '/trace/database/trace_streamer_builtin.js'
+        );
+        cpFile(
+            traceStreamer + '/trace_streamer_builtin.wasm',
+            rootPath + outDir + '/trace/database/trace_streamer_builtin.wasm'
+        );
         if (sdkWams.length > 0) {
-            sdkWams.forEach(fileName => {
-                cpFile(traceStreamer + "/" + fileName, rootPath + outDir + "/trace/database/" + fileName)
-            })
+            sdkWams.forEach((fileName) => {
+                cpFile(
+                    traceStreamer + '/' + fileName,
+                    rootPath + outDir + '/trace/database/' + fileName
+                );
+            });
         }
     } else {
-        log.error("traceStreamer dir is not Exits")
+        log.error('traceStreamer dir is not Exits');
         return;
     }
     // compile server
     if (compileServer) {
-        log.log("start compile server")
-        let serverSrc = path.normalize(path.join(__dirname, "/server/main.go"));
+        log.log('start compile server');
+        let serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
         let rs;
-        if (os.type() === "Windows_NT") {
-            rs = child_process.spawnSync("go", ["build", "-o", outPath, serverSrc], {
-                encoding: "utf-8"
-            })
-        } else if (os.type() == "Darwin") {
-            rs = child_process.spawnSync("go", ["build", "-o", outPath + "/main", serverSrc], {
-                encoding: "utf-8"
-            })
+        if (os.type() === 'Windows_NT') {
+            rs = child_process.spawnSync(
+                'go',
+                ['build', '-o', outPath, serverSrc],
+                {
+                    encoding: 'utf-8',
+                }
+            );
+        } else if (os.type() == 'Darwin') {
+            rs = child_process.spawnSync(
+                'go',
+                ['build', '-o', outPath + '/main', serverSrc],
+                {
+                    encoding: 'utf-8',
+                }
+            );
         } else {
-            rs = child_process.spawnSync("go", ["build", "-o", outPath + "/main", serverSrc], {
-                encoding: "utf-8"
-            })
+            rs = child_process.spawnSync(
+                'go',
+                ['build', '-o', outPath + '/main', serverSrc],
+                {
+                    encoding: 'utf-8',
+                }
+            );
         }
         if (rs.status == 0) {
-            log.log("compile server success")
+            log.log('compile server success');
         } else {
-            log.error("compile server failed", rs)
+            log.error('compile server failed', rs);
         }
     } else {
-        log.warn("skip compile server")
+        log.warn('skip compile server');
     }
-    log.log("smartPerf compile success")
+    log.log('smartPerf compile success');
 }
-
 
 function copyDirectory(src, dest) {
     if (checkDirExist(dest) == false) {
@@ -206,7 +246,7 @@ function copyDirectory(src, dest) {
         let fileSys = fs.statSync(filePath);
         if (fileSys.isFile()) {
             let destPath = path.join(dest, value);
-            log.info("cp file %s  to  %s", filePath, destPath)
+            log.info('cp file %s  to  %s', filePath, destPath);
             fs.copyFileSync(filePath, destPath);
         } else if (fileSys.isDirectory()) {
             copyDirectory(filePath, path.join(dest, value));
@@ -215,7 +255,7 @@ function copyDirectory(src, dest) {
 }
 
 function checkDirExist(dirPath) {
-    return fs.existsSync(dirPath)
+    return fs.existsSync(dirPath);
 }
 
 function removeDir(outPath) {
@@ -223,7 +263,7 @@ function removeDir(outPath) {
     if (fs.existsSync(outPath)) {
         files = fs.readdirSync(outPath);
         files.forEach((file, index) => {
-            let curPath = outPath + "/" + file;
+            let curPath = outPath + '/' + file;
             if (fs.statSync(curPath).isDirectory()) {
                 removeDir(curPath);
             } else {

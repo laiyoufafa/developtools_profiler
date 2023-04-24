@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 let temp_query_process = `create table temp_query_process as
 select distinct process.pid  as pid,
                 process.name as processName
@@ -29,7 +28,7 @@ order by total_dur desc,
          the_tracks.ipid,
          processName,
          the_tracks.itid;
-`
+`;
 let temp_query_cpu_data = `create table temp_query_cpu_data as
 with list as (SELECT IP.name            as processName,
                      IP.name               processCmdLine,
@@ -54,7 +53,7 @@ with list as (SELECT IP.name            as processName,
 select *
 from list;
 create index temp_query_cpu_data_idx on temp_query_cpu_data (cpu, startTime);
-`
+`;
 
 let temp_query_freq_data = `create table temp_query_freq_data as
 select cpu, value, ts - tb.start_ts as startNS
@@ -64,7 +63,7 @@ from measure c,
 where (name = 'cpufreq' or name = 'cpu_frequency')
 order by ts;
 create index temp_query_freq_data_idx on temp_query_freq_data (cpu);
-`
+`;
 
 let temp_query_process_data = `create table temp_query_process_data as
 select ta.id,
@@ -91,7 +90,7 @@ from thread_state ta,
 where ta.cpu is not null
 order by startTime;
 create index temp_query_process_data_idx on temp_query_process_data (pid, startTime);
-`
+`;
 let temp_query_thread_function = `create table temp_query_thread_function as
 select tid,
        A.name            as threadName,
@@ -130,24 +129,24 @@ from thread_state AS B
          left join thread as A on A.id = B.itid
          left join trace_range AS TR
          left join process AS IP on IP.id = A.ipid;
-create index temp_query_thread_data_idx on temp_query_thread_data (tid);`
+create index temp_query_thread_data_idx on temp_query_thread_data (tid);`;
 
 let temp_view = `CREATE VIEW IF NOT EXISTS thread_view AS SELECT id as itid, * FROM thread;
 CREATE VIEW IF NOT EXISTS process_view AS SELECT id as ipid, * FROM process;
 CREATE VIEW IF NOT EXISTS sched_view AS SELECT *, ts + dur as ts_end FROM sched_slice;
 CREATE VIEW IF NOT EXISTS instants_view AS SELECT *, 0.0 as value FROM instant;
-CREATE VIEW IF NOT EXISTS trace_section AS select start_ts, end_ts from trace_range;`
+CREATE VIEW IF NOT EXISTS trace_section AS select start_ts, end_ts from trace_range;`;
 
 let temp_query_cpu_freq = `create table temp_query_cpu_freq as
 select cpu
 from cpu_measure_filter
 where (name = 'cpufreq' or name = 'cpu_frequency')
-order by cpu;`
+order by cpu;`;
 let temp_query_cpu_max_freq = `create table temp_query_cpu_max_freq as
 select max(value) as maxFreq
 from measure c
          inner join cpu_measure_filter t on c.filter_id = t.id
-where (name = 'cpufreq' or name = 'cpu_frequency');`
+where (name = 'cpufreq' or name = 'cpu_frequency');`;
 
 let temp_get_tab_states_group_by_process = `create table temp_get_tab_states_group_by_process as
 select IP.name                 as process,
@@ -163,7 +162,7 @@ from thread_state as A,
 where A.dur > 0
   and processId not null and (ts - B.start_ts)>0;
 create index temp_get_tab_states_group_by_process_idx on temp_get_tab_states_group_by_process (end_ts, start_ts);
-`
+`;
 
 let temp_get_process_thread_state_data = ` create table temp_get_process_thread_state_data as
 select IP.name                      as process,
@@ -185,7 +184,7 @@ from thread_state as B
 where B.dur > 0
   and IP.pid not null and (B.ts - TR.start_ts) >= 0;
 create index temp_get_process_thread_state_data_idx on temp_get_process_thread_state_data (end_ts, start_ts);
-`
+`;
 
 let temp_get_tab_states_group_by_state_pid_tid = ` create table temp_get_tab_states_group_by_state_pid_tid as
 select IP.name                      as process,
@@ -206,7 +205,7 @@ where B.dur > 0
 create index temp_get_tab_states_group_by_state_pid_tid_idx0 on temp_get_tab_states_group_by_state_pid_tid (process, processId, thread, threadId, state);
 create index temp_get_tab_states_group_by_state_pid_tid_idx1 on temp_get_tab_states_group_by_state_pid_tid (end_ts, start_ts);
 create index temp_get_tab_states_group_by_state_pid_tid_idx3 on temp_get_tab_states_group_by_state_pid_tid (end_ts, start_ts, process, processId, thread, threadId, state);
-`
+`;
 let temp_get_tab_states_group_by_state_pid = `create table temp_get_tab_states_group_by_state_pid as
 select IP.name                  as process,
        IP.pid                   as processId,
@@ -223,7 +222,7 @@ where pid not null and
     B.dur > 0 and (ts - TR.start_ts > 0);
 create index temp_get_tab_states_group_by_state_pid_idx0 on temp_get_tab_states_group_by_state_pid (process, processId, state);
 create index temp_get_tab_states_group_by_state_pid_idx1 on temp_get_tab_states_group_by_state_pid (start_ts, end_ts);
-`
+`;
 let temp_get_tab_states_group_by_state = `create table temp_get_tab_states_group_by_state as
 select state,
        dur,
@@ -237,7 +236,7 @@ where A.dur > 0
   and IP.pid not null and (ts - B.start_ts > 0);
 create index temp_get_tab_states_group_by_state_idx0 on temp_get_tab_states_group_by_state (state);
 create index temp_get_tab_states_group_by_state_idx1 on temp_get_tab_states_group_by_state (start_ts, end_ts);
-`
+`;
 let temp_get_tab_states_group_by_process_thread = `create table temp_get_tab_states_group_by_process_thread as
 select IP.name                  as process,
        IP.pid                   as processId,
@@ -261,7 +260,7 @@ where pid not null
       (ts - TR.start_ts)>0;
 create index temp_get_tab_states_group_by_process_thread_idx0 on temp_get_tab_states_group_by_process_thread (process, processId, thread, threadId);
 create index temp_get_tab_states_group_by_process_thread_idx1 on temp_get_tab_states_group_by_process_thread (start_ts, end_ts);
-`
+`;
 
 let temp_get_cpu_rate = `create table temp_get_cpu_rate as
 with cpu as (select cpu,
@@ -296,7 +295,7 @@ select cpu,
                when ts > st and ts + dur > et then et - ts end) / cast(et - st as float) as rate
 from cpu
 group by cpu, ro;
-`
+`;
 
 let temp_get_tab_thread_states = `create table temp_get_tab_thread_states as
 select IP.name                                 as process,
@@ -352,7 +351,7 @@ let createProcessNoId = `
     update thread
     set ipid = (select id from process where thread.tid = process.pid)
     where thread.ipid is null;
-`
+`;
 let temp_create_cpu_freq_view = `CREATE VIEW cpu_freq_view AS SELECT B.cpu, A.ts, LEAD(A.ts, 1, (SELECT end_ts FROM trace_range)) OVER (PARTITION BY A.filter_id ORDER BY ts) AS end_ts,LEAD(A.ts, 1, (SELECT end_ts FROM trace_range)) OVER (PARTITION BY A.filter_id ORDER BY ts) - ts AS dur,value AS freq FROM measure AS A, cpu_measure_filter AS B WHERE B.name = 'cpu_frequency' AND A.filter_id = B.id`;
 let temp_create_virtual_table = `CREATE VIRTUAL table result USING SPAN_JOIN(cpu_freq_view partitioned cpu, sched_slice partitioned cpu)`;
 
@@ -399,11 +398,7 @@ let delete_callstack_binder_data = `DELETE
                                        or name = 'binder transaction async'
                                        or name = 'binder async rcv';`;
 
-let temp_init_sql_list = [
-    temp_query_process,
-];
+let temp_init_sql_list = [temp_query_process];
 let translateJsonString = (str: string): string => {
-    return str
-        .replace(/[\t\r\n]/g, "")
-        .replace(/\\/g, "\\\\")
-}
+    return str.replace(/[\t\r\n]/g, '').replace(/\\/g, '\\\\');
+};
