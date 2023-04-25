@@ -120,7 +120,6 @@ float EditorCommand::HotStart(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseTrace parseTrace;
-    float time = 0.0;
     std::string cmdResult;
     std::string deviceType = sd.GetDeviceType();
     if (deviceType == " rk3568") {
@@ -128,8 +127,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
         std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
         std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
         thGetTrace.join();
-        float time = parseTrace.ParseTraceHot(traceName);
-        return time;
+        return parseTrace.ParseTraceHot(traceName);
     } else {
         int type = 4;
         int typePKG = 3;
@@ -163,8 +161,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
             if (topPkg.find(v[typePKG]) == std::string::npos || pid == "") {
                 return noNameType;
             }
-            time = parseTrace.ParseTraceNoah(traceName, pid);
-            return time;
+            return parseTrace.ParseTraceNoah(traceName, pid);
         }
     }
 }
