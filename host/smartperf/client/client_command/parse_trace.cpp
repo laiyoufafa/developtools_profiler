@@ -31,7 +31,8 @@ namespace OHOS {
             infile.open(fileNamePath);
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
-                return 0;
+                infile.close();
+                return code;
             } else {
                 code = SmartPerf::ParseTrace::ParseNoahTrace(fileNamePath, appPid);
             }
@@ -225,19 +226,9 @@ namespace OHOS {
         }
         float  ParseTrace::GetTimeNoah(std::string start, std::string end, std::string wt)
         {
-            float startTimeThreshold = 1.2;
             float codeTime = -1;
-            if (std::stof(end) < std::stof(wt) && std::stof(end) != 0) {
-                end = wt;
-            }
-            if (std::stof(end) - std::stof(start) > startTimeThreshold) {
-                end = wt;
-            }
-            size_t point = end.find(".");
-            size_t subNum = 2;
-            end = end.substr(point - subNum);
-            start = start.substr(point - subNum);
             if (std::stof(end) == 0 || std::stof(start) == 0) {
+                return codeTime;
             } else {
                 float displayTime = 0.040;
                 codeTime = std::stof(end) - std::stof(start) + displayTime;

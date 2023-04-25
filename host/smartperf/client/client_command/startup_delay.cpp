@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 #include <thread>
+#include <cstdio>
 #include <ios>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <regex>
+#include "unistd.h"
 #include "include/startup_delay.h"
 #include "include/sp_utils.h"
 namespace OHOS {
@@ -49,7 +51,9 @@ std::thread StartUpDelay::ThreadGetLayout()
 void StartUpDelay::ChangeToBackground()
 {
     std::string result;
+    sleep(1);
     SPUtils::LoadCmd("uinput -K -d 2 -u 2", result);
+    sleep(1);
 }
 std::string StartUpDelay::GetPidByPkg(const std::string &curPkgName)
 {
@@ -70,11 +74,17 @@ void StartUpDelay::InitXY2(const std::string &curAppName, const std::string &fil
     std::ifstream file(fileName, std::ios::in);
     std::string strLine = "";
     std::regex pattern("\\d+");
+    size_t findIndex = std::string::npos;
     while (getline(file, strLine)) {
+        size_t appPkgIndex = strLine.find("AppName_text_" + appPkgName);
         size_t appIndex = strLine.find(curAppName);
-        size_t appPkgIndex = strLine.find(appPkgName);
-        if (appIndex > 0 && appPkgIndex < appIndex) {
-            size_t bounds = strLine.rfind("bounds", appIndex);
+        if (appIndex != std::string::npos) {
+            findIndex = appIndex;
+        } else {
+            findIndex = appPkgIndex;
+        }
+        if (findIndex != std::string::npos) {
+            size_t bounds = strLine.rfind("bounds", findIndex);
             if (bounds > 0) {
                 std::string boundStr = strLine.substr(bounds, 30);
                 std::smatch result;
