@@ -55,9 +55,9 @@ public:
         Reset(nullptr, nullptr);
     }
 
-    explicit BaseMessage(RandomWriteCtx* writeCtx, MessagePool* subMessageStack = nullptr)
+    explicit BaseMessage(RandomWriteCtx* writeCtx, MessagePool* messagePool = nullptr)
     {
-        Reset(writeCtx, subMessageStack);
+        Reset(writeCtx, messagePool);
     }
 
     ~BaseMessage()
@@ -67,14 +67,14 @@ public:
         }
     }
 
-    void Reset(RandomWriteCtx* writeCtx = nullptr, MessagePool* subMessageStack = nullptr)
+    void Reset(RandomWriteCtx* writeCtx = nullptr, MessagePool* messagePool = nullptr)
     {
         if (subMessage_ != nullptr) {
             FinishSubMessage();
         }
 
         writeCtx_ = writeCtx;
-        subMessageStack_ = subMessageStack;
+        subMessageStack_ = messagePool;
         backfillOffset_ = 0;
         if (writeCtx == nullptr) {
             // can not write

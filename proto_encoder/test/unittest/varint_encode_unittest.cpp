@@ -164,7 +164,7 @@ HWTEST_F(VarintEncodeUnittest, EncodeZigZag, TestSize.Level1)
     EXPECT_EQ(EncodeZigZag(signed8), (uint8_t)(signed8 * two));
     std::srand(std::time(nullptr));
     int rand = std::rand();
-    signed8 = static_cast<int8_t>rand;
+    signed8 = static_cast<int8_t>(rand);
     if (signed8 >= 0) {
         // n are encoded as 2 * n
         EXPECT_EQ(EncodeZigZag(signed8), (uint8_t)(signed8 * two));
@@ -185,7 +185,7 @@ HWTEST_F(VarintEncodeUnittest, EncodeZigZag, TestSize.Level1)
     EXPECT_EQ(EncodeZigZag(signed32), (uint32_t)(signed32 * two));
     std::srand(rand);
     rand = std::rand();
-    signed32 = static_cast<int32_t>rand;
+    signed32 = static_cast<int32_t>(rand);
     if (signed32 >= 0) {
         // n are encoded as 2 * n
         EXPECT_EQ(EncodeZigZag(signed32), (uint32_t)(signed32 * two));
@@ -206,7 +206,7 @@ HWTEST_F(VarintEncodeUnittest, EncodeZigZag, TestSize.Level1)
     EXPECT_EQ(EncodeZigZag(signed64), (uint64_t)(signed64 * two));
     std::srand(rand);
     rand = std::rand();
-    signed64 = static_cast<int64_t>rand;
+    signed64 = static_cast<int64_t>(rand);
     if (signed64 >= 0) {
         // n are encoded as 2 * n
         EXPECT_EQ(EncodeZigZag(signed64), (uint64_t)(signed64 * two));

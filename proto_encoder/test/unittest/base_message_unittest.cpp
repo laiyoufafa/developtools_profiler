@@ -370,25 +370,25 @@ HWTEST_F(BaseMessageUnittest, SetVarintEnum, TestSize.Level1)
     // min
     g_writeCtx.seek(&g_writeCtx, 0);
     msgOpt.set_vint_enum(ProtoEncoder::NUM::ZERO);
-    printf("set_vint_enum(%d):\n", static_cast<int>ProtoEncoder::NUM::ZERO);
+    printf("set_vint_enum(%d):\n", static_cast<int>(ProtoEncoder::NUM::ZERO));
     for (uint32_t i = 0; i < g_writePos; i++) {
         printf("%02X ", g_buf[i]);
     }
     printf("\n");
     ASSERT_TRUE(msgProtobuf.ParseFromArray(g_buf, g_writePos));
-    ASSERT_EQ(msgProtobuf.vint_enum(), static_cast<int>ProtoEncoder::NUM::ZERO);
+    ASSERT_EQ(msgProtobuf.vint_enum(), static_cast<int>(ProtoEncoder::NUM::ZERO));
 
     // max
     g_writeCtx.seek(&g_writeCtx, 0);
     msgOpt.set_vint_enum(ProtoEncoder::NUM::FOUR);
-    printf("set_vint_enum(%d):\n", static_cast<int>ProtoEncoder::NUM::FOUR);
+    printf("set_vint_enum(%d):\n", static_cast<int>(ProtoEncoder::NUM::FOUR));
     for (uint32_t i = 0; i < g_writePos; i++) {
         printf("%02X ", g_buf[i]);
     }
     printf("\n");
 
     ASSERT_TRUE(msgProtobuf.ParseFromArray(g_buf, g_writePos));
-    ASSERT_EQ(msgProtobuf.vint_enum(), static_cast<int>ProtoEncoder::NUM::FOUR);
+    ASSERT_EQ(msgProtobuf.vint_enum(), static_cast<int>(ProtoEncoder::NUM::FOUR));
 }
 
 HWTEST_F(BaseMessageUnittest, SetFixed64, TestSize.Level1)
@@ -815,7 +815,7 @@ HWTEST_F(BaseMessageUnittest, SetRepeatedPackedVarintSigned, TestSize.Level1)
 
     ASSERT_TRUE(msgProtobuf.ParseFromArray(g_buf, g_writePos));
     int count = msgProtobuf.len_repeated_packed_signed_vint_size();
-    ASSERT_EQ(count, static_cast<int>vec.size());
+    ASSERT_EQ(count, static_cast<int>(vec.size()));
     for (int i = 0; i < count; i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_signed_vint(i), vec[i]);
     }
@@ -863,7 +863,7 @@ HWTEST_F(BaseMessageUnittest, SetRepeatedPackedVarintUnsigned, TestSize.Level1)
 
     ASSERT_TRUE(msgProtobuf.ParseFromArray(g_buf, g_writePos));
     int count = msgProtobuf.len_repeated_packed_unsigned_vint_size();
-    ASSERT_EQ(count, static_cast<int>vec.size());
+    ASSERT_EQ(count, static_cast<int>(vec.size()));
     for (int i = 0; i < count; i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_unsigned_vint(i), vec[i]);
     }
@@ -911,7 +911,7 @@ HWTEST_F(BaseMessageUnittest, SetRepeatedPackedFixed64, TestSize.Level1)
 
     ASSERT_TRUE(msgProtobuf.ParseFromArray(g_buf, g_writePos));
     int count = msgProtobuf.len_repeated_packed_fixed_size();
-    ASSERT_EQ(count, static_cast<int>vec.size());
+    ASSERT_EQ(count, static_cast<int>(vec.size()));
     for (int i = 0; i < count; i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_fixed(i), vec[i]);
     }
@@ -1174,7 +1174,7 @@ HWTEST_F(BaseMessageUnittest, SetAll, TestSize.Level1)
     for (size_t i = 0; i < vecSigned.size(); i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_signed_vint(i), vecSigned[i]);
     }
-    for (size_t i = vecSigned.size(); i < static_cast<size_t>countAll; i++) {
+    for (size_t i = vecSigned.size(); i < static_cast<size_t>(countAll); i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_signed_vint(i), arraySigned[i - vecSigned.size()]);
     }
 
@@ -1183,7 +1183,7 @@ HWTEST_F(BaseMessageUnittest, SetAll, TestSize.Level1)
     for (size_t i = 0; i < vecUnsigned.size(); i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_unsigned_vint(i), vecUnsigned[i]);
     }
-    for (size_t i = vecUnsigned.size(); i < static_cast<size_t>countAll; i++) {
+    for (size_t i = vecUnsigned.size(); i < static_cast<size_t>(countAll); i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_unsigned_vint(i), arrayUnsigned[i - vecUnsigned.size()]);
     }
 
@@ -1192,7 +1192,7 @@ HWTEST_F(BaseMessageUnittest, SetAll, TestSize.Level1)
     for (size_t i = 0; i < vecFixed.size(); i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_fixed(i), vecFixed[i]);
     }
-    for (size_t i = vecFixed.size(); i < static_cast<size_t>countAll; i++) {
+    for (size_t i = vecFixed.size(); i < static_cast<size_t>(countAll); i++) {
         ASSERT_EQ(msgProtobuf.len_repeated_packed_fixed(i), arrayFixed[i - vecFixed.size()]);
     }
 

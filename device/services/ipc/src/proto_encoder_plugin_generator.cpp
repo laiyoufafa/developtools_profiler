@@ -138,7 +138,7 @@ public:
                 printer_->Indent();
                 printer_->Print("@name@() = default;\n", "name", nestmessage->name());
                 printer_->Print(
-                    "explicit @name@(RandomWriteCtx* writeCtx, MessageStack* subMessageStack = nullptr) : BaseMessage(writeCtx, subMessageStack) {}\n",
+                    "explicit @name@(RandomWriteCtx* writeCtx, MessagePool* messagePool = nullptr) : BaseMessage(writeCtx, messagePool) {}\n",
                     "name", nestmessage->name());
                 GenerateFieldsID(nestmessage);
                 GenerateFunction(nestmessage);
@@ -153,7 +153,7 @@ public:
             printer_->Indent();
             printer_->Print("@name@() = default;\n", "name", message->name());
             printer_->Print(
-                "explicit @name@(RandomWriteCtx* writeCtx, MessageStack* subMessageStack = nullptr) : BaseMessage(writeCtx, subMessageStack) {}\n",
+                "explicit @name@(RandomWriteCtx* writeCtx, MessagePool* messagePool = nullptr) : BaseMessage(writeCtx, messagePool) {}\n",
                 "name", message->name());
             GenerateFieldsID(message);
             GenerateFunction(message);
