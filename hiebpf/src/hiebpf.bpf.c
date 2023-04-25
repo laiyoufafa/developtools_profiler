@@ -423,7 +423,7 @@ size_t get_mountpoint_by_inode(char *filename, int len, const struct inode *host
     const u32 MAX_MOUNT_POINT = 5;
     size_t pos = 0;
     for (u32 cnt = MAX_MOUNT_POINT; cnt != 0; --cnt) {
-        int name_len = 0;
+        long name_len = 0;
         const u8 *name = BPF_CORE_READ(mnt, mnt_mountpoint, d_name.name);
         if (BPF_CORE_READ(mnt, mnt_mountpoint, d_name.len) <= 1) {
             break;
@@ -486,7 +486,7 @@ int get_filename_by_inode(char *filename, const size_t len, const struct inode *
         if (name_len <= 1) {
             break;
         }
-        int dentry_name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, name);
+        long dentry_name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, name);
         if (dentry_name_len <= 1) {
             BPFLOGD(BPF_TRUE, "failed to read dentry name from kernel stack buffer");
             break;
