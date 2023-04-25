@@ -31,7 +31,8 @@ namespace OHOS {
             infile.open(fileNamePath);
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
-                return 0;
+                infile.close();
+                return code;
             } else {
                 code = SmartPerf::ParseTrace::ParseNoahTrace(fileNamePath, appPid);
             }
@@ -86,6 +87,7 @@ namespace OHOS {
         {
             size_t positionWindow = line.find("H:RSUniRender::Process:[leashWindow");
             if (positionWindow != std::string::npos) {
+				
                 size_t positionWindow1 = line.rfind(")");
                 size_t subNumSize = 4;
                 std::string windowSizeFlag = line.substr(positionWindow1 - subNumSize, subNumSize);
@@ -108,7 +110,7 @@ namespace OHOS {
                         windowTime = wt;
                     }
                 }
-            }
+			}
             return windowTime;
         }
         float ParseTrace::ParseTraceCold(const std::string &fileNamePath, const std::string &appPid)
@@ -225,24 +227,14 @@ namespace OHOS {
         }
         float  ParseTrace::GetTimeNoah(std::string start, std::string end, std::string wt)
         {
-            float startTimeThreshold = 1.2;
-            float codeTime = -1;
-            if (std::stof(end) < std::stof(wt) && std::stof(end) != 0) {
-                end = wt;
-            }
-            if (std::stof(end) - std::stof(start) > startTimeThreshold) {
-                end = wt;
-            }
-            size_t point = end.find(".");
-            size_t subNum = 2;
-            end = end.substr(point - subNum);
-            start = start.substr(point - subNum);
-            if (std::stof(end) == 0 || std::stof(start) == 0) {
-            } else {
-                float displayTime = 0.040;
-                codeTime = std::stof(end) - std::stof(start) + displayTime;
-            }
-            return codeTime;
+           	float codeTime = -1;
+	        if (std::stof(end) == 0 || std::stof(start) == 0) {
+		        return codeTime;
+	        } else {
+		        float displayTime = 0.040;
+		        codeTime = std::stof(end) - std::stof(start) + displayTime;
+	        }
+	        return codeTime;
         }
         std::string  ParseTrace::GetStartTime(std::string line, const std::string &startTimeBefore)
         {

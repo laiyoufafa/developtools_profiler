@@ -30,7 +30,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
     if (argc >= threeParamMore) {
         int type = 2;
         float time = 0.0;
-        int typeName = 4;
+
         float noNameType = -1.0;
         if (v[type] == "coldStart") {
             time = SmartPerf::EditorCommand::ColdStart(v);
@@ -42,7 +42,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
             time = SmartPerf::EditorCommand::CompleteTime();
         }
         if (time == noNameType) {
-            std::cout << v[typeName] << " Duplicate Application Name" << std::endl;
+            std::cout << "Startup error, unknown application or application not responding"<< std::endl;
         } else {
             std::cout << "time:" << time << std::endl;
         }
@@ -140,16 +140,18 @@ float EditorCommand::HotStart(std::vector<std::string> v)
         sleep(1);
         size_t position = cmdResult.find(":");
         std::string pathJson = cmdResult.substr(position + 1);
-        sd.InitXY(v[type], pathJson);
+        sd.InitXY2(v[type], pathJson, v[typePKG]);
         if (sd.pointXY == "0 0") {
             return noNameType;
         } else {
             std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
             sleep(1);
             SPUtils::LoadCmd(cmd, cmdResult);
-            sleep(1);
             sd.ChangeToBackground();
-            sleep(1);
+            std::string topPkgBefore = SPUtils::GetTopPkgName();
+            if (topPkgBefore.find(v[typePKG]) != std::string::npos) {
+                return noNameType;
+            }
             std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
             std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
             sleep(1);
