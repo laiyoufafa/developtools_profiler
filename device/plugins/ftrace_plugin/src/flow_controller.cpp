@@ -284,7 +284,7 @@ void FlowController::CaptureWorkOnDelayMode()
             }
             long nbytes = ReadEventData(cpuIdx);
             if (nbytes == 0) {
-                HILOG_INFO(LOG_CORE, "Get raw data from CPU%zu is 0 bytes.", cpuIdx);
+                HILOG_INFO(LOG_CORE, "Get raw data from CPU%d is 0 bytes.", cpuIdx);
                 continue;
             }
             fwrite(&cpuIdx, sizeof(uint8_t), 1, rawDataFile_.get());
