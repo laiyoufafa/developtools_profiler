@@ -32,6 +32,10 @@ constexpr int SPLIT_FILE_MIN_SIZE = 200;    // split file min size
 constexpr int SPLIT_FILE_DEFAULT_NUM = 10;  // split file default num
 } // namespace
 
+TraceFileWriter::TraceFileWriter(const std::string& path) : TraceFileWriter(path, false, 0, 0)
+{
+}
+
 TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32_t splitFileMaxSizeMb,
     uint32_t splitFileMaxNum) : path_(path), isSplitFile_(splitFile)
 {

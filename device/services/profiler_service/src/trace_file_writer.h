@@ -31,6 +31,8 @@ using google::protobuf::MessageLite;
 
 class TraceFileWriter : public Writer {
 public:
+    explicit TraceFileWriter(const std::string& path);
+
     explicit TraceFileWriter(const std::string& path, bool splitFile, uint32_t splitFileMaxSizeMb,
         uint32_t splitFileMaxNum);
 
