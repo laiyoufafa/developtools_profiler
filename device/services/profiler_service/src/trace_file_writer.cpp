@@ -28,7 +28,7 @@ using ConstCharPtr = std::unique_ptr<const char>::pointer;
 namespace {
 constexpr int MB_TO_BYTE = (1024 * 1024);
 constexpr int GB_TO_BYTE = (1024 * 1024 * 1024);
-constexpr int SPLIT_FILE_MIN_SIZE = 2;    // split file min size
+constexpr int SPLIT_FILE_MIN_SIZE = 200;    // split file min size
 constexpr int SPLIT_FILE_DEFAULT_NUM = 10;  // split file default num
 } // namespace
 
@@ -127,9 +127,8 @@ bool TraceFileWriter::WriteHeader()
 // delete first split file if split file num over max
 void TraceFileWriter::DeleteOldSplitFile()
 {
-    HILOG_INFO(LOG_CORE, "DeleteOldSplitFile in.");
     if (splitFilePaths_.empty() || (splitFilePaths_.size() <= splitFileMaxNum_)) {
-        HILOG_INFO(LOG_CORE, "DeleteOldSplitFile %u.", splitFilePaths_.size());
+        HILOG_INFO(LOG_CORE, "splitFilePaths_ size %zu, no need to delete.", splitFilePaths_.size());
         return;
     }
 

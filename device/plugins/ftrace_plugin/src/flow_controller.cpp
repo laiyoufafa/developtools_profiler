@@ -49,7 +49,6 @@ namespace {
     constexpr uint32_t SAVED_CMDLINE_SIZE_SMALL = 1024; // save cmdline sizes for cpu num less than 8
     constexpr uint32_t SAVED_CMDLINE_SIZE_LARGE = 4096; // save cmdline sizes for cpu num no less than 8
     constexpr int OCTA_CORE_CPU = 8; // 8 core
-
 } // namespace
 
 FTRACE_NS_BEGIN
