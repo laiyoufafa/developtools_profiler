@@ -19,6 +19,7 @@
 #include <fstream>
 #include <google/protobuf/message_lite.h>
 #include <mutex>
+#include <queue>
 #include <string>
 
 #include "logging.h"
@@ -30,7 +31,8 @@ using google::protobuf::MessageLite;
 
 class TraceFileWriter : public Writer {
 public:
-    explicit TraceFileWriter(const std::string& path, bool splitFile = false, uint32_t singleFileMaxSizeMb = 0);
+    explicit TraceFileWriter(const std::string& path, bool splitFile, uint32_t splitFileMaxSizeMb,
+        uint32_t splitFileMaxNum);
 
     ~TraceFileWriter();
 
@@ -55,6 +57,10 @@ public:
 private:
     void SetTimeStamp();
 
+    void LogDiskUsage();
+
+    void DeleteOldSplitFile();
+
 private:
     std::string path_ {};
     std::string oldPath_ {};
@@ -65,7 +71,9 @@ private:
     TraceFileHelper helper_ {};
     uint32_t dataSize_;
     bool isSplitFile_ = false;
-    uint32_t singleFileMaxSize_;
+    uint32_t splitFileMaxSize_;
+    uint32_t splitFileMaxNum_;
+    std::queue<std::string> splitFilePaths_;
     std::vector<std::vector<char>> pluginConfigsData_;
     bool isStop_ = false;
     int fileNum_;

@@ -139,6 +139,10 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
             printf("set %s plugin config failed\n", pluginConfig->name().c_str());
             return nullptr;
         }
+        if (sessionConfig->split_file() && pluginConfig->name() != "ftrace-plugin") {
+            printf("only ftrace-plugin support split_file, please check session_config.\n");
+            return nullptr;
+        }
     }
 
     content.clear();
@@ -190,10 +194,10 @@ bool GetCapabilities(std::string& content, bool isCheck)
     return true;
 }
 
-uint32_t CreateSession(std::unique_ptr<IProfilerService::Stub>& profilerStub, const std::string& configFile,
+uint32_t CreateSession(std::unique_ptr<IProfilerService::Stub>& profilerStub, const std::string& config,
     const std::string& keepSecond, const std::string& outputFile)
 {
-    auto request = MakeCreateRequest(configFile, keepSecond, outputFile);
+    auto request = MakeCreateRequest(config, keepSecond, outputFile);
     if (!request) {
         printf("MakeCreateRequest failed!\n");
         return 0;
@@ -254,7 +258,7 @@ bool CheckDestroySession(std::unique_ptr<IProfilerService::Stub>& profilerStub, 
     return true;
 }
 
-bool DoCapture(const std::string& configFile, const std::string& keepSecond, const std::string& outputFile)
+bool DoCapture(const std::string& config, const std::string& keepSecond, const std::string& outputFile)
 {
     auto profilerStub = GetProfilerServiceStub();
     if (profilerStub == nullptr) {
@@ -262,7 +266,7 @@ bool DoCapture(const std::string& configFile, const std::string& keepSecond, con
         return 0;
     }
 
-    uint32_t sessionId = CreateSession(profilerStub, configFile, keepSecond, outputFile);
+    uint32_t sessionId = CreateSession(profilerStub, config, keepSecond, outputFile);
     if (sessionId == 0) {
         printf("Create session returns Id 0\n");
         return false;

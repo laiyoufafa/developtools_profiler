@@ -87,6 +87,12 @@ std::string FtraceFsOps::GetKernelSymbols() const
     return result;
 }
 
+bool FtraceFsOps::SetSavedCmdLinesSize(uint32_t size)
+{
+    std::string path = ftraceRoot_ + "/saved_cmdlines_size";
+    return FileUtils::WriteFile(path, std::to_string(static_cast<int>(size))) > 0;
+}
+
 std::string FtraceFsOps::GetSavedCmdLines() const
 {
     return FileUtils::ReadFile(ftraceRoot_ + "/saved_cmdlines");

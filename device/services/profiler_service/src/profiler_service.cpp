@@ -287,7 +287,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
         auto resultFile = sessionConfig.result_file();
         CHECK_EXPRESSION_TRUE(resultFile.size() > 0, "result_file empty!");
         traceWriter = std::make_shared<TraceFileWriter>(resultFile, sessionConfig.split_file(),
-            sessionConfig.single_file_max_size_mb());
+            sessionConfig.split_file_max_size_mb(), sessionConfig.split_file_max_num());
         CHECK_POINTER_NOTNULL(traceWriter, "alloc TraceFileWriter failed!");
         pluginService_->SetTraceWriter(traceWriter);
         for (std::vector<ProfilerPluginConfig>::size_type i = 0; i < pluginConfigs.size(); i++) {
@@ -586,10 +586,6 @@ Status ProfilerService::StopSession(ServerContext* context,
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
-    if (ctx->sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
-        CHECK_POINTER_NOTNULL(ctx->traceFileWriter, "traceFileWriter invalid!");
-        ctx->traceFileWriter.get()->SetStopSplitFile(true);
-    }
     CHECK_EXPRESSION_TRUE(ctx->StopPluginSessions(), "stop plugin sessions failed!");
     HILOG_INFO(LOG_CORE, "StopSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
