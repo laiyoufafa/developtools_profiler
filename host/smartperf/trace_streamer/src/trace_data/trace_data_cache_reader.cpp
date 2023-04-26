@@ -72,7 +72,6 @@ const Measure& TraceDataCacheReader::GetConstProcessMeasureData() const
     return processMeasureData_;
 }
 
-
 const ThreadMeasureFilter& TraceDataCacheReader::GetConstThreadMeasureFilterData() const
 {
     return threadMeasureFilterData_;
@@ -192,6 +191,42 @@ const SysCall& TraceDataCacheReader::GetConstSysCallData() const
 const ArgSet& TraceDataCacheReader::GetConstArgSetData() const
 {
     return argSet_;
+}
+const JsHeapFiles& TraceDataCacheReader::GetConstJsHeapFilesData() const
+{
+    return JsHeapFilesData_;
+}
+const JsHeapEdges& TraceDataCacheReader::GetConstJsHeapEdgesData() const
+{
+    return JsHeapEdgesData_;
+}
+const JsHeapInfo& TraceDataCacheReader::GetConstJsHeapInfoData() const
+{
+    return JsHeapInfoData_;
+}
+const JsHeapLocation& TraceDataCacheReader::GetConstJsHeapLocationData() const
+{
+    return JsHeapLocationData_;
+}
+const JsHeapNodes& TraceDataCacheReader::GetConstJsHeapNodesData() const
+{
+    return JsHeapNodesData_;
+}
+const JsHeapSample& TraceDataCacheReader::GetConstJsHeapSampleData() const
+{
+    return JsHeapSampleData_;
+}
+const JsHeapString& TraceDataCacheReader::GetConstJsHeapStringData() const
+{
+    return JsHeapStringData_;
+}
+const JsHeapTraceFuncInfo& TraceDataCacheReader::GetConstJsHeapTraceFuncInfoData() const
+{
+    return JsHeapTraceFuncInfoData_;
+}
+const JsHeapTraceNode& TraceDataCacheReader::GetConstJsHeapTraceNodeData() const
+{
+    return JsHeapTraceNodeData_;
 }
 
 const DataType& TraceDataCacheReader::GetConstDataTypeData() const

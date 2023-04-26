@@ -39,12 +39,7 @@ private:
         std::thread thread_;
     };
 
-    enum RequstParseStat {
-        INIT = 0,
-        OK,
-        BAD,
-        RECVING
-    };
+    enum RequstParseStat { INIT = 0, OK, BAD, RECVING };
 
     struct RequestST {
         int stat = RequstParseStat::INIT;
@@ -56,9 +51,8 @@ private:
 
     bool CreateSocket(int port);
     void ProcessClient(HttpSocket& client);
-    void ProcessRequest(HttpSocket& client, RequestST& request);
-    static void HttpResponse(HttpSocket& client, const std::string& status, bool hasBody = false);
-    void ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq);
+    static void ProcessRequest(HttpSocket& client, RequestST& request);
+    static void ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq);
     void ClearDeadClientThread();
     static std::vector<std::string_view> StringSplit(std::string_view source, std::string_view split);
 

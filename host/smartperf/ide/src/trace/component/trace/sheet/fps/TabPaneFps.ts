@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabFps} from "../../../../database/SqlLite.js";
-import {Utils} from "../../base/Utils.js";
-import {log} from "../../../../../log/Log.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { getTabFps } from '../../../../database/SqlLite.js';
+import { Utils } from '../../base/Utils.js';
+import { log } from '../../../../../log/Log.js';
 
 @element('tabpane-fps')
 export class TabPaneFps extends BaseElement {
@@ -26,23 +26,28 @@ export class TabPaneFps extends BaseElement {
     private range: HTMLLabelElement | null | undefined;
 
     set data(val: SelectionParam | any) {
-        this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
+        this.range!.textContent =
+            'Selected range: ' +
+            parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) +
+            ' ms';
         getTabFps(val.leftNs, val.rightNs).then((result) => {
             if (result != null && result.length > 0) {
-                log("getTabFps result size : " + result.length)
+                log('getTabFps result size : ' + result.length);
 
                 let index = result.findIndex((d) => d.startNS >= val.leftNs);
                 if (index != -1) {
-                    let arr = result.splice(index > 0 ? index - 1 : index)
-                    arr.map(e => e.timeStr = Utils.getTimeString(e.startNS))
-                    this.tbl!.recycleDataSource = arr
+                    let arr = result.splice(index > 0 ? index - 1 : index);
+                    arr.map(
+                        (e) => (e.timeStr = Utils.getTimeString(e.startNS))
+                    );
+                    this.tbl!.recycleDataSource = arr;
                 } else {
-                    let last = result[result.length - 1]
-                    last.timeStr = Utils.getTimeString(last.startNS)
-                    this.tbl!.recycleDataSource = [last]
+                    let last = result[result.length - 1];
+                    last.timeStr = Utils.getTimeString(last.startNS);
+                    this.tbl!.recycleDataSource = [last];
                 }
             } else {
-                this.tbl!.recycleDataSource = []
+                this.tbl!.recycleDataSource = [];
             }
         });
     }
@@ -57,8 +62,8 @@ export class TabPaneFps extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }

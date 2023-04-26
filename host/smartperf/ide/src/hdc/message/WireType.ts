@@ -14,10 +14,10 @@
  */
 
 export class WireType {
-    static VARINT: number = 0 //uint32
-    static FIXED64: number = 1 //uint32
-    static LENGTH_DELIMETED: number = 2 //uint32
-    static START_GROUP: number = 3 //uint32
-    static END_GROUP: number = 4 //uint32
-    static FIXED32: number = 5 //uint32
+    static VARINT: number = 0; //uint32
+    static FIXED64: number = 1; //uint32
+    static LENGTH_DELIMETED: number = 2; //uint32
+    static START_GROUP: number = 3; //uint32
+    static END_GROUP: number = 4; //uint32
+    static FIXED32: number = 5; //uint32
 }

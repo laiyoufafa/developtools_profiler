@@ -23,12 +23,12 @@ namespace SysTuning {
 namespace TraceStreamer {
 class GpuCounterObjectTable : public TableBase {
 public:
-    explicit GpuCounterObjectTable(const TraceDataCache* storage);
+    explicit GpuCounterObjectTable(const TraceDataCache* dataCache);
     ~GpuCounterObjectTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override {};
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override{};
     // bool CanFilterId(const char op, size_t& rowCount);
     // void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
     class Cursor : public TableBase::Cursor {

@@ -42,6 +42,7 @@ private:
         }
 
         int Column(int column) const override;
+
     private:
         const SysEventMeasureData& sysEventMeasure_;
     };

@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
 
-@element("lit-pop-content")
+@element('lit-pop-content')
 export class LitPopContent extends BaseElement {
     static get observedAttributes() {
-        return ["open"]
+        return ['open'];
     }
 
     get open() {
@@ -37,8 +37,7 @@ export class LitPopContent extends BaseElement {
         }
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `
@@ -76,8 +75,8 @@ export class LitPopContent extends BaseElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         switch (name) {
-            case "open":
-                if (newValue === null || newValue === "false") {
+            case 'open':
+                if (newValue === null || newValue === 'false') {
                     let parentElement = this.parentNode as Element;
                     parentElement?.removeAttribute('open');
                 } else {

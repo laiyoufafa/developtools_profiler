@@ -12,8 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
+
 //@ts-ignore
-import {NetworkAbilityMonitorStruct,networkAbility,NetworkAbilityRender} from "../../../../dist/trace/database/ui-worker/ProcedureWorkerNetworkAbility.js";
+import {
+    NetworkAbilityMonitorStruct,
+    NetworkAbilityRender,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerNetworkAbility.js';
 
 describe('ProcedureWorkerNetworkAbility Test', () => {
     const canvas = document.createElement('canvas');
@@ -26,79 +34,67 @@ describe('ProcedureWorkerNetworkAbility Test', () => {
             x: 2,
             y: 2,
             width: 10,
-            height: 10
+            height: 10,
         },
         startNS: 21,
-        value: 5
-    }
-    let res = [{
-        startNS: 0,
-        dur: 10,
-        frame: {
-            x:0,
-            y:9,
-            width:10,
-            height:10
-        }
-    }]
+        value: 5,
+    };
+    let res = [
+        {
+            startNS: 0,
+            dur: 10,
+            frame: {
+                x: 0,
+                y: 9,
+                width: 10,
+                height: 10,
+            },
+        },
+    ];
 
     it('ProcedureWorkerNetworkAbilityTest01', function () {
-        expect(NetworkAbilityMonitorStruct.draw(ctx, data)).toBeUndefined()
+        expect(NetworkAbilityMonitorStruct.draw(ctx, data)).toBeUndefined();
     });
 
     it('ProcedureWorkerNetworkAbilityTest02', function () {
-        let dataList = new Array();
-        dataList.push({startNS: 0, dur: 10, frame: {x:0, y:9, width:10, height:10}})
-        dataList.push({startNS: 1, dur: 1})
-        networkAbility(dataList, [{length:1}], 1, 9, 8, "",true)
-    });
-
-    it('ProcedureWorkerNetworkAbilityTest03', function () {
-        let dataList = new Array();
-        dataList.push({startNS: 0, dur: 10, frame: {x:0, y:9, width:10, height:10}})
-        dataList.push({startNS: 1, dur: 1})
-        networkAbility(dataList, [{length:0}], 1, 9, 8, "",false)
-    });
-
-    it('ProcedureWorkerNetworkAbilityTest04', function () {
-        let networkAbilityRender = new NetworkAbilityRender()
-        let  req = {
-            lazyRefresh:true,
-            type:"",
-            startNS:1,
-            endNS:1,
-            totalNS:1,
+        let networkAbilityRender = new NetworkAbilityRender();
+        let req = {
+            lazyRefresh: true,
+            type: '',
+            startNS: 1,
+            endNS: 1,
+            totalNS: 1,
             frame: {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
-            useCache:false,
-            range:{
-                refresh:"",
+            useCache: false,
+            range: {
+                refresh: '',
             },
-            canvas:'',
-            context:{
-                font:"11px sans-serif",
-                fillStyle:"#ec407a",
-                globalAlpha:0.6,
+            canvas: '',
+            context: {
+                font: '11px sans-serif',
+                fillStyle: '#ec407a',
+                globalAlpha: 0.6,
             },
-            lineColor:'',
-            isHover:'',
-            hoverX:1,
-            params:'',
-            wakeupBean:undefined,
-            flagMoveInfo:'',
-            flagSelectedInfo:'',
-            slicesTime:3,
-            id:1,
+            lineColor: '',
+            isHover: '',
+            hoverX: 1,
+            params: '',
+            wakeupBean: undefined,
+            flagMoveInfo: '',
+            flagSelectedInfo: '',
+            slicesTime: 3,
+            id: 1,
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        window.postMessage = jest.fn(()=>true)
-        expect(networkAbilityRender.render(req,[],[])).toBeUndefined()
+            height: 100,
+        };
+        window.postMessage = jest.fn(() => true);
+        expect(networkAbilityRender.render(req, [], [])).toBeUndefined();
     });
-})
+});

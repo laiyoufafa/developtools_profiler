@@ -14,65 +14,70 @@
  */
 
 // @ts-ignore
-import {TabPaneThreadStates} from "../../../../../../dist/trace/component/trace/sheet/process/TabPaneThreadStates.js"
+import { TabPaneThreadStates } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneThreadStates.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 describe('TabPaneThreadStates Test', () => {
     let tabPaneThreadStates = new TabPaneThreadStates();
 
     it('TabPaneThreadStatesTest01', function () {
-        expect(tabPaneThreadStates.sortByColumn({
-            key: 'name' ||  "thread" || "state",
-            sort: () => {
-            }
-        })).toBeUndefined();
+        expect(
+            tabPaneThreadStates.sortByColumn({
+                key: 'name' || 'thread' || 'state',
+                sort: () => {},
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneThreadStatesTest05', function () {
-        expect(tabPaneThreadStates.sortByColumn({
-            key: !'name' || ! "thread" || !"state",
-            sort: () => {
-            }
-        })).toBeUndefined();
+        expect(
+            tabPaneThreadStates.sortByColumn({
+                key: !'name' || !'thread' || !'state',
+                sort: () => {},
+            })
+        ).toBeUndefined();
     });
-
 
     it('TabPaneThreadStatesTest02', function () {
         // @ts-ignore
-        let mockgetTabThreadStates = sqlit.getTabThreadStates
-        mockgetTabThreadStates.mockResolvedValue(
-            [{process: "11",
-                thread: "222",
+        let mockgetTabThreadStates = sqlit.getTabThreadStates;
+        mockgetTabThreadStates.mockResolvedValue([
+            {
+                process: '11',
+                thread: '222',
                 wallDuration: 10,
                 occurrences: 10,
-                state: "sss",
-                stateJX: "mm"
-            },{process: "11",
-                thread: "222",
+                state: 'sss',
+                stateJX: 'mm',
+            },
+            {
+                process: '11',
+                thread: '222',
                 wallDuration: 10,
                 occurrences: 10,
-                state: "sss",
-                stateJX: "mm"
-            }]
-        )
-        let a = {rightNs: 1, leftNs: 0, threadIds: [11, 12, 13]}
-        expect(tabPaneThreadStates.data = a).toBeTruthy();
+                state: 'sss',
+                stateJX: 'mm',
+            },
+        ]);
+        let a = { rightNs: 1, leftNs: 0, threadIds: [11, 12, 13] };
+        expect((tabPaneThreadStates.data = a)).toBeTruthy();
     });
 
     it('TabPaneThreadStatesTest03', function () {
         // @ts-ignore
-        let mockgetTabThreadStates = sqlit.getTabThreadStates
-        mockgetTabThreadStates.mockResolvedValue([])
-        let a = {rightNs: 1, leftNs: 0, threadIds: [11, 12, 13]}
-        expect(tabPaneThreadStates.data = a).toBeTruthy();
+        let mockgetTabThreadStates = sqlit.getTabThreadStates;
+        mockgetTabThreadStates.mockResolvedValue([]);
+        let a = { rightNs: 1, leftNs: 0, threadIds: [11, 12, 13] };
+        expect((tabPaneThreadStates.data = a)).toBeTruthy();
     });
 
     it('TabPaneThreadStatesTest04', function () {
@@ -110,4 +115,4 @@ describe('TabPaneThreadStates Test', () => {
         "
 `);
     });
-})
+});

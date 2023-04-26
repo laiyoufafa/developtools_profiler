@@ -14,17 +14,17 @@
  */
 
 // @ts-ignore
-import {TabPaneSPT} from "../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneSPT.js"
+import { TabPaneSPT } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneSPT.js';
 // @ts-ignore
-import {SpSystemTrace} from "../../../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
 // @ts-ignore
-import {LitTable} from "../../../../../../dist/base-ui/table/lit-table.js";
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
 
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
-
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -32,127 +32,137 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 
 describe('TabPaneSPT Test', () => {
-    document.body.innerHTML = `<lit-table id="tb-states"></lit-table>`
+    document.body.innerHTML = `<lit-table id="tb-states"></lit-table>`;
     let tab = document.querySelector('#tb-states') as LitTable;
 
-    document.body.innerHTML = `<div><tabpane-spt class="SPT"></tabpane-spt></div>`
+    document.body.innerHTML = `<div><tabpane-spt class="SPT"></tabpane-spt></div>`;
     let tabPane = document.querySelector('.SPT') as TabPaneSPT;
     let tabPaneSPT = new TabPaneSPT();
-    tabPaneSPT.tbl = jest.fn(() => tab)
-    SpSystemTrace.SPT_DATA = [{
-        process: "",
-        processId: 0,
-        thread: "",
-        threadId: 0,
-        state: '',
-        dur: 0,
-        start_ts: 0,
-        end_ts: 0,
-        cpu: 0,
-        priority: "-",
-        note: "-",
-    },{
-        process: "",
-        processId: 1,
-        thread: "",
-        threadId: 1,
-        state: '',
-        dur: 0,
-        start_ts: 0,
-        end_ts: 0,
-        cpu: 0,
-        priority: "-",
-        note: "-",
-    },{
-        process: "",
-        processId: 2,
-        thread: "",
-        threadId: 2,
-        state: '',
-        dur: 0,
-        start_ts: 0,
-        end_ts: 0,
-        cpu: 0,
-        priority: "-",
-        note: "-",
-    }]
+    tabPaneSPT.tbl = jest.fn(() => tab);
+    SpSystemTrace.SPT_DATA = [
+        {
+            process: '',
+            processId: 0,
+            thread: '',
+            threadId: 0,
+            state: '',
+            dur: 0,
+            start_ts: 0,
+            end_ts: 0,
+            cpu: 0,
+            priority: '-',
+            note: '-',
+        },
+        {
+            process: '',
+            processId: 1,
+            thread: '',
+            threadId: 1,
+            state: '',
+            dur: 0,
+            start_ts: 0,
+            end_ts: 0,
+            cpu: 0,
+            priority: '-',
+            note: '-',
+        },
+        {
+            process: '',
+            processId: 2,
+            thread: '',
+            threadId: 2,
+            state: '',
+            dur: 0,
+            start_ts: 0,
+            end_ts: 0,
+            cpu: 0,
+            priority: '-',
+            note: '-',
+        },
+    ];
 
-    let dataList = [{
-        id: "",
-        pid: "",
-        title: "",
-        children: [],
-        process: "",
-        processId: 0,
-        thread: "",
-        threadId: 0,
-        state: "",
-        wallDuration: 0,
-        avgDuration: "",
-        count: 0,
-        minDuration: 0,
-        maxDuration: 0,
-        stdDuration: "",
-    }]
-    
-    let dataArray = [{
-        id: "",
-        pid: "",
-        title: "",
-        children: [],
-        process: "",
-        processId: 0,
-        thread: "",
-        threadId: 0,
-        state: "",
-        wallDuration: 0,
-        avgDuration: "",
-        count: 0,
-        minDuration: 0,
-        maxDuration: 0,
-        stdDuration: "",
-    }]
+    let dataList = [
+        {
+            id: '',
+            pid: '',
+            title: '',
+            children: [],
+            process: '',
+            processId: 0,
+            thread: '',
+            threadId: 0,
+            state: '',
+            wallDuration: 0,
+            avgDuration: '',
+            count: 0,
+            minDuration: 0,
+            maxDuration: 0,
+            stdDuration: '',
+        },
+    ];
+
+    let dataArray = [
+        {
+            id: '',
+            pid: '',
+            title: '',
+            children: [],
+            process: '',
+            processId: 0,
+            thread: '',
+            threadId: 0,
+            state: '',
+            wallDuration: 0,
+            avgDuration: '',
+            count: 0,
+            minDuration: 0,
+            maxDuration: 0,
+            stdDuration: '',
+        },
+    ];
 
     it('TabPaneSPTTest01', function () {
-        expect(tabPane.getDataBySPT(0,0,[])).toBeUndefined();
+        expect(tabPane.getDataBySPT(0, 0, [])).toBeUndefined();
     });
 
     it('TabPaneSPTTest02', function () {
         let source = [
             {
-                process: "",
+                process: '',
                 processId: 10,
-                thread: "",
+                thread: '',
                 threadId: 10,
-                state: "",
+                state: '',
                 dur: 1000,
                 start_ts: 100_0000,
                 end_ts: 0,
                 cpu: 0,
-                priority: "-",
-                note: "-",
-            }
-        ]
-        expect(tabPane.getDataBySPT(10,100_000,source)).toBeUndefined();
+                priority: '-',
+                note: '-',
+            },
+        ];
+        expect(tabPane.getDataBySPT(10, 100_000, source)).toBeUndefined();
     });
 
     it('TabPaneSPTTest03', function () {
-        let mockgetProcessThreadDataByRange = sqlit.getStatesProcessThreadDataByRange
-        mockgetProcessThreadDataByRange.mockResolvedValue([{
-                process: "process",
+        let mockgetProcessThreadDataByRange =
+            sqlit.getStatesProcessThreadDataByRange;
+        mockgetProcessThreadDataByRange.mockResolvedValue([
+            {
+                process: 'process',
                 processId: 1,
-                thread: "thread",
-                state: "state",
+                thread: 'thread',
+                state: 'state',
                 threadId: 1,
                 dur: 1000,
                 end_ts: 2000,
                 start_ts: 2000,
-                cpu:1111
-            }]
-        )
-        tabPaneSPT.tbl.recycleDataSource = jest.fn(() => dataList)
+                cpu: 1111,
+            },
+        ]);
+        tabPaneSPT.tbl.recycleDataSource = jest.fn(() => dataList);
 
-        expect(tabPaneSPT.data = dataList).toBeTruthy();
+        expect((tabPaneSPT.data = dataList)).toBeTruthy();
     });
 
     it('TabPaneSPTTest04', function () {
@@ -183,4 +193,4 @@ describe('TabPaneSPT Test', () => {
         "
 `);
     });
-})
+});

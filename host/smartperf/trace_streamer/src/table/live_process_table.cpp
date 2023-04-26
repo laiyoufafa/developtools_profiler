@@ -72,7 +72,7 @@ int LiveProcessTable::Cursor::Column(int column) const
     switch (column) {
         case TS: {
             sqlite3_result_int64(context_,
-                                 static_cast<int64_t>(liveProcessDetailDataObj_.TimeStamData()[CurrentRow()]));
+                                 static_cast<int64_t>(liveProcessDetailDataObj_.TimeStampData()[CurrentRow()]));
             break;
         }
         case DUR: {

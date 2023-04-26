@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-
-import {BaseElement, element} from "../BaseElement.js";
-import './LitMainMenuItem.js'
-import './LitMainMenuGroup.js'
-import {LitMainMenuGroup} from "./LitMainMenuGroup.js";
-import {LitMainMenuItem} from "./LitMainMenuItem.js";
+import { BaseElement, element } from '../BaseElement.js';
+import './LitMainMenuItem.js';
+import './LitMainMenuGroup.js';
+import { LitMainMenuGroup } from './LitMainMenuGroup.js';
+import { LitMainMenuItem } from './LitMainMenuItem.js';
+let backgroundColor = sessionStorage.getItem('backgroundColor');
 
 @element('lit-main-menu')
 export class LitMainMenu extends BaseElement {
     private slotElements: Element[] | undefined;
-    private _menus: Array<MenuGroup> | undefined
+    private _menus: Array<MenuGroup> | undefined;
 
     static get observedAttributes() {
-        return []
+        return [];
     }
 
     get menus(): Array<MenuGroup> | undefined {
@@ -35,12 +35,14 @@ export class LitMainMenu extends BaseElement {
 
     set menus(value: Array<MenuGroup> | undefined) {
         this._menus = value;
-        this.shadowRoot?.querySelectorAll('lit-main-menu-group').forEach(a => a.remove());
+        this.shadowRoot
+            ?.querySelectorAll('lit-main-menu-group')
+            .forEach((a) => a.remove());
         let menuBody = this.shadowRoot?.querySelector('.menu-body');
-        value?.forEach(it => {
+        value?.forEach((it) => {
             let group = new LitMainMenuGroup();
-            group.setAttribute('title', it.title || "");
-            group.setAttribute('describe', it.describe || "");
+            group.setAttribute('title', it.title || '');
+            group.setAttribute('describe', it.describe || '');
             if (it.collapsed) {
                 group.setAttribute('collapsed', '');
             } else {
@@ -49,42 +51,43 @@ export class LitMainMenu extends BaseElement {
             menuBody?.appendChild(group);
             it.children?.forEach((item: any) => {
                 let th = new LitMainMenuItem();
-                th.setAttribute('icon', item.icon || "");
-                th.setAttribute('title', item.title || "");
+                th.setAttribute('icon', item.icon || '');
+                th.setAttribute('title', item.title || '');
                 if (item.fileChoose) {
-                    th.setAttribute('file', "");
-                    th.addEventListener('file-change', e => {
+                    th.setAttribute('file', '');
+                    th.addEventListener('file-change', (e) => {
                         if (item.fileHandler && !th.disabled) {
-                            item.fileHandler(e)
+                            item.fileHandler(e);
                         }
-                    })
+                    });
                 } else {
                     th.removeAttribute('file');
-                    th.addEventListener('click', e => {
+                    th.addEventListener('click', (e) => {
                         if (item.clickHandler && !th.disabled) {
-                            item.clickHandler(item)
+                            item.clickHandler(item);
                         }
-                    })
+                    });
                 }
                 if (item.disabled != undefined) {
-                    th.disabled = item.disabled
+                    th.disabled = item.disabled;
                 }
                 group?.appendChild(th);
-            })
-        })
+            });
+        });
     }
 
     initElements(): void {
-        let st: HTMLSlotElement | null | undefined = this.shadowRoot?.querySelector('#st');
-        st?.addEventListener('slotchange', e => {
+        let st: HTMLSlotElement | null | undefined =
+            this.shadowRoot?.querySelector('#st');
+        st?.addEventListener('slotchange', (e) => {
             this.slotElements = st?.assignedElements();
-            this.slotElements?.forEach(it => {
-                it.querySelectorAll("lit-main-menu-item").forEach(cell => {
-                })
-            })
-        })
-        let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');
-        versionDiv!.innerText = (window as any).version || ""
+            this.slotElements?.forEach((it) => {
+                it.querySelectorAll('lit-main-menu-item').forEach((cell) => {});
+            });
+        });
+        let versionDiv: HTMLElement | null | undefined =
+            this.shadowRoot?.querySelector<HTMLElement>('.version');
+        versionDiv!.innerText = (window as any).version || '';
     }
 
     initHtml(): string {
@@ -94,7 +97,7 @@ export class LitMainMenu extends BaseElement {
             display: flex;
             flex-direction: column;
             width: 248px;
-            background-color: var(--dark-background,#FFFFFF);
+            background-color: ${backgroundColor};
             height: 100vh;
         }
         .menu-body ::-webkit-scrollbar-track
@@ -110,7 +113,7 @@ export class LitMainMenu extends BaseElement {
         }
         .header{
             display: grid;
-            background-color: var(--dark-background1,#FFFFFF);
+            background-color: var(--dark-background1);
             border-bottom: 1px solid var(--dark-background1,#EFEFEF);
             color: #47A7E0;
             font-size: 1.4rem;
@@ -127,12 +130,23 @@ export class LitMainMenu extends BaseElement {
             align-self: center;
             user-select: none;
         }
-        .version{
-            color: #94979d;
+        .bottom{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        .color{
             padding: 20px;
             font-size: 0.6rem;
-            width: 100%;
-            text-align: right;
+            cursor: pointer;
+        }
+        
+        .version{
+            color: #94979d;
+            padding: 20px 0;
+            font-size: 0.6rem;
+            width: 15rem;
+            text-align: center;
         }
         *{
             box-sizing: border-box;
@@ -149,29 +163,33 @@ export class LitMainMenu extends BaseElement {
         <div name="header" class="header">
             <img src="img/logo.png"/>
                 <div class="menu-button">
-                    <lit-icon name="menu" size="20" color="var(--dark-color1,#4D4D4D)"></lit-icon>
+                    <lit-icon name="menu" size="20" color="var(blue,#4D4D4D)"></lit-icon>
                 </div>
             </div>
             <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
                 <slot id="st" ></slot>
-            </div>
-        <div class="version" style="">
-        </div>
-        `;
+                </div>
+        <div class="bottom">        
+             <div class="color" style="">
+                <lit-icon name="bg-colors" size="20" color="gray"></lit-icon>
+             </div>
+             <div class="version" style="">
+             </div>
+        </div>`;
     }
 }
 
 export interface MenuGroup {
-    title: string
-    describe: string
-    collapsed: boolean
-    children: Array<MenuItem>
+    title: string;
+    describe: string;
+    collapsed: boolean;
+    children: Array<MenuItem>;
 }
 
 export interface MenuItem {
-    icon: string
-    title: string
-    fileChoose?: boolean
-    clickHandler?: Function
-    fileHandler?: Function
+    icon: string;
+    title: string;
+    fileChoose?: boolean;
+    clickHandler?: Function;
+    fileHandler?: Function;
 }

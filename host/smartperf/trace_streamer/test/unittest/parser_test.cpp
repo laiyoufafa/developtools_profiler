@@ -84,7 +84,7 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
         char line1[lineLength];
         char line2[lineLength];
         const std::string command1 = "md5sum data/resource/ut_bytrace_input_full_gold.db";
-        const std::string md5DbPath = "md5sum "+ dbPath;
+        const std::string md5DbPath = "md5sum " + dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {
@@ -155,7 +155,7 @@ HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
         char line1[lineLength];
         char line2[lineLength];
         const std::string command1 = "md5sum data/resource/htrace_gold.db";
-        const std::string md5DbPath = "md5sum "+ dbPath;
+        const std::string md5DbPath = "md5sum " + dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {
@@ -226,7 +226,7 @@ HWTEST_F(ParserTest, HtraceAndPerfParserTest, TestSize.Level1)
         char line1[lineLength];
         char line2[lineLength];
         const std::string command1 = "md5sum data/resource/htrace_perf_gold.db";
-        const std::string md5DbPath = "md5sum "+ dbPath;
+        const std::string md5DbPath = "md5sum " + dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {
@@ -297,7 +297,7 @@ HWTEST_F(ParserTest, HtraceAndEbpfParserTest, TestSize.Level1)
         char line1[lineLength];
         char line2[lineLength];
         const std::string command1 = "md5sum data/resource/htrace_ebpf_gold.db";
-        const std::string md5DbPath = "md5sum "+ dbPath;
+        const std::string md5DbPath = "md5sum " + dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {

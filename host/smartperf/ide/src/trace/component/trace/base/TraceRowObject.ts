@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BaseStruct} from "../../../bean/BaseStruct.js";
-import {Rect} from "../timer-shaft/Rect.js";
-import {TraceRow} from "./TraceRow.js";
+import { BaseStruct } from '../../../bean/BaseStruct.js';
+import { Rect } from '../timer-shaft/Rect.js';
+import { TraceRow } from './TraceRow.js';
 
 export class TraceRowObject<T extends BaseStruct> {
     public rowId: string | undefined;
@@ -32,9 +32,32 @@ export class TraceRowObject<T extends BaseStruct> {
     public dataListCache: Array<T> = [];
     public color: string | undefined;
     public frame: Rect | undefined;
-    public supplier: (() => Promise<Array<T>>) | undefined | null
-    public onThreadHandler: ((row: TraceRow<T>, ctx: ImageBitmapRenderingContext | CanvasRenderingContext2D | WebGLRenderingContext | WebGL2RenderingContext | null | undefined) => void) | undefined | null
-    public onDrawHandler: ((ctx: ImageBitmapRenderingContext | CanvasRenderingContext2D | WebGLRenderingContext | WebGL2RenderingContext | null | undefined) => void) | undefined | null
+    public supplier: (() => Promise<Array<T>>) | undefined | null;
+    public onThreadHandler:
+        | ((
+              row: TraceRow<T>,
+              ctx:
+                  | ImageBitmapRenderingContext
+                  | CanvasRenderingContext2D
+                  | WebGLRenderingContext
+                  | WebGL2RenderingContext
+                  | null
+                  | undefined
+          ) => void)
+        | undefined
+        | null;
+    public onDrawHandler:
+        | ((
+              ctx:
+                  | ImageBitmapRenderingContext
+                  | CanvasRenderingContext2D
+                  | WebGLRenderingContext
+                  | WebGL2RenderingContext
+                  | null
+                  | undefined
+          ) => void)
+        | undefined
+        | null;
     public top: number = 0;
     public rowIndex: number = 0;
     public preObject: TraceRowObject<T> | undefined | null;

@@ -197,16 +197,8 @@ enum FUC_SUMMARY_TYPE {
     WRITE = 3,
 };
 const std::map<uint32_t, uint32_t> fucSubToSummaryType = {
-    {SYS_OPENAT2, OPEN},
-    {SYS_READ, READ},
-    {SYS_WRITE, WRITE},
-    {SYS_PREAD64, READ},
-    {SYS_PWRITE64, WRITE},
-    {SYS_READV, READ},
-    {SYS_WRITEV, WRITE},
-    {SYS_PREADV, READ},
-    {SYS_PWRITEV, WRITE},
-    {SYS_CLOSE, CLOSE},
+    {SYS_OPENAT2, OPEN}, {SYS_READ, READ},    {SYS_WRITE, WRITE}, {SYS_PREAD64, READ},  {SYS_PWRITE64, WRITE},
+    {SYS_READV, READ},   {SYS_WRITEV, WRITE}, {SYS_PREADV, READ}, {SYS_PWRITEV, WRITE}, {SYS_CLOSE, CLOSE},
 };
 const uint32_t MIN_USER_IP = 0xffffffff;
 } // namespace EbpfStdtype

@@ -18,13 +18,12 @@ ohos_source_set("hiperf_parser_src") {
   part_name = "hiperf_parser_src"
   sources = [ "perf_data_parser.cpp" ]
   include_dirs = [
-    "hiperf/linux",
-    "hiperf/kernel",
-    "hiperf/include/linux",
+    "//third_party/hiperf/include/nonlinux/linux",
     ".",
     "../../base",
     "../../cfg",
-    "hiperf/include",
+    "//third_party/hiperf/include/nonlinux",
+    "//third_party/hiperf/include",
     "../../include",
     "../../",
     "../../filter",
@@ -59,7 +58,7 @@ ohos_source_set("hiperf_parser_src") {
 group("hiperf_parser") {
   deps = [
     ":hiperf_parser_src",
-    "hiperf:hiperf",
+    "//third_party/hiperf:hiperf",
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]

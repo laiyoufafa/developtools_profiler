@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 //@ts-ignore
-import { SpSdkConfig } from "../../../../dist/trace/component/setting/SpSdkConfig.js";
+import { SpSdkConfig } from '../../../../dist/trace/component/setting/SpSdkConfig.js';
 
 describe('spSdkConfig Test', () => {
     let spSdkConfig = new SpSdkConfig();
@@ -74,11 +74,15 @@ describe('spSdkConfig Test', () => {
     });
 
     it('spSdkConfigTest13', function () {
-        expect(spSdkConfig.checkIntegerInput('checkIntegerInput')).not.toBeUndefined();
+        expect(
+            spSdkConfig.checkIntegerInput('checkIntegerInput')
+        ).not.toBeUndefined();
     });
 
     it('spSdkConfigTest14', function () {
-        expect(spSdkConfig.checkFloatInput('checkFloatInput')).not.toBeUndefined();
+        expect(
+            spSdkConfig.checkFloatInput('checkFloatInput')
+        ).not.toBeUndefined();
     });
 
     it('spSdkConfigTest15', function () {
@@ -93,42 +97,43 @@ describe('spSdkConfig Test', () => {
         expect(spSdkConfig.initConfigList()).toBeUndefined();
     });
     it('spSdkConfigTest18', function () {
-        spSdkConfig.configList =
-            {
-                "name": "",
-                "configuration": {
-                    "ss": {
-                        "type": "string",
-                        "default": "strsadsa",
-                        "description": "xxxx",
-                    },
-                    "aa": {
-                        "type": "string",
-                        "default": "11",
-                        "enum": [
-                            "consistent",
-                            "11",
-                            "delegated"
-                        ]
-                    },
-                    "cc": {
-                        "type": "number",
-                        "description": "number1111",
-                    },
-                    "ee": {
-                        "type": "integer",
-                        "default": "12",
-                        "description": "integer1222",
-                    },
-                    "ff": {
-                        "type": "boolean",
-                        "description": "switchhh",
-                    }
-                }
-            };
+        spSdkConfig.configList = {
+            name: '',
+            configuration: {
+                ss: {
+                    type: 'string',
+                    default: 'strsadsa',
+                    description: 'xxxx',
+                },
+                aa: {
+                    type: 'string',
+                    default: '11',
+                    enum: ['consistent', '11', 'delegated'],
+                },
+                cc: {
+                    type: 'number',
+                    description: 'number1111',
+                },
+                ee: {
+                    type: 'integer',
+                    default: '12',
+                    description: 'integer1222',
+                },
+                ff: {
+                    type: 'boolean',
+                    description: 'switchhh',
+                },
+            },
+        };
         expect(spSdkConfig.initConfig()).toBeUndefined();
     });
     it('spSdkConfigTest19', function () {
-        expect(spSdkConfig.getGpuConfig()).toStrictEqual({"aa": "11", "cc": 0, "ee": 12, "ff": true, "ss": "strsadsa",});
+        expect(spSdkConfig.getGpuConfig()).toStrictEqual({
+            aa: '11',
+            cc: 0,
+            ee: 12,
+            ff: false,
+            ss: 'strsadsa',
+        });
     });
-})
+});

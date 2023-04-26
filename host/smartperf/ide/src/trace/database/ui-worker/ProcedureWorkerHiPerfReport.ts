@@ -13,28 +13,43 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
+import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
     BaseStruct,
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, PerfRender,
-    RequestMessage
-} from "./ProcedureWorkerCommon.js";
+    drawSelection,
+    PerfRender,
+    RequestMessage,
+} from './ProcedureWorkerCommon.js';
 
-import {TraceRow} from "../../component/trace/base/TraceRow.js";
+import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
 export class HiperfReportRender extends PerfRender {
-
-    renderMainThread(req: any,row:TraceRow<HiPerfReportStruct>) {
-        let list= row.dataList;
+    renderMainThread(req: any, row: TraceRow<HiPerfReportStruct>) {
+        let list = row.dataList;
         let filter = row.dataListCache;
         let groupBy10MS = req.scale > 30_000_000;
-        if(list && row.dataList2.length ==0){
-            row.dataList2 =  HiPerfReportStruct.groupBy10MS(list, req.intervalPerf);
+        if (list && row.dataList2.length == 0) {
+            row.dataList2 = HiPerfReportStruct.groupBy10MS(
+                list,
+                req.intervalPerf
+            );
         }
-        HiPerfReport(list, row.dataList2, req.type!, filter, TraceRow.range?.startNS ??0, TraceRow.range?.endNS??0, TraceRow.range?.totalNS??0, row.frame, groupBy10MS, req.intervalPerf, req.useCache || (TraceRow.range?.refresh ?? false));
+        HiPerfReport(
+            list,
+            row.dataList2,
+            req.type!,
+            filter,
+            TraceRow.range?.startNS ?? 0,
+            TraceRow.range?.endNS ?? 0,
+            TraceRow.range?.totalNS ?? 0,
+            row.frame,
+            groupBy10MS,
+            req.intervalPerf,
+            req.useCache || (TraceRow.range?.refresh ?? false)
+        );
         req.context.beginPath();
         req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
         req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
@@ -44,7 +59,11 @@ export class HiperfReportRender extends PerfRender {
         for (let re of filter) {
             HiPerfReportStruct.draw(req.context, path, re, groupBy10MS);
             if (row.isHover) {
-                if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                if (
+                    re.frame &&
+                    row.hoverX >= re.frame.x - offset &&
+                    row.hoverX <= re.frame.x + re.frame.width + offset
+                ) {
                     HiPerfReportStruct.hoverStruct = re;
                     find = true;
                 }
@@ -55,22 +74,64 @@ export class HiperfReportRender extends PerfRender {
         req.context.closePath();
     }
 
-    render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    render(
+        req: RequestMessage,
+        list: Array<any>,
+        filter: Array<any>,
+        dataList2: Array<any>
+    ) {
         let groupBy10MS = req.scale > 100_000_000;
         if (req.lazyRefresh) {
-            HiPerfReport(list, dataList2, req.type!, filter, req.startNS, req.endNS, req.totalNS, req.frame, groupBy10MS, req.intervalPerf, req.useCache || !req.range.refresh);
+            HiPerfReport(
+                list,
+                dataList2,
+                req.type!,
+                filter,
+                req.startNS,
+                req.endNS,
+                req.totalNS,
+                req.frame,
+                groupBy10MS,
+                req.intervalPerf,
+                req.useCache || !req.range.refresh
+            );
         } else {
             if (!req.useCache) {
-                HiPerfReport(list, dataList2, req.type!, filter, req.startNS, req.endNS, req.totalNS, req.frame, groupBy10MS, req.intervalPerf, false);
+                HiPerfReport(
+                    list,
+                    dataList2,
+                    req.type!,
+                    filter,
+                    req.startNS,
+                    req.endNS,
+                    req.totalNS,
+                    req.frame,
+                    groupBy10MS,
+                    req.intervalPerf,
+                    false
+                );
             }
         }
         if (req.canvas) {
             req.context.clearRect(0, 0, req.frame.width, req.frame.height);
             let arr = filter;
-            if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-                drawLoading(req.context, req.startNS, req.endNS, req.totalNS, req.frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            if (
+                arr.length > 0 &&
+                !req.range.refresh &&
+                !req.useCache &&
+                req.lazyRefresh
+            ) {
+                drawLoading(
+                    req.context,
+                    req.startNS,
+                    req.endNS,
+                    req.totalNS,
+                    req.frame,
+                    arr[0].startNS,
+                    arr[arr.length - 1].startNS + arr[arr.length - 1].dur
+                );
             }
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor)
+            drawLines(req.context, req.xs, req.frame.height, req.lineColor);
             req.context.stroke();
             req.context.beginPath();
             HiPerfReportStruct.hoverStruct = undefined;
@@ -79,7 +140,11 @@ export class HiperfReportRender extends PerfRender {
             if (req.isHover) {
                 let offset = groupBy10MS ? 0 : 3;
                 for (let re of filter) {
-                    if (re.frame && req.hoverX >= re.frame.x - offset && req.hoverX <= re.frame.x + re.frame.width + offset) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                    if (
+                        re.frame &&
+                        req.hoverX >= re.frame.x - offset &&
+                        req.hoverX <= re.frame.x + re.frame.width + offset
+                    ) {
                         HiPerfReportStruct.hoverStruct = re;
                         break;
                     }
@@ -95,25 +160,49 @@ export class HiperfReportRender extends PerfRender {
             groupBy10MS ? req.context.fill(path) : req.context.stroke(path);
             req.context.closePath();
             drawSelection(req.context, req.params);
-            drawFlagLine(req.context, req.flagMoveInfo, req.flagSelectedInfo, req.startNS, req.endNS, req.totalNS, req.frame, req.slicesTime);
+            drawFlagLine(
+                req.context,
+                req.flagMoveInfo,
+                req.flagSelectedInfo,
+                req.startNS,
+                req.endNS,
+                req.totalNS,
+                req.frame,
+                req.slicesTime
+            );
         }
         // @ts-ignore
         self.postMessage({
             id: req.id,
             type: req.type,
             results: req.canvas ? undefined : filter,
-            hover: HiPerfReportStruct.hoverStruct
+            hover: HiPerfReportStruct.hoverStruct,
         });
     }
 }
 
-export function HiPerfReport(arr: Array<any>, arr2: any, type: string, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, intervalPerf: number, use: boolean) {
+export function HiPerfReport(
+    arr: Array<any>,
+    arr2: any,
+    type: string,
+    res: Array<any>,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any,
+    groupBy10MS: boolean,
+    intervalPerf: number,
+    use: boolean
+) {
     if (use && res.length > 0) {
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
         for (let i = 0; i < res.length; i++) {
             let it = res[i];
-            if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
+            if (
+                (it.startNS || 0) + (it.dur || 0) > startNS &&
+                (it.startNS || 0) < endNS
+            ) {
                 if (!it.frame) {
                     it.frame = {};
                     it.frame.y = y;
@@ -131,31 +220,42 @@ export function HiPerfReport(arr: Array<any>, arr2: any, type: string, res: Arra
         let list: Array<any> = groupBy10MS ? arr2 : arr;
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
-        list.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS).map(it => {
-            if (!it.frame) {
-                it.frame = {};
-                it.frame.y = y;
-            }
-            it.frame.height = it.height;
-            HiPerfReportStruct.setFrame(it, pns, startNS, endNS, frame);
-            return it;
-        }).reduce((pre, current, index, arr) => {
-            if (!pre[`${current.frame.x}`]) {
-                pre[`${current.frame.x}`] = [];
-                pre[`${current.frame.x}`].push(current);
-                if (groupBy10MS) {
-                    res.push(current);
-                } else {
-                    if (res.length == 0) {
+        list.filter(
+            (it) =>
+                (it.startNS || 0) + (it.dur || 0) > startNS &&
+                (it.startNS || 0) < endNS
+        )
+            .map((it) => {
+                if (!it.frame) {
+                    it.frame = {};
+                    it.frame.y = y;
+                }
+                it.frame.height = it.height;
+                HiPerfReportStruct.setFrame(it, pns, startNS, endNS, frame);
+                return it;
+            })
+            .reduce((pre, current, index, arr) => {
+                if (!pre[`${current.frame.x}`]) {
+                    pre[`${current.frame.x}`] = [];
+                    pre[`${current.frame.x}`].push(current);
+                    if (groupBy10MS) {
                         res.push(current);
-                    }
-                    if (res[res.length - 1] && Math.abs(current.frame.x - res[res.length - 1].frame.x) > 4) {
-                        res.push(current);
+                    } else {
+                        if (res.length == 0) {
+                            res.push(current);
+                        }
+                        if (
+                            res[res.length - 1] &&
+                            Math.abs(
+                                current.frame.x - res[res.length - 1].frame.x
+                            ) > 4
+                        ) {
+                            res.push(current);
+                        }
                     }
                 }
-            }
-            return pre;
-        }, {});
+                return pre;
+            }, {});
     }
 }
 
@@ -177,36 +277,85 @@ export class HiPerfReportStruct extends BaseStruct {
     height: number | undefined;
     cpu: number | undefined;
 
-    static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: HiPerfReportStruct, groupBy10MS: boolean) {
+    static draw(
+        ctx: CanvasRenderingContext2D,
+        path: Path2D,
+        data: HiPerfReportStruct,
+        groupBy10MS: boolean
+    ) {
         if (data.frame) {
             if (groupBy10MS) {
                 let width = data.frame.width;
-                path.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0)
+                path.rect(
+                    data.frame.x,
+                    40 - (data.height || 0),
+                    width,
+                    data.height || 0
+                );
             } else {
                 path.moveTo(data.frame.x + 7, 20);
-                HiPerfReportStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3)
+                HiPerfReportStruct.drawRoundRectPath(
+                    path,
+                    data.frame.x - 7,
+                    20 - 7,
+                    14,
+                    14,
+                    3
+                );
                 path.moveTo(data.frame.x, 27);
                 path.lineTo(data.frame.x, 33);
             }
         }
     }
 
-    static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number) {
-        cxt.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
+    static drawRoundRectPath(
+        cxt: Path2D,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number
+    ) {
+        cxt.arc(
+            x + width - radius,
+            y + height - radius,
+            radius,
+            0,
+            Math.PI / 2
+        );
         cxt.lineTo(x + radius, y + height);
         cxt.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI);
         cxt.lineTo(x + 0, y + radius);
-        cxt.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 3 / 2);
+        cxt.arc(x + radius, y + radius, radius, Math.PI, (Math.PI * 3) / 2);
         cxt.lineTo(x + width - radius, y + 0);
-        cxt.arc(x + width - radius, y + radius, radius, Math.PI * 3 / 2, Math.PI * 2);
+        cxt.arc(
+            x + width - radius,
+            y + radius,
+            radius,
+            (Math.PI * 3) / 2,
+            Math.PI * 2
+        );
         cxt.lineTo(x + width, y + height - radius);
         cxt.moveTo(x + width / 3, y + height / 5);
-        cxt.lineTo(x + width / 3, y + height / 5 * 4);
+        cxt.lineTo(x + width / 3, y + (height / 5) * 4);
         cxt.moveTo(x + width / 3, y + height / 5);
-        cxt.bezierCurveTo(x + width / 3 + 7, y + height / 5 - 2, x + width / 3 + 7, y + height / 5 + 6, x + width / 3, y + height / 5 + 4);
+        cxt.bezierCurveTo(
+            x + width / 3 + 7,
+            y + height / 5 - 2,
+            x + width / 3 + 7,
+            y + height / 5 + 6,
+            x + width / 3,
+            y + height / 5 + 4
+        );
     }
 
-    static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+    static setFrame(
+        node: any,
+        pns: number,
+        startNS: number,
+        endNS: number,
+        frame: any
+    ) {
         if ((node.startNS || 0) < startNS) {
             node.frame.x = 0;
         } else {
@@ -215,7 +364,10 @@ export class HiPerfReportStruct extends BaseStruct {
         if ((node.startNS || 0) + (node.dur || 0) > endNS) {
             node.frame.width = frame.width - node.frame.x;
         } else {
-            node.frame.width = Math.ceil(((node.startNS || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+            node.frame.width = Math.ceil(
+                ((node.startNS || 0) + (node.dur || 0) - startNS) / pns -
+                    node.frame.x
+            );
         }
         if (node.frame.width < 1) {
             node.frame.width = 1;
@@ -223,19 +375,23 @@ export class HiPerfReportStruct extends BaseStruct {
     }
 
     static groupBy10MS(array: Array<any>, intervalPerf: number): Array<any> {
-        let obj = array.map(it => {
-            it.timestamp_group = Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
-            return it;
-        }).reduce((pre, current) => {
-            (pre[current["timestamp_group"]] = pre[current["timestamp_group"]] || []).push(current);
-            return pre;
-        }, {});
+        let obj = array
+            .map((it) => {
+                it.timestamp_group =
+                    Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
+                return it;
+            })
+            .reduce((pre, current) => {
+                (pre[current['timestamp_group']] =
+                    pre[current['timestamp_group']] || []).push(current);
+                return pre;
+            }, {});
         let arr: any[] = [];
         let max = 0;
         for (let aKey in obj) {
             let sum = obj[aKey].reduce((pre: any, cur: any) => {
-                return pre + cur.event_count
-            }, 0)
+                return pre + cur.event_count;
+            }, 0);
             if (sum > max) max = sum;
             let ns = parseInt(aKey);
             arr.push({
@@ -243,12 +399,12 @@ export class HiPerfReportStruct extends BaseStruct {
                 dur: 1_000_000_0,
                 height: 0,
                 sum: sum,
-            })
+            });
         }
-        arr.map(it => {
-            it.height = Math.floor(40 * it.sum / max);
+        arr.map((it) => {
+            it.height = Math.floor((40 * it.sum) / max);
             return it;
-        })
+        });
         return arr;
     }
 }

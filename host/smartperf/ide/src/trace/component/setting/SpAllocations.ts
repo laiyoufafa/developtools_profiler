@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../base-ui/BaseElement.js";
-import {log} from "../../../log/Log.js";
-import {HdcDeviceManager} from "../../../hdc/HdcDeviceManager.js";
-import {LitAllocationSelect} from "../../../base-ui/select/LitAllocationSelect.js";
-import "../../../base-ui/select/LitAllocationSelect.js";
-import {SpApplication} from "../../SpApplication.js";
-import {LitSearch} from "../trace/search/Search.js";
-import {SpRecordTrace} from "../SpRecordTrace.js";
-import {Cmd} from "../../../command/Cmd.js";
-import {CmdConstant} from "../../../command/CmdConstant.js";
-import LitSwitch from "../../../base-ui/switch/lit-switch.js";
+import { BaseElement, element } from '../../../base-ui/BaseElement.js';
+import { log } from '../../../log/Log.js';
+import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
+import '../../../base-ui/select/LitAllocationSelect.js';
+import { SpApplication } from '../../SpApplication.js';
+import { LitSearch } from '../trace/search/Search.js';
+import { SpRecordTrace } from '../SpRecordTrace.js';
+import { Cmd } from '../../../command/Cmd.js';
+import { CmdConstant } from '../../../command/CmdConstant.js';
+import LitSwitch from '../../../base-ui/switch/lit-switch.js';
+import { LitSlider } from '../../../base-ui/slider/LitSlider';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
@@ -35,19 +36,23 @@ export class SpAllocations extends BaseElement {
     private filterMemoryUnit: HTMLSelectElement | null | undefined;
     private fpUnWind: LitSwitch | null | undefined;
 
+    private recordAccurately: LitSwitch | null | undefined;
+    private offlineSymbol: LitSwitch | null | undefined;
+    private recordStatisticsResult: HTMLDivElement | null | undefined;
+
     get appProcess(): string {
-        return this.processId!.value || "";
+        return this.processId!.value || '';
     }
 
     get unwind(): number {
-        log("unwind value is :" + this.unwindEL!.value)
+        log('unwind value is :' + this.unwindEL!.value);
         return Number(this.unwindEL!.value);
     }
 
     get shared(): number {
-        let value = this.shareMemory?.value || "";
-        log("shareMemory value is :" + value)
-        if (value != "") {
+        let value = this.shareMemory?.value || '';
+        log('shareMemory value is :' + value);
+        if (value != '') {
             let unit = Number(this.shareMemory?.value) || 16384;
             return unit;
         }
@@ -55,97 +60,267 @@ export class SpAllocations extends BaseElement {
     }
 
     get filter(): number {
-        let value = this.filterMemory?.value || "";
-        log("filter value is :" + value)
-        if (value != "") {
+        let value = this.filterMemory?.value || '';
+        log('filter value is :' + value);
+        if (value != '') {
             return Number(value);
         }
         return 4096;
     }
 
     get fp_unwind(): boolean {
-        let value = this.fpUnWind?.checked
+        let value = this.fpUnWind?.checked;
         if (value != undefined) {
             return value;
         }
-        return true
+        return true;
+    }
+
+    get record_accurately(): boolean {
+        let value = this.recordAccurately?.checked;
+        if (value != undefined) {
+            return value;
+        }
+        return true;
+    }
+
+    get offline_symbolization(): boolean {
+        let value = this.offlineSymbol?.checked;
+        if (value != undefined) {
+            return value;
+        }
+        return true;
+    }
+
+    get record_statistics(): boolean {
+        if (this.recordStatisticsResult?.hasAttribute('percent')) {
+            let value = Number(this.recordStatisticsResult?.getAttribute('percent'));
+            return value > 0;
+        }
+        return true;
+    }
+
+    get statistics_interval(): number {
+        if (this.recordStatisticsResult?.hasAttribute('percentValue')) {
+            return Number(this.recordStatisticsResult?.getAttribute('percentValue'));
+        }
+        return 3600;
     }
 
     initElements(): void {
-        this.processId = this.shadowRoot?.getElementById("pid") as LitAllocationSelect
-        let input = this.processId.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement
-        let sp = document.querySelector("sp-application") as SpApplication;
-        let litSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
-        let processData: Array<string> = []
-        input.addEventListener('mousedown', ev => {
+        this.processId = this.shadowRoot?.getElementById(
+            'pid'
+        ) as LitAllocationSelect;
+        let input = this.processId.shadowRoot?.querySelector(
+            '.multipleSelect'
+        ) as HTMLDivElement;
+        let sp = document.querySelector('sp-application') as SpApplication;
+        let litSearch = sp?.shadowRoot?.querySelector(
+            '#lit-search'
+        ) as LitSearch;
+        let processData: Array<string> = [];
+        input.addEventListener('mousedown', (ev) => {
             if (SpRecordTrace.serialNumber == '') {
-                this.processId!.processData = []
+                this.processId!.processData = [];
             }
-        })
-        input.addEventListener('valuable', ev => {
+        });
+        input.addEventListener('valuable', (ev) => {
             this.dispatchEvent(new CustomEvent('addProbe', {}));
-        })
+        });
         input.addEventListener('inputClick', () => {
-            processData = []
+            processData = [];
             if (SpRecordTrace.serialNumber != '') {
                 if (SpRecordTrace.isVscode) {
-                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber])
+                    let cmd = Cmd.formatString(
+                        CmdConstant.CMD_GET_PROCESS_DEVICES,
+                        [SpRecordTrace.serialNumber]
+                    );
                     Cmd.execHdcCmd(cmd, (res: string) => {
-                        let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+                        let lineValues: string[] = res
+                            .replace(/\r\n/g, '\r')
+                            .replace(/\n/g, '\r')
+                            .split(/\r/);
                         for (let lineVal of lineValues) {
-                            if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("PID CMD") != -1) {
+                            if (
+                                lineVal.indexOf('__progname') != -1 ||
+                                lineVal.indexOf('PID CMD') != -1
+                            ) {
                                 continue;
                             }
-                            let process: string[] = lineVal.trim().split(" ");
+                            let process: string[] = lineVal.trim().split(' ');
                             if (process.length == 2) {
-                                let processId = process[0]
-                                let processName = process[1]
-                                processData.push(processName + "(" + processId + ")")
+                                let processId = process[0];
+                                let processName = process[1];
+                                processData.push(
+                                    processName + '(' + processId + ')'
+                                );
                             }
                         }
-                        this.processId!.processData = processData
-                        this.processId!.initData()
-                    })
+                        this.processId!.processData = processData;
+                        this.processId!.initData();
+                    });
                 } else {
-                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(rr => {
-                        if (sp.search) {
-                            sp.search = false;
-                            litSearch.clear();
-                        }
-                        if (rr) {
-                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then(res => {
-                                if (res) {
-                                    let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
-                                    for (let lineVal of lineValues) {
-                                        if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("PID CMD") != -1) {
-                                            continue;
-                                        }
-                                        let process: string[] = lineVal.trim().split(" ");
-                                        if (process.length == 2) {
-                                            let processId = process[0]
-                                            let processName = process[1]
-                                            processData.push(processName + "(" + processId + ")")
+                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(
+                        (rr) => {
+                            if (sp.search) {
+                                sp.search = false;
+                                litSearch.clear();
+                            }
+                            if (rr) {
+                                HdcDeviceManager.shellResultAsString(
+                                    CmdConstant.CMD_GET_PROCESS,
+                                    false
+                                ).then((res) => {
+                                    if (res) {
+                                        let lineValues: string[] = res
+                                            .replace(/\r\n/g, '\r')
+                                            .replace(/\n/g, '\r')
+                                            .split(/\r/);
+                                        for (let lineVal of lineValues) {
+                                            if (
+                                                lineVal.indexOf('__progname') !=
+                                                -1 ||
+                                                lineVal.indexOf('PID CMD') != -1
+                                            ) {
+                                                continue;
+                                            }
+                                            let process: string[] = lineVal
+                                                .trim()
+                                                .split(' ');
+                                            if (process.length == 2) {
+                                                let processId = process[0];
+                                                let processName = process[1];
+                                                processData.push(
+                                                    processName +
+                                                    '(' +
+                                                    processId +
+                                                    ')'
+                                                );
+                                            }
                                         }
                                     }
-                                }
-                                this.processId!.processData = processData
-                                this.processId!.initData()
-                            })
-                        } else {
-                            sp.search = true;
-                            litSearch.clear();
-                            litSearch.setPercent("please kill other hdc-server! ", -2);
+                                    this.processId!.processData = processData;
+                                    this.processId!.initData();
+                                });
+                            } else {
+                                sp.search = true;
+                                litSearch.clear();
+                                litSearch.setPercent(
+                                    'please kill other hdc-server! ',
+                                    -2
+                                );
+                            }
                         }
-                    })
+                    );
                 }
             }
-        })
-        this.unwindEL = this.shadowRoot?.getElementById("unwind") as HTMLInputElement
-        this.shareMemory = this.shadowRoot?.getElementById("shareMemory") as HTMLInputElement
-        this.shareMemoryUnit = this.shadowRoot?.getElementById("shareMemoryUnit") as HTMLSelectElement
-        this.filterMemory = this.shadowRoot?.getElementById("filterSized") as HTMLInputElement
-        this.filterMemoryUnit = this.shadowRoot?.getElementById("filterSizedUnit") as HTMLSelectElement
-        this.fpUnWind = this.shadowRoot?.getElementById("use_fp_unwind") as LitSwitch
+        });
+        this.unwindEL = this.shadowRoot?.getElementById(
+            'unwind'
+        ) as HTMLInputElement;
+        this.shareMemory = this.shadowRoot?.getElementById(
+            'shareMemory'
+        ) as HTMLInputElement;
+        this.shareMemoryUnit = this.shadowRoot?.getElementById(
+            'shareMemoryUnit'
+        ) as HTMLSelectElement;
+        this.filterMemory = this.shadowRoot?.getElementById(
+            'filterSized'
+        ) as HTMLInputElement;
+        this.filterMemoryUnit = this.shadowRoot?.getElementById(
+            'filterSizedUnit'
+        ) as HTMLSelectElement;
+        this.fpUnWind = this.shadowRoot?.getElementById(
+            'use_fp_unwind'
+        ) as LitSwitch;
+        this.recordAccurately = this.shadowRoot?.getElementById(
+            'use_record_accurately'
+        ) as LitSwitch;
+        this.offlineSymbol = this.shadowRoot?.getElementById(
+            'use_offline_symbolization'
+        ) as LitSwitch;
+        let stepValue = [0, 1, 10, 30, 60, 300, 600, 1800, 3600];
+        let statisticsSlider = this.shadowRoot?.querySelector<LitSlider>(
+            '#interval-slider'
+        ) as LitSlider;
+
+        this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>(
+            '.record-statistics-result'
+        ) as HTMLDivElement;
+        statisticsSlider.sliderStyle = {
+            minRange: 0,
+            maxRange: 3600,
+            defaultValue: '3600',
+            resultUnit: 'S',
+            stepSize: 450,
+            lineColor: 'var(--dark-color3,#46B1E3)',
+            buttonColor: '#999999',
+        };
+        let parentElement = statisticsSlider!.parentNode as Element;
+        let intervalResultInput = this.shadowRoot?.querySelector(
+            '.interval-result'
+        ) as HTMLInputElement;
+        intervalResultInput.value = statisticsSlider.sliderStyle.defaultValue;
+        statisticsSlider.addEventListener('input', (evt) => {
+            statisticsSlider!.sliderStyle = {
+                minRange: 0,
+                maxRange: 3600,
+                defaultValue: this.recordStatisticsResult!.getAttribute('percent') + '',
+                resultUnit: 'S',
+                stepSize: 450,
+                lineColor: 'var(--dark-color3,#46B1E3)',
+                buttonColor: '#999999',
+            };
+            if (this.recordStatisticsResult!.hasAttribute('percent')) {
+                let step = Number(this.recordStatisticsResult!.getAttribute('percent')) / 450;
+                this.recordStatisticsResult!.setAttribute('percentValue', stepValue[step] + '');
+                intervalResultInput.value = stepValue[step] + '';
+            }
+        });
+        parentElement.setAttribute('percent', '3600');
+        intervalResultInput.style.color = 'var(--dark-color1,#000000)';
+        intervalResultInput.addEventListener('input', (ev) => {
+            if (this.recordStatisticsResult!.hasAttribute('percent')) {
+                this.recordStatisticsResult!.removeAttribute('percent');
+            }
+            intervalResultInput.style.color = 'var(--dark-color1,#000000)';
+            intervalResultInput.parentElement!.style.backgroundColor =
+                'var(--dark-background5,#F2F2F2)';
+            intervalResultInput.style.backgroundColor =
+                'var(--dark-background5,#F2F2F2)';
+            if (intervalResultInput.value.trim() == '') {
+                intervalResultInput.style.color = 'red';
+                parentElement.setAttribute('percent', '3600');
+                return;
+            }
+            let memorySize = Number(intervalResultInput.value);
+            if (
+                !memorySize ||
+                memorySize < statisticsSlider!.sliderStyle.minRange ||
+                memorySize > statisticsSlider!.sliderStyle.maxRange
+            ) {
+                intervalResultInput.style.color = 'red';
+                parentElement.setAttribute('percent', '3600');
+            } else {
+                statisticsSlider!.percent = intervalResultInput.value;
+                let htmlInputElement =
+                    statisticsSlider!.shadowRoot?.querySelector(
+                        '#slider'
+                    ) as HTMLInputElement;
+                htmlInputElement.value = intervalResultInput.value;
+                statisticsSlider!.sliderStyle = {
+                    minRange: 0,
+                    maxRange: 3600,
+                    defaultValue: intervalResultInput.value,
+                    resultUnit: 'S',
+                    stepSize: 1,
+                    lineColor: 'var(--dark-color3,#46B1E3)',
+                    buttonColor: '#999999',
+                };
+                parentElement.setAttribute('percent', intervalResultInput.value);
+                parentElement.setAttribute('percentValue', intervalResultInput.value);
+            }
+        });
     }
 
     initHtml(): string {
@@ -184,6 +359,10 @@ export class SpAllocations extends BaseElement {
             text-align: left;
             line-height: 20px;
             font-weight: 400;
+            display:flex;
+            width:75%; 
+            margin-top: 3px;
+           
         }
         input {
            width: 72%;
@@ -221,11 +400,6 @@ export class SpAllocations extends BaseElement {
         .switchstyle{
            margin-top: 40px;
            display: flex;
-        }
-        #fp-unwind {
-          display:flex;
-          width:25%; 
-          margin-top: 3px;
         }
         .inputstyle{
             background: var(--dark-background5,#FFFFFF);
@@ -265,6 +439,56 @@ export class SpAllocations extends BaseElement {
           line-height: 20px;
           font-weight: 400;
         }
+        .record-title{
+            margin-bottom: 16px;
+            grid-column: span 3;
+        }
+        #interval-slider {
+            margin: 0 8px;
+            grid-column: span 2;
+        }
+        .resultSize{
+            margin: 0 30px 0 0;
+            height: 40px;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            outline:0;
+            border:1px solid var(--dark-border,#c8cccf);
+            color:var(--dark-color,#6a6f77);
+            border-radius:20px;
+            display: grid;
+            grid-template-rows: 1fr;
+            grid-template-columns:  min-content min-content;
+            width: 150px;
+        }
+        .record-mode{
+            font-family: Helvetica-Bold;
+            font-size: 1em;
+            color: var(--dark-color1,#000000);
+            line-height: 28px;
+            font-weight: 400;
+            margin-bottom: 16px;
+            grid-column: span 1;
+        }
+        .record-prompt{
+              opacity: 0.6;
+              font-family: Helvetica;
+              font-size: 14px;
+              text-align: center;
+              line-height: 35px;
+              font-weight: 400;
+        }
+        .interval-result{
+            margin: 5px 0 5px 5px;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            outline:0;
+            font-size:14px;
+            color:var(--dark-color,#6a6f77);
+            border: none;
+            text-align: center;
+            width: 90px;
+        }
         
         </style>
         <div class="root">
@@ -299,8 +523,29 @@ export class SpAllocations extends BaseElement {
             </div>
           </div>
           <div class="switchstyle">
-              <span class="inner-font-style" id="fp-unwind">Use Fp Unwind :</span> 
-              <lit-switch id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
+              <span class="inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
+              <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
+          </div>
+          <div class="switchstyle">
+              <span class="inner-font-style" id="record_accurately ">Use Record Accurately (Available on recent OpenHarmony 4.0)</span> 
+              <lit-switch   class="lts" id="use_record_accurately" title="record_accurately" checked="true"></lit-switch>
+          </div>
+          <div class="switchstyle">
+              <span class="inner-font-style" id="offline_symbolization">Use Offline Symbolization (Available on recent OpenHarmony 4.0)</span> 
+              <lit-switch   class="lts" id="use_offline_symbolization" title="offline_symbolization" checked="true"></lit-switch>
+          </div>
+            
+          <div class="switchstyle record-statistics-result" style="grid-row: 6; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
+            <div class="record-title">
+                <span class="record-mode">Use Record Statistics (Available on recent OpenHarmony 4.0)</span> 
+                <span class="record-prompt"> Time between following interval (0 = disabled) </span>
+            </div>
+            <lit-slider id="interval-slider" defaultColor="var(--dark-color3,#46B1E3)" open dir="right">
+            </lit-slider>
+            <div class='resultSize'>
+                <input class="interval-result" type="text" value='0' onkeyup="this.value=this.value.replace(/\\D/g,'')">
+                <span style="text-align: center; margin: 8px"> S </span>
+            </div>
           </div>
         </div>
         `;
@@ -309,10 +554,10 @@ export class SpAllocations extends BaseElement {
     private convertToValue(input: string, unit: string): number {
         let value: number;
         switch (unit) {
-            case "MB":
+            case 'MB':
                 value = Number(input) * 1024 * 1024;
                 break;
-            case "KB":
+            case 'KB':
                 value = Number(input) * 1024;
                 break;
             default:

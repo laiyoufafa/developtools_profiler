@@ -35,10 +35,10 @@ void HtraceDiskIOParser::Parse(DiskioData& tracePacket, uint64_t ts)
     if (!stat.statsinfo_size()) {
         return;
     }
-    double rdCountPerSec = 0;  // The amount of data read from the device per second kB_read/s
-    double wrCountPerSec = 0;  // The amount of data written to the device per second kB_wrtn/s
-    uint64_t rdCount = 0;  // Total amount of data read kB_read
-    uint64_t wrCount = 0;  // The total amount of data written kB_wrtn
+    double rdCountPerSec = 0; // The amount of data read from the device per second kB_read/s
+    double wrCountPerSec = 0; // The amount of data written to the device per second kB_wrtn/s
+    uint64_t rdCount = 0;     // Total amount of data read kB_read
+    uint64_t wrCount = 0;     // The total amount of data written kB_wrtn
     for (auto i = 0; i < stat.statsinfo_size(); i++) {
         auto statsInfo = stat.statsinfo(i);
         rdCountPerSec += statsInfo.rd_per_sec();
@@ -55,7 +55,11 @@ void HtraceDiskIOParser::Parse(DiskioData& tracePacket, uint64_t ts)
 void HtraceDiskIOParser::Finish()
 {
     auto cmp = [](const TsDiskIOData& a, const TsDiskIOData& b) { return a.ts < b.ts; };
+#ifdef IS_WASM
     std::sort(diskIOData_.begin(), diskIOData_.end(), cmp);
+#else
+    std::stable_sort(diskIOData_.begin(), diskIOData_.end(), cmp);
+#endif
     bool first = true;
     uint64_t lastTs = 0;
     for (auto itor = diskIOData_.begin(); itor != diskIOData_.end(); itor++) {

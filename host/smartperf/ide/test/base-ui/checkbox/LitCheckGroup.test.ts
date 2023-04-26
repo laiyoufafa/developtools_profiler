@@ -13,18 +13,15 @@
  * limitations under the License.
  */
 
-
 // @ts-ignore
-import {LitCheckGroup} from "../../../dist/base-ui/checkbox/LitCheckGroup.js";
+import { LitCheckGroup } from '../../../dist/base-ui/checkbox/LitCheckGroup.js';
 
-describe('LitCheckGroup Test', ()=>{
-
+describe('LitCheckGroup Test', () => {
     it('LitCheckGroupTest01', function () {
         let litCheckGroup = new LitCheckGroup();
-        expect(litCheckGroup).not.toBeUndefined()
-        expect(litCheckGroup).not.toBeNull()
+        expect(litCheckGroup).not.toBeUndefined();
+        expect(litCheckGroup).not.toBeNull();
     });
-
 
     it('LitCheckGroupTest02', function () {
         let litCheckGroup = new LitCheckGroup();
@@ -64,5 +61,4 @@ describe('LitCheckGroup Test', ()=>{
         <slot class=\\"check-group\\"></slot>"
 `);
     });
-
-})
+});

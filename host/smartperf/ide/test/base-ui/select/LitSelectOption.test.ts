@@ -14,32 +14,30 @@
  */
 
 // @ts-ignore
-import {LitSelectOption} from "../../../dist/base-ui/select/LitSelectOption.js";
+import { LitSelectOption } from '../../../dist/base-ui/select/LitSelectOption.js';
 
-describe('LitSelectOption Test', ()=> {
+describe('LitSelectOption Test', () => {
     it('LitSelectOptionTest01', function () {
-       document.body.innerHTML = "<lit-select-option id ='aa' disabled></lit-select-option>";
-       let inner =  document.querySelector("#aa") as LitSelectOption;
-       expect(inner).not.toBeUndefined()
+        document.body.innerHTML =
+            "<lit-select-option id ='aa' disabled></lit-select-option>";
+        let inner = document.querySelector('#aa') as LitSelectOption;
+        expect(inner).not.toBeUndefined();
     });
     it('LitSelectOptionTest03', function () {
-        expect(LitSelectOption.adoptedCallback).toBeUndefined()
-
+        expect(LitSelectOption.adoptedCallback).toBeUndefined();
     });
 
     it('LitSelectOptionTest04', function () {
-        expect(LitSelectOption.disconnectedCallback).toBeUndefined()
-
+        expect(LitSelectOption.disconnectedCallback).toBeUndefined();
     });
 
     it('LitSelectOptionTest05', function () {
-        expect(LitSelectOption.attributeChangedCallback).toBeUndefined()
-
+        expect(LitSelectOption.attributeChangedCallback).toBeUndefined();
     });
 
     it('LitSelectOption02', function () {
-       let litSelect = new LitSelectOption();
-       expect(litSelect.initHtml()).toMatchInlineSnapshot(`
+        let litSelect = new LitSelectOption();
+        expect(litSelect.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{ 
@@ -86,7 +84,7 @@ describe('LitSelectOption Test', ()=> {
             display: none;
         }
         </style>
-        <div style=\\"height: 16px;width: 16px\\" class=\\"selected-box\\">
+        <div class=\\"selected-box\\">
             <lit-icon class=\\"selected\\" name=\\"check\\"></lit-icon>
         </div>
         <slot></slot>

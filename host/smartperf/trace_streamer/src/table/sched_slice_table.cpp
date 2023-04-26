@@ -182,7 +182,7 @@ int SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                 FilterId(c.op, argv[i]);
                 break;
             case TS:
-                FilterTS(c.op, argv[i], schedSliceObj_.TimeStamData());
+                FilterTS(c.op, argv[i], schedSliceObj_.TimeStampData());
                 break;
             case CPU:
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), schedSliceObj_.CpusData());
@@ -230,7 +230,7 @@ int SchedSliceTable::Cursor::Column(int col) const
             sqlite3_result_text(context_, "sched_slice", STR_DEFAULT_LEN, nullptr);
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TimeStampData()[CurrentRow()]));
             break;
         case DUR:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.DursData()[CurrentRow()]));

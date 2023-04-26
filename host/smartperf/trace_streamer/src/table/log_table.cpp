@@ -55,7 +55,7 @@ int LogTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(logInfoObj_.HilogLineSeqs()[CurrentRow()]));
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(logInfoObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(logInfoObj_.TimeStampData()[CurrentRow()]));
             break;
         case PID: {
             sqlite3_result_int64(context_, static_cast<int64_t>(logInfoObj_.Pids()[CurrentRow()]));

@@ -21,7 +21,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, TID, PID, STATE };
+enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, TID, PID, STATE, ARGSETID };
 }
 ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -34,6 +34,7 @@ ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(
     tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("state", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("arg_setid", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -210,6 +211,10 @@ int ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
                                            std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i]))))),
                                        threadStateObj_.StatesData());
                 break;
+            case ARGSETID:
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                                       threadStateObj_.ArgSetsData());
+                break;
             default:
                 break;
         }
@@ -268,6 +273,11 @@ int ThreadStateTable::Cursor::Column(int col) const
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
+        case ARGSETID:
+            if (threadStateObj_.ArgSetsData()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.ArgSetsData()[CurrentRow()]));
+            }
+            break;
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;

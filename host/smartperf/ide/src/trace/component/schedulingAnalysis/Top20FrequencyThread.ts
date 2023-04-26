@@ -13,126 +13,258 @@
  * limitations under the License.
  */
 
-
-import {BaseElement, element} from "../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../base-ui/table/lit-table.js";
-import {procedurePool} from "../../database/Procedure.js";
-import {info} from "../../../log/Log.js";
-import '../../../base-ui/chart/pie/LitChartPie.js'
-import {LitChartPie} from "../../../base-ui/chart/pie/LitChartPie.js";
-import {LitSelect} from "../../../base-ui/select/LitSelect.js";
-import {queryThreads} from "../../database/SqlLite.js";
-import {LitSelectOption} from "../../../base-ui/select/LitSelectOption.js";
-import "../../../base-ui/progress-bar/LitProgressBar.js"
-import {LitProgressBar} from "../../../base-ui/progress-bar/LitProgressBar.js";
-import "./TableNoData.js"
-import {TableNoData} from "./TableNoData.js";
+import { BaseElement, element } from '../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../base-ui/table/lit-table.js';
+import { procedurePool } from '../../database/Procedure.js';
+import { info } from '../../../log/Log.js';
+import '../../../base-ui/chart/pie/LitChartPie.js';
+import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie.js';
+import { LitSelect } from '../../../base-ui/select/LitSelect.js';
+import { queryThreads } from '../../database/SqlLite.js';
+import { LitSelectOption } from '../../../base-ui/select/LitSelectOption.js';
+import '../../../base-ui/progress-bar/LitProgressBar.js';
+import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
+import './TableNoData.js';
+import { TableNoData } from './TableNoData.js';
+import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 
 @element('top20-frequency-thread')
 export class Top20FrequencyThread extends BaseElement {
-
-    static threads:{id:number,tid:number,name:string}[] | undefined
-    traceChange:boolean = false;
-    private table:LitTable | null | undefined
-    private threadSelect:LitSelect | null | undefined
-    private pie:LitChartPie | null | undefined
-    private currentThread:HTMLDivElement | null | undefined
-    private progress:LitProgressBar | null | undefined;
-    private nodata:TableNoData | null | undefined;
-    private currentTid:number = 0;
+    static threads: { id: number; tid: number; name: string }[] | undefined;
+    traceChange: boolean = false;
+    private table: LitTable | null | undefined;
+    private threadSelect: LitSelect | null | undefined;
+    private pie: LitChartPie | null | undefined;
+    private currentThread: HTMLDivElement | null | undefined;
+    private progress: LitProgressBar | null | undefined;
+    private nodata: TableNoData | null | undefined;
+    private currentTid: number = 0;
+    private data: Array<any> = [];
+    private sortColumn: string = '';
+    private sortType: number = 0;
 
     initElements(): void {
-        this.nodata = this.shadowRoot!.querySelector<TableNoData>("#nodata")
-        this.progress = this.shadowRoot!.querySelector<LitProgressBar>("#loading")
-        this.table = this.shadowRoot!.querySelector<LitTable>("#tb-process-thread-count")
-        this.currentThread = this.shadowRoot!.querySelector<HTMLDivElement>("#current_thread")
-        this.threadSelect = this.shadowRoot!.querySelector<LitSelect>("#thread_select")
-        this.pie = this.shadowRoot!.querySelector<LitChartPie>("#pie")
+        this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
+        this.progress =
+            this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+        this.table = this.shadowRoot!.querySelector<LitTable>(
+            '#tb-process-thread-count'
+        );
+        this.currentThread =
+            this.shadowRoot!.querySelector<HTMLDivElement>('#current_thread');
+        this.threadSelect =
+            this.shadowRoot!.querySelector<LitSelect>('#thread_select');
+        this.pie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-        this.threadSelect!.onchange = (e)=>{
+        this.threadSelect!.onchange = (e) => {
             this.currentThread!.textContent = (e as any).detail.text;
             this.currentTid = parseInt((e as any).detail.value);
-            this.progress!.loading = true
+            this.progress!.loading = true;
             this.queryData();
-        }
+        };
+
+        this.table!.addEventListener('row-click', (evt: any) => {
+            let data = evt.detail.data;
+            data.isSelected = true;
+            if ((evt.detail as any).callBack) {
+                (evt.detail as any).callBack(true);
+            }
+        });
+
+        this.table!.addEventListener('column-click', (evt: any) => {
+            this.sortColumn = evt.detail.key;
+            this.sortType = evt.detail.sort;
+            // @ts-ignore
+            this.sortByColumn(evt.detail);
+        });
+        this.table!.addEventListener('row-hover', (evt: any) => {
+            if (evt.detail.data) {
+                let data = evt.detail.data;
+                data.isHover = true;
+                if ((evt.detail as any).callBack) {
+                    (evt.detail as any).callBack(true);
+                }
+            }
+            this.pie?.showHover();
+        });
     }
 
-    async init(){
-        if(!this.traceChange){
-            if(this.table!.recycleDataSource.length > 0){
+    sortByColumn(detail: any) {
+        // @ts-ignore
+        function compare(property, sort, type) {
+            return function (a: any, b: any) {
+                if (type === 'number') {
+                    // @ts-ignore
+                    return sort === 2
+                        ? parseFloat(b[property]) - parseFloat(a[property])
+                        : parseFloat(a[property]) - parseFloat(b[property]);
+                } else {
+                    if (sort === 2) {
+                        return b[property]
+                            .toString()
+                            .localeCompare(a[property].toString());
+                    } else {
+                        return a[property]
+                            .toString()
+                            .localeCompare(b[property].toString());
+                    }
+                }
+            };
+        }
+
+        if (detail.key === 'timeStr') {
+            detail.key = 'time';
+            this.data.sort(compare(detail.key, detail.sort, 'number'));
+        } else if (
+            detail.key === 'no' ||
+            detail.key === 'cpu' ||
+            detail.key === 'freq' ||
+            detail.key === 'ratio'
+        ) {
+            this.data.sort(compare(detail.key, detail.sort, 'number'));
+        } else {
+            this.data.sort(compare(detail.key, detail.sort, 'string'));
+        }
+        this.table!.recycleDataSource = this.data;
+    }
+
+    async init() {
+        if (!this.traceChange) {
+            if (this.table!.recycleDataSource.length > 0) {
                 this.table?.reMeauseHeight();
             }
             return;
         }
         this.traceChange = false;
-        this.progress!.loading = true
-        if(Top20FrequencyThread.threads === undefined){
-            Top20FrequencyThread.threads = await queryThreads() || []
-            this.nodata!.noData = Top20FrequencyThread.threads === undefined || Top20FrequencyThread.threads.length === 0;
+        this.progress!.loading = true;
+        if (Top20FrequencyThread.threads === undefined) {
+            Top20FrequencyThread.threads = (await queryThreads()) || [];
+            this.nodata!.noData =
+                Top20FrequencyThread.threads === undefined ||
+                Top20FrequencyThread.threads.length === 0;
             this.threadSelect!.innerHTML = '';
-            let threads = Top20FrequencyThread.threads.map(it => {
+            let threads = Top20FrequencyThread.threads.map((it) => {
                 let option = new LitSelectOption();
-                option.setAttribute("value",it.tid+"")
-                option.textContent = it.name
-                return option
-            })
-            this.threadSelect!.append(...threads)
-            this.threadSelect?.initOptions()
-            this.threadSelect!.value = Top20FrequencyThread.threads[0].tid+""
-            this.currentThread!.textContent = Top20FrequencyThread.threads[0].name;
+                option.setAttribute('value', it.tid + '');
+                option.textContent = it.name;
+                return option;
+            });
+            this.threadSelect!.append(...threads);
+            this.threadSelect?.initOptions();
+            this.threadSelect!.value = Top20FrequencyThread.threads[0].tid + '';
+            this.currentThread!.textContent =
+                Top20FrequencyThread.threads[0].name;
             this.currentTid = Top20FrequencyThread.threads[0].tid;
-            this.queryData()
+            this.queryData();
         }
     }
 
-    queryData(){
-        this.queryLogicWorker("scheduling-Thread Freq","query Thread Top 20 Frequency Time:",(res)=>{
-            this.nodata!.noData = Top20FrequencyThread.threads === undefined || Top20FrequencyThread.threads.length === 0 || res === undefined || res.length === 0;
-            (res as any[]).map((it:any,index:number)=> {
-                it.no = index + 1
-            })
-            this.table!.recycleDataSource = res;
-            this.table!.reMeauseHeight()
-            this.pie!.config = {
-                appendPadding: 10,
-                data:res,
-                angleField: 'time',
-                colorField: 'freq',
-                radius: 0.8,
-                label: {
-                    type: 'outer',
-                },
-                tip:(obj)=>{
-                    return `<div>
+    queryData() {
+        this.queryLogicWorker(
+            'scheduling-Thread Freq',
+            'query Thread Top 20 Frequency Time:',
+            (res) => {
+                this.nodata!.noData =
+                    Top20FrequencyThread.threads === undefined ||
+                    Top20FrequencyThread.threads.length === 0 ||
+                    res === undefined ||
+                    res.length === 0;
+                (res as any[]).map((it: any, index: number) => {
+                    it.no = index + 1;
+                });
+                this.data = res;
+                if (this.sortColumn != '') {
+                    this.sortByColumn({
+                        key: this.sortColumn,
+                        sort: this.sortType,
+                    });
+                } else {
+                    this.table!.recycleDataSource = res;
+                }
+                this.table!.reMeauseHeight();
+                this.pie!.config = {
+                    appendPadding: 10,
+                    data: this.getPieChartData(res),
+                    angleField: 'time',
+                    colorField: 'freq',
+                    radius: 0.8,
+                    label: {
+                        type: 'outer',
+                    },
+                    tip: (obj) => {
+                        return `<div>
                              <div>freq:${obj.obj.freq}</div> 
                              <div>cpu:${obj.obj.cpu}</div> 
                              <div>time:${obj.obj.timeStr}</div> 
                              <div>ratio:${obj.obj.ratio}%</div>
                         </div>
                 `;
-                },
-                interactions: [
-                    {
-                        type: 'element-active',
                     },
-                ],
+                    hoverHandler: (data) => {
+                        if (data) {
+                            this.table!.setCurrentHover(data);
+                        } else {
+                            this.table!.mouseOut();
+                        }
+                    },
+                    interactions: [
+                        {
+                            type: 'element-active',
+                        },
+                    ],
+                };
+                this.progress!.loading = false;
+                this.shadowRoot!.querySelector('#tb_container')!.scrollTop = 0;
             }
-            this.progress!.loading = false
-        })
+        );
     }
 
-    clearData(){
+    getPieChartData(res: any[]) {
+        if (res.length > 20) {
+            let pieChartArr: any[] = [];
+            let other: any = {
+                cpu: '-',
+                freq: 'other',
+                time: 0,
+                ratio: '0',
+                totalDur: 0,
+            };
+            for (let i = 0; i < res.length; i++) {
+                if (i < 19) {
+                    pieChartArr.push(res[i]);
+                } else {
+                    other.time += res[i].time;
+                    other.timeStr = getProbablyTime(other.time);
+                    other.totalDur = res[i].totalDur;
+                    other.ratio = ((other.time / other.totalDur) * 100).toFixed(
+                        2
+                    );
+                }
+            }
+            pieChartArr.push(other);
+            return pieChartArr;
+        }
+        return res;
+    }
+
+    clearData() {
         this.traceChange = true;
-        this.threadSelect!.innerHTML = ''
-        this.pie!.dataSource = []
-        this.table!.recycleDataSource = []
+        this.threadSelect!.innerHTML = '';
+        this.pie!.dataSource = [];
+        this.table!.recycleDataSource = [];
     }
 
-    queryLogicWorker(option:string,log:string,handler:(res:any) => void){
+    queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
         let time = new Date().getTime();
-        procedurePool.submitWithName("logic1", option, {tid:this.currentTid}, undefined, handler)
+        procedurePool.submitWithName(
+            'logic1',
+            option,
+            { tid: this.currentTid },
+            undefined,
+            handler
+        );
         let durTime = new Date().getTime() - time;
-        info(log, durTime)
+        info(log, durTime);
     }
 
     initHtml(): string {
@@ -144,8 +276,7 @@ export class Top20FrequencyThread extends BaseElement {
             background-color: var(--dark-background5,#F6F6F6);
         }
         .tb_thread_count{
-            width: calc(100% - 50px);
-            overflow: auto ;
+            width: calc(100% - 100px);
             border-radius: 5px;
             border: solid 1px var(--dark-border1,#e0e0e0);
             margin: 15px;
@@ -178,15 +309,15 @@ export class Top20FrequencyThread extends BaseElement {
                 <div>Statistics By Duration</div>
                 <lit-chart-pie id="pie" class="pie-chart"></lit-chart-pie>
             </div>
-            <div style="flex: 1;display: flex;flex-direction: column;align-items: center;padding-top: 15px">
-                <div id="current_thread" style="font-weight: bold"></div>
-                <div class="tb_thread_count">
-                    <lit-table id="tb-process-thread-count" style="height: auto">
-                        <lit-table-column width="1fr" title="NO" data-index="no" key="no" align="flex-start"></lit-table-column>
-                        <lit-table-column width="1fr" title="cpu" data-index="cpu" key="cpu" align="flex-start"></lit-table-column>
-                        <lit-table-column width="1fr" title="frequency" data-index="freq" key="freq" align="flex-start"></lit-table-column>
-                        <lit-table-column width="1fr" title="duration" data-index="timeStr" key="timeStr" align="flex-start"></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="ratio" key="ratio" align="flex-start"></lit-table-column>        
+            <div style="flex: 1;display: flex;flex-direction: column;align-items: center;padding-top: 15px;height: 60vh">
+                <div id="current_thread" style="font-weight: bold;height: 40px"></div>
+                <div id="tb_container" class="tb_thread_count">
+                    <lit-table id="tb-process-thread-count" hideDownload style="height: calc(60vh - 60px)">
+                        <lit-table-column width="1fr" title="NO" data-index="no" key="no" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="1fr" title="cpu" data-index="cpu" key="cpu" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="1fr" title="frequency" data-index="freq" key="freq" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="1fr" title="duration" data-index="timeStr" key="timeStr" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="1fr" title="%" data-index="ratio" key="ratio" align="flex-start" order></lit-table-column>        
                     </lit-table>
                 </div>
             </div>

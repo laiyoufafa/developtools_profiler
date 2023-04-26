@@ -14,41 +14,49 @@
  */
 
 // @ts-ignore
-import {SpInfoAndStats} from "../../../dist/trace/component/SpInfoAndStas.js"
+import { SpInfoAndStats } from '../../../dist/trace/component/SpInfoAndStas.js';
 
-describe('SpInfoAndStasTest', ()=> {
-    document.body.innerHTML = `<sp-info-and-stats id="ddd"></sp-info-and-stats>`
-    let spInfoAndStats = document.querySelector('#ddd') as SpInfoAndStats
+describe('SpInfoAndStasTest', () => {
+    document.body.innerHTML = `<sp-info-and-stats id="ddd"></sp-info-and-stats>`;
+    let spInfoAndStats = document.querySelector('#ddd') as SpInfoAndStats;
     it('SpInfoAndStasTest01', function () {
-        let spInfoAndStats =new SpInfoAndStats();
-        expect(spInfoAndStats.initElements()).toBeUndefined()
+        let spInfoAndStats = new SpInfoAndStats();
+        expect(spInfoAndStats.initElements()).toBeUndefined();
     });
 
     it('SpInfoAndStasTest03', function () {
-        spInfoAndStats.initMetricItemData = jest.fn(()=>true)
-        expect(spInfoAndStats.initMetricItemData()).toBeTruthy()
+        spInfoAndStats.initMetricItemData = jest.fn(() => true);
+        expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
     });
 
     it('SpInfoAndStasTest04', function () {
-        let spInfoAndStats =new SpInfoAndStats();
-        expect(spInfoAndStats.initDataTableStyle({children:
-                [{length:1,style:{backgroundColor:'var(--dark-background5,#F6F6F6)'}}]
-        })).toBeUndefined()
+        let spInfoAndStats = new SpInfoAndStats();
+        expect(
+            spInfoAndStats.initDataTableStyle({
+                children: [
+                    {
+                        length: 1,
+                        style: {
+                            backgroundColor: 'var(--dark-background5,#F6F6F6)',
+                        },
+                    },
+                ],
+            })
+        ).toBeUndefined();
     });
 
     it('SpInfoAndStasTest06 ', function () {
-        expect(spInfoAndStats.connectedCallback()).toBeUndefined()
-
+        expect(spInfoAndStats.connectedCallback()).toBeUndefined();
     });
 
     it('SpInfoAndStasTest07 ', function () {
-        expect(spInfoAndStats.disconnectedCallback()).toBeUndefined()
-
+        expect(spInfoAndStats.disconnectedCallback()).toBeUndefined();
     });
 
     it('SpInfoAndStasTest08 ', function () {
-        expect(spInfoAndStats.attributeChangedCallback([],[],[])).toBeUndefined()
-
+        expect(
+            spInfoAndStats.attributeChangedCallback([], [], [])
+        ).toBeUndefined();
     });
 
     it('SpInfoAndStasTest05', function () {
@@ -186,7 +194,4 @@ describe('SpInfoAndStasTest', ()=> {
     it('SpInfoAndStasTest9', function () {
         expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
     });
-
-
-
-})
+});

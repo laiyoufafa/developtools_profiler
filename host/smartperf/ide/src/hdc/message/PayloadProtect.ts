@@ -13,15 +13,21 @@
  * limitations under the License.
  */
 
-import {BaseBean} from "./BaseBean.js";
+import { BaseBean } from './BaseBean.js';
 
-export class PayloadProtect extends Object implements BaseBean{  // reserve for encrypt and decrypt
+export class PayloadProtect extends Object implements BaseBean {
+    // reserve for encrypt and decrypt
     private _channelId: number; //uint32_t
     private _commandFlag: number; //uint32_t
-    private _checkSum: number;// uint8_t enable it will be lose about 20% speed
+    private _checkSum: number; // uint8_t enable it will be lose about 20% speed
     private _vCode: number; //uint8_t
 
-    constructor(channelId: number, commandFlag: number, checkSum: number, vCode: number) {
+    constructor(
+        channelId: number,
+        commandFlag: number,
+        checkSum: number,
+        vCode: number
+    ) {
         super();
         this._channelId = channelId;
         this._commandFlag = commandFlag;
@@ -66,9 +72,15 @@ export class PayloadProtect extends Object implements BaseBean{  // reserve for 
     }
 
     toString(): string {
-        return "channelId: " + this._channelId
-            + " commandFlag: " + this._commandFlag
-            + " checkSum: " + this._checkSum
-            + " vCode: " + this._vCode;
+        return (
+            'channelId: ' +
+            this._channelId +
+            ' commandFlag: ' +
+            this._commandFlag +
+            ' checkSum: ' +
+            this._checkSum +
+            ' vCode: ' +
+            this._vCode
+        );
     }
 }

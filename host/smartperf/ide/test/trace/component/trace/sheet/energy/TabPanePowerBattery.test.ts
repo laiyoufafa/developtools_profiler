@@ -14,40 +14,45 @@
  */
 
 // @ts-ignore
-import {TabPanePowerBattery} from "../../../../../../dist/trace/component/trace/sheet/energy/TabPanePowerBattery.js"
-import "../../../../../../dist/trace/component/trace/sheet/energy/TabPanePowerBattery.js"
+import { TabPanePowerBattery } from '../../../../../../dist/trace/component/trace/sheet/energy/TabPanePowerBattery.js';
+import '../../../../../../dist/trace/component/trace/sheet/energy/TabPanePowerBattery.js';
 // @ts-ignore
-import {LitTable} from "../../../../../../dist/base-ui/table/lit-table.js";
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 describe('TabPanePowerBattery Test', () => {
     it('TabPanePowerBatteryTest01', function () {
-        document.body.innerHTML= `<lit-table id="tb-power-battery-energy"></lit-table>`
-        let litTable = document.querySelector("#tb-power-battery-energy") as LitTable
+        document.body.innerHTML = `<lit-table id="tb-power-battery-energy"></lit-table>`;
+        let litTable = document.querySelector(
+            '#tb-power-battery-energy'
+        ) as LitTable;
         let tabPanePowerBattery = new TabPanePowerBattery();
-        tabPanePowerBattery.tbl = jest.fn(() => litTable)
+        tabPanePowerBattery.tbl = jest.fn(() => litTable);
         let MockPowerBatteryData = sqlit.getTabPowerBatteryData;
         let battery = [
             {
                 ts: 1000,
-                eventName: "POWER_IDE_BATTERY",
-                appKey: "appname",
-                eventValue: "POWER_IDE,POWER_IDE,POWER_IDE,POWER_IDE"
-            }, {
+                eventName: 'POWER_IDE_BATTERY',
+                appKey: 'appname',
+                eventValue: 'POWER_IDE,POWER_IDE,POWER_IDE,POWER_IDE',
+            },
+            {
                 ts: 1000,
-                eventName: "POWER_IDE_BATTERY",
-                appKey: "appname",
-                eventValue: "POWER_IDE,POWER_IDE,POWER_IDE,POWER_IDE"
-            }]
-        MockPowerBatteryData.mockResolvedValue(battery)
+                eventName: 'POWER_IDE_BATTERY',
+                appKey: 'appname',
+                eventValue: 'POWER_IDE,POWER_IDE,POWER_IDE,POWER_IDE',
+            },
+        ];
+        MockPowerBatteryData.mockResolvedValue(battery);
         let tabPanePowerBatteryData = {
             cpus: [],
             threadIds: [],
@@ -70,12 +75,13 @@ describe('TabPanePowerBattery Test', () => {
             perfAll: false,
             systemEnergy: [0, 1, 2],
             powerEnergy: [0, 1, 2],
-            anomalyEnergy: [0, 1, 2]
-        }
-        tabPanePowerBattery.tbl.recycleDataSource = jest.fn(() => tabPanePowerBatteryData)
-        tabPanePowerBattery.data = tabPanePowerBatteryData
-    })
-
+            anomalyEnergy: [0, 1, 2],
+        };
+        tabPanePowerBattery.tbl.recycleDataSource = jest.fn(
+            () => tabPanePowerBatteryData
+        );
+        tabPanePowerBattery.data = tabPanePowerBatteryData;
+    });
 
     it('TabPanePowerBatteryTest02', function () {
         let tabPanePowerBattery = new TabPanePowerBattery();
@@ -129,4 +135,4 @@ describe('TabPanePowerBattery Test', () => {
         "
 `);
     });
-})
+});

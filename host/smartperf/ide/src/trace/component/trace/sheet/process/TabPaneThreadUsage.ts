@@ -13,21 +13,24 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionData, SelectionParam} from "../../../../bean/BoxSelection.js";
-import "../../../StackBar.js"
-import { getTabThreadStatesCpu} from "../../../../database/SqlLite.js";
-import {StackBar} from "../../../StackBar.js";
-import {log} from "../../../../../log/Log.js";
-import {getProbablyTime} from "../../../../database/logic-worker/ProcedureLogicWorkerCommon.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import {
+    SelectionData,
+    SelectionParam,
+} from '../../../../bean/BoxSelection.js';
+import '../../../StackBar.js';
+import { getTabThreadStatesCpu } from '../../../../database/SqlLite.js';
+import { StackBar } from '../../../StackBar.js';
+import { log } from '../../../../../log/Log.js';
+import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 
 @element('tabpane-thread-usage')
 export class TabPaneThreadUsage extends BaseElement {
     private tbl: LitTable | null | undefined;
     private range: HTMLLabelElement | null | undefined;
     private stackBar: StackBar | null | undefined;
-    private source: Array<SelectionData> = []
+    private source: Array<SelectionData> = [];
     private cpuCount = 0;
     private pubColumns = `
             <lit-table-column width="200px" title="Process" data-index="process" key="process"  align="flex-start" order>
@@ -40,77 +43,98 @@ export class TabPaneThreadUsage extends BaseElement {
             </lit-table-column>
             <lit-table-column width="160px" title="Wall duration" data-index="wallDurationTimeStr" key="wallDurationTimeStr"  align="flex-start" order >
             </lit-table-column>
-    `
+    `;
 
     set data(val: SelectionParam | any) {
-        if(this.cpuCount !== (window as any).cpuCount){
-            this.cpuCount = (window as any).cpuCount
-            this.tbl!.innerHTML = this.getTableColumns()
+        if (this.cpuCount !== (window as any).cpuCount) {
+            this.cpuCount = (window as any).cpuCount;
+            this.tbl!.innerHTML = this.getTableColumns();
         }
         //@ts-ignore
-        this.tbl?.shadowRoot?.querySelector(".table")?.style?.height = (this.parentElement!.clientHeight - 45) + "px";
+        this.tbl?.shadowRoot?.querySelector('.table')?.style?.height =
+            this.parentElement!.clientHeight - 45 + 'px';
         // // @ts-ignore
-        this.range!.textContent = "Selected range: " + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + " ms"
-        getTabThreadStatesCpu(val.threadIds, val.leftNs, val.rightNs).then((result) => {
-            if (result != null && result.length > 0) {
-                log("getTabThreadStates result size : " + result.length)
-                let map:Map<number,any> = new Map<number, any>();
-                for (let e of result) {
-                    if(map.has(e.tid)){
-                        map.get(e.tid)[`cpu${e.cpu}`] = e.wallDuration || 0
-                        map.get(e.tid)[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0)
-                        map.get(e.tid)[`cpu${e.cpu}Ratio`] = ((e.wallDuration || 0) / (val.rightNs - val.leftNs)).toFixed(2)
-                        map.get(e.tid)[`wallDuration`] = map.get(e.tid)[`wallDuration`] + (e.wallDuration || 0)
-                        map.get(e.tid)[`wallDurationTimeStr`] = getProbablyTime(map.get(e.tid)[`wallDuration`])
-                    }else{
-                        let obj:any = {
-                            tid:e.tid,
-                            pid:e.pid,
-                            thread:e.thread,
-                            process:e.process,
-                            wallDuration:e.wallDuration || 0,
-                            wallDurationTimeStr:getProbablyTime(e.wallDuration||0)
+        this.range!.textContent =
+            'Selected range: ' +
+            ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) +
+            ' ms';
+        getTabThreadStatesCpu(val.threadIds, val.leftNs, val.rightNs).then(
+            (result) => {
+                if (result != null && result.length > 0) {
+                    log('getTabThreadStates result size : ' + result.length);
+                    let map: Map<number, any> = new Map<number, any>();
+                    for (let e of result) {
+                        if (map.has(e.tid)) {
+                            map.get(e.tid)[`cpu${e.cpu}`] = e.wallDuration || 0;
+                            map.get(e.tid)[`cpu${e.cpu}TimeStr`] =
+                                getProbablyTime(e.wallDuration || 0);
+                            map.get(e.tid)[`cpu${e.cpu}Ratio`] = (
+                                (100.0 * (e.wallDuration || 0)) /
+                                (val.rightNs - val.leftNs)
+                            ).toFixed(2);
+                            map.get(e.tid)[`wallDuration`] =
+                                map.get(e.tid)[`wallDuration`] +
+                                (e.wallDuration || 0);
+                            map.get(e.tid)[`wallDurationTimeStr`] =
+                                getProbablyTime(map.get(e.tid)[`wallDuration`]);
+                        } else {
+                            let obj: any = {
+                                tid: e.tid,
+                                pid: e.pid,
+                                thread: e.thread,
+                                process: e.process,
+                                wallDuration: e.wallDuration || 0,
+                                wallDurationTimeStr: getProbablyTime(
+                                    e.wallDuration || 0
+                                ),
+                            };
+                            for (let i = 0; i < this.cpuCount; i++) {
+                                obj[`cpu${i}`] = 0;
+                                obj[`cpu${i}TimeStr`] = '0';
+                                obj[`cpu${i}Ratio`] = '0';
+                            }
+                            obj[`cpu${e.cpu}`] = e.wallDuration || 0;
+                            obj[`cpu${e.cpu}TimeStr`] = getProbablyTime(
+                                e.wallDuration || 0
+                            );
+                            obj[`cpu${e.cpu}Ratio`] = (
+                                (100.0 * (e.wallDuration || 0)) /
+                                (val.rightNs - val.leftNs)
+                            ).toFixed(2);
+                            map.set(e.tid, obj);
                         }
-                        for (let i = 0; i < this.cpuCount; i++) {
-                            obj[`cpu${i}`] = 0
-                            obj[`cpu${i}TimeStr`] = '0'
-                            obj[`cpu${i}Ratio`] = '0'
-                        }
-                        obj[`cpu${e.cpu}`] = e.wallDuration || 0
-                        obj[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0)
-                        obj[`cpu${e.cpu}Ratio`] = (100.0 * (e.wallDuration || 0) / (val.rightNs - val.leftNs)).toFixed(2)
-                        map.set(e.tid,obj)
                     }
+                    this.source = Array.from(map.values());
+                    this.tbl!.recycleDataSource = this.source;
+                } else {
+                    this.source = [];
+                    this.tbl!.recycleDataSource = [];
                 }
-                this.source = Array.from(map.values());
-                this.tbl!.recycleDataSource = this.source
-            } else {
-                this.source = []
-                this.tbl!.recycleDataSource = []
             }
-        })
+        );
     }
 
-    getTableColumns(){
-        let col = `${this.pubColumns}`
+    getTableColumns() {
+        let col = `${this.pubColumns}`;
         let cpuCount = (window as any).cpuCount;
-        for (let i=0;i < cpuCount;i++) {
+        for (let i = 0; i < cpuCount; i++) {
             col = `${col}
             <lit-table-column width="100px" title="cpu${i}" data-index="cpu${i}TimeStr" key="cpu${i}TimeStr"  align="flex-start" order>
             </lit-table-column>
             <lit-table-column width="100px" title="%" data-index="cpu${i}Ratio" key="cpu${i}Ratio"  align="flex-start" order>
             </lit-table-column>
-            `
+            `;
         }
         return col;
     }
 
     initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
+        this.tbl =
+            this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
         this.range = this.shadowRoot?.querySelector('#time-range');
         this.stackBar = this.shadowRoot?.querySelector('#stack-bar');
         this.tbl!.addEventListener('column-click', (evt: any) => {
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -119,10 +143,10 @@ export class TabPaneThreadUsage extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
-        }).observe(this.parentElement!)
+        }).observe(this.parentElement!);
     }
 
     initHtml(): string {
@@ -147,11 +171,13 @@ export class TabPaneThreadUsage extends BaseElement {
     sortByColumn(detail: any) {
         function compare(property: any, sort: any, type: any) {
             return function (a: SelectionData | any, b: SelectionData | any) {
-                if (a.process == " " || b.process == " ") {
+                if (a.process == ' ' || b.process == ' ') {
                     return 0;
                 }
                 if (type === 'number') {
-                    return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+                    return sort === 2
+                        ? parseFloat(b[property]) - parseFloat(a[property])
+                        : parseFloat(a[property]) - parseFloat(b[property]);
                 } else {
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
@@ -161,15 +187,24 @@ export class TabPaneThreadUsage extends BaseElement {
                         return sort === 2 ? -1 : 1;
                     }
                 }
-            }
+            };
         }
 
-        if (detail.key === "process" || detail.key === "thread" || (detail.key as string).includes("Ratio")) {
-            this.source.sort(compare(detail.key, detail.sort, 'string'))
+        if (
+            detail.key === 'process' ||
+            detail.key === 'thread' ||
+            (detail.key as string).includes('Ratio')
+        ) {
+            this.source.sort(compare(detail.key, detail.sort, 'string'));
         } else {
-            this.source.sort(compare((detail.key as string).replace("TimeStr",""), detail.sort, 'number'))
+            this.source.sort(
+                compare(
+                    (detail.key as string).replace('TimeStr', ''),
+                    detail.sort,
+                    'number'
+                )
+            );
         }
         this.tbl!.recycleDataSource = this.source;
     }
-
 }

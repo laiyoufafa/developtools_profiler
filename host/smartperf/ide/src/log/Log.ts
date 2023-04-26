@@ -20,7 +20,7 @@ export enum LogLevel {
     INFO = 2000,
     DEBUG = 1000,
     TRACE = 500,
-    ALL = Number.MIN_VALUE
+    ALL = Number.MIN_VALUE,
 }
 
 export const error = (message?: any, ...optionalParams: any[]) => {
@@ -39,8 +39,8 @@ export const trace = (message?: any, ...optionalParams: any[]) => {
     SpLog.logger(LogLevel.TRACE, message, ...optionalParams);
 };
 export const log = (message?: any) => {
-    SpLog.logger(LogLevel.TRACE, message)
-}
+    SpLog.logger(LogLevel.TRACE, message);
+};
 
 class SpLog {
     private static nowLogLevel: LogLevel = LogLevel.OFF;
@@ -53,29 +53,31 @@ class SpLog {
         SpLog.nowLogLevel = logLevel;
     }
 
-    public static logger(logLevel: LogLevel, message?: any, ...optionalParams: any[]) {
+    public static logger(
+        logLevel: LogLevel,
+        message?: any,
+        ...optionalParams: any[]
+    ) {
         if (logLevel >= SpLog.nowLogLevel) {
             switch (logLevel) {
                 case LogLevel.ERROR:
-                    console.error(message, ...optionalParams)
-                    break
+                    console.error(message, ...optionalParams);
+                    break;
                 case LogLevel.WARN:
-                    console.warn(message, ...optionalParams)
-                    break
+                    console.warn(message, ...optionalParams);
+                    break;
                 case LogLevel.INFO:
-                    console.info(message, ...optionalParams)
-                    break
+                    console.info(message, ...optionalParams);
+                    break;
                 case LogLevel.DEBUG:
-                    console.debug(message, ...optionalParams)
-                    break
+                    console.debug(message, ...optionalParams);
+                    break;
                 case LogLevel.TRACE:
-                    console.trace(message, ...optionalParams)
-                    break
+                    console.trace(message, ...optionalParams);
+                    break;
                 default:
-                    console.log(message)
+                    console.log(message);
             }
         }
     }
 }
-
-

@@ -13,49 +13,46 @@
  * limitations under the License.
  */
 
-
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-switch')
 export default class LitSwitch extends BaseElement {
-    private switch: HTMLInputElement | null | undefined
-    private isfocus: boolean | undefined
+    private switch: HTMLInputElement | null | undefined;
+    private isfocus: boolean | undefined;
 
     static get observedAttributes() {
-        return ['disabled', 'checked']
+        return ['disabled', 'checked'];
     }
 
     get disabled() {
-        return this.getAttribute("disabled") !== null;
+        return this.getAttribute('disabled') !== null;
     }
 
     set disabled(value) {
         if (value === null || value === false) {
-            this.removeAttribute("disabled");
+            this.removeAttribute('disabled');
         } else {
-            this.setAttribute("disabled", "");
+            this.setAttribute('disabled', '');
         }
     }
 
     get checked() {
-        return this.getAttribute("checked") !== null;
+        return this.getAttribute('checked') !== null;
     }
 
     set checked(value) {
         if (value === null || value === false) {
-            this.removeAttribute("checked");
+            this.removeAttribute('checked');
         } else {
-            this.setAttribute("checked", "");
+            this.setAttribute('checked', '');
         }
     }
 
     get name() {
-        return this.getAttribute("name");
+        return this.getAttribute('name');
     }
 
-    initElements(): void {
-
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `
@@ -130,49 +127,65 @@ export default class LitSwitch extends BaseElement {
     }
 
     connectedCallback() {
-        this.switch = this.shadowRoot?.getElementById("switch") as HTMLInputElement;
+        this.switch = this.shadowRoot?.getElementById(
+            'switch'
+        ) as HTMLInputElement;
         this.disabled = this.disabled;
         this.checked = this.checked;
         this.switch!.onchange = (ev) => {
             this.checked = this.switch!.checked;
-            this.dispatchEvent(new CustomEvent("change", {detail: {checked: this.checked}}));
-        }
+            this.dispatchEvent(
+                new CustomEvent('change', { detail: { checked: this.checked } })
+            );
+        };
         this.switch.onkeydown = (ev) => {
             switch (ev.keyCode) {
-                case 13://enter
+                case 13: //enter
                     this.checked = !this.checked;
-                    this.dispatchEvent(new CustomEvent("change", {detail: {checked: this.checked}}));
+                    this.dispatchEvent(
+                        new CustomEvent('change', {
+                            detail: { checked: this.checked },
+                        })
+                    );
                     break;
                 default:
                     break;
             }
-        }
+        };
         this.switch.onfocus = (ev) => {
             ev.stopPropagation();
             if (!this.isfocus) {
-                this.dispatchEvent(new CustomEvent("focus", {detail: {value: this.switch!.value}}))
+                this.dispatchEvent(
+                    new CustomEvent('focus', {
+                        detail: { value: this.switch!.value },
+                    })
+                );
             }
-        }
-        this.switch.onblur = ev => {
+        };
+        this.switch.onblur = (ev) => {
             ev.stopPropagation();
             if (getComputedStyle(this.switch!).zIndex == '2') {
                 this.isfocus = true;
             } else {
                 this.isfocus = false;
-                this.dispatchEvent(new CustomEvent("blur", {detail: {value: this.switch!.value}}));
+                this.dispatchEvent(
+                    new CustomEvent('blur', {
+                        detail: { value: this.switch!.value },
+                    })
+                );
             }
-        }
+        };
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name === "disabled" && this.switch) {
+        if (name === 'disabled' && this.switch) {
             if (newValue !== null) {
-                this.switch.setAttribute("disabled", "");
+                this.switch.setAttribute('disabled', '');
             } else {
-                this.switch.removeAttribute("disabled");
+                this.switch.removeAttribute('disabled');
             }
         }
-        if (name === "checked" && this.switch) {
+        if (name === 'checked' && this.switch) {
             if (newValue !== null) {
                 this.switch.checked = true;
             } else {
@@ -181,4 +194,3 @@ export default class LitSwitch extends BaseElement {
         }
     }
 }
-

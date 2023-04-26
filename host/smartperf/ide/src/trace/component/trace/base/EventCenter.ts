@@ -13,41 +13,40 @@
  * limitations under the License.
  */
 
-class Event{
-    map:any
-    constructor(){
+class Event {
+    map: any;
+    constructor() {
         this.map = {};
     }
 
-    subscribe(event:string, fn:Function) {
-        this.map[event] = this.map[event] || []
-        this.map[event].push(fn)
+    subscribe(event: string, fn: Function) {
+        this.map[event] = this.map[event] || [];
+        this.map[event].push(fn);
     }
-    publish(event:string, data:any) {
-        const fnList = this.map[event] || []
+    publish(event: string, data: any) {
+        const fnList = this.map[event] || [];
         if (!fnList || fnList.length === 0) return;
-        fnList.forEach((fn:Function) => fn.call(undefined, data))
+        fnList.forEach((fn: Function) => fn.call(undefined, data));
     }
-    unsubscribe(event:string, fn:Function) {
-        const fnList = this.map[event] || []
-        const index = fnList.indexOf(fn)
-        if(index < 0) return
-        fnList.splice(index, 1)
+    unsubscribe(event: string, fn: Function) {
+        const fnList = this.map[event] || [];
+        const index = fnList.indexOf(fn);
+        if (index < 0) return;
+        fnList.splice(index, 1);
     }
-    subscribeOnce(event:string, callback:Function){
-        const f = (data:any) => {
+    subscribeOnce(event: string, callback: Function) {
+        const f = (data: any) => {
             callback(data);
             this.unsubscribe(event, f);
-        }
+        };
         this.subscribe(event, f);
     }
 
-    clearTraceRowComplete(){
-        if(this.map[window.SmartEvent.UI.TraceRowComplete].length > 0){
+    clearTraceRowComplete() {
+        if (this.map[window.SmartEvent.UI.TraceRowComplete].length > 0) {
             this.map[window.SmartEvent.UI.TraceRowComplete] = [];
         }
     }
 }
 
 export const EventCenter = new Event();
-

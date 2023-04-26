@@ -13,24 +13,32 @@
  * limitations under the License.
  */
 
-import {TransmissionInterface} from "./TransmissionInterface.js";
-import {error, info, log} from "../../log/Log.js";
-import {HDC_DEVICE_FILTER} from "../common/ConstantType.js";
-import {HdcDeviceManager} from "../HdcDeviceManager.js";
+import { TransmissionInterface } from './TransmissionInterface.js';
+import { error, info, log } from '../../log/Log.js';
+import { HDC_DEVICE_FILTER } from '../common/ConstantType.js';
+import { HdcDeviceManager } from '../HdcDeviceManager.js';
 
 export interface matchingUsbDevice {
     configurationValue: number;
     interfaceNumber: number;
+	// @ts-ignore
     endPoints: USBEndpoint[];
 }
 
 export class UsbTransmissionChannel implements TransmissionInterface {
+	// @ts-ignore
     private _device: USBDevice | null;
     private readonly endpointIn: number;
     private readonly endpointOut: number;
     private readonly interfaceNumber: number;
 
-    private constructor(device: USBDevice, endpointIn: number, endpointOut: number, interfaceNumber: number) {
+    private constructor(
+		// @ts-ignore
+        device: USBDevice,
+        endpointIn: number,
+        endpointOut: number,
+        interfaceNumber: number
+    ) {
         this._device = device;
         this.endpointIn = endpointIn;
         this.endpointOut = endpointOut;
@@ -64,7 +72,7 @@ export class UsbTransmissionChannel implements TransmissionInterface {
      * Close the device connection
      */
     async close(): Promise<void> {
-        await this._device?.releaseInterface(this.interfaceNumber)
+        await this._device?.releaseInterface(this.interfaceNumber);
         await this._device?.close();
         this._device = null;
     }
@@ -74,19 +82,36 @@ export class UsbTransmissionChannel implements TransmissionInterface {
      *
      * @param usbDevice
      */
-    static async openHdcDevice(usbDevice: USBDevice): Promise<UsbTransmissionChannel | null> {
+    static async openHdcDevice(
+		// @ts-ignore
+        usbDevice: USBDevice
+    ): Promise<UsbTransmissionChannel | null> {
         try {
             await usbDevice.open();
-            const matchDevice = this.filterAndFindDevice(usbDevice, HDC_DEVICE_FILTER);
-            info("matchDevice is", matchDevice)
+            const matchDevice = this.filterAndFindDevice(
+                usbDevice,
+                HDC_DEVICE_FILTER
+            );
+            info('matchDevice is', matchDevice);
             if (!matchDevice) {
                 throw new Error('Could not find hdc device');
             }
             await usbDevice.selectConfiguration(matchDevice.configurationValue);
             await usbDevice.claimInterface(matchDevice.interfaceNumber);
-            const endpointIn = UsbTransmissionChannel.filterEndpointNumber(matchDevice.endPoints, 'in');
-            const endpointOut = UsbTransmissionChannel.filterEndpointNumber(matchDevice.endPoints, 'out');
-            return new UsbTransmissionChannel(usbDevice, endpointIn, endpointOut, matchDevice.interfaceNumber);
+            const endpointIn = UsbTransmissionChannel.filterEndpointNumber(
+                matchDevice.endPoints,
+                'in'
+            );
+            const endpointOut = UsbTransmissionChannel.filterEndpointNumber(
+                matchDevice.endPoints,
+                'out'
+            );
+            return new UsbTransmissionChannel(
+                usbDevice,
+                endpointIn,
+                endpointOut,
+                matchDevice.interfaceNumber
+            );
         } catch (e) {
             return Promise.resolve(null);
         }
@@ -98,27 +123,40 @@ export class UsbTransmissionChannel implements TransmissionInterface {
      * @param device device
      * @param filter filter
      */
-    private static filterAndFindDevice(device: USBDevice, filter: USBDeviceFilter): matchingUsbDevice | null {
+    private static filterAndFindDevice(
+		// @ts-ignore
+        device: USBDevice,
+		// @ts-ignore
+        filter: USBDeviceFilter
+    ): matchingUsbDevice | null {
         for (const config of device.configurations) {
-            for (const intf of config.interfaces) for (const al of intf.alternates) {
-                if (filter.classCode === al.interfaceClass &&
-                    filter.subclassCode === al.interfaceSubclass &&
-                    filter.protocolCode === al.interfaceProtocol) {
-                    return {
-                        configurationValue: config.configurationValue,
-                        interfaceNumber: intf.interfaceNumber,
-                        endPoints: al.endpoints
-                    };
+            for (const intf of config.interfaces)
+                for (const al of intf.alternates) {
+                    if (
+                        filter.classCode === al.interfaceClass &&
+                        filter.subclassCode === al.interfaceSubclass &&
+                        filter.protocolCode === al.interfaceProtocol
+                    ) {
+                        return {
+                            configurationValue: config.configurationValue,
+                            interfaceNumber: intf.interfaceNumber,
+                            endPoints: al.endpoints,
+                        };
+                    }
                 }
-            }
         }
         return null;
     }
 
-    private static filterEndpointNumber(usbEndpoints: USBEndpoint[], dir: 'in' | 'out', type = 'bulk'): number {
-        let endpoint = usbEndpoints.filter(element => {
-            return (element.direction === dir && element.type === type);
-        })
+    private static filterEndpointNumber(
+		// @ts-ignore
+        usbEndpoints: USBEndpoint[],
+        dir: 'in' | 'out',
+        type = 'bulk'
+    ): number {
+        let endpoint = usbEndpoints.filter((element) => {
+            return element.direction === dir && element.type === type;
+        });
         return endpoint[0].endpointNumber;
     }
 }

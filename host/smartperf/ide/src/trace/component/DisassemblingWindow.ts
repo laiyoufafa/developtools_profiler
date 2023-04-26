@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from "../../base-ui/BaseElement.js";
+import { BaseElement, element } from '../../base-ui/BaseElement.js';
 
 @element('tab-native-data-modal')
 export class DisassemblingWindow extends BaseElement {
@@ -25,13 +25,13 @@ export class DisassemblingWindow extends BaseElement {
     private addrArray = new Array<string>();
     private maxBinSize = 0;
     private close: Function | undefined | null;
-    setCloseListener(callback:Function){
+    setCloseListener(callback: Function) {
         this.close = callback;
     }
 
-    removeCloseListener(){
+    removeCloseListener() {
         this.close = null;
-    };
+    }
 
     private getMap(content: string, hintAttr: string) {
         let lines = content.split('\n');
@@ -49,8 +49,11 @@ export class DisassemblingWindow extends BaseElement {
                     let binary = value[0];
                     let lineStruct = new Disassembling();
                     if (binary === '') {
-                        if (line.includes('Disassembly') || line.includes('file format')) {
-                            continue
+                        if (
+                            line.includes('Disassembly') ||
+                            line.includes('file format')
+                        ) {
+                            continue;
                         } else {
                             if (addr.includes(' ')) {
                                 let funcs = addr.split(' ');
@@ -65,7 +68,12 @@ export class DisassemblingWindow extends BaseElement {
                         lineStruct.code = value.length > 2 ? value[2] : '';
                     }
                     lineMap.set(addrHex, lineStruct);
-                    this.maxBinSize = Math.max(this.ctx!.measureText(lineStruct.addr + lineStruct.binary).width, this.maxBinSize);
+                    this.maxBinSize = Math.max(
+                        this.ctx!.measureText(
+                            lineStruct.addr + lineStruct.binary
+                        ).width,
+                        this.maxBinSize
+                    );
                     this.addrArray.push(addrHex);
                     if (addrHex === hintAttr) this.hintLine = effectLint;
                     effectLint++;
@@ -78,8 +86,8 @@ export class DisassemblingWindow extends BaseElement {
     }
 
     public showContent(content: string, hintAddr: string): void {
-        this.loading!.style.display = "none";
-        this.window!.style.display = "block";
+        this.loading!.style.display = 'none';
+        this.window!.style.display = 'block';
         if (content.startsWith('error')) {
             this.window!.innerHTML = `<span class="column1" style="width:100%;text-align: center;">${content}</span>`;
             return;
@@ -92,24 +100,51 @@ export class DisassemblingWindow extends BaseElement {
             let struct = lineMap.get(addr);
             if (this.addrArray[this.hintLine] == addr) {
                 this.window!.innerHTML += `<div class="line" id="emphasis" style = background:red">
-                <span class="column0" style="width:${this.maxBinSize}px;">${struct!.addr} : ${struct!.binary}</span>
-                <span class="column1" style="width:100px;">${struct!.type}</span>
-                <span class="column2" style="width:300px;">${struct!.code}</span></div>`;
-                (this.window!.querySelector("#emphasis") as HTMLElement)!.style.width = this.window!.scrollWidth + 'px';
-                (this.window!.querySelector("#emphasis") as HTMLElement)!.style.background = '#0A59F7';
+                <span class="column0" style="width:${this.maxBinSize}px;">${
+                    struct!.addr
+                } : ${struct!.binary}</span>
+                <span class="column1" style="width:100px;">${
+                    struct!.type
+                }</span>
+                <span class="column2" style="width:300px;">${
+                    struct!.code
+                }</span></div>`;
+                (this.window!.querySelector(
+                    '#emphasis'
+                ) as HTMLElement)!.style.width =
+                    this.window!.scrollWidth + 'px';
+                (this.window!.querySelector(
+                    '#emphasis'
+                ) as HTMLElement)!.style.background = '#0A59F7';
             } else {
                 this.window!.innerHTML += `<div class="line">
-                <span class="column0" style="width:${this.maxBinSize}px;">${struct!.addr} : ${struct!.binary}</span>
-                <span class="column1" style="width:100px;">${struct!.type}</span>
-                <span class="column2" style="width:300px;">${struct!.code}</span></div>`;
+                <span class="column0" style="width:${this.maxBinSize}px;">${
+                    struct!.addr
+                } : ${struct!.binary}</span>
+                <span class="column1" style="width:100px;">${
+                    struct!.type
+                }</span>
+                <span class="column2" style="width:300px;">${
+                    struct!.code
+                }</span></div>`;
             }
         }
-        this.window!.scrollTo(0, (this.hintLine - 1) * (this.shadowRoot!.querySelector("#window>.line")!.clientHeight) - this.window!.clientHeight / 2);
+        this.window!.scrollTo(
+            0,
+            (this.hintLine - 1) *
+                this.shadowRoot!.querySelector('#window>.line')!.clientHeight -
+                this.window!.clientHeight / 2
+        );
     }
 
-    private resetCanvas(styleWidth: number, styleHeight: number, width: number, height: number): void {
-        this.canvas!.style.width = styleWidth + "px";
-        this.canvas!.style.height = styleHeight + "px";
+    private resetCanvas(
+        styleWidth: number,
+        styleHeight: number,
+        width: number,
+        height: number
+    ): void {
+        this.canvas!.style.width = styleWidth + 'px';
+        this.canvas!.style.height = styleHeight + 'px';
         this.canvas!.width = width;
         this.canvas!.height = height;
     }
@@ -124,16 +159,17 @@ export class DisassemblingWindow extends BaseElement {
     }
 
     initElements(): void {
-        this.canvas = this.shadowRoot?.querySelector<HTMLCanvasElement>("#canvas");
-        let close = this.shadowRoot?.querySelector("#close");
-        this.window = this.shadowRoot?.querySelector("#window");
-        this.loading = this.shadowRoot?.querySelector("#loading");
+        this.canvas =
+            this.shadowRoot?.querySelector<HTMLCanvasElement>('#canvas');
+        let close = this.shadowRoot?.querySelector('#close');
+        this.window = this.shadowRoot?.querySelector('#window');
+        this.loading = this.shadowRoot?.querySelector('#loading');
         this.ctx = this.canvas!.getContext('2d');
         this.resetCanvas(0, 0, 0, 0);
-        close!.addEventListener("click", () => {
-           if(this.close){
-              this.close();
-           }
+        close!.addEventListener('click', () => {
+            if (this.close) {
+                this.close();
+            }
             return true;
         });
     }

@@ -239,7 +239,6 @@ public:
                 FixSize();
                 break;
 
-
             default:
                 break;
         } // end of switch (op)
@@ -247,8 +246,7 @@ public:
     }
     void FixSize()
     {
-        if (indexType_ == INDEX_TYPE_OUTER_INDEX)
-        {
+        if (indexType_ == INDEX_TYPE_OUTER_INDEX) {
             end_ = rowIndex_.size();
         }
     }
@@ -321,7 +319,7 @@ public:
     // void Intersect(const std::vector<TableRowId>& iv);
 
     // the follow functions require that thecolData is sotred
-    template<typename Row, typename Val, typename GetV = const Val&(const Row&)>
+    template <typename Row, typename Val, typename GetV = const Val&(const Row&)>
     void IntersectabcEqual(const std::deque<Row>& rows, Val v, GetV getValue)
     {
         auto start = std::lower_bound(rows.begin() + start_, rows.begin() + end_, v);
@@ -332,7 +330,7 @@ public:
         return;
     }
 
-    template<typename Row, typename Val, typename GetV = const Val&(const Row&)>
+    template <typename Row, typename Val, typename GetV = const Val&(const Row&)>
     void IntersectGreaterEqual(const std::deque<Row>& rows, Val v, GetV getValue)
     {
         uint32_t index = rows.size() - 1;
@@ -348,7 +346,7 @@ public:
         return;
     }
 
-    template<typename Row, typename Val, typename GetV = const Val&(const Row&)>
+    template <typename Row, typename Val, typename GetV = const Val&(const Row&)>
     void IntersectLessEqual(const std::deque<Row>& rows, Val v, GetV getValue)
     {
         uint32_t index = 0;
@@ -360,7 +358,7 @@ public:
         Intersect(0, index);
         return;
     }
-    template<typename T>
+    template <typename T>
     void RemoveNullElements(const std::deque<T>& rows, T v)
     {
         auto invalidValue = std::numeric_limits<T>::max();
@@ -390,9 +388,10 @@ public:
         FixSize();
         return;
     }
-    bool HasData();
+    bool HasData() const;
     std::vector<TableRowId> rowIndex_;
     std::vector<TableRowId> rowIndexBak_;
+
 private:
     TableRowId end_ = INVALID_UINT32;
     TableRowId current_ = 0;
@@ -405,10 +404,7 @@ private:
     uint32_t indexSize_ = 0;
     uint32_t index_ = 0;
 
-    enum IndexType {
-        COMPACT,
-        SPARSE
-    };
+    enum IndexType { COMPACT, SPARSE };
     uint8_t type_ = COMPACT;
     bool empty_ = true;
     bool desc_ = false;

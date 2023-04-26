@@ -202,7 +202,8 @@ int EbpfProcessMapsTable::Cursor::Column(int column) const
         }
         case FILE_PATH_ID: {
             if (ebpfProcessMapsObj_.FileNameIndexs()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(ebpfProcessMapsObj_.FileNameIndexs()[CurrentRow()]));
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(ebpfProcessMapsObj_.FileNameIndexs()[CurrentRow()]));
             }
             break;
         }

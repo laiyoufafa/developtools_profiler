@@ -14,16 +14,14 @@
  */
 
 // @ts-ignore
-import {LitCheckBoxWithText} from "../../../dist/base-ui/checkbox/LitCheckBoxWithText.js";
+import { LitCheckBoxWithText } from '../../../dist/base-ui/checkbox/LitCheckBoxWithText.js';
 
-describe('checkBoxWithText Test', ()=>{
-
+describe('checkBoxWithText Test', () => {
     it('checkBoxWithTextTest01', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText).not.toBeUndefined()
-        expect(litCheckBoxWithText).not.toBeNull()
+        expect(litCheckBoxWithText).not.toBeUndefined();
+        expect(litCheckBoxWithText).not.toBeNull();
     });
-
 
     it('checkBoxWithTextTest02', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
@@ -32,42 +30,42 @@ describe('checkBoxWithText Test', ()=>{
 
     it('checkBoxWithTextTest03', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        litCheckBoxWithText.checked = true
+        litCheckBoxWithText.checked = true;
         expect(litCheckBoxWithText.checked).toBeTruthy();
     });
 
     it('checkBoxWithTextTest03', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        litCheckBoxWithText.checked = false
+        litCheckBoxWithText.checked = false;
         expect(litCheckBoxWithText.checked).toBeFalsy();
     });
 
     it('checkBoxWithTextTest04', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText.text).toEqual("");
+        expect(litCheckBoxWithText.text).toEqual('');
     });
 
     it('checkBoxWithTextTest05', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        litCheckBoxWithText.text = "test"
-        expect(litCheckBoxWithText.text).toEqual("test");
+        litCheckBoxWithText.text = 'test';
+        expect(litCheckBoxWithText.text).toEqual('test');
     });
 
     it('checkBoxWithTextTest05', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText.lowerLimit).toEqual("0");
+        expect(litCheckBoxWithText.lowerLimit).toEqual('0');
     });
 
     it('checkBoxWithTextTest05', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        litCheckBoxWithText.lowerLimit = "111"
-        expect(litCheckBoxWithText.lowerLimit).toEqual("111");
+        litCheckBoxWithText.lowerLimit = '111';
+        expect(litCheckBoxWithText.lowerLimit).toEqual('111');
     });
 
     it('checkBoxWithTextTest05', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        litCheckBoxWithText.upLimit = "111"
-        expect(litCheckBoxWithText.upLimit).toEqual("111");
+        litCheckBoxWithText.upLimit = '111';
+        expect(litCheckBoxWithText.upLimit).toEqual('111');
     });
 
     it('checkBoxWithTextTest05', function () {
@@ -99,21 +97,29 @@ describe('checkBoxWithText Test', ()=>{
 
     it('checkBoxWithTextTest06', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText.attributeChangedCallback("checked")).toBeUndefined();
+        expect(
+            litCheckBoxWithText.attributeChangedCallback('checked')
+        ).toBeUndefined();
     });
 
     it('checkBoxWithTextTest07', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText.attributeChangedCallback("text")).toBeUndefined();
+        expect(
+            litCheckBoxWithText.attributeChangedCallback('text')
+        ).toBeUndefined();
     });
 
     it('checkBoxWithTextTest08', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText.attributeChangedCallback("lowerLimit")).toBeUndefined();
+        expect(
+            litCheckBoxWithText.attributeChangedCallback('lowerLimit')
+        ).toBeUndefined();
     });
 
     it('checkBoxWithTextTest09', function () {
         let litCheckBoxWithText = new LitCheckBoxWithText();
-        expect(litCheckBoxWithText.attributeChangedCallback("upLimit")).toBeUndefined();
+        expect(
+            litCheckBoxWithText.attributeChangedCallback('upLimit')
+        ).toBeUndefined();
     });
-})
+});

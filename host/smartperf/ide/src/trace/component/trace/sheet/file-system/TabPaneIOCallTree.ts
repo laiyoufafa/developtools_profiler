@@ -13,25 +13,24 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import "./TabPaneCallTree.js"
-import {TabPaneCallTree} from "./TabPaneCallTree.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import './TabPaneCallTree.js';
+import { TabPaneCallTree } from './TabPaneCallTree.js';
 
 @element('tabpane-io-calltree')
 export class TabPaneIOCallTree extends TabPaneCallTree {
-   constructor() {
-       super();
-       this.queryFuncName = "io"
-       this.procedureAction = "fileSystem-action"
-   }
+    constructor() {
+        super();
+        this.queryFuncName = 'io';
+        this.procedureAction = 'fileSystem-action';
+    }
 }
 
 @element('tabpane-vm-calltree')
 export class TabPaneVMCallTree extends TabPaneCallTree {
     constructor() {
         super();
-        this.queryFuncName = "virtualMemory"
-        this.procedureAction = "fileSystem-action"
+        this.queryFuncName = 'virtualMemory';
+        this.procedureAction = 'fileSystem-action';
     }
-
 }

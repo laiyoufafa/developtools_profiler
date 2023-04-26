@@ -21,10 +21,7 @@ namespace TraceStreamer {
 extern "C" {
 void sdk_plugin_init_table_name()
 {
-    SDK_SetTableName("counter_table",
-                     "gpu_counter_object",
-                     "slice_table",
-                     "slice_object_table");
+    SDK_SetTableName("counter_table", "gpu_counter_object", "slice_table", "slice_object_table");
 }
 int sdk_plugin_data_parser(const uint8_t* data, int len)
 {

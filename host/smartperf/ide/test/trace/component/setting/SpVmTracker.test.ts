@@ -14,7 +14,7 @@
  */
 
 // @ts-ignore
-import {SpVmTracker} from "../../../../dist/trace/component/setting/SpVmTracker.js";
+import { SpVmTracker } from '../../../../dist/trace/component/setting/SpVmTracker.js';
 
 describe('SpVmTracker Test', () => {
     let spVmTracker = new SpVmTracker();
@@ -27,4 +27,4 @@ describe('SpVmTracker Test', () => {
         spVmTracker.startSamp = false;
         expect(spVmTracker.startSamp).toBeFalsy();
     });
-})
+});

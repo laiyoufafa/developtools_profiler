@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import './sql-wasm.js'
+import './sql-wasm.js';
 
-import {Counter, Fps, SelectionData} from "../bean/BoxSelection.js";
-import {WakeUpTimeBean} from "../bean/WakeUpTimeBean.js";
-import {WakeupBean} from "../bean/WakeupBean.js";
-import {BinderArgBean} from "../bean/BinderArgBean.js";
-import {SPT, SPTChild} from "../bean/StateProcessThread.js";
-import {CpuUsage, Freq} from "../bean/CpuUsage.js";
+import { Counter, Fps, SelectionData } from '../bean/BoxSelection.js';
+import { WakeUpTimeBean } from '../bean/WakeUpTimeBean.js';
+import { WakeupBean } from '../bean/WakeupBean.js';
+import { BinderArgBean } from '../bean/BinderArgBean.js';
+import { SPT, SPTChild } from '../bean/StateProcessThread.js';
+import { CpuUsage, Freq } from '../bean/CpuUsage.js';
 
 import {
     NativeEvent,
@@ -28,15 +28,15 @@ import {
     NativeHookMalloc,
     NativeHookProcess,
     NativeHookSampleQueryInfo,
-    NativeHookStatistics
-} from "../bean/NativeHook.js";
+    NativeHookStatistics,
+} from '../bean/NativeHook.js';
 import {
     LiveProcess,
     ProcessHistory,
     SystemCpuSummary,
     SystemDiskIOSummary,
-    SystemNetworkSummary
-} from "../bean/AbilityMonitor.js";
+    SystemNetworkSummary,
+} from '../bean/AbilityMonitor.js';
 
 import {
     PerfCall,
@@ -45,48 +45,55 @@ import {
     PerfFile,
     PerfSample,
     PerfStack,
-    PerfThread
-} from "../bean/PerfProfile.js";
-import {SearchFuncBean} from "../bean/SearchFuncBean.js";
-import {CounterSummary, SdkSliceSummary} from "../bean/SdkSummary.js";
-import {Smaps} from "../bean/SmapsStruct.js";
-import {CpuFreqRowLimit} from "../component/chart/SpFreqChart.js";
-import {CpuFreqLimitsStruct} from "./ui-worker/ProcedureWorkerCpuFreqLimits.js";
-import {CpuStruct} from "./ui-worker/ProcedureWorkerCPU.js";
-import {CpuFreqStruct} from './ui-worker/ProcedureWorkerFreq.js';
+    PerfThread,
+} from '../bean/PerfProfile.js';
+import { SearchFuncBean } from '../bean/SearchFuncBean.js';
+import { CounterSummary, SdkSliceSummary } from '../bean/SdkSummary.js';
+import { Smaps } from '../bean/SmapsStruct.js';
+import { CpuFreqRowLimit } from '../component/chart/SpFreqChart.js';
+import { CpuFreqLimitsStruct } from './ui-worker/ProcedureWorkerCpuFreqLimits.js';
+import { CpuStruct } from './ui-worker/ProcedureWorkerCPU.js';
+import { CpuFreqStruct } from './ui-worker/ProcedureWorkerFreq.js';
 import { ThreadStruct } from './ui-worker/ProcedureWorkerThread.js';
 import { FuncStruct } from './ui-worker/ProcedureWorkerFunc.js';
 import { ProcessMemStruct } from './ui-worker/ProcedureWorkerMem.js';
 import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerNativeNemory.js';
-import {FpsStruct} from "./ui-worker/ProcedureWorkerFPS.js";
-import {CpuAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerCpuAbility.js";
-import {MemoryAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerMemoryAbility.js";
-import {DiskAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerDiskIoAbility.js";
-import {NetworkAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerNetworkAbility.js";
-import {EnergyAnomalyStruct} from "./ui-worker/ProcedureWorkerEnergyAnomaly.js";
-import {EnergyStateStruct} from "./ui-worker/ProcedureWorkerEnergyState.js";
-import {CounterStruct} from "./ui-worker/ProduceWorkerSdkCounter.js";
-import {SdkSliceStruct} from "./ui-worker/ProduceWorkerSdkSlice.js";
-import {SystemDetailsEnergy} from "../bean/EnergyStruct.js";
-import {ClockStruct} from "./ui-worker/ProcedureWorkerClock.js";
-import {IrqStruct} from "./ui-worker/ProcedureWorkerIrq.js";
+import { FpsStruct } from './ui-worker/ProcedureWorkerFPS.js';
+import { CpuAbilityMonitorStruct } from './ui-worker/ProcedureWorkerCpuAbility.js';
+import { MemoryAbilityMonitorStruct } from './ui-worker/ProcedureWorkerMemoryAbility.js';
+import { DiskAbilityMonitorStruct } from './ui-worker/ProcedureWorkerDiskIoAbility.js';
+import { NetworkAbilityMonitorStruct } from './ui-worker/ProcedureWorkerNetworkAbility.js';
+import { EnergyAnomalyStruct } from './ui-worker/ProcedureWorkerEnergyAnomaly.js';
+import { EnergyStateStruct } from './ui-worker/ProcedureWorkerEnergyState.js';
+import { CounterStruct } from './ui-worker/ProduceWorkerSdkCounter.js';
+import { SdkSliceStruct } from './ui-worker/ProduceWorkerSdkSlice.js';
+import { SystemDetailsEnergy } from '../bean/EnergyStruct.js';
+import { ClockStruct } from './ui-worker/ProcedureWorkerClock.js';
+import { IrqStruct } from './ui-worker/ProcedureWorkerIrq.js';
 
 class DataWorkerThread extends Worker {
     taskMap: any = {};
     uuid(): string {
         // @ts-ignore
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11)
-            .replace(/[018]/g, (c: any) => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
+            /[018]/g,
+            (c: any) =>
+                (
+                    c ^
+                    (crypto.getRandomValues(new Uint8Array(1))[0] &
+                        (15 >> (c / 4)))
+                ).toString(16)
+        );
     }
     //发送方法名 参数 回调
     queryFunc(action: string, args: any, handler: Function) {
         let id = this.uuid();
-        this.taskMap[id] = handler
+        this.taskMap[id] = handler;
         let msg = {
             id: id,
             action: action,
             args: args,
-        }
+        };
         this.postMessage(msg);
     }
 }
@@ -100,42 +107,70 @@ class DbThread extends Worker {
 
     uuid(): string {
         // @ts-ignore
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11)
-            .replace(/[018]/g, (c: any) => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(
+            /[018]/g,
+            (c: any) =>
+                (
+                    c ^
+                    (crypto.getRandomValues(new Uint8Array(1))[0] &
+                        (15 >> (c / 4)))
+                ).toString(16)
+        );
     }
 
-    queryFunc(name: string, sql: string, args: any, handler: Function, action: string | null) {
+    queryFunc(
+        name: string,
+        sql: string,
+        args: any,
+        handler: Function,
+        action: string | null
+    ) {
         this.busy = true;
         let id = this.uuid();
-        this.taskMap[id] = handler
+        this.taskMap[id] = handler;
         let msg = {
             id: id,
             name: name,
-            action: action || "exec",
+            action: action || 'exec',
             sql: sql,
             params: args,
-        }
+        };
         this.postMessage(msg);
     }
 
-    dbOpen = async (sdkWasmConfig?:string): Promise<{ status: boolean, msg: string, buffer: ArrayBuffer, sdkConfigMap: any}> => {
+    dbOpen = async (
+        sdkWasmConfig?: string
+    ): Promise<{
+        status: boolean;
+        msg: string;
+        buffer: ArrayBuffer;
+        sdkConfigMap: any;
+    }> => {
         return new Promise<any>((resolve, reject) => {
             let id = this.uuid();
             this.taskMap[id] = (res: any) => {
                 if (res.init) {
-                    resolve({status: res.init, msg: res.msg, sdkConfigMap:res.configSqlMap, buffer: res.buffer});
+                    resolve({
+                        status: res.init,
+                        msg: res.msg,
+                        sdkConfigMap: res.configSqlMap,
+                        buffer: res.buffer,
+                    });
                 } else {
-                    resolve({status: res.init, msg: res.msg});
+                    resolve({ status: res.init, msg: res.msg });
                 }
-            }
-            this.postMessage({
-                id: id,
-                action: "open",
-                wasmConfig: sdkWasmConfig,
-                buffer: DbPool.sharedBuffer!, /*Optional. An ArrayBuffer representing an SQLite Database file*/
-            }, [DbPool.sharedBuffer!]);
-        })
-    }
+            };
+            this.postMessage(
+                {
+                    id: id,
+                    action: 'open',
+                    wasmConfig: sdkWasmConfig,
+                    buffer: DbPool.sharedBuffer! /*Optional. An ArrayBuffer representing an SQLite Database file*/,
+                },
+                [DbPool.sharedBuffer!]
+            );
+        });
+    };
 }
 
 export class DbPool {
@@ -144,31 +179,35 @@ export class DbPool {
     works: Array<DbThread> = [];
     progress: Function | undefined | null;
     num = Math.floor(Math.random() * 10 + 1) + 20;
-    cutDownTimer:any|undefined;
+    cutDownTimer: any | undefined;
     dataWorker: DataWorkerThread | undefined | null;
-    init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined) => { // wasm | server | sqlite
+    init = async (
+        type: string,
+        threadBuild: (() => DbThread) | undefined = undefined
+    ) => {
+        // wasm | server | sqlite
         await this.close();
         const { port1, port2 } = new MessageChannel();
-        if (type === "wasm") {
+        if (type === 'wasm') {
             this.maxThreadNumber = 1;
-        } else if (type === "server") {
+        } else if (type === 'server') {
             this.maxThreadNumber = 1;
-        } else if (type === "sqlite") {
+        } else if (type === 'sqlite') {
             this.maxThreadNumber = 1;
-        } else if (type === "duck") {
+        } else if (type === 'duck') {
             this.maxThreadNumber = 1;
         }
         for (let i = 0; i < this.maxThreadNumber; i++) {
-            let thread: DbThread
+            let thread: DbThread;
             if (threadBuild) {
-                thread = threadBuild()
+                thread = threadBuild();
             } else {
-                if (type === "wasm") {
-                    thread = new DbThread("trace/database/TraceWorker.js")
-                } else if (type === "server") {
-                    thread = new DbThread("trace/database/SqlLiteWorker.js")
-                } else if (type === "sqlite") {
-                    thread = new DbThread("trace/database/SqlLiteWorker.js")
+                if (type === 'wasm') {
+                    thread = new DbThread('trace/database/TraceWorker.js');
+                } else if (type === 'server') {
+                    thread = new DbThread('trace/database/SqlLiteWorker.js');
+                } else if (type === 'sqlite') {
+                    thread = new DbThread('trace/database/SqlLiteWorker.js');
                 }
             }
             thread!.onmessage = (event: MessageEvent) => {
@@ -181,71 +220,80 @@ export class DbPool {
                         }
                         Reflect.deleteProperty(thread.taskMap, event.data.id);
                     } else if (Reflect.has(event.data, 'ready')) {
-                        this.progress!("database opened", this.num + event.data.index)
-                        this.progressTimer(this.num + event.data.index,this.progress!)
+                        this.progress!(
+                            'database opened',
+                            this.num + event.data.index
+                        );
+                        this.progressTimer(
+                            this.num + event.data.index,
+                            this.progress!
+                        );
                     } else if (Reflect.has(event.data, 'init')) {
-                        if(this.cutDownTimer!=undefined){
+                        if (this.cutDownTimer != undefined) {
                             clearInterval(this.cutDownTimer);
                         }
-                        this.progress!("database ready", 40)
+                        this.progress!('database ready', 40);
                         let fun = thread.taskMap[event.data.id];
                         if (fun) {
-                            fun(event.data)
+                            fun(event.data);
                         }
-                        Reflect.deleteProperty(thread.taskMap, event.data.id)
+                        Reflect.deleteProperty(thread.taskMap, event.data.id);
                     } else {
                         let fun = thread.taskMap[event.data.id];
                         if (fun) {
-                            fun([])
+                            fun([]);
                         }
-                        Reflect.deleteProperty(thread.taskMap, event.data.id)
+                        Reflect.deleteProperty(thread.taskMap, event.data.id);
                     }
-
                 }
-            }
-            thread!.onmessageerror = e => {
-            }
-            thread!.onerror = e => {
-            }
+            };
+            thread!.onmessageerror = (e) => {};
+            thread!.onerror = (e) => {};
             thread!.id = i;
             thread!.busy = false;
             this.works?.push(thread!);
         }
-    }
+    };
 
     initServer = async (url: string, progress: Function) => {
         this.progress = progress;
-        progress("database loaded", 15)
-        let buf = await fetch(url).then(res => res.arrayBuffer());
+        progress('database loaded', 15);
+        let buf = await fetch(url).then((res) => res.arrayBuffer());
         DbPool.sharedBuffer = buf;
-        progress("open database", 20)
+        progress('open database', 20);
         for (let i = 0; i < this.works.length; i++) {
             let thread = this.works[i];
-            let {status, msg} = await thread.dbOpen()
+            let { status, msg } = await thread.dbOpen();
             if (!status) {
-                return {status, msg}
+                return { status, msg };
             }
         }
-        return {status: true, msg: "ok"};
-    }
-    initSqlite = async (buf: ArrayBuffer, sdkWasmConfig: string, progress: Function) => {
+        return { status: true, msg: 'ok' };
+    };
+    initSqlite = async (
+        buf: ArrayBuffer,
+        sdkWasmConfig: string,
+        progress: Function
+    ) => {
         this.progress = progress;
-        progress("database loaded", 15)
+        progress('database loaded', 15);
         DbPool.sharedBuffer = buf;
-        progress("parse database", 20)
+        progress('parse database', 20);
         let configMap;
         for (let i = 0; i < this.works.length; i++) {
             let thread = this.works[i];
-            let {status, msg, buffer, sdkConfigMap} = await thread.dbOpen(sdkWasmConfig)
+            let { status, msg, buffer, sdkConfigMap } = await thread.dbOpen(
+                sdkWasmConfig
+            );
             if (!status) {
-                return {status, msg}
+                return { status, msg };
             } else {
                 configMap = sdkConfigMap;
                 DbPool.sharedBuffer = buffer;
             }
         }
-        return {status: true, msg: "ok", sdkConfigMap: configMap};
-    }
+        return { status: true, msg: 'ok', sdkConfigMap: configMap };
+    };
 
     close = async () => {
         clearInterval(this.cutDownTimer);
@@ -254,76 +302,114 @@ export class DbPool {
             thread.terminate();
         }
         this.works.length = 0;
-    }
+    };
 
-    submit(name: string, sql: string, args: any, handler: Function, action: string | null) {
-        let noBusyThreads = this.works.filter(it => !it.busy);
-        let thread: DbThread
-        if (noBusyThreads.length > 0) { //取第一个空闲的线程进行任务
+    submit(
+        name: string,
+        sql: string,
+        args: any,
+        handler: Function,
+        action: string | null
+    ) {
+        let noBusyThreads = this.works.filter((it) => !it.busy);
+        let thread: DbThread;
+        if (noBusyThreads.length > 0) {
+            //取第一个空闲的线程进行任务
             thread = noBusyThreads[0];
-            thread.queryFunc(name, sql, args, handler, action)
-        } else { // 随机插入一个线程中
-            thread = this.works[Math.floor(Math.random() * this.works.length)]
-            thread.queryFunc(name, sql, args, handler, action)
+            thread.queryFunc(name, sql, args, handler, action);
+        } else {
+            // 随机插入一个线程中
+            thread = this.works[Math.floor(Math.random() * this.works.length)];
+            thread.queryFunc(name, sql, args, handler, action);
         }
     }
 
     //new method replace submit() method
-    submitTask(action:string,args:any,handler:Function){
+    submitTask(action: string, args: any, handler: Function) {
         this.dataWorker?.queryFunc(action, args, handler);
     }
 
-    progressTimer(num:number,progress:Function){
+    progressTimer(num: number, progress: Function) {
         let currentNum = num;
         clearInterval(this.cutDownTimer);
-        this.cutDownTimer = setInterval(()=>{
-            currentNum += Math.floor(Math.random() * 3)
-            if(currentNum >= 50){
-                progress("database opened",40);
+        this.cutDownTimer = setInterval(() => {
+            currentNum += Math.floor(Math.random() * 3);
+            if (currentNum >= 50) {
+                progress('database opened', 40);
                 clearInterval(this.cutDownTimer);
-            }else {
-                progress("database opened",currentNum);
+            } else {
+                progress('database opened', currentNum);
             }
-        },Math.floor(Math.random() * 2500 + 1000))
+        }, Math.floor(Math.random() * 2500 + 1000));
     }
 }
 
-export const threadPool = new DbPool()
+export const threadPool = new DbPool();
 
-export function query<T extends any>(name: string, sql: string, args: any = null, action: string | null = null): Promise<Array<T>> {
+export function query<T extends any>(
+    name: string,
+    sql: string,
+    args: any = null,
+    action: string | null = null
+): Promise<Array<T>> {
     return new Promise<Array<T>>((resolve, reject) => {
-        threadPool.submit(name, sql, args, (res: any) => {
-            resolve(res)
-        }, action);
-    })
+        threadPool.submit(
+            name,
+            sql,
+            args,
+            (res: any) => {
+                resolve(res);
+            },
+            action
+        );
+    });
 }
 
-export const queryEventCountMap = ():Promise<Array<{
-    eventName:string,
-    count:number
-}>> => query("queryEventCountMap",`select event_name as eventName,count from stat where stat_type = 'received';`);
+export const queryEventCountMap = (): Promise<
+    Array<{
+        eventName: string;
+        count: number;
+    }>
+> =>
+    query(
+        'queryEventCountMap',
+        `select event_name as eventName,count from stat where stat_type = 'received';`
+    );
 
-export const queryProcess = (): Promise<Array<{
-    pid: number | null
-    processName: string | null
-}>> =>
-    query("queryProcess", `
+export const queryProcess = (): Promise<
+    Array<{
+        pid: number | null;
+        processName: string | null;
+    }>
+> =>
+    query(
+        'queryProcess',
+        `
     SELECT
       pid, processName
     FROM
-      temp_query_process where pid != 0`)
+      temp_query_process where pid != 0`
+    );
 
-export const queryProcessByTable = (): Promise<Array<{
-    pid: number | null
-    processName: string | null
-}>> =>
-    query("queryProcessByTable", `
+export const queryProcessByTable = (): Promise<
+    Array<{
+        pid: number | null;
+        processName: string | null;
+    }>
+> =>
+    query(
+        'queryProcessByTable',
+        `
     SELECT
       pid, name as processName
     FROM
-      process where pid != 0`)
+      process where pid != 0`
+    );
 
-export const queryProcessAsyncFunc = (_funName?:string):Promise<Array<any>> => query("queryProcessAsyncFunc",`
+export const queryProcessAsyncFunc = (_funName?: string): Promise<Array<any>> =>
+    query(
+        'queryProcessAsyncFunc',
+        `
 select tid,
     P.pid,
     A.name as threadName,
@@ -340,19 +426,30 @@ select tid,
 from thread A,trace_range D
 left join callstack C on A.id = C.callid
 left join process P on P.id = A.ipid
-where startTs not null and cookie not null ${_funName?'funName=$funName':''};`, {
-    funName:_funName
-})
+where startTs not null and cookie not null ${
+            _funName ? 'funName=$funName' : ''
+        };`,
+        {
+            funName: _funName,
+        }
+    );
 
-export const queryTotalTime = (): Promise<Array<{ total: number ,recordStartNS:number,recordEndNS:number}>> =>
-    query("queryTotalTime", `
+export const queryTotalTime = (): Promise<
+    Array<{ total: number; recordStartNS: number; recordEndNS: number }>
+> =>
+    query(
+        'queryTotalTime',
+        `
     select
       start_ts as recordStartNS,end_ts as recordEndNS,end_ts-start_ts as total
     from
-      trace_range;`)
+      trace_range;`
+    );
 
 export const getAsyncEvents = (): Promise<Array<any>> =>
-    query("getAsyncEvents", `
+    query(
+        'getAsyncEvents',
+        `
     select
       *,
       p.pid as pid,
@@ -364,14 +461,22 @@ export const getAsyncEvents = (): Promise<Array<any>> =>
     on
       c.callid = p.id
     where
-      cookie is not null;`)
+      cookie is not null;`
+    );
 
-export const getCpuUtilizationRate = (startNS: number, endNS: number): Promise<Array<{
-    cpu: number
-    ro: number
-    rate: number
-}>> =>
-    query("getCpuUtilizationRate", `
+export const getCpuUtilizationRate = (
+    startNS: number,
+    endNS: number
+): Promise<
+    Array<{
+        cpu: number;
+        ro: number;
+        rate: number;
+    }>
+> =>
+    query(
+        'getCpuUtilizationRate',
+        `
     with cpu as (
     select
       cpu,
@@ -395,8 +500,6 @@ export const getCpuUtilizationRate = (startNS: number, endNS: number): Promise<A
           trace_range D
         left join
           thread B on A.itid = B.id
-        left join
-          process C on B.ipid = C.id
         where
           tid != 0
         and (A.ts)
@@ -408,10 +511,14 @@ export const getCpuUtilizationRate = (startNS: number, endNS: number): Promise<A
                when ts > st and ts + dur <= et then dur
                when ts > st and ts + dur > et then et - ts end)/cast(et-st as float) as rate
     from cpu
-    group by cpu,ro;`, {})
+    group by cpu,ro;`,
+        {}
+    );
 
 export const getFps = () =>
-    query<FpsStruct>("getFps", `
+    query<FpsStruct>(
+        'getFps',
+        `
     select
       distinct(ts-tb.start_ts) as startNS, fps
     from
@@ -419,10 +526,14 @@ export const getFps = () =>
     where
       startNS >= 0
     --order by startNS;
-    `, {})
+    `,
+        {}
+    );
 
 export const getFunDataByTid = (tid: number): Promise<Array<FuncStruct>> =>
-    query("getFunDataByTid", `
+    query(
+        'getFunDataByTid',
+        `
     select 
     --tid,
     --A.name as threadName,
@@ -433,20 +544,30 @@ export const getFunDataByTid = (tid: number): Promise<Array<FuncStruct>> =>
     c.depth
 from thread A,trace_range D
 left join callstack C on A.id = C.callid
-where startTs not null and c.cookie is null and tid = $tid`, {$tid: tid})
+where startTs not null and c.cookie is null and tid = $tid`,
+        { $tid: tid }
+    );
 
 export const getMaxDepthByTid = (): Promise<Array<any>> =>
-    query("getMaxDepthByTid", `
+    query(
+        'getMaxDepthByTid',
+        `
     select
 tid,
     MAX(c.depth + 1) as maxDepth
 from thread A
 left join callstack C on A.id = C.callid
-where c.ts not null and c.cookie is null group by tid`, {})
+where c.ts not null and c.cookie is null group by tid`,
+        {}
+    );
 
-
-export const getStatesProcessThreadDataByRange = (leftNs: number, rightNs: number): Promise<Array<SPT>> =>
-    query<SPT>("getStatesProcessThreadDataByRange", `
+export const getStatesProcessThreadDataByRange = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<SPT>> =>
+    query<SPT>(
+        'getStatesProcessThreadDataByRange',
+        `
     select
       IP.name as process,
       IP.pid as processId,
@@ -466,11 +587,20 @@ export const getStatesProcessThreadDataByRange = (leftNs: number, rightNs: numbe
     and IP.pid not null
     and (B.ts - TR.start_ts) >= $leftNs 
     and (B.ts - TR.start_ts + B.dur) <= $rightNs
-`, {$leftNs:leftNs,$rightNs:rightNs});
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const getTabBoxChildData = (leftNs: number, rightNs: number, state: string | undefined,
-                                   processId: number | undefined, threadId: number | undefined): Promise<Array<SPTChild>> =>
-    query<SPTChild>("getTabBoxChildData", `
+export const getTabBoxChildData = (
+    leftNs: number,
+    rightNs: number,
+    state: string | undefined,
+    processId: number | undefined,
+    threadId: number | undefined
+): Promise<Array<SPTChild>> =>
+    query<SPTChild>(
+        'getTabBoxChildData',
+        `
     select
       IP.name as process,
       IP.pid as processId,
@@ -506,12 +636,30 @@ export const getTabBoxChildData = (leftNs: number, rightNs: number, state: strin
     and
       not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS))
       ${state != undefined && state != '' ? 'and B.state = $state' : ''}
-      ${processId != undefined && processId != -1 ? 'and IP.pid = $processID' : ''}
+      ${
+          processId != undefined && processId != -1
+              ? 'and IP.pid = $processID'
+              : ''
+      }
       ${threadId != undefined && threadId != -1 ? 'and A.tid = $threadID' : ''}
-    `, {$leftNS: leftNs, $rightNS: rightNs, $state: state, $processID: processId, $threadID: threadId})
+    `,
+        {
+            $leftNS: leftNs,
+            $rightNS: rightNs,
+            $state: state,
+            $processID: processId,
+            $threadID: threadId,
+        }
+    );
 
-export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number): Promise<Array<CpuUsage>> =>
-    query<CpuUsage>("getTabCpuUsage", `
+export const getTabCpuUsage = (
+    cpus: Array<number>,
+    leftNs: number,
+    rightNs: number
+): Promise<Array<CpuUsage>> =>
+    query<CpuUsage>(
+        'getTabCpuUsage',
+        `
     select
       cpu,
       sum(case
@@ -528,16 +676,24 @@ export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: num
     where
       (A.ts - B.start_ts) > 0 and A.dur > 0
     and
-      cpu in (${cpus.join(",")})
+      cpu in (${cpus.join(',')})
     and
       (A.ts - B.start_ts + A.dur) > $leftNS
     and
       (A.ts - B.start_ts) < $rightNS
     group by
-      cpu`, {$leftNS: leftNs, $rightNS: rightNs})
+      cpu`,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: number): Promise<Array<Freq>> =>
-    query<Freq>("getTabCpuFreq", `
+export const getTabCpuFreq = (
+    cpus: Array<number>,
+    leftNs: number,
+    rightNs: number
+): Promise<Array<Freq>> =>
+    query<Freq>(
+        'getTabCpuFreq',
+        `
     select
       cpu,
       value,
@@ -552,16 +708,23 @@ export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: numb
     where
       (name = 'cpufreq' or name='cpu_frequency')
     and
-      cpu in (${cpus.join(",")})
+      cpu in (${cpus.join(',')})
     and
       startNs > 0
     and
       startNs < $rightNS
     --order by startNs
-    `, {$leftNS: leftNs, $rightNS: rightNs})
+    `,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> =>
-    query<Fps>("getTabFps", `
+export const getTabFps = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<Fps>> =>
+    query<Fps>(
+        'getTabFps',
+        `
     select
       distinct(ts-tb.start_ts) as startNS,
       fps
@@ -573,10 +736,18 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     and
       startNS >= 0
     --order by startNS;
-    `, {$leftNS: leftNs, $rightNS: rightNs})
+    `,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabCounters = (processFilterIds: Array<number>,virtualFilterIds:Array<number>, startTime: number) =>
-    query<Counter>("getTabCounters", `
+export const getTabCounters = (
+    processFilterIds: Array<number>,
+    virtualFilterIds: Array<number>,
+    startTime: number
+) =>
+    query<Counter>(
+        'getTabCounters',
+        `
     select
       t1.filter_id as trackId,
       t2.name,
@@ -591,7 +762,7 @@ export const getTabCounters = (processFilterIds: Array<number>,virtualFilterIds:
     left join
       trace_range t3
     where
-      filter_id in (${processFilterIds.join(",")})
+      filter_id in (${processFilterIds.join(',')})
     and
       startTime <= $startTime
 union
@@ -609,13 +780,20 @@ union
     left join
       trace_range t3
     where
-      filter_id in (${virtualFilterIds.join(",")})
+      filter_id in (${virtualFilterIds.join(',')})
     and
       startTime <= $startTime
-    `, {$startTime: startTime})
+    `,
+        { $startTime: startTime }
+    );
 
-export const getTabVirtualCounters = (virtualFilterIds:Array<number>, startTime: number) =>
-    query<Counter>("getTabVirtualCounters", `
+export const getTabVirtualCounters = (
+    virtualFilterIds: Array<number>,
+    startTime: number
+) =>
+    query<Counter>(
+        'getTabVirtualCounters',
+        `
     select
       t1.filter_id as trackId,
       t2.name,
@@ -630,13 +808,21 @@ export const getTabVirtualCounters = (virtualFilterIds:Array<number>, startTime:
     left join
       trace_range t3
     where
-      filter_id in (${virtualFilterIds.join(",")})
+      filter_id in (${virtualFilterIds.join(',')})
     and
       startTime <= $startTime
-    `, {$startTime: startTime})
+    `,
+        { $startTime: startTime }
+    );
 
-export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS: number) =>
-    query<SelectionData>("getTabCpuByProcess", `
+export const getTabCpuByProcess = (
+    cpus: Array<number>,
+    leftNS: number,
+    rightNS: number
+) =>
+    query<SelectionData>(
+        'getTabCpuByProcess',
+        `
     select
       IP.name as process,
       IP.pid as pid,
@@ -656,24 +842,32 @@ export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS:
     on
       A.ipid = IP.id
     where
-      B.cpu in (${cpus.join(",")})
+      B.cpu in (${cpus.join(',')})
     and
       not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
     group by
       IP.name,
       IP.pid
     order by
-      wallDuration desc;`, {$rightNS: rightNS, $leftNS: leftNS})
+      wallDuration desc;`,
+        { $rightNS: rightNS, $leftNS: leftNS }
+    );
 
-export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: number) =>
-    query<SelectionData>("getTabCpuByThread", `
+export const getTabCpuByThread = (
+    cpus: Array<number>,
+    leftNS: number,
+    rightNS: number
+) =>
+    query<SelectionData>(
+        'getTabCpuByThread',
+        `
     select
       IP.name as process,
       IP.pid as pid,
       A.name as thread,
       A.tid as tid,
-      sum(B.dur) as wallDuration,
-      avg(B.dur) as avgDuration,
+      B.cpu,
+      sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration,
       count(A.tid) as occurrences
     from
       thread_state AS B
@@ -688,19 +882,28 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
     on
       A.ipid = IP.id
     where
-      B.cpu in (${cpus.join(",")})
+      B.cpu in (${cpus.join(',')})
     and
       not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS))
     group by
+      B.cpu,
       IP.name,
       IP.pid,
       A.name,
       A.tid
     order by
-      wallDuration desc;`, {$rightNS: rightNS, $leftNS: leftNS})
+      wallDuration desc;`,
+        { $rightNS: rightNS, $leftNS: leftNS }
+    );
 
-export const getTabSlices = (funTids: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
-    query<SelectionData>("getTabSlices", `
+export const getTabSlices = (
+    funTids: Array<number>,
+    leftNS: number,
+    rightNS: number
+): Promise<Array<any>> =>
+    query<SelectionData>(
+        'getTabSlices',
+        `
     select
       c.name as name,
       sum(c.dur) as wallDuration,
@@ -717,7 +920,7 @@ export const getTabSlices = (funTids: Array<number>, leftNS: number, rightNS: nu
     and
       c.dur >= 0
     and
-      A.tid in (${funTids.join(",")})
+      A.tid in (${funTids.join(',')})
     and
       c.name != 'binder transaction async'
     and
@@ -729,10 +932,19 @@ export const getTabSlices = (funTids: Array<number>, leftNS: number, rightNS: nu
     group by
       c.name
     order by
-      wallDuration desc;`, {$leftNS: leftNS, $rightNS: rightNS})
+      wallDuration desc;`,
+        { $leftNS: leftNS, $rightNS: rightNS }
+    );
 
-export const getTabSlicesAsyncFunc = (asyncNames:Array<string>,asyncPid: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
-    query<SelectionData>("getTabSlicesAsyncFunc", `
+export const getTabSlicesAsyncFunc = (
+    asyncNames: Array<string>,
+    asyncPid: Array<number>,
+    leftNS: number,
+    rightNS: number
+): Promise<Array<any>> =>
+    query<SelectionData>(
+        'getTabSlicesAsyncFunc',
+        `
     select
       c.name as name,
       sum(c.dur) as wallDuration,
@@ -752,18 +964,26 @@ export const getTabSlicesAsyncFunc = (asyncNames:Array<string>,asyncPid: Array<n
     and 
       c.cookie not null
     and
-      P.pid in (${asyncPid.join(",")})
+      P.pid in (${asyncPid.join(',')})
     and
-      c.name in (${asyncNames.map(it=>"'"+it+"'").join(",")})
+      c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
     and
       not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
     group by
       c.name
     order by
-      wallDuration desc;`, {$leftNS: leftNS, $rightNS: rightNS})
+      wallDuration desc;`,
+        { $leftNS: leftNS, $rightNS: rightNS }
+    );
 
-export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
-    query<SelectionData>("getTabThreadStates", `
+export const getTabThreadStates = (
+    tIds: Array<number>,
+    leftNS: number,
+    rightNS: number
+): Promise<Array<any>> =>
+    query<SelectionData>(
+        'getTabThreadStates',
+        `
     select
       IP.name as process,
       IP.pid,
@@ -786,19 +1006,25 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
     on
       IP.id=A.ipid
     where
-      A.tid in (${tIds.join(",")})
+      A.tid in (${tIds.join(',')})
     and
       not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))
     group by
       IP.name, IP.pid, A.name, A.tid, B.state
     order by
-      wallDuration desc;`, {$leftNS: leftNS, $rightNS: rightNS})
+      wallDuration desc;`,
+        { $leftNS: leftNS, $rightNS: rightNS }
+    );
 
-export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>{
+export const getTabThreadStatesCpu = (
+    tIds: Array<number>,
+    leftNS: number,
+    rightNS: number
+): Promise<Array<any>> => {
     let sql = `
-select IP.name                                         as process,
+select ifnull(IP.name,'null')                                         as process,
        B.pid,
-       A.name                                          as thread,
+       ifnull(A.name,'null')                                          as thread,
        B.tid,
        B.cpu,
        sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration
@@ -807,25 +1033,38 @@ left join trace_range as TR
 left join thread as A on A.tid = B.tid
 left join process AS IP on IP.pid = B.pid
 where cpu notnull
-    and B.tid in (${tIds.join(",")})
+    and B.tid in (${tIds.join(',')})
     and not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
-group by B.tid, B.pid, B.cpu,process,thread;`
-    return query<SelectionData>("getTabThreadStatesCpu", sql, {$leftNS: leftNS, $rightNS: rightNS})
+group by B.tid, B.pid, B.cpu,process,thread;`;
+    return query<SelectionData>('getTabThreadStatesCpu', sql, {
+        $leftNS: leftNS,
+        $rightNS: rightNS,
+    });
+};
 
-}
-
-
-export const queryBinderArgsByArgset = (argset: number): Promise<Array<BinderArgBean>> =>
-    query("queryBinderArgsByArgset", `
+export const queryBinderArgsByArgset = (
+    argset: number
+): Promise<Array<BinderArgBean>> =>
+    query(
+        'queryBinderArgsByArgset',
+        `
     select
       *
     from
       args_view
     where
-      argset = $argset;`, {$argset: argset})
+      argset = $argset;`,
+        { $argset: argset }
+    );
 
-export const queryCpuData = (cpu: number, startNS: number, endNS: number): Promise<Array<CpuStruct>> =>
-    query("queryCpuData", `
+export const queryCpuData = (
+    cpu: number,
+    startNS: number,
+    endNS: number
+): Promise<Array<CpuStruct>> =>
+    query(
+        'queryCpuData',
+        `
     SELECT
     IP.name as processName,
     IP.name processCmdLine,
@@ -849,14 +1088,20 @@ where C.itid is not null
     and
       B.cpu = $cpu
     and
-      startTime between $startNS and $endNS;`, {
-        $cpu: cpu,
-        $startNS: startNS,
-        $endNS: endNS
-    })
+      startTime between $startNS and $endNS;`,
+        {
+            $cpu: cpu,
+            $startNS: startNS,
+            $endNS: endNS,
+        }
+    );
 
-export const queryCpuFreq = (): Promise<Array<{ cpu: number,filterId:number }>> =>
-    query("queryCpuFreq", `
+export const queryCpuFreq = (): Promise<
+    Array<{ cpu: number; filterId: number }>
+> =>
+    query(
+        'queryCpuFreq',
+        `
     select
       cpu,id as filterId
     from
@@ -864,10 +1109,13 @@ export const queryCpuFreq = (): Promise<Array<{ cpu: number,filterId:number }>> 
     where
       (name='cpufreq' or name='cpu_frequency')
     order by cpu;
-    `)
+    `
+    );
 
 export const queryCpuFreqData = (cpu: number): Promise<Array<CpuFreqStruct>> =>
-    query<CpuFreqStruct>("queryCpuFreqData", `
+    query<CpuFreqStruct>(
+        'queryCpuFreqData',
+        `
     select
       cpu,
       value,
@@ -885,38 +1133,56 @@ export const queryCpuFreqData = (cpu: number): Promise<Array<CpuFreqStruct>> =>
     and
       cpu= $cpu
     --order by ts;
-    `, {$cpu: cpu},);
+    `,
+        { $cpu: cpu }
+    );
 
 export const queryCpuMax = (): Promise<Array<any>> =>
-    query("queryCpuMax", `
+    query(
+        'queryCpuMax',
+        `
     select
       cpu
     from
       sched_slice
     order by
       cpu
-    desc limit 1;`)
+    desc limit 1;`
+    );
 
 export const queryCpuCount = (): Promise<Array<any>> =>
-    query("queryCpuCount", `
+    query(
+        'queryCpuCount',
+        `
    select max(cpuCount) cpuCount from
 (select ifnull((max(cpu) + 1),0) cpuCount  from cpu_measure_filter where name in ('cpu_frequency','cpu_idle')
  union all
  select ifnull((max(callid)+1),0) cpuCount from irq
-) A;`)
+) A;`
+    );
 
-export const queryCpuStateFilter = ():Promise<Array<any>> =>
-    query("queryCpuStateFilter",`select cpu,id as filterId from cpu_measure_filter where name = 'cpu_idle' order by cpu;`,{})
+export const queryCpuStateFilter = (): Promise<Array<any>> =>
+    query(
+        'queryCpuStateFilter',
+        `select cpu,id as filterId from cpu_measure_filter where name = 'cpu_idle' order by cpu;`,
+        {}
+    );
 
-export const queryCpuState = (cpuFilterId:number) :Promise<Array<any>> =>
-    query('queryCpuState',`
+export const queryCpuState = (cpuFilterId: number): Promise<Array<any>> =>
+    query(
+        'queryCpuState',
+        `
         select (A.ts - B.start_ts) as startTs,ifnull(dur,B.end_ts - A.ts) dur,
             value
         from measure A,trace_range B
-        where filter_id = $filterId;`,{$filterId:cpuFilterId},"exec-buf")
+        where filter_id = $filterId;`,
+        { $filterId: cpuFilterId }
+    );
 
 export const queryCpuMaxFreq = (): Promise<Array<any>> =>
-    query("queryCpuMaxFreq", `
+    query(
+        'queryCpuMaxFreq',
+        `
     select
       max(value) as maxFreq
     from
@@ -926,22 +1192,33 @@ export const queryCpuMaxFreq = (): Promise<Array<any>> =>
     on
       c.filter_id = t.id
     where
-      (name = 'cpufreq' or name='cpu_frequency');`)
+      (name = 'cpufreq' or name='cpu_frequency');`
+    );
 
-export const queryProcessData = (pid:number,startNS:number,endNS:number):Promise<Array<any>> =>
-    query("queryProcessData",`
+export const queryProcessData = (
+    pid: number,
+    startNS: number,
+    endNS: number
+): Promise<Array<any>> =>
+    query(
+        'queryProcessData',
+        `
     select  ta.cpu,
         dur, 
         ts-${(window as any).recordStartNS} as startTime
 from thread_state ta
-where ta.cpu is not null and pid=$pid and startTime between $startNS and $endNS;`, {
-        $pid: pid,
-        $startNS: startNS,
-        $endNS: endNS
-    });
+where ta.cpu is not null and pid=$pid and startTime between $startNS and $endNS;`,
+        {
+            $pid: pid,
+            $startNS: startNS,
+            $endNS: endNS,
+        }
+    );
 
 export const queryProcessMem = (): Promise<Array<any>> =>
-    query("queryProcessMem", `
+    query(
+        'queryProcessMem',
+        `
     select
       process_measure_filter.id as trackId,
       process_measure_filter.name as trackName,
@@ -952,35 +1229,58 @@ export const queryProcessMem = (): Promise<Array<any>> =>
       process_measure_filter
     join
       process using (ipid)
-    order by trackName;`)
+    order by trackName;`
+    );
 
-export const queryProcessThreadDataCount = ():Promise<Array<any>> =>
-    query(`queryProcessThreadDataCount`,`select pid,count(id) as count 
+export const queryProcessThreadDataCount = (): Promise<Array<any>> =>
+    query(
+        `queryProcessThreadDataCount`,
+        `select pid,count(id) as count 
     from thread_state 
-    where ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS} group by pid;`,{});
+    where ts between ${(window as any).recordStartNS} and ${
+            (window as any).recordEndNS
+        } group by pid;`,
+        {}
+    );
 
-export const queryProcessFuncDataCount = ():Promise<Array<any>> =>
-    query(`queryProcessFuncDataCount`,`select
+export const queryProcessFuncDataCount = (): Promise<Array<any>> =>
+    query(
+        `queryProcessFuncDataCount`,
+        `select
         P.pid,
         count(tid) as count
     from callstack C
     left join thread A on A.id = C.callid
     left join process AS P on P.id = A.ipid
-    where  C.ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS} 
-    group by pid;`,{});
+    where  C.ts between ${(window as any).recordStartNS} and ${
+            (window as any).recordEndNS
+        } 
+    group by pid;`,
+        {}
+    );
 
-export const queryProcessMemDataCount = ():Promise<Array<any>> =>
-    query(`queryProcessMemDataCount`,`select
+export const queryProcessMemDataCount = (): Promise<Array<any>> =>
+    query(
+        `queryProcessMemDataCount`,
+        `select
       p.pid as pid, count(value) count
     from process_measure c
     left join process_measure_filter f on f.id = c.filter_id
     left join process p on p.ipid = f.ipid
 where f.id not NULL and value>0 
- and c.ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS}
-group by p.pid`,{});
+ and c.ts between ${(window as any).recordStartNS} and ${
+            (window as any).recordEndNS
+        }
+group by p.pid`,
+        {}
+    );
 
-export const queryProcessMemData = (trackId: number): Promise<Array<ProcessMemStruct>> =>
-    query("queryProcessMemData", `
+export const queryProcessMemData = (
+    trackId: number
+): Promise<Array<ProcessMemStruct>> =>
+    query(
+        'queryProcessMemData',
+        `
     select
       c.type,
       ts,
@@ -991,25 +1291,47 @@ export const queryProcessMemData = (trackId: number): Promise<Array<ProcessMemSt
       process_measure c,
       trace_range tb
     where
-      filter_id = $id;`, {$id: trackId})
+      filter_id = $id;`,
+        { $id: trackId }
+    );
 
 export const queryThreads = (): Promise<Array<any>> =>
-    query("queryThreads", `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`)
+    query(
+        'queryThreads',
+        `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`
+    );
 
 export const queryDataDICT = (): Promise<Array<any>> =>
-    query("queryDataDICT", `select * from data_dict;`)
-export const queryProcessContentCount = ():Promise<Array<any>> =>
-    query(`queryProcessContentCount`,`select pid,swtich_count as switch_count,thread_count,slice_count,mem_count from process;`);
+    query('queryDataDICT', `select * from data_dict;`);
+export const queryProcessContentCount = (): Promise<Array<any>> =>
+    query(
+        `queryProcessContentCount`,
+        `select pid,switch_count,thread_count,slice_count,mem_count from process;`
+    );
 export const queryProcessThreadsByTable = (): Promise<Array<ThreadStruct>> =>
-    query("queryProcessThreadsByTable", `
+    query(
+        'queryProcessThreadsByTable',
+        `
         select p.pid as pid,t.tid as tid,p.name as processName,t.name as threadName from thread t left join process  p on t.ipid = p.id where t.tid != 0;
-    `)
-export const queryVirtualMemory = ():Promise<Array<any>> =>
-    query("queryVirtualMemory",`select id,name from sys_event_filter where type='sys_virtual_memory_filter'`);
-export const queryVirtualMemoryData = (filterId:number):Promise<Array<any>> =>
-    query("queryVirtualMemoryData",`select ts-${(window as any).recordStartNS} as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,{$filter_id:filterId});
+    `
+    );
+export const queryVirtualMemory = (): Promise<Array<any>> =>
+    query(
+        'queryVirtualMemory',
+        `select id,name from sys_event_filter where type='sys_virtual_memory_filter'`
+    );
+export const queryVirtualMemoryData = (filterId: number): Promise<Array<any>> =>
+    query(
+        'queryVirtualMemoryData',
+        `select ts-${
+            (window as any).recordStartNS
+        } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
+        { $filter_id: filterId }
+    );
 export const queryProcessThreads = (): Promise<Array<ThreadStruct>> =>
-    query("queryProcessThreads", `
+    query(
+        'queryProcessThreads',
+        `
     select
       the_tracks.ipid as upid,
       the_tracks.itid as utid,
@@ -1024,10 +1346,14 @@ export const queryProcessThreads = (): Promise<Array<ThreadStruct>> =>
     left join (select itid,sum(dur) as total_dur from thread_state where state != 'S' group by itid) using(itid)
     left join thread using(itid)
     left join process using(ipid)
-    order by total_dur desc,the_tracks.ipid,the_tracks.itid;`, {})
+    order by total_dur desc,the_tracks.ipid,the_tracks.itid;`,
+        {}
+    );
 
 export const queryThreadData = (tid: number): Promise<Array<ThreadStruct>> =>
-    query("queryThreadData", `
+    query(
+        'queryThreadData',
+        `
     select 
       A.id
      , B.tid
@@ -1037,53 +1363,50 @@ export const queryThreadData = (tid: number): Promise<Array<ThreadStruct>> =>
      , B.dur
      , B.state
      , B.pid
-     , IP.name            as processName
+     , IP.name as processName
+     , B.arg_setid as argSetID
 from thread_state AS B
          left join thread as A on A.id = B.itid
          left join trace_range AS TR
          left join process AS IP on IP.id = A.ipid
-where B.tid = $tid;`, {$tid: tid})
+where B.tid = $tid;`,
+        { $tid: tid }
+    );
 
-export const queryThreadStateArgs = (startDur:number,endState:string): Promise<Array<BinderArgBean>> =>
-    query("queryThreadStateArgs",` select args_view.* from args_view,
-     (select arg_setid from sched_slice where end_state = $endState and ts + dur = $startDur limit 1) s on s.arg_setid = argset`, {$startDur: startDur,$endState:endState})
+export const queryThreadAndProcessName = (): Promise<Array<any>> =>
+    query(
+        'queryThreadAndProcessName',
+        `
+    select tid id,name,'t' type from thread
+union all
+select pid id,name,'p' type from process;`,
+        {}
+    );
+
+export const queryThreadStateArgs = (
+    argset: number
+): Promise<Array<BinderArgBean>> =>
+    query(
+        'queryThreadStateArgs',
+        ` select args_view.* from args_view where argset = ${argset}`,
+        {}
+    );
 
 export const queryWakeUpThread_Desc = (): Promise<Array<any>> =>
-    query("queryWakeUpThread_Desc", `This is the interval from when the task became eligible to run
-(e.g.because of notifying a wait queue it was a suspended on) to when it started running.`)
+    query(
+        'queryWakeUpThread_Desc',
+        `This is the interval from when the task became eligible to run
+(e.g.because of notifying a wait queue it was a suspended on) to when it started running.`
+    );
 
-/*-------------------------------------------------------------------------------------*/
-export const queryWakeUpFromThread_WakeThread = (wakets: number): Promise<Array<WakeupBean>> =>
-    query("queryWakeUpFromThread_WakeThread", `select TB.tid,TB.name as thread,TA.cpu,(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
-from sched_slice TA
-left join thread TB on TA.itid = TB.id
-left join process TC on TB.ipid = TC.id
-left join trace_range TR
-where TA.itid = (select itid from raw where name = 'sched_waking' and ts = $wakets )
-    and TA.ts < $wakets
-    and TA.ts + Ta.dur >= $wakets`, {$wakets: wakets})
-
-/*-------------------------------------------------------------------------------------*/
-export const queryWakeUpFromThread_WakeTime = (itid: number, startTime: number): Promise<Array<WakeUpTimeBean>> => {
-        let sql_waking = `
-select * from
-    ( select ts as wakeTs,start_ts as startTs from instant,trace_range
-       where name = 'sched_waking'
-       and ref = ${itid}
-       and ts < start_ts + ${startTime}
-       order by ts desc limit 1) TA
-       left join
-    (select ts as preRow from sched_slice,trace_range
-       where itid = ${itid}
-       and ts < start_ts + ${startTime}
-       order by ts desc limit 1) TB
+export const queryThreadWakeUp = (
+    itid: number,
+    startTime: number,
+    dur: number
+): Promise<Array<WakeupBean>> =>
+    query(
+        'queryThreadWakeUp',
         `
-        return query("queryWakeUpFromThread_WakeTime",sql_waking,{})
-    }
-/*-------------------------------------------------------------------------------------*/
-
-export const queryThreadWakeUp = (itid: number, startTime: number,dur:number): Promise<Array<WakeupBean>> =>
-    query("queryThreadWakeUp", `
 select TA.tid,min(TA.ts - TR.start_ts) as ts,TA.pid
 from
   (select min(ts) as wakeTs,ref as itid from instant,trace_range
@@ -1097,34 +1420,63 @@ left join thread_state TA on TW.itid = TA.itid
 left join trace_range TR
 where TA.ts > TW.wakeTs
 group by TA.tid,TA.pid;
-    `, {$itid: itid, $startTime: startTime,$dur:dur})
+    `,
+        { $itid: itid, $startTime: startTime, $dur: dur }
+    );
 
-
-export const queryThreadWakeUpFrom = (itid: number, startTime: number,dur:number): Promise<Array<WakeupBean>> =>{
+export const queryRunnableTimeByRunning = (
+    tid: number,
+    startTime: number
+): Promise<Array<WakeupBean>> => {
     let sql = `
-select (A.ts - B.start_ts) as ts,tid,pid,cpu,dur from thread_state A,trace_range B
-where state = 'Running'
-and itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
-and ts < ${startTime}
+select ts from thread_state,trace_range where ts + dur -start_ts = ${startTime} and state = 'R' and tid=${tid} limit 1
+    `;
+    return query('queryRunnableTimeByRunning', sql, {});
+};
+
+export const queryThreadWakeUpFrom = (
+    itid: number,
+    startTime: number
+): Promise<Array<WakeupBean>> => {
+    let sql = `
+select (A.ts - B.start_ts) as ts,A.tid,A.pid,A.cpu,A.dur from thread_state A,trace_range B
+where A.state = 'Running'
+and A.itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
+and (A.ts - B.start_ts) < (${startTime} - B.start_ts)
 order by ts desc limit 1
-    `
-    console.log(sql)
-    return query("queryThreadWakeUpFrom",sql,{})
-}
+    `;
+    return query('queryThreadWakeUpFrom', sql, {});
+};
 /*-------------------------------------------------------------------------------------*/
 
-export const queryHeapGroupByEvent = (): Promise<Array<NativeEventHeap>> =>
-    query("queryHeapGroupByEvent", `
-    select
-      event_type as eventType,
-      sum(heap_size) as sumHeapSize
-    from
-      native_hook
-    where event_type = 'AllocEvent' or event_type = 'MmapEvent'
-    group by event_type`, {})
+export const queryHeapGroupByEvent = (
+    type: string
+): Promise<Array<NativeEventHeap>> => {
+    let sql1 = `
+        select
+            event_type as eventType,
+            sum(heap_size) as sumHeapSize
+        from native_hook
+        where event_type = 'AllocEvent' or event_type = 'MmapEvent'
+        group by event_type
+    `;
+    let sql2 = `
+        select (case when type = 0 then 'AllocEvent' else 'MmapEvent' end) eventType,
+            sum(apply_size) sumHeapSize
+        from native_hook_statistic
+        group by eventType;
+    `;
+    return query(
+        'queryHeapGroupByEvent',
+        type === 'native_hook' ? sql1 : sql2,
+        {}
+    );
+};
 
 export const queryAllHeapByEvent = (): Promise<Array<NativeEvent>> =>
-    query("queryAllHeapByEvent", `
+    query(
+        'queryAllHeapByEvent',
+        `
     select * from (
       select h.start_ts - t.start_ts as startTime,
        h.heap_size as heapSize,
@@ -1140,10 +1492,18 @@ from native_hook h ,trace_range t
 where h.start_ts >= t.start_ts and h.start_ts <= t.end_ts
 and (h.event_type = 'AllocEvent' or h.event_type = 'MmapEvent')
 and h.end_ts not null ) order by startTime;
-`, {})
+`,
+        {}
+    );
 
-export const queryHeapAllData = (startTs: number, endTs: number, ipids: Array<number>): Promise<Array<HeapTreeDataBean>> =>
-    query("queryHeapAllData", `
+export const queryHeapAllData = (
+    startTs: number,
+    endTs: number,
+    ipids: Array<number>
+): Promise<Array<HeapTreeDataBean>> =>
+    query(
+        'queryHeapAllData',
+        `
     select
       h.start_ts - t.start_ts as startTs,
       h.end_ts - t.start_ts as endTs,
@@ -1157,13 +1517,19 @@ export const queryHeapAllData = (startTs: number, endTs: number, ipids: Array<nu
     where
       event_type = 'AllocEvent'
     and
-      ipid in (${ipids.join(",")})
+      ipid in (${ipids.join(',')})
     and
       (h.start_ts - t.start_ts between ${startTs} and ${endTs} or h.end_ts - t.start_ts between ${startTs} and ${endTs})`,
-        {ipids: ipids, $startTs: startTs, $endTs: endTs})
+        { ipids: ipids, $startTs: startTs, $endTs: endTs }
+    );
 
-export const queryNativeHookStatistics = (leftNs: number, rightNs: number): Promise<Array<NativeHookMalloc>> =>
-    query("queryNativeHookStatistics", `
+export const queryNativeHookStatistics = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<NativeHookMalloc>> =>
+    query(
+        'queryNativeHookStatistics',
+        `
     select
       event_type as eventType,
       sub_type_id as subTypeId,
@@ -1178,10 +1544,17 @@ export const queryNativeHookStatistics = (leftNs: number, rightNs: number): Prom
     where
       (A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}
      and (event_type = 'AllocEvent' or event_type = 'MmapEvent')
-    group by event_type;`, {$leftNs: leftNs, $rightNs: rightNs})
+    group by event_type;`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const queryNativeHookStatisticsMalloc = (leftNs: number, rightNs: number): Promise<Array<NativeHookMalloc>> =>
-    query('queryNativeHookStatisticsMalloc', `
+export const queryNativeHookStatisticsMalloc = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<NativeHookMalloc>> =>
+    query(
+        'queryNativeHookStatisticsMalloc',
+        `
     select
       event_type as eventType,
       heap_size as heapSize,
@@ -1202,10 +1575,17 @@ export const queryNativeHookStatisticsMalloc = (leftNs: number, rightNs: number)
       event_type,
       heap_size
     order by heap_size desc
-    `, {$leftNs: leftNs, $rightNs: rightNs})
+    `,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number): Promise<Array<NativeHookMalloc>> =>
-    query('queryNativeHookStatisticsSubType', `
+export const queryNativeHookStatisticsSubType = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<NativeHookMalloc>> =>
+    query(
+        'queryNativeHookStatisticsSubType',
+        `
     select
       event_type as eventType,
       sub_type_id as subTypeId,
@@ -1223,11 +1603,18 @@ export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number
       (event_type = 'MmapEvent')
     group by
       event_type,sub_type_id;
-        `, {$leftNs: leftNs, $rightNs: rightNs})
+        `,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-
-export const queryNativeHookEventTid = (leftNs: number, rightNs: number, types: Array<string>): Promise<Array<NativeHookStatistics>> =>
-    query("queryNativeHookEventTid", `
+export const queryNativeHookEventTid = (
+    leftNs: number,
+    rightNs: number,
+    types: Array<string>
+): Promise<Array<NativeHookStatistics>> =>
+    query(
+        'queryNativeHookEventTid',
+        `
     select
       callchain_id as eventId,
       event_type as eventType,
@@ -1248,24 +1635,43 @@ export const queryNativeHookEventTid = (leftNs: number, rightNs: number, types: 
       A.itid = t.id
     where
       A.start_ts - B.start_ts
-    between ${leftNs} and ${rightNs} and A.event_type in (${types.join(",")})`
-        , {$leftNs: leftNs, $rightNs: rightNs, $types: types})
+    between ${leftNs} and ${rightNs} and A.event_type in (${types.join(',')})`,
+        { $leftNs: leftNs, $rightNs: rightNs, $types: types }
+    );
 
-export const queryNativeHookProcess = (): Promise<Array<NativeHookProcess>> =>
-    query("queryNativeHookProcess", `
+export const queryNativeHookStatisticsCount = (): Promise<
+    Array<NativeHookProcess>
+> =>
+    query(
+        'queryNativeHookStatisticsCount',
+        `select count(1) num from native_hook_statistic`,
+        {}
+    );
+
+export const queryNativeHookProcess = (
+    table: string
+): Promise<Array<NativeHookProcess>> => {
+    let sql = `
     select
-      distinct native_hook.ipid,
+      distinct ${table}.ipid,
       pid,
       name
     from
-      native_hook
+      ${table}
     left join
       process p
     on
-      native_hook.ipid = p.id`, {})
+      ${table}.ipid = p.id
+    `;
+    return query('queryNativeHookProcess', sql, {});
+};
 
-export const queryNativeHookSnapshotTypes = (): Promise<Array<NativeHookSampleQueryInfo>> =>
-    query("queryNativeHookSnapshotTypes", `
+export const queryNativeHookSnapshotTypes = (): Promise<
+    Array<NativeHookSampleQueryInfo>
+> =>
+    query(
+        'queryNativeHookSnapshotTypes',
+        `
 select
       event_type as eventType,
       data as subType
@@ -1274,10 +1680,16 @@ select
     where
       (event_type = 'AllocEvent' or event_type = 'MmapEvent')
     group by
-      event_type,data;`, {})
+      event_type,data;`,
+        {}
+    );
 
-export const queryAllHookData = (rightNs: number): Promise<Array<NativeHookSampleQueryInfo>> =>
-    query("queryAllHookData", `
+export const queryAllHookData = (
+    rightNs: number
+): Promise<Array<NativeHookSampleQueryInfo>> =>
+    query(
+        'queryAllHookData',
+        `
     select
       callchain_id as eventId,
       event_type as eventType,
@@ -1292,34 +1704,61 @@ export const queryAllHookData = (rightNs: number): Promise<Array<NativeHookSampl
     where
       (event_type = 'AllocEvent' or event_type = 'MmapEvent')
     and
-      n.start_ts between t.start_ts and ${rightNs} + t.start_ts`, {$rightNs: rightNs})
+      n.start_ts between t.start_ts and ${rightNs} + t.start_ts`,
+        { $rightNs: rightNs }
+    );
 
-export const queryNativeHookResponseTypes = (leftNs: number, rightNs: number, types: Array<string>): Promise<Array<any>> =>
-    query("queryNativeHookResponseTypes", `
+export const queryNativeHookResponseTypes = (
+    leftNs: number,
+    rightNs: number,
+    types: Array<string>
+): Promise<Array<any>> =>
+    query(
+        'queryNativeHookResponseTypes',
+        `
         select last_lib_id as lastLibId,data_dict.data as value from 
         native_hook A ,trace_range B
         left join data_dict on A.last_lib_id = data_dict.id 
         where
         A.start_ts - B.start_ts
-        between ${leftNs} and ${rightNs} and A.event_type in (${types.join(",")})
+        between ${leftNs} and ${rightNs} and A.event_type in (${types.join(
+            ','
+        )})
         group by last_lib_id;
-    `,{$leftNs: leftNs, $rightNs: rightNs, $types: types})
+    `,
+        { $leftNs: leftNs, $rightNs: rightNs, $types: types }
+    );
 /**
  * HiPerf
  */
 export const queryHiPerfEventList = (): Promise<Array<any>> =>
-    query("queryHiPerfEventList", `select id,report_value from perf_report where report_type='config_name'`, {})
-export const queryHiPerfEventListData = (eventTypeId:number): Promise<Array<any>> =>
-    query("queryHiPerfEventListData", `
+    query(
+        'queryHiPerfEventList',
+        `select id,report_value from perf_report where report_type='config_name'`,
+        {}
+    );
+export const queryHiPerfEventListData = (
+    eventTypeId: number
+): Promise<Array<any>> =>
+    query(
+        'queryHiPerfEventListData',
+        `
         select s.callchain_id,
                (s.timestamp_trace-t.start_ts) startNS 
         from perf_sample s,trace_range t 
         where 
             event_type_id=${eventTypeId} 
             and s.thread_id != 0;
-`, {$eventTypeId:eventTypeId})
-export const queryHiPerfEventData = (eventTypeId:number,cpu:number): Promise<Array<any>> =>
-    query("queryHiPerfEventList", `
+`,
+        { $eventTypeId: eventTypeId }
+    );
+export const queryHiPerfEventData = (
+    eventTypeId: number,
+    cpu: number
+): Promise<Array<any>> =>
+    query(
+        'queryHiPerfEventList',
+        `
     select s.callchain_id,
         (s.timestamp_trace-t.start_ts) startNS 
     from perf_sample s,trace_range t 
@@ -1327,23 +1766,38 @@ export const queryHiPerfEventData = (eventTypeId:number,cpu:number): Promise<Arr
         event_type_id=${eventTypeId} 
         and cpu_id=${cpu} 
         and s.thread_id != 0;
-`, {$eventTypeId:eventTypeId,$cpu:cpu})
+`,
+        { $eventTypeId: eventTypeId, $cpu: cpu }
+    );
 export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
-    query("queryHiPerfCpuData", `
+    query(
+        'queryHiPerfCpuData',
+        `
     select s.callchain_id,
         (s.timestamp_trace-t.start_ts) startNS 
     from perf_sample s,trace_range t 
     where 
         cpu_id=${cpu} 
-        and s.thread_id != 0;`, {$cpu: cpu})
+        and s.thread_id != 0;`,
+        { $cpu: cpu }
+    );
 export const queryHiPerfCpuMergeData = (): Promise<Array<any>> =>
-    query("queryHiPerfCpuData",
-        `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where s.thread_id != 0;`, {})
+    query(
+        'queryHiPerfCpuData',
+        `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where s.thread_id != 0;`,
+        {}
+    );
 export const queryHiPerfCpuMergeData2 = (): Promise<Array<any>> =>
-    query("queryHiPerfCpuData2",
-        `select distinct cpu_id from perf_sample where thread_id != 0 order by cpu_id desc;`, {})
+    query(
+        'queryHiPerfCpuData2',
+        `select distinct cpu_id from perf_sample where thread_id != 0 order by cpu_id desc;`,
+        {}
+    );
 
-export const queryHiPerfProcessData = (pid: number): Promise<Array<any>> => query("queryHiPerfProcessData", `
+export const queryHiPerfProcessData = (pid: number): Promise<Array<any>> =>
+    query(
+        'queryHiPerfProcessData',
+        `
 SELECT sp.callchain_id,
        th.thread_name,
        th.thread_id                     tid,
@@ -1352,9 +1806,14 @@ SELECT sp.callchain_id,
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
-where pid = ${pid} and sp.thread_id != 0;`, {$pid: pid})
+where pid = ${pid} and sp.thread_id != 0;`,
+        { $pid: pid }
+    );
 
-export const queryHiPerfThreadData = (tid: number): Promise<Array<any>> => query("queryHiPerfThreadData", `
+export const queryHiPerfThreadData = (tid: number): Promise<Array<any>> =>
+    query(
+        'queryHiPerfThreadData',
+        `
 SELECT sp.callchain_id,
        th.thread_name,
        th.thread_id                     tid,
@@ -1363,35 +1822,46 @@ SELECT sp.callchain_id,
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
-where tid = ${tid} and sp.thread_id != 0;`, {$tid: tid})
+where tid = ${tid} and sp.thread_id != 0;`,
+        { $tid: tid }
+    );
 
-export const querySelectTraceStats = (): Promise<Array<{
-    event_name: string
-    stat_type: string
-    count: number
-    source: string
-    serverity: string
-}>> =>
-    query('querySelectTraceStats', 'select event_name,stat_type,count,source,serverity from stat');
+export const querySelectTraceStats = (): Promise<
+    Array<{
+        event_name: string;
+        stat_type: string;
+        count: number;
+        source: string;
+        serverity: string;
+    }>
+> =>
+    query(
+        'querySelectTraceStats',
+        'select event_name,stat_type,count,source,serverity from stat'
+    );
 
 export const queryCustomizeSelect = (sql: string): Promise<Array<any>> =>
     query('queryCustomizeSelect', sql);
 
-export const queryDistributedTerm = (): Promise<Array<{
-    threadId: string
-    threadName: string
-    processId: string
-    processName: string
-    funName: string
-    dur: string
-    ts: string
-    chainId: string
-    spanId: string
-    parentSpanId: string
-    flag: string
-    trace_name: string
-}>> =>
-    query('queryDistributedTerm', `
+export const queryDistributedTerm = (): Promise<
+    Array<{
+        threadId: string;
+        threadName: string;
+        processId: string;
+        processName: string;
+        funName: string;
+        dur: string;
+        ts: string;
+        chainId: string;
+        spanId: string;
+        parentSpanId: string;
+        flag: string;
+        trace_name: string;
+    }>
+> =>
+    query(
+        'queryDistributedTerm',
+        `
     select
       group_concat(thread.id,',') as threadId,
       group_concat(thread.name,',') as threadName,
@@ -1415,18 +1885,23 @@ export const queryDistributedTerm = (): Promise<Array<{
       inner join thread on callstack.callid = thread.id
       inner join process on process.id = thread.ipid
       where (callstack.flag='S' or callstack.flag='C')
-      group by callstack.chainId,callstack.spanId,callstack.parentSpanId`);
+      group by callstack.chainId,callstack.spanId,callstack.parentSpanId`
+    );
 
-export const queryTraceCpu = (): Promise<Array<{
-    tid: string
-    pid: string
-    cpu: string
-    dur: string
-    min_freq: string
-    max_freq: string
-    avg_frequency: string
-}>> =>
-    query('queryTraceCpu', `SELECT 
+export const queryTraceCpu = (): Promise<
+    Array<{
+        tid: string;
+        pid: string;
+        cpu: string;
+        dur: string;
+        min_freq: string;
+        max_freq: string;
+        avg_frequency: string;
+    }>
+> =>
+    query(
+        'queryTraceCpu',
+        `SELECT 
         itid AS tid, 
         ipid AS pid, 
         group_concat(cpu, ',') AS cpu, 
@@ -1452,19 +1927,24 @@ export const queryTraceCpu = (): Promise<Array<{
         ipid, itid 
         ORDER BY 
         ipid
-    `);
+    `
+    );
 
-export const queryTraceCpuTop = (): Promise<Array<{
-    tid: string
-    pid: string
-    cpu: string
-    duration: string
-    min_freq: string
-    max_freq: string
-    avg_frequency: string
-    sumNum: string
-}>> =>
-    query('queryTraceCpuTop', `SELECT 
+export const queryTraceCpuTop = (): Promise<
+    Array<{
+        tid: string;
+        pid: string;
+        cpu: string;
+        duration: string;
+        min_freq: string;
+        max_freq: string;
+        avg_frequency: string;
+        sumNum: string;
+    }>
+> =>
+    query(
+        'queryTraceCpuTop',
+        `SELECT 
         itid AS tid, 
         ipid AS pid, 
         group_concat(cpu, ',') AS cpu, 
@@ -1490,16 +1970,21 @@ export const queryTraceCpuTop = (): Promise<Array<{
         sumNum 
         DESC 
         LIMIT 10;
-    `);
+    `
+    );
 
-export const queryTraceMemory = (): Promise<Array<{
-    maxNum: string
-    minNum: string
-    avgNum: string
-    name: string
-    processName: string
-}>> =>
-    query('queryTraceMemory', `
+export const queryTraceMemory = (): Promise<
+    Array<{
+        maxNum: string;
+        minNum: string;
+        avgNum: string;
+        name: string;
+        processName: string;
+    }>
+> =>
+    query(
+        'queryTraceMemory',
+        `
     select
         max(value) as maxNum,
         min(value) as minNum,
@@ -1516,16 +2001,21 @@ export const queryTraceMemory = (): Promise<Array<{
     group by 
     filter_id 
     order by 
-    avgNum desc`);
+    avgNum desc`
+    );
 
-export const queryTraceMemoryTop = (): Promise<Array<{
-    maxNum: string
-    minNum: string
-    avgNum: string
-    name: string
-    processName: string
-}>> =>
-    query('queryTraceMemoryTop', `
+export const queryTraceMemoryTop = (): Promise<
+    Array<{
+        maxNum: string;
+        minNum: string;
+        avgNum: string;
+        name: string;
+        processName: string;
+    }>
+> =>
+    query(
+        'queryTraceMemoryTop',
+        `
     select
         max(value) as maxNum,
         min(value) as minNum,
@@ -1542,15 +2032,20 @@ export const queryTraceMemoryTop = (): Promise<Array<{
     group by 
     filter_id 
     order by 
-    avgNum desc limit 10`);
+    avgNum desc limit 10`
+    );
 
-export const queryTraceMemoryUnAgg = (): Promise<Array<{
-    processName: string
-    name: string
-    value: string
-    ts: string
-}>> =>
-    query('queryTraceMemoryUnAgg', `
+export const queryTraceMemoryUnAgg = (): Promise<
+    Array<{
+        processName: string;
+        name: string;
+        value: string;
+        ts: string;
+    }>
+> =>
+    query(
+        'queryTraceMemoryUnAgg',
+        `
     select
         p.name as processName,
         group_concat(filter.name) as name,
@@ -1570,28 +2065,38 @@ export const queryTraceMemoryUnAgg = (): Promise<Array<{
     group by 
     p.name,filter.ipid 
     order by 
-    filter.ipid`);
+    filter.ipid`
+    );
 
-export const queryTraceTaskName = (): Promise<Array<{
-    id: string
-    pid: string
-    process_name: string
-    thread_name: string
-}>> =>
-    query('queryTraceTaskName', `
+export const queryTraceTaskName = (): Promise<
+    Array<{
+        id: string;
+        pid: string;
+        process_name: string;
+        thread_name: string;
+    }>
+> =>
+    query(
+        'queryTraceTaskName',
+        `
     select
         P.id as id,
         P.pid as pid,
         P.name as process_name,
         group_concat(T.name,',') as thread_name
     from process as P left join thread as T where P.id = T.ipid
-    group by pid`);
+    group by pid`
+    );
 
-export const queryTraceMetaData = (): Promise<Array<{
-    name: string
-    valueText: string
-}>> =>
-    query('queryTraceMetaData', `
+export const queryTraceMetaData = (): Promise<
+    Array<{
+        name: string;
+        valueText: string;
+    }>
+> =>
+    query(
+        'queryTraceMetaData',
+        `
     select
         cast(name as varchar) as name,
         cast(value as varchar) as valueText 
@@ -1599,16 +2104,21 @@ export const queryTraceMetaData = (): Promise<Array<{
         UNION
         select 'start_ts',cast(start_ts as varchar) from trace_range
         UNION
-        select 'end_ts',cast(end_ts as varchar) from trace_range`);
+        select 'end_ts',cast(end_ts as varchar) from trace_range`
+    );
 
-export const querySystemCalls = (): Promise<Array<{
-    frequency: string
-    minDur: string
-    maxDur: string
-    avgDur: string
-    funName: string
-}>> =>
-    query('querySystemCalls', `
+export const querySystemCalls = (): Promise<
+    Array<{
+        frequency: string;
+        minDur: string;
+        maxDur: string;
+        avgDur: string;
+        funName: string;
+    }>
+> =>
+    query(
+        'querySystemCalls',
+        `
     select
       count(*) as frequency,
       min(dur) as minDur,
@@ -1619,18 +2129,23 @@ export const querySystemCalls = (): Promise<Array<{
       callstack
       group by name
       order by
-    frequency desc limit 100`);
+    frequency desc limit 100`
+    );
 
-export const querySystemCallsTop = (): Promise<Array<{
-    tid: string
-    pid: string
-    funName: string
-    frequency: string
-    minDur: string
-    maxDur: string
-    avgDur: string
-}>> =>
-    query('querySystemCallsTop', `SELECT 
+export const querySystemCallsTop = (): Promise<
+    Array<{
+        tid: string;
+        pid: string;
+        funName: string;
+        frequency: string;
+        minDur: string;
+        maxDur: string;
+        avgDur: string;
+    }>
+> =>
+    query(
+        'querySystemCallsTop',
+        `SELECT 
         cpu.tid AS tid, 
         cpu.pid AS pid, 
         callstack.name AS funName, 
@@ -1678,10 +2193,16 @@ export const querySystemCallsTop = (): Promise<Array<{
         ORDER BY 
         frequency 
         DESC
-    LIMIT 10`);
+    LIMIT 10`
+    );
 
-export const getTabLiveProcessData = (leftNs: number, rightNs: number): Promise<Array<LiveProcess>> =>
-    query<LiveProcess>("getTabLiveProcessData", `SELECT
+export const getTabLiveProcessData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<LiveProcess>> =>
+    query<LiveProcess>(
+        'getTabLiveProcessData',
+        `SELECT
         process.id as processId,
         process.name as processName,
         process.ppid as responsibleProcess,
@@ -1715,11 +2236,19 @@ export const getTabLiveProcessData = (leftNs: number, rightNs: number): Promise<
         GROUP BY
         tt.process_name,
         tt.process_id 
-        ) process ;`, {$leftNS: leftNs, $rightNS: rightNs})
+        ) process ;`,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabProcessHistoryData = (leftNs: number, rightNs: number,
-                                         processId: number | undefined, threadId: number | undefined): Promise<Array<ProcessHistory>> =>
-    query<ProcessHistory>("getTabProcessHistoryData", `SELECT
+export const getTabProcessHistoryData = (
+    leftNs: number,
+    rightNs: number,
+    processId: number | undefined,
+    threadId: number | undefined
+): Promise<Array<ProcessHistory>> =>
+    query<ProcessHistory>(
+        'getTabProcessHistoryData',
+        `SELECT
         process.id as processId,
         process.isD as alive,
         process.startTS as firstSeen,
@@ -1749,11 +2278,22 @@ export const getTabProcessHistoryData = (leftNs: number, rightNs: number,
         GROUP BY
         tt.process_name,
         tt.process_id 
-        ) process;`
-        , {$leftNS: leftNs, $rightNS: rightNs, $processID: processId, $threadID: threadId})
+        ) process;`,
+        {
+            $leftNS: leftNs,
+            $rightNS: rightNs,
+            $processID: processId,
+            $threadID: threadId,
+        }
+    );
 
-export const getTabCpuAbilityData = (leftNs: number, rightNs: number): Promise<Array<SystemCpuSummary>> =>
-    query<SystemCpuSummary>("getTabCpuAbilityData", `SELECT
+export const getTabCpuAbilityData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<SystemCpuSummary>> =>
+    query<SystemCpuSummary>(
+        'getTabCpuAbilityData',
+        `SELECT
         ( n.ts - TR.start_ts ) AS startTime,
         n.dur AS duration,
         n.total_load AS totalLoad,
@@ -1779,14 +2319,23 @@ export const getTabCpuAbilityData = (leftNs: number, rightNs: number): Promise<A
         AND ( n.ts - TR.start_ts ) <= $rightNS 
         ORDER BY
         startTime ASC;
-    `, {$leftNS: leftNs, $rightNS: rightNs})
+    `,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabMemoryAbilityData = (leftNs: number, rightNs: number): Promise<Array<{
-    startTime: number,
-    value: string,
-    name: string;
-}>> =>
-    query("getTabMemoryAbilityData", `SELECT
+export const getTabMemoryAbilityData = (
+    leftNs: number,
+    rightNs: number
+): Promise<
+    Array<{
+        startTime: number;
+        value: string;
+        name: string;
+    }>
+> =>
+    query(
+        'getTabMemoryAbilityData',
+        `SELECT
         m.ts AS startTime,
         GROUP_CONCAT( IFNULL( m.value, 0 ) ) AS value,
         GROUP_CONCAT( f.name ) AS name 
@@ -1848,10 +2397,17 @@ export const getTabMemoryAbilityData = (leftNs: number, rightNs: number): Promis
         m.ts DESC 
         LIMIT 1 
         ),0)
-        AND m.ts <= $rightNS GROUP BY m.ts;`, {$leftNS: leftNs, $rightNS: rightNs})
+        AND m.ts <= $rightNS GROUP BY m.ts;`,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabNetworkAbilityData = (leftNs: number, rightNs: number): Promise<Array<SystemNetworkSummary>> =>
-    query<SystemNetworkSummary>("getTabNetworkAbilityData", `SELECT
+export const getTabNetworkAbilityData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<SystemNetworkSummary>> =>
+    query<SystemNetworkSummary>(
+        'getTabNetworkAbilityData',
+        `SELECT
             ( n.ts - TR.start_ts ) AS startTime,
             n.dur AS duration,
             n.rx AS dataReceived,
@@ -1880,11 +2436,17 @@ export const getTabNetworkAbilityData = (leftNs: number, rightNs: number): Promi
             ),0)  
             AND ( n.ts - TR.start_ts ) <= $rightNS 
             ORDER BY
-            startTime ASC`, {$leftNS: leftNs, $rightNS: rightNs})
+            startTime ASC`,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-/*-------------------------------------------------------------------------------------*/
-export const getTabDiskAbilityData = (leftNs: number, rightNs: number): Promise<Array<SystemDiskIOSummary>> =>
-    query<SystemDiskIOSummary>("getTabDiskAbilityData", `SELECT
+export const getTabDiskAbilityData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<SystemDiskIOSummary>> =>
+    query<SystemDiskIOSummary>(
+        'getTabDiskAbilityData',
+        `SELECT
         ( n.ts - TR.start_ts ) AS startTime,
         n.dur AS duration,
         n.rd AS dataRead,
@@ -1914,144 +2476,254 @@ export const getTabDiskAbilityData = (leftNs: number, rightNs: number): Promise<
         AND ( n.ts - TR.start_ts ) <= $rightNS 
         ORDER BY
         startTime ASC;
-    `, {$leftNS: leftNs, $rightNS: rightNs})
+    `,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const queryCpuAbilityData = (): Promise<Array<CpuAbilityMonitorStruct>> =>
-    query("queryCpuAbilityData", `select 
+export const queryCpuAbilityData = (): Promise<
+    Array<CpuAbilityMonitorStruct>
+> =>
+    query(
+        'queryCpuAbilityData',
+        `select 
         (t.total_load) as value,
         (t.ts - TR.start_ts) as startNS
-        from cpu_usage t, trace_range AS TR;`)
+        from cpu_usage t, trace_range AS TR;`
+    );
 
-export const queryCpuAbilityUserData = (): Promise<Array<CpuAbilityMonitorStruct>> =>
-    query("queryCpuAbilityUserData", `select 
+export const queryCpuAbilityUserData = (): Promise<
+    Array<CpuAbilityMonitorStruct>
+> =>
+    query(
+        'queryCpuAbilityUserData',
+        `select 
         t.user_load as value,
         (t.ts - TR.start_ts) as startNS
-        from cpu_usage t, trace_range AS TR;`)
+        from cpu_usage t, trace_range AS TR;`
+    );
 
-export const queryCpuAbilitySystemData = (): Promise<Array<CpuAbilityMonitorStruct>> =>
-    query("queryCpuAbilitySystemData", `select 
+export const queryCpuAbilitySystemData = (): Promise<
+    Array<CpuAbilityMonitorStruct>
+> =>
+    query(
+        'queryCpuAbilitySystemData',
+        `select 
         t.system_load as value,
         (t.ts - TR.start_ts) as startNS
-        from cpu_usage t, trace_range AS TR;`)
+        from cpu_usage t, trace_range AS TR;`
+    );
 
-export const queryMemoryUsedAbilityData = (id: string): Promise<Array<MemoryAbilityMonitorStruct>> =>
-    query("queryMemoryUsedAbilityData", `select 
+export const queryMemoryUsedAbilityData = (
+    id: string
+): Promise<Array<MemoryAbilityMonitorStruct>> =>
+    query(
+        'queryMemoryUsedAbilityData',
+        `select 
         t.value as value,
         (t.ts - TR.start_ts) as startNS
-        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`, {$id: id})
+        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`,
+        { $id: id }
+    );
 
-export const queryCachedFilesAbilityData = (id: string): Promise<Array<MemoryAbilityMonitorStruct>> =>
-    query("queryCachedFilesAbilityData", `select 
+export const queryCachedFilesAbilityData = (
+    id: string
+): Promise<Array<MemoryAbilityMonitorStruct>> =>
+    query(
+        'queryCachedFilesAbilityData',
+        `select 
         t.value as value,
         (t.ts - TR.start_ts) as startNS
-        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`, {$id: id})
+        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`,
+        { $id: id }
+    );
 
-export const queryCompressedAbilityData = (id: string): Promise<Array<MemoryAbilityMonitorStruct>> =>
-    query("queryCompressedAbilityData", `select 
+export const queryCompressedAbilityData = (
+    id: string
+): Promise<Array<MemoryAbilityMonitorStruct>> =>
+    query(
+        'queryCompressedAbilityData',
+        `select 
         t.value as value,
         (t.ts - TR.start_ts) as startNS
-        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`, {$id: id})
+        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`,
+        { $id: id }
+    );
 
-export const querySwapUsedAbilityData = (id: string): Promise<Array<MemoryAbilityMonitorStruct>> =>
-    query("querySwapUsedAbilityData", `select 
+export const querySwapUsedAbilityData = (
+    id: string
+): Promise<Array<MemoryAbilityMonitorStruct>> =>
+    query(
+        'querySwapUsedAbilityData',
+        `select 
         t.value as value,
         (t.ts - TR.start_ts) as startNS
-        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`, {$id: id})
+        from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`,
+        { $id: id }
+    );
 
-export const queryBytesReadAbilityData = (): Promise<Array<DiskAbilityMonitorStruct>> =>
-    query("queryBytesReadAbilityData", `select 
+export const queryBytesReadAbilityData = (): Promise<
+    Array<DiskAbilityMonitorStruct>
+> =>
+    query(
+        'queryBytesReadAbilityData',
+        `select 
         t.rd_speed as value,
         (t.ts - TR.start_ts) as startNS
-        from diskio t, trace_range AS TR;`)
+        from diskio t, trace_range AS TR;`
+    );
 
-export const queryBytesWrittenAbilityData = (): Promise<Array<DiskAbilityMonitorStruct>> =>
-    query("queryBytesWrittenAbilityData", `select 
+export const queryBytesWrittenAbilityData = (): Promise<
+    Array<DiskAbilityMonitorStruct>
+> =>
+    query(
+        'queryBytesWrittenAbilityData',
+        `select 
         t.wr_speed as value,
         (t.ts - TR.start_ts) as startNS
-        from diskio t, trace_range AS TR;`)
+        from diskio t, trace_range AS TR;`
+    );
 
-export const queryReadAbilityData = (): Promise<Array<DiskAbilityMonitorStruct>> =>
-    query("queryReadAbilityData", `select 
+export const queryReadAbilityData = (): Promise<
+    Array<DiskAbilityMonitorStruct>
+> =>
+    query(
+        'queryReadAbilityData',
+        `select 
         t.rd_count_speed as value,
         (t.ts - TR.start_ts) as startNS
-        from diskio t, trace_range AS TR;`)
+        from diskio t, trace_range AS TR;`
+    );
 
-
-export const queryWrittenAbilityData = (): Promise<Array<DiskAbilityMonitorStruct>> =>
-    query("queryWrittenAbilityData", `select 
+export const queryWrittenAbilityData = (): Promise<
+    Array<DiskAbilityMonitorStruct>
+> =>
+    query(
+        'queryWrittenAbilityData',
+        `select 
         t.wr_count_speed as value,
         (t.ts - TR.start_ts) as startNS
-        from diskio t, trace_range AS TR;`)
+        from diskio t, trace_range AS TR;`
+    );
 
-export const queryBytesInAbilityData = (): Promise<Array<NetworkAbilityMonitorStruct>> =>
-    query("queryBytesInAbilityData", `select 
+export const queryBytesInAbilityData = (): Promise<
+    Array<NetworkAbilityMonitorStruct>
+> =>
+    query(
+        'queryBytesInAbilityData',
+        `select 
         t.tx_speed as value,
         (t.ts - TR.start_ts) as startNS
-        from network t, trace_range AS TR;`)
+        from network t, trace_range AS TR;`
+    );
 
-export const queryBytesOutAbilityData = (): Promise<Array<NetworkAbilityMonitorStruct>> =>
-    query("queryBytesOutAbilityData", `select 
+export const queryBytesOutAbilityData = (): Promise<
+    Array<NetworkAbilityMonitorStruct>
+> =>
+    query(
+        'queryBytesOutAbilityData',
+        `select 
         t.rx_speed as value,
         (t.ts - TR.start_ts) as startNS
-        from network t, trace_range AS TR;`,)
+        from network t, trace_range AS TR;`
+    );
 
-export const queryPacketsInAbilityData = (): Promise<Array<NetworkAbilityMonitorStruct>> =>
-    query("queryPacketsInAbilityData", `select 
+export const queryPacketsInAbilityData = (): Promise<
+    Array<NetworkAbilityMonitorStruct>
+> =>
+    query(
+        'queryPacketsInAbilityData',
+        `select 
         t.packet_in_sec as value,
         (t.ts - TR.start_ts) as startNS
-        from network t, trace_range AS TR;`,)
+        from network t, trace_range AS TR;`
+    );
 
-export const queryPacketsOutAbilityData = (): Promise<Array<NetworkAbilityMonitorStruct>> =>
-    query("queryPacketsOutAbilityData", `select 
+export const queryPacketsOutAbilityData = (): Promise<
+    Array<NetworkAbilityMonitorStruct>
+> =>
+    query(
+        'queryPacketsOutAbilityData',
+        `select 
         t.packet_out_sec as value,
         (t.ts - TR.start_ts) as startNS
-        from network t, trace_range AS TR;`)
+        from network t, trace_range AS TR;`
+    );
 
 export const queryNetWorkMaxData = (): Promise<Array<any>> =>
-    query("queryNetWorkMaxData", `select 
+    query(
+        'queryNetWorkMaxData',
+        `select 
      ifnull(max(tx_speed),0) as maxIn, 
      ifnull(max(rx_speed),0) as maxOut,
      ifnull(max(packet_in_sec),0) as maxPacketIn,
      ifnull(max(packet_in_sec),0) as maxPacketOut
-     from network`)
+     from network`
+    );
 
 export const queryMemoryMaxData = (memoryName: string): Promise<Array<any>> =>
-    query("queryMemoryMaxData",
+    query(
+        'queryMemoryMaxData',
         `SELECT ifnull(max(m.value),0) as maxValue,
             filter_id 
             from sys_mem_measure m 
             WHERE m.filter_id =
             (SELECT id FROM sys_event_filter WHERE name = $memoryName)
-`, {$memoryName: memoryName})
+`,
+        { $memoryName: memoryName }
+    );
 
 export const queryDiskIoMaxData = (): Promise<Array<any>> =>
-    query("queryDiskIoMaxData", `select
+    query(
+        'queryDiskIoMaxData',
+        `select
     ifnull(max(rd_speed),0) as bytesRead, 
     ifnull(max(wr_speed),0) as bytesWrite,
     ifnull(max(rd_count_speed),0) as readOps,
     ifnull(max(wr_count_speed),0)  as writeOps
-    from diskio`)
+    from diskio`
+    );
 
 export const queryAbilityExits = (): Promise<Array<any>> =>
-    query("queryAbilityExits", `select 
+    query(
+        'queryAbilityExits',
+        `select 
       event_name 
       from stat s 
       where s.event_name in ('trace_diskio','trace_network', 'trace_cpu_usage','sys_memory') 
-      and s.stat_type ='received' and s.count > 0`)
+      and s.stat_type ='received' and s.count > 0`
+    );
 
 export const queryStartTime = (): Promise<Array<any>> =>
-    query("queryStartTime", `SELECT start_ts FROM trace_range`)
+    query('queryStartTime', `SELECT start_ts FROM trace_range`);
 
 export const queryPerfFiles = (): Promise<Array<PerfFile>> =>
-    query("queryPerfFiles", `select file_id as fileId,symbol,path from perf_files`, {})
+    query(
+        'queryPerfFiles',
+        `select file_id as fileId,symbol,path from perf_files`,
+        {}
+    );
 
 export const queryPerfProcess = (): Promise<Array<PerfThread>> =>
-    query("queryPerfThread", `select process_id as pid,thread_name as processName from perf_thread where process_id = thread_id`, {})
+    query(
+        'queryPerfThread',
+        `select process_id as pid,thread_name as processName from perf_thread where process_id = thread_id`,
+        {}
+    );
 
 export const queryPerfThread = (): Promise<Array<PerfThread>> =>
-    query("queryPerfThread", `select a.thread_id as tid,a.thread_name as threadName,a.process_id as pid,b.thread_name as processName from perf_thread a left join (select * from perf_thread where thread_id = process_id) b on a.process_id = b.thread_id`, {})
+    query(
+        'queryPerfThread',
+        `select a.thread_id as tid,a.thread_name as threadName,a.process_id as pid,b.thread_name as processName from perf_thread a left join (select * from perf_thread where thread_id = process_id) b on a.process_id = b.thread_id`,
+        {}
+    );
 
-export const queryPerfSampleListByTimeRange = (leftNs: number, rightNs: number, cpus: Array<number>, processes: Array<number>, threads: Array<number>): Promise<Array<PerfSample>> => {
+export const queryPerfSampleListByTimeRange = (
+    leftNs: number,
+    rightNs: number,
+    cpus: Array<number>,
+    processes: Array<number>,
+    threads: Array<number>
+): Promise<Array<PerfSample>> => {
     let sql = `
 select A.callchain_id as sampleId,
        A.thread_id as tid,
@@ -2063,36 +2735,59 @@ select A.callchain_id as sampleId,
 from perf_sample A,trace_range R
 left join perf_thread C on A.thread_id = C.thread_id
 where time >= $leftNs and time <= $rightNs and A.thread_id != 0
-    `
+    `;
     if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
-        let arg1 = cpus.length > 0 ? `or core in (${cpus.join(",")}) ` : '';
-        let arg2 = processes.length > 0 ? `or pid in (${processes.join(",")}) ` : '';
-        let arg3 = threads.length > 0 ? `or tid in (${threads.join(",")})` : '';
+        let arg1 = cpus.length > 0 ? `or core in (${cpus.join(',')}) ` : '';
+        let arg2 =
+            processes.length > 0 ? `or pid in (${processes.join(',')}) ` : '';
+        let arg3 = threads.length > 0 ? `or tid in (${threads.join(',')})` : '';
         let arg = `${arg1}${arg2}${arg3}`.substring(3);
-        sql = `${sql} and (${arg})`
+        sql = `${sql} and (${arg})`;
     }
-    return query("queryPerfSampleListByTimeRange", sql, {$leftNs: leftNs, $rightNs: rightNs});
-}
+    return query('queryPerfSampleListByTimeRange', sql, {
+        $leftNs: leftNs,
+        $rightNs: rightNs,
+    });
+};
 
-export const queryPerfSampleIdsByTimeRange = (leftNs: number, rightNs: number, cpus: Array<number>, processes: Array<number>, threads: Array<number>): Promise<Array<PerfSample>> => {
+export const queryPerfSampleIdsByTimeRange = (
+    leftNs: number,
+    rightNs: number,
+    cpus: Array<number>,
+    processes: Array<number>,
+    threads: Array<number>
+): Promise<Array<PerfSample>> => {
     let sql = `
 select A.callchain_id as sampleId 
 from perf_sample A,trace_range R
 left join perf_thread C on A.thread_id = C.thread_id
 where (timestamp_trace - R.start_ts) >= $leftNs and (timestamp_trace - R.start_ts) <= $rightNs and A.thread_id != 0 
-    `
+    `;
     if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
-        let arg1 = cpus.length > 0 ? `or A.cpu_id in (${cpus.join(",")}) ` : '';
-        let arg2 = processes.length > 0 ? `or C.process_id in (${processes.join(",")}) ` : '';
-        let arg3 = threads.length > 0 ? `or A.thread_id in (${threads.join(",")})` : '';
+        let arg1 = cpus.length > 0 ? `or A.cpu_id in (${cpus.join(',')}) ` : '';
+        let arg2 =
+            processes.length > 0
+                ? `or C.process_id in (${processes.join(',')}) `
+                : '';
+        let arg3 =
+            threads.length > 0
+                ? `or A.thread_id in (${threads.join(',')})`
+                : '';
         let arg = `${arg1}${arg2}${arg3}`.substring(3);
-        sql = `${sql} and (${arg})`
+        sql = `${sql} and (${arg})`;
     }
-    return query("queryPerfSampleIdsByTimeRange", sql, {$leftNs: leftNs, $rightNs: rightNs});
-}
+    return query('queryPerfSampleIdsByTimeRange', sql, {
+        $leftNs: leftNs,
+        $rightNs: rightNs,
+    });
+};
 
-export const queryPerfSampleCallChain = (sampleId: number): Promise<Array<PerfStack>> =>
-    query("queryPerfSampleCallChain", `
+export const queryPerfSampleCallChain = (
+    sampleId: number
+): Promise<Array<PerfStack>> =>
+    query(
+        'queryPerfSampleCallChain',
+        `
     select
     callchain_id as callChainId,
     callchain_id as sampleId,
@@ -2101,56 +2796,102 @@ export const queryPerfSampleCallChain = (sampleId: number): Promise<Array<PerfSt
     vaddr_in_file as vaddrInFile,
     name as symbol
 from perf_callchain where callchain_id = $sampleId and symbol_id != -1 and vaddr_in_file != 0;
-    `, {$sampleId: sampleId})
+    `,
+        { $sampleId: sampleId }
+    );
 
-export const queryPerfCmdline = ():Promise<Array<PerfCmdLine>> =>
-    query("queryPerfCmdline",`
+export const queryPerfCmdline = (): Promise<Array<PerfCmdLine>> =>
+    query(
+        'queryPerfCmdline',
+        `
     select report_value from perf_report  where report_type = 'cmdline'
-    `,{})
+    `,
+        {}
+    );
 
 export const queryCPuAbilityMaxData = (): Promise<Array<any>> =>
-    query("queryCPuAbilityMaxData",
+    query(
+        'queryCPuAbilityMaxData',
         `select ifnull(max(total_load),0) as totalLoad, 
                 ifnull(max(user_load),0) as userLoad,
                 ifnull(max(system_load),0) as systemLoad
-                from cpu_usage`)
+                from cpu_usage`
+    );
 
-export const querySearchFunc = (search:string):Promise<Array<SearchFuncBean>> =>
-    query("querySearchFunc",`
+export const querySearchFunc = (
+    search: string
+): Promise<Array<SearchFuncBean>> =>
+    query(
+        'querySearchFunc',
+        `
    select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
-   ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id 
+   ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r 
    where c.name like '%${search}%' and startTime > 0;
-    `,{$search:search})
+    `,
+        { $search: search }
+    );
 
-export const queryBinderBySliceId = (id:number): Promise<Array<any>> =>
-    query("queryBinderBySliceId",
+export const querySceneSearchFunc = (
+    search: string,
+    processList: Array<string>
+): Promise<Array<SearchFuncBean>> =>
+    query(
+        'querySearchFunc',
+        `
+   select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
+   ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
+   left join trace_range r
+   where c.name like '%${search}%' and startTime > 0 and p.pid in (${processList.join(
+            ','
+        )});
+    `,
+        { $search: search }
+    );
+
+export const queryBinderBySliceId = (id: number): Promise<Array<any>> =>
+    query(
+        'queryBinderBySliceId',
         `select c.ts-D.start_ts as startTime,
     c.dur,
     t.tid,p.pid,c.depth 
     from callstack c,trace_range D
     left join thread t on c.callid = t.id
     left join process p on p.id = t.ipid
-where cat = 'binder' and c.id = $id;`,{$id:id})
+where cat = 'binder' and c.id = $id;`,
+        { $id: id }
+    );
 
-export const queryBinderByArgsId = (id:number,startTime:number,isNext:boolean): Promise<Array<any>> =>{
+export const queryBinderByArgsId = (
+    id: number,
+    startTime: number,
+    isNext: boolean
+): Promise<Array<any>> => {
     let sql = `select c.ts - D.start_ts as startTime,
     c.dur,
     t.tid,p.pid,c.depth 
     from callstack c,trace_range D
     left join thread t on c.callid = t.id
     left join process p on p.id = t.ipid
-where cat = 'binder' and  c.argsetid = $id`
-    if(isNext){
-        sql += " and c.ts > $startTime +  D.start_ts"
-    }else {
-        sql += " and c.ts < $startTime +  D.start_ts"
+where cat = 'binder' and  c.argsetid = $id`;
+    if (isNext) {
+        sql += ' and c.ts > $startTime +  D.start_ts';
+    } else {
+        sql += ' and c.ts < $startTime +  D.start_ts';
     }
-    return query("queryBinderByArgsId",sql,{$id:id,$startTime:startTime})
-}
+    return query('queryBinderByArgsId', sql, {
+        $id: id,
+        $startTime: startTime,
+    });
+};
 
-export const getTabPaneFilesystemStatisticsFather = (leftNs: number, rightNs: number): Promise<Array<any>> =>
-    query("getTabPaneFilesystemStatisticsFather", `
+export const getTabPaneFilesystemStatisticsFather = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<any>> =>
+    query(
+        'getTabPaneFilesystemStatisticsFather',
+        `
         select SUM(dur)    as allDuration,
         count(f.type) as count,
         min(dur)    as minDuration,
@@ -2164,10 +2905,17 @@ export const getTabPaneFilesystemStatisticsFather = (leftNs: number, rightNs: nu
         where f.start_ts >= $leftNs
         and end_ts <= $rightNs
         group by f.type;
-`, {$leftNs:leftNs,$rightNs:rightNs});
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const getTabPaneFilesystemStatisticsChild = (leftNs: number, rightNs: number): Promise<Array<any>> =>
-    query("getTabPaneFilesystemStatisticsChild", `
+export const getTabPaneFilesystemStatisticsChild = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<any>> =>
+    query(
+        'getTabPaneFilesystemStatisticsChild',
+        `
     select SUM(dur)    as allDuration,
         count(f.type) as count,
         min(dur)    as minDuration,
@@ -2181,10 +2929,17 @@ export const getTabPaneFilesystemStatisticsChild = (leftNs: number, rightNs: num
         where f.start_ts >= $leftNs
         and end_ts <= $rightNs
         group by f.type, f.ipid;
-`, {$leftNs:leftNs,$rightNs:rightNs});
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: number): Promise<Array<any>> =>
-    query("getTabPaneFilesystemStatisticsAll", `
+export const getTabPaneFilesystemStatisticsAll = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<any>> =>
+    query(
+        'getTabPaneFilesystemStatisticsAll',
+        `
     select SUM(dur)    as allDuration,
        count(type) as count,
        min(dur)    as minDuration,
@@ -2194,10 +2949,18 @@ export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: numbe
     from file_system_sample
     where start_ts >= $leftNs
     and end_ts <= $rightNs;
-`, {$leftNs:leftNs,$rightNs:rightNs});
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number,types:number[]): Promise<Array<any>> =>
-    query("getTabPaneFilesystemStatistics", `
+export const getTabPaneFilesystemStatistics = (
+    leftNs: number,
+    rightNs: number,
+    types: number[]
+): Promise<Array<any>> =>
+    query(
+        'getTabPaneFilesystemStatistics',
+        `
     select p.pid,
        ifnull(p.name,'Process') as name,
        f.type,
@@ -2213,13 +2976,20 @@ export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number,t
     from file_system_sample as f left join process as p on f.ipid=p.ipid
     where end_ts >= $leftNs
     and end_ts <= $rightNs
-    and f.type in (${types.join(",")})
+    and f.type in (${types.join(',')})
     group by f.type,f.ipid
     order by f.type;
-`, {$leftNs:leftNs,$rightNs:rightNs});
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: number): Promise<Array<any>> =>
-    query("getTabPaneVirtualMemoryStatisticsData", `
+export const getTabPaneVirtualMemoryStatisticsData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<any>> =>
+    query(
+        'getTabPaneVirtualMemoryStatisticsData',
+        `
     select p.pid,
        t.tid,
        ifnull(p.name,'Process') as pname,
@@ -2237,14 +3007,22 @@ export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: n
     and f.end_ts <= $rightNs
     group by f.type,f.ipid,f.itid
     order by f.type;
-`, {$leftNs:leftNs,$rightNs:rightNs});
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 
-export const getTabPaneIOTierStatisticsData = (leftNs: number, rightNs: number, diskIOipids:Array<number>): Promise<Array<any>> =>{
-    let str = "";
+export const getTabPaneIOTierStatisticsData = (
+    leftNs: number,
+    rightNs: number,
+    diskIOipids: Array<number>
+): Promise<Array<any>> => {
+    let str = '';
     if (diskIOipids.length > 0) {
-        str = ` and i.ipid in (${diskIOipids.join(",")})`;
+        str = ` and i.ipid in (${diskIOipids.join(',')})`;
     }
-    return query("getTabPaneIOTierStatisticsData", `
+    return query(
+        'getTabPaneIOTierStatisticsData',
+        `
     select p.pid,
        ifnull(p.name,'Process') as pname,
        i.tier,
@@ -2261,37 +3039,57 @@ export const getTabPaneIOTierStatisticsData = (leftNs: number, rightNs: number, 
     ${str}
     group by i.tier,i.ipid,i.path_id
     order by i.tier;
-`, {$leftNs:leftNs,$rightNs:rightNs})
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 };
 
-export const getTabPaneCounterSampleData = (leftNs: number, rightNs: number, cpuStateFilterIds: Array<number>): Promise<Array<any>> =>{
-    let str = "";
+export const getTabPaneCounterSampleData = (
+    leftNs: number,
+    rightNs: number,
+    cpuStateFilterIds: Array<number>
+): Promise<Array<any>> => {
+    let str = '';
     if (cpuStateFilterIds.length > 0) {
-        str = ` and filter_id in (${cpuStateFilterIds.join(",")})`;
+        str = ` and filter_id in (${cpuStateFilterIds.join(',')})`;
     }
-    return query("getTabPaneCounterSampleData", `
+    return query(
+        'getTabPaneCounterSampleData',
+        `
     select value, filter_id as filterId, ts, f.cpu
     from measure left join cpu_measure_filter as f on f.id=filter_id
     where
     ts <= $rightNs${str} order by ts asc;
-`, {$leftNs:leftNs,$rightNs:rightNs})
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 };
 
-export const getTabPaneFrequencySampleData = (leftNs: number, rightNs: number, cpuFreqFilterIds: Array<number>): Promise<Array<any>> =>{
-    let str = "";
+export const getTabPaneFrequencySampleData = (
+    leftNs: number,
+    rightNs: number,
+    cpuFreqFilterIds: Array<number>
+): Promise<Array<any>> => {
+    let str = '';
     if (cpuFreqFilterIds.length > 0) {
-        str = ` and filter_id in (${cpuFreqFilterIds.join(",")})`;
+        str = ` and filter_id in (${cpuFreqFilterIds.join(',')})`;
     }
-    return query("getTabPaneFrequencySampleData", `
+    return query(
+        'getTabPaneFrequencySampleData',
+        `
     select value, filter_id as filterId, ts, f.cpu
     from measure left join cpu_measure_filter as f on f.id=filter_id
     where
     ts <= $rightNs${str} order by ts asc;
-`, {$leftNs:leftNs,$rightNs:rightNs})
+`,
+        { $leftNs: leftNs, $rightNs: rightNs }
+    );
 };
 
-export const hasFileSysData = () : Promise<Array<any>> =>
-    query("hasFileSysData",`
+export const hasFileSysData = (): Promise<Array<any>> =>
+    query(
+        'hasFileSysData',
+        `
     select 
         fsCount,
         vmCount,
@@ -2299,81 +3097,174 @@ export const hasFileSysData = () : Promise<Array<any>> =>
         (select count(1) as fsCount from file_system_sample s,trace_range t where (s.start_ts between t.start_ts and t.end_ts) or (s.end_ts between t.start_ts and t.end_ts) )
         ,(select count(1) as vmCount from paged_memory_sample s,trace_range t where (s.start_ts between t.start_ts and t.end_ts) or (s.end_ts between t.start_ts and t.end_ts) )
         ,(select count(1) as ioCount from bio_latency_sample s,trace_range t where (s.start_ts between t.start_ts and t.end_ts) or (s.end_ts between t.start_ts and t.end_ts) );
-    `,{})
+    `,
+        {}
+    );
 
-export const getFileSysChartDataByType = (type:number) : Promise<Array<any>> =>
-    query("getFileSysChartData",`
+export const getFileSysChartDataByType = (type: number): Promise<Array<any>> =>
+    query(
+        'getFileSysChartData',
+        `
     select
        (A.start_ts -B.start_ts) as startNS,
        (A.end_ts - B.start_ts) as endNS,
        dur
     from file_system_sample A,trace_range B
-    where type = $type and startNS > 0;`,{$type:type},"exec")
+    where type = $type and startNS > 0;`,
+        { $type: type },
+        'exec'
+    );
 
-export const getFileSysVirtualMemoryChartData = () : Promise<Array<any>> =>
-    query("getFileSysVirtualMemoryChartData",`
+export const getFileSysVirtualMemoryChartData = (): Promise<Array<any>> =>
+    query(
+        'getFileSysVirtualMemoryChartData',
+        `
     select
        (A.start_ts -B.start_ts) as startNS,
        (A.end_ts - B.start_ts) as endNS,
        dur as dur
     from paged_memory_sample A,trace_range B
     where startNS > 0
-    order by A.start_ts;`,{},"exec")
+    order by A.start_ts;`,
+        {},
+        'exec'
+    );
 
-export const getDiskIOProcess = () : Promise<Array<any>> =>
-    query("getDiskIOProcess",`
+export const getDiskIOProcess = (): Promise<Array<any>> =>
+    query(
+        'getDiskIOProcess',
+        `
     select name,B.ipid,pid
     from (select distinct ipid from bio_latency_sample A,trace_range B where A.start_ts between B.start_ts and B.end_ts) A
-    left join process B on A.ipid = B.ipid;`,{})
+    left join process B on A.ipid = B.ipid;`,
+        {}
+    );
 
-export const getDiskIOLatencyChartDataByProcess = (all:boolean,ipid:number,typeArr:Array<number>) : Promise<Array<any>> =>
-    query("getDiskIOLatencyChartDataByProcess",`
+export const getDiskIOLatencyChartDataByProcess = (
+    all: boolean,
+    ipid: number,
+    typeArr: Array<number>
+): Promise<Array<any>> =>
+    query(
+        'getDiskIOLatencyChartDataByProcess',
+        `
     select
        (A.start_ts -B.start_ts) as startNS,
        (A.start_ts - B.start_ts + A.latency_dur) as endNS,
        latency_dur as dur
     from bio_latency_sample A,trace_range B
-    where type in (${typeArr.join(",")}) and startNS > 0
-        ${ all ? '' : 'and ipid = ' + ipid }
-    order by A.start_ts;`,{},"exec")
+    where type in (${typeArr.join(',')}) and startNS > 0
+        ${all ? '' : 'and ipid = ' + ipid}
+    order by A.start_ts;`,
+        {},
+        'exec'
+    );
 
-export const querySdkCount = (sql:string, componentId:number, args?: any): Promise<Array<any>> =>
-    query("querySdkCount", sql,args,"exec-sdk-" + componentId)
+export const querySdkCount = (
+    sql: string,
+    componentId: number,
+    args?: any
+): Promise<Array<any>> =>
+    query('querySdkCount', sql, args, 'exec-sdk-' + componentId);
 
-export const querySdkCounterData = (sql:string, counter_id:number, componentId:number): Promise<Array<CounterStruct>> =>
-    query("querySdkCounterData", sql,{$counter_id:counter_id}, "exec-sdk-" + componentId)
+export const querySdkCounterData = (
+    sql: string,
+    counter_id: number,
+    componentId: number
+): Promise<Array<CounterStruct>> =>
+    query(
+        'querySdkCounterData',
+        sql,
+        { $counter_id: counter_id },
+        'exec-sdk-' + componentId
+    );
 
-export const getTabSdkCounterData = (sqlStr: string, startTime: number, leftNs: number, rightNs: number, counters: Array<string>, componentId: number): Promise<Array<CounterSummary>> =>
-    query<CounterSummary>("getTabSdkCounterData", sqlStr, {
-        $startTime:startTime,
-        $leftNs: leftNs,
-        $rightNs: rightNs,
-        $counters:counters
-    },"exec-sdk-" + componentId)
+export const getTabSdkCounterData = (
+    sqlStr: string,
+    startTime: number,
+    leftNs: number,
+    rightNs: number,
+    counters: Array<string>,
+    componentId: number
+): Promise<Array<CounterSummary>> =>
+    query<CounterSummary>(
+        'getTabSdkCounterData',
+        sqlStr,
+        {
+            $startTime: startTime,
+            $leftNs: leftNs,
+            $rightNs: rightNs,
+            $counters: counters,
+        },
+        'exec-sdk-' + componentId
+    );
 
+export const getTabSdkCounterLeftData = (
+    sqlStr: string,
+    leftNs: number,
+    counters: Array<string>,
+    componentId: number
+): Promise<Array<any>> =>
+    query<any>(
+        'getTabSdkCounterLeftData',
+        sqlStr,
+        {
+            $leftNs: leftNs,
+            $counters: counters,
+        },
+        'exec-sdk-' + componentId
+    );
 
-export const getTabSdkCounterLeftData = (sqlStr: string, leftNs: number, counters: Array<string>, componentId: number): Promise<Array<any>> =>
-    query<any>("getTabSdkCounterLeftData", sqlStr, {
-        $leftNs: leftNs,
-        $counters:counters
-    },"exec-sdk-" + componentId)
+export const getTabSdkSliceData = (
+    sqlStr: string,
+    startTime: number,
+    leftNs: number,
+    rightNs: number,
+    slices: Array<string>,
+    componentId: number
+): Promise<Array<SdkSliceSummary>> =>
+    query<SdkSliceSummary>(
+        'getTabSdkSliceData',
+        sqlStr,
+        {
+            $startTime: startTime,
+            $leftNs: leftNs,
+            $rightNs: rightNs,
+            $slices: slices,
+        },
+        'exec-sdk-' + componentId
+    );
 
-export const getTabSdkSliceData = (sqlStr: string, startTime:number, leftNs: number, rightNs: number, slices: Array<string>,componentId: number): Promise<Array<SdkSliceSummary>> =>
-    query<SdkSliceSummary>("getTabSdkSliceData", sqlStr, {
-        $startTime:startTime,
-        $leftNs: leftNs,
-        $rightNs: rightNs,
-        $slices: slices
-    },"exec-sdk-" + componentId)
+export const querySdkSliceData = (
+    sqlStr: string,
+    column_id: number,
+    startNS: number,
+    endNS: number,
+    componentId: number
+): Promise<Array<SdkSliceStruct>> =>
+    query(
+        'querySdkSliceData',
+        sqlStr,
+        { $column_id: column_id, $startNS: startNS, $endNS: endNS },
+        'exec-sdk-' + componentId
+    );
 
-export const querySdkSliceData = (sqlStr:string, column_id: number, startNS: number, endNS: number, componentId:number): Promise<Array<SdkSliceStruct>> =>
-    query("querySdkSliceData", sqlStr, {$column_id: column_id, $startNS: startNS, $endNS: endNS},"exec-sdk-" + componentId)
-
-export const queryCounterMax = (sqlStr:string, counter_id:number, componentId:number): Promise<Array<any>> =>
-    query("queryCounterMax", sqlStr,{$counter_id:counter_id}, "exec-sdk-" + componentId)
+export const queryCounterMax = (
+    sqlStr: string,
+    counter_id: number,
+    componentId: number
+): Promise<Array<any>> =>
+    query(
+        'queryCounterMax',
+        sqlStr,
+        { $counter_id: counter_id },
+        'exec-sdk-' + componentId
+    );
 
 export const queryAnomalyData = (): Promise<Array<EnergyAnomalyStruct>> =>
-    query("queryAnomalyData", `select 
+    query(
+        'queryAnomalyData',
+        `select 
       (S.ts - TR.start_ts) as startNS,
       D.data as eventName,
       D2.data as appKey, 
@@ -2384,15 +3275,20 @@ export const queryAnomalyData = (): Promise<Array<EnergyAnomalyStruct>> =>
       left join data_dict as D2 on D2.id=APP.app_key
       where D.data in ('ANOMALY_SCREEN_OFF_ENERGY','ANOMALY_KERNEL_WAKELOCK','ANOMALY_CPU_HIGH_FREQUENCY','ANOMALY_WAKEUP')
      or (D.data in ('ANOMALY_RUNNINGLOCK','ANORMALY_APP_ENERGY','ANOMALY_GNSS_ENERGY','ANOMALY_CPU_ENERGY','ANOMALY_ALARM_WAKEUP') and D2.data in ("APPNAME")) 
-      group by S.serial,D.data`)
+      group by S.serial,D.data`
+    );
 
-export const querySystemLocationData = (): Promise<Array<{
-    startNs: string
-    eventName: string
-    type: string
-    state: string
-}>> =>
-    query("querySystemLocationData", `SELECT
+export const querySystemLocationData = (): Promise<
+    Array<{
+        startNs: string;
+        eventName: string;
+        type: string;
+        state: string;
+    }>
+> =>
+    query(
+        'querySystemLocationData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2409,16 +3305,20 @@ export const querySystemLocationData = (): Promise<Array<{
         S.serial,
         APP.app_key,
         D.data,
-        D2.data;`)
+        D2.data;`
+    );
 
-
-export const querySystemLockData = (): Promise<Array<{
-    startNs: string
-    eventName: string
-    type: string
-    state: string
-}>> =>
-    query("querySystemLockData", `SELECT
+export const querySystemLockData = (): Promise<
+    Array<{
+        startNs: string;
+        eventName: string;
+        type: string;
+        state: string;
+    }>
+> =>
+    query(
+        'querySystemLockData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2432,15 +3332,20 @@ export const querySystemLockData = (): Promise<Array<{
         WHERE
         ( D.data = 'POWER_RUNNINGLOCK' AND D2.data in ('TAG','MESSAGE')) 
         GROUP BY
-        S.serial;`)
+        S.serial;`
+    );
 
-export const querySystemSchedulerData = (): Promise<Array<{
-    startNs: string
-    eventName: string
-    appKey: string
-    Value: string
-}>> =>
-    query("querySystemSchedulerData", `SELECT
+export const querySystemSchedulerData = (): Promise<
+    Array<{
+        startNs: string;
+        eventName: string;
+        appKey: string;
+        Value: string;
+    }>
+> =>
+    query(
+        'querySystemSchedulerData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS startNs,
         D.data AS eventName,
         group_concat(D2.data, ',') AS appKey,
@@ -2454,10 +3359,16 @@ export const querySystemSchedulerData = (): Promise<Array<{
         WHERE
         D.data IN ( 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD' ) AND D2.data in ('NAME','TYPE','WORKID') 
         GROUP BY
-        S.serial;`)
+        S.serial;`
+    );
 
-export const querySystemDetailsData = (rightNs: number, eventName: string): Promise<Array<SystemDetailsEnergy>> =>
-    query("querySystemDetailsData", `SELECT
+export const querySystemDetailsData = (
+    rightNs: number,
+    eventName: string
+): Promise<Array<SystemDetailsEnergy>> =>
+    query(
+        'querySystemDetailsData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2477,10 +3388,16 @@ export const querySystemDetailsData = (rightNs: number, eventName: string): Prom
         S.serial,
         APP.app_key,
         D.data,
-        D2.data;`, {$rightNS: rightNs, $eventName: eventName})
+        D2.data;`,
+        { $rightNS: rightNs, $eventName: eventName }
+    );
 
-export const querySystemWorkData = (rightNs: number): Promise<Array<SystemDetailsEnergy>> =>
-    query("querySystemWorkData", `SELECT
+export const querySystemWorkData = (
+    rightNs: number
+): Promise<Array<SystemDetailsEnergy>> =>
+    query(
+        'querySystemWorkData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2500,12 +3417,20 @@ export const querySystemWorkData = (rightNs: number): Promise<Array<SystemDetail
         S.serial,
         APP.app_key,
         D.data,
-        D2.data;`, {$rightNS: rightNs})
+        D2.data;`,
+        { $rightNS: rightNs }
+    );
 
-export const queryMaxPowerValue = (appName: string): Promise<Array<{
-    maxValue: number
-}>> =>
-    query("queryMaxPowerValue", `SELECT
+export const queryMaxPowerValue = (
+    appName: string
+): Promise<
+    Array<{
+        maxValue: number;
+    }>
+> =>
+    query(
+        'queryMaxPowerValue',
+        `SELECT
         max( item ) AS maxValue 
         FROM
         (
@@ -2516,15 +3441,21 @@ export const queryMaxPowerValue = (appName: string): Promise<Array<{
             WHERE 
             app_name = $appName 
             GROUP BY 
-            startNs);`, {$appName: appName})
+            startNs);`,
+        { $appName: appName }
+    );
 
-export const queryPowerData = (): Promise<Array<{
-    startNS: number,
-    eventName: string,
-    appKey: string,
-    eventValue: string
-}>> =>
-    query("queryPowerData", `SELECT
+export const queryPowerData = (): Promise<
+    Array<{
+        startNS: number;
+        eventName: string;
+        appKey: string;
+        eventValue: string;
+    }>
+> =>
+    query(
+        'queryPowerData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2545,15 +3476,24 @@ export const queryPowerData = (): Promise<Array<{
         D.data,
         D2.data 
         ORDER BY
-        eventName;`,{})
+        eventName;`,
+        {}
+    );
 
-export const getTabPowerDetailsData = (leftNs: number, rightNs: number): Promise<Array<{
-    startNS: number,
-    eventName: string,
-    appKey: string,
-    eventValue: string,
-}>> =>
-    query("getTabPowerDetailsData", `SELECT
+export const getTabPowerDetailsData = (
+    leftNs: number,
+    rightNs: number
+): Promise<
+    Array<{
+        startNS: number;
+        eventName: string;
+        appKey: string;
+        eventValue: string;
+    }>
+> =>
+    query(
+        'getTabPowerDetailsData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2601,15 +3541,23 @@ export const getTabPowerDetailsData = (leftNs: number, rightNs: number): Promise
         D.data,
         D2.data 
         ORDER BY
-        eventName;`, {$leftNS: leftNs, $rightNS: rightNs})
+        eventName;`,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
-export const getTabPowerBatteryData = (rightNs: number): Promise<Array<{
-    ts: number,
-    eventName: string,
-    appKey: string
-    eventValue: string
-}>> =>
-    query("getTabPowerBatteryData", `select
+export const getTabPowerBatteryData = (
+    rightNs: number
+): Promise<
+    Array<{
+        ts: number;
+        eventName: string;
+        appKey: string;
+        eventValue: string;
+    }>
+> =>
+    query(
+        'getTabPowerBatteryData',
+        `select
       MAX(S.ts) as ts,
       D.data as eventName,
       D2.data as appKey, 
@@ -2634,13 +3582,21 @@ export const getTabPowerBatteryData = (rightNs: number): Promise<Array<{
       and D2.data in ('GAS_GAUGE','CHARGE','SCREEN','LEVEL','CURRENT','CAPACITY','UID')
       and (S.ts - TR.start_ts) >= 0
       and (S.ts - TR.start_ts) <= $rightNS 
-      group by APP.app_key,D.data,D2.data;`, {$rightNS: rightNs})
+      group by APP.app_key,D.data,D2.data;`,
+        { $rightNS: rightNs }
+    );
 
-export const queryMaxStateValue = (eventName: string): Promise<Array<{
-    type: string
-    maxValue: number
-}>> =>
-    query("queryMaxStateValue", `select 
+export const queryMaxStateValue = (
+    eventName: string
+): Promise<
+    Array<{
+        type: string;
+        maxValue: number;
+    }>
+> =>
+    query(
+        'queryMaxStateValue',
+        `select 
   D.data as type,
   max(S.int_value) as maxValue 
   from trace_range AS TR,hisys_event_measure as S 
@@ -2649,10 +3605,16 @@ export const queryMaxStateValue = (eventName: string): Promise<Array<{
   left join data_dict as D2 on D2.id=APP.app_key
   where (case when 'SENSOR_STATE'==$eventName then D.data like '%SENSOR%' else D.data = $eventName end)
   and D2.data in ('BRIGHTNESS','STATE','VALUE','LEVEL','VOLUME','OPER_TYPE','VOLUME')
-  group by APP.app_key,D.data,D2.data;`, {$eventName: eventName})
+  group by APP.app_key,D.data,D2.data;`,
+        { $eventName: eventName }
+    );
 
-export const queryStateData = (eventName: string): Promise<Array<EnergyStateStruct>> =>
-    query("queryStateData", `select
+export const queryStateData = (
+    eventName: string
+): Promise<Array<EnergyStateStruct>> =>
+    query(
+        'queryStateData',
+        `select
   (S.ts-TR.start_ts) as startNs,
   D.data as type,
   D2.data as appKey, 
@@ -2663,20 +3625,32 @@ export const queryStateData = (eventName: string): Promise<Array<EnergyStateStru
   left join data_dict as D2 on D2.id=APP.app_key
   where (case when 'SENSOR_STATE'==$eventName then D.data like '%SENSOR%' else D.data = $eventName end)
   and D2.data in ('BRIGHTNESS','STATE','VALUE','LEVEL','VOLUME','OPER_TYPE','VOLUME')
-  group by S.serial,APP.app_key,D.data,D2.data;`, {$eventName: eventName})
+  group by S.serial,APP.app_key,D.data,D2.data;`,
+        { $eventName: eventName }
+    );
 
-export const querySyseventAppName = (): Promise<Array<{
-    string_value: string | null
-}>> =>
-    query("querySyseventAppName", `
+export const querySyseventAppName = (): Promise<
+    Array<{
+        string_value: string | null;
+    }>
+> =>
+    query(
+        'querySyseventAppName',
+        `
     SELECT
     DISTINCT hisys_event_measure.string_value from data_dict 
     left join app_name on app_name.app_key=data_dict.id 
     left join hisys_event_measure on hisys_event_measure.key_id = app_name.id
-    where data_dict.data = "APPNAME"`)
+    where data_dict.data = "APPNAME"`
+    );
 
-export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promise<Array<EnergyAnomalyStruct>> =>
-    query<EnergyAnomalyStruct>("queryAnomalyDetailedData", `select
+export const queryAnomalyDetailedData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<EnergyAnomalyStruct>> =>
+    query<EnergyAnomalyStruct>(
+        'queryAnomalyDetailedData',
+        `select
   S.ts,
   D.data as eventName,
   D2.data as appKey, 
@@ -2706,29 +3680,51 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
   and D2.data not in ('pid_','tid_','type_','tz_','uid_','domain_', 'id_', 'level_', 'info_', 'tag_', 'APPNAME')
   and (S.ts - TR.start_ts) >= $leftNS
    and (S.ts - TR.start_ts) <= $rightNS 
-  group by S.serial,APP.app_key,D.data,D2.data;`, {$leftNS: leftNs, $rightNS: rightNs})
+  group by S.serial,APP.app_key,D.data,D2.data;`,
+        { $leftNS: leftNs, $rightNS: rightNs }
+    );
 
 export const querySmapsExits = (): Promise<Array<any>> =>
-    query("querySmapsExits", `select 
+    query(
+        'querySmapsExits',
+        `select 
       event_name 
       from stat s 
       where s.event_name = 'trace_smaps' 
-      and s.stat_type ='received' and s.count > 0`)
+      and s.stat_type ='received' and s.count > 0`
+    );
 
 export const querySmapsData = (columnName: string): Promise<Array<any>> =>
-    query("querySmapsCounterData",
-        `SELECT (A.timestamp - B.start_ts) as startNS, sum(${columnName}) as value FROM smaps A,trace_range B GROUP by A.timestamp;`)
+    query(
+        'querySmapsCounterData',
+        `SELECT (A.timestamp - B.start_ts) as startNS, sum(${columnName}) as value FROM smaps A,trace_range B GROUP by A.timestamp;`
+    );
 
 export const querySmapsDataMax = (columnName: string): Promise<Array<any>> =>
-    query("querySmapsDataMax", `
-   SELECT (A.timestamp - B.start_ts) as startNS,sum(${columnName}) as max_value FROM smaps A,trace_range B GROUP by A.timestamp order by max_value desc LIMIT 1`)
+    query(
+        'querySmapsDataMax',
+        `
+   SELECT (A.timestamp - B.start_ts) as startNS,sum(${columnName}) as max_value FROM smaps A,trace_range B GROUP by A.timestamp order by max_value desc LIMIT 1`
+    );
 
-export const getTabSmapsMaxRss = (leftNs: number, rightNs: number): Promise<Array<any>> =>
-    query<Smaps>("getTabSmapsMaxRss", `
-SELECT (A.timestamp - B.start_ts) as startNS, sum(resident_size) as max_value FROM smaps A,trace_range B where startNS <= $rightNs`, {$rightNs:rightNs})
+export const getTabSmapsMaxRss = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<any>> =>
+    query<Smaps>(
+        'getTabSmapsMaxRss',
+        `
+SELECT (A.timestamp - B.start_ts) as startNS, sum(resident_size) as max_value FROM smaps A,trace_range B where startNS <= $rightNs`,
+        { $rightNs: rightNs }
+    );
 
-export const getTabSmapsData = (leftNs: number, rightNs: number): Promise<Array<Smaps>> =>
-    query<Smaps>("getTabSmapsData", `
+export const getTabSmapsData = (
+    leftNs: number,
+    rightNs: number
+): Promise<Array<Smaps>> =>
+    query<Smaps>(
+        'getTabSmapsData',
+        `
     SELECT 
      (A.timestamp - t.start_ts) AS tsNS,
      start_addr,
@@ -2741,52 +3737,107 @@ export const getTabSmapsData = (leftNs: number, rightNs: number): Promise<Array<
      LEFT JOIN data_dict d ON a.path_id = d.id LEFT 
      JOIN data_dict f ON a.protection_id = f.id, 
      trace_range AS t 
-     WHERE tsNS <= $rightNs`, {$rightNs : rightNs},"exec")
+     WHERE tsNS <= $rightNs`,
+        { $rightNs: rightNs },
+        'exec'
+    );
 
-export const getTabVirtualMemoryType = (startTime: number, endTime: number): Promise<Array<string>> =>
-    query("getTabVirtualMemoryType", `
+export const getTabVirtualMemoryType = (
+    startTime: number,
+    endTime: number
+): Promise<Array<string>> =>
+    query(
+        'getTabVirtualMemoryType',
+        `
     SELECT type from paged_memory_sample s,trace_range t
-     WHERE s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts group by type`, {$startTime : startTime,$endTime:endTime},"exec")
+     WHERE s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts group by type`,
+        { $startTime: startTime, $endTime: endTime },
+        'exec'
+    );
 
-export const getTabIoCompletionTimesType = (startTime: number, endTime: number): Promise<Array<string>> =>
-    query("getTabIoCompletionTimesType", `
+export const getTabIoCompletionTimesType = (
+    startTime: number,
+    endTime: number
+): Promise<Array<string>> =>
+    query(
+        'getTabIoCompletionTimesType',
+        `
     SELECT tier from bio_latency_sample s,trace_range t
-     WHERE s.start_ts + s.latency_dur between $startTime + t.start_ts and $endTime + t.start_ts group by tier`, {$startTime : startTime,$endTime:endTime},"exec")
+     WHERE s.start_ts + s.latency_dur between $startTime + t.start_ts and $endTime + t.start_ts group by tier`,
+        { $startTime: startTime, $endTime: endTime },
+        'exec'
+    );
 
 export const getCpuLimitFreqId = (): Promise<Array<CpuFreqRowLimit>> =>
-    query("getCpuMaxMinFreqId", `
+    query(
+        'getCpuMaxMinFreqId',
+        `
     select cpu,MAX(iif(name = 'cpu_frequency_limits_max',id,0)) as maxFilterId,MAX(iif(name = 'cpu_frequency_limits_min',id,0)) as minFilterId from cpu_measure_filter where name in ('cpu_frequency_limits_max','cpu_frequency_limits_min') group by cpu
-`, {})
+`,
+        {}
+    );
 
-export const getCpuLimitFreqMax = (filterIds:string): Promise<Array<any>> =>{
-    return query("getCpuLimitFreqMax", `
+export const getCpuLimitFreqMax = (filterIds: string): Promise<Array<any>> => {
+    return query(
+        'getCpuLimitFreqMax',
+        `
     select max(value) as maxValue,filter_id as filterId from measure where filter_id in (${filterIds}) group by filter_id
-`, {})
-}
+`,
+        {}
+    );
+};
 
-export const getCpuLimitFreq = (maxId: number, minId: number,cpu:number): Promise<Array<CpuFreqLimitsStruct>> =>
-    query("getCpuLimitFreq", `
-    select ts - T.start_ts as startNs,max(value) as max,min(value) as min,$cpu as cpu from measure,trace_range T where filter_id in ($maxId,$minId) group by ts
-`, {$maxId : maxId,$minId : minId,$cpu : cpu})
+export const getCpuLimitFreq = (
+    maxId: number,
+    minId: number,
+    cpu: number
+): Promise<Array<CpuFreqLimitsStruct>> =>
+    query(
+        'getCpuLimitFreq',
+        `
+    select ts - T.start_ts as startNs,dur,max(value) as max,min(value) as min,$cpu as cpu from measure,trace_range T where filter_id in ($maxId,$minId) group by ts
+`,
+        { $maxId: maxId, $minId: minId, $cpu: cpu }
+    );
 
 export const queryHisystemEventExits = (): Promise<Array<any>> =>
-    query("queryHisystemEventExits", `select 
+    query(
+        'queryHisystemEventExits',
+        `select 
       event_name 
       from stat s 
       where s.event_name = 'trace_hisys_event' 
-      and s.stat_type ='received' and s.count > 0`)
+      and s.stat_type ='received' and s.count > 0`
+    );
 
-export const queryEbpfSamplesCount = (startTime: number, endTime: number,ipids:number[]): Promise<Array<any>> =>
-    query("queryEbpfSamplesCount", `
+export const queryEbpfSamplesCount = (
+    startTime: number,
+    endTime: number,
+    ipids: number[]
+): Promise<Array<any>> =>
+    query(
+        'queryEbpfSamplesCount',
+        `
     select
 fsCount,
     vmCount from
-(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length>0?`and s.ipid in (${ipids.join(",")})`:""})
-,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length>0?`and s.ipid in (${ipids.join(",")})`:""});
-`, {$startTime : startTime,$endTime : endTime});
+(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
+            ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+        })
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
+            ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+        });
+`,
+        { $startTime: startTime, $endTime: endTime }
+    );
 
-export const querySysLockDetailsData = (rightNs: number, eventName: string): Promise<Array<SystemDetailsEnergy>> =>
-    query("querySysLockDetailsData", `SELECT
+export const querySysLockDetailsData = (
+    rightNs: number,
+    eventName: string
+): Promise<Array<SystemDetailsEnergy>> =>
+    query(
+        'querySysLockDetailsData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2806,11 +3857,17 @@ export const querySysLockDetailsData = (rightNs: number, eventName: string): Pro
         S.serial,
         APP.app_key,
         D.data,
-        D2.data;`, {$rightNS: rightNs, $eventName: eventName})
+        D2.data;`,
+        { $rightNS: rightNs, $eventName: eventName }
+    );
 
-
-export const queryStateInitValue = (eventName: string, keyName: string): Promise<Array<EnergyStateStruct>> =>
-    query("queryStateInitValue", `select
+export const queryStateInitValue = (
+    eventName: string,
+    keyName: string
+): Promise<Array<EnergyStateStruct>> =>
+    query(
+        'queryStateInitValue',
+        `select
   0 as startNs,
   $eventName as type,
   '' as appKey,
@@ -2820,10 +3877,17 @@ export const queryStateInitValue = (eventName: string, keyName: string): Promise
   when 'bt_state' then device_state.bt_state
   when 'location' then device_state.location
   else 0 end) as value
-  from device_state;`, {$eventName: eventName, $keyName: keyName})
+  from device_state;`,
+        { $eventName: eventName, $keyName: keyName }
+    );
 
-export const querySysLocationDetailsData = (rightNs: number, eventName: string): Promise<Array<SystemDetailsEnergy>> =>
-    query("querySysLocationDetailsData", `SELECT
+export const querySysLocationDetailsData = (
+    rightNs: number,
+    eventName: string
+): Promise<Array<SystemDetailsEnergy>> =>
+    query(
+        'querySysLocationDetailsData',
+        `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2843,25 +3907,46 @@ export const querySysLocationDetailsData = (rightNs: number, eventName: string):
         S.serial,
         APP.app_key,
         D.data,
-        D2.data;`, {$rightNS: rightNs, $eventName: eventName})
+        D2.data;`,
+        { $rightNS: rightNs, $eventName: eventName }
+    );
 export const queryNativeMemoryRealTime = (): Promise<Array<any>> =>
-    query("queryNativeMemoryRealTime",`select cs.ts,cs.clock_name from datasource_clockid dc left join clock_snapshot cs on dc.clock_id = cs.clock_id where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
-`,{})
+    query(
+        'queryNativeMemoryRealTime',
+        `select cs.ts,cs.clock_name from datasource_clockid dc left join clock_snapshot cs on dc.clock_id = cs.clock_id where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
+`,
+        {}
+    );
 
 export const queryBootTime = (): Promise<Array<any>> =>
-    query("queryBootTime",`select ts,clock_name from clock_snapshot where clock_name = 'boottime'
-`,{})
+    query(
+        'queryBootTime',
+        `select ts,clock_name from clock_snapshot where clock_name = 'boottime'
+`,
+        {}
+    );
 
-export const queryConfigSysEventAppName = (): Promise<Array<{
-    process_name: string
-}>> =>
-    query("queryConfigSysEventAppName", `
-    SELECT value from trace_config where trace_source = 'hisys_event' and key = 'process_name'`)
+export const queryConfigSysEventAppName = (): Promise<
+    Array<{
+        process_name: string;
+    }>
+> =>
+    query(
+        'queryConfigSysEventAppName',
+        `
+    SELECT value from trace_config where trace_source = 'hisys_event' and key = 'process_name'`
+    );
 
-export const queryClockData = (): Promise<Array<{
-    name:string,num:number,srcname:string
-}>> =>
-    query("queryClockData", `
+export const queryClockData = (): Promise<
+    Array<{
+        name: string;
+        num: number;
+        srcname: string;
+    }>
+> =>
+    query(
+        'queryClockData',
+        `
     with freq as(
     select measure.filter_id, measure.ts, measure.type, measure.value , clock_event_filter.name from clock_event_filter
     left join measure
@@ -2878,46 +3963,88 @@ export const queryClockData = (): Promise<Array<{
 ),count_state as (
     select COUNT(*) num,name srcname from state group by name
 )
-select count_freq.srcname||' Frequency' as name,* from count_freq union select count_state.srcname||' State' as name,* from count_state order by name`)
+select count_freq.srcname||' Frequency' as name,* from count_freq union select count_state.srcname||' State' as name,* from count_state order by name`
+    );
 
-export const queryClockFrequency = (clockName:string): Promise<Array<ClockStruct>> =>
-    query("queryClockFrequency",`with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
+export const queryClockFrequency = (
+    clockName: string
+): Promise<Array<ClockStruct>> =>
+    query(
+        'queryClockFrequency',
+        `with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
 left join measure
 where clock_event_filter.name = $clockName and clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
 order by measure.ts)
-select freq.filter_id as filterId,freq.ts - r.start_ts as startNS,freq.type,freq.value from freq,trace_range r order by startNS`, {$clockName: clockName})
+select freq.filter_id as filterId,freq.ts - r.start_ts as startNS,freq.type,freq.value from freq,trace_range r order by startNS`,
+        { $clockName: clockName }
+    );
 
-export const queryClockState = (clockName:string): Promise<Array<ClockStruct>> =>
-    query("queryClockState",`with state as (
+export const queryClockState = (
+    clockName: string
+): Promise<Array<ClockStruct>> =>
+    query(
+        'queryClockState',
+        `with state as (
 select filter_id, ts, endts, endts-ts as dur, type, value from
 (select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value from clock_event_filter,trace_range
 left join measure
 where clock_event_filter.name = $clockName and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
 order by measure.ts))
-select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`, {$clockName: clockName})
+select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`,
+        { $clockName: clockName }
+    );
 
 export const queryScreenState = (): Promise<Array<ClockStruct>> =>
-    query("queryScreenState",`select m.type, m.ts-r.start_ts as startNS, value, filter_id  as filterId from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNS;
-`)
+    query(
+        'queryScreenState',
+        `select m.type, m.ts-r.start_ts as startNS, value, filter_id  as filterId from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNS;
+`
+    );
 
-export const queryIrqList = (): Promise<Array<{name:string,cpu:number}>> =>
-    query("queryIrqList",`select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`)
+export const queryIrqList = (): Promise<Array<{ name: string; cpu: number }>> =>
+    query(
+        'queryIrqList',
+        `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`
+    );
 
-export const queryIrqData = (callid:number,cat:string): Promise<Array<IrqStruct>> =>
-    query("queryIrqData",`select i.ts - t.start_ts as startNS,i.dur,i.name,i.depth,argsetid as argSetId,i.id from irq i,
-trace_range t where i.callid = $callid and i.cat = $cat`,{$callid: callid,$cat: cat})
+export const queryIrqData = (
+    callid: number,
+    cat: string
+): Promise<Array<IrqStruct>> => {
+    let sqlSoftIrq = `
+    select i.ts - t.start_ts as startNS,i.dur,i.name,i.depth,argsetid as argSetId,i.id from irq i,
+trace_range t where i.callid = ${callid} and i.cat = 'softirq'
+    `;
+    let sqlIrq = `
+    select i.ts - t.start_ts as startNS,i.dur,
+        case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as name,
+        i.depth,
+        argsetid as argSetId,
+        i.id 
+        from irq i,trace_range t 
+        where i.callid = ${callid} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi') 
+    `;
+    return query('queryIrqData', cat === 'irq' ? sqlIrq : sqlSoftIrq, {});
+};
 
-export const queryAllJankProcess = (): Promise<Array<{
-    pid: number
-}>> =>
-    query("queryAllJankProcess", `
+export const queryAllJankProcess = (): Promise<
+    Array<{
+        pid: number;
+    }>
+> =>
+    query(
+        'queryAllJankProcess',
+        `
         SELECT DISTINCT p.pid
         FROM frame_slice AS a
         LEFT JOIN process AS p ON a.ipid = p.ipid
-        `)
+        `
+    );
 
 export const queryAllExpectedData = (): Promise<Array<any>> =>
-    query("queryAllExpectedData", `
+    query(
+        'queryAllExpectedData',
+        `
         SELECT
             a.id,
             (a.ts - TR.start_ts) AS ts,
@@ -2929,10 +4056,14 @@ export const queryAllExpectedData = (): Promise<Array<any>> =>
         FROM frame_slice AS a, trace_range AS TR
              LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 1
-        ORDER BY a.ipid,ts;`)
+          and (a.flag <> 2 or a.flag is null)
+        ORDER BY a.ipid,ts;`
+    );
 
 export const queryAllActualData = (): Promise<Array<any>> =>
-    query("queryAllActualData", `
+    query(
+        'queryAllActualData',
+        `
         SELECT 
                a.id,
                (a.ts - TR.start_ts) AS ts,
@@ -2949,10 +4080,13 @@ export const queryAllActualData = (): Promise<Array<any>> =>
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0
           AND a.flag <> 2
-        ORDER BY a.ipid, ts;`)
+        ORDER BY a.ipid, ts;`
+    );
 
 export const queryActualFrameDate = (): Promise<Array<any>> =>
-    query("queryActualFrameDate", `
+    query(
+        'queryActualFrameDate',
+        `
         SELECT
                sf.id,
                'frameTime' as frame_type,
@@ -3005,10 +4139,13 @@ export const queryActualFrameDate = (): Promise<Array<any>> =>
           AND pro.name NOT LIKE '%render_service%'
           AND fs.type = 0
           AND fs.flag <> 2
-        ORDER BY ts;`)
+        ORDER BY ts;`
+    );
 
 export const queryExpectedFrameDate = (): Promise<Array<any>> =>
-    query("queryExpectedFrameDate", `
+    query(
+        'queryExpectedFrameDate',
+        `
         SELECT
                sf.id,
                'frameTime' as frame_type,
@@ -3059,10 +4196,13 @@ export const queryExpectedFrameDate = (): Promise<Array<any>> =>
         WHERE fs.dst IS NULL
           AND pro.name NOT LIKE '%render_service%'
           AND fs.type = 1
-        ORDER BY ts;`)
+        ORDER BY ts;`
+    );
 
 export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
-    query("queryFlowsData", `
+    query(
+        'queryFlowsData',
+        `
         SELECT a.vsync AS name,
                p.pid,
                p.name  AS cmdline,
@@ -3070,10 +4210,13 @@ export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
         FROM frame_slice AS a
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0
-          AND a.id IN (${src_slice.join(",")});`)
+          AND a.id IN (${src_slice.join(',')});`
+    );
 
 export const queryPrecedingData = (dst_slice: string): Promise<Array<any>> =>
-    query("queryFlowsData", `
+    query(
+        'queryFlowsData',
+        `
         SELECT a.vsync AS name,
                p.pid,
                p.name  AS cmdline,
@@ -3081,17 +4224,26 @@ export const queryPrecedingData = (dst_slice: string): Promise<Array<any>> =>
         FROM frame_slice AS a
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0
-          AND a.id = $dst_slice;`, {$dst_slice: dst_slice})
+          AND a.id = $dst_slice;`,
+        { $dst_slice: dst_slice }
+    );
 
 export const queryFrameTimeData = (): Promise<Array<any>> =>
-    query("queryFrameTimeData", `
+    query(
+        'queryFrameTimeData',
+        `
         SELECT DISTINCT p.pid
         FROM frame_slice AS a
             LEFT JOIN process AS p
-            ON a.ipid = p.ipid;`)
+            ON a.ipid = p.ipid;`
+    );
 
 export const queryGpuDur = (id: number): Promise<any> =>
-    query("queryGpuDur", `
+    query(
+        'queryGpuDur',
+        `
         SELECT dur AS gpu_dur
         FROM gpu_slice 
-        WHERE frame_row = $id;`, {$id: id})
+        WHERE frame_row = $id;`,
+        { $id: id }
+    );

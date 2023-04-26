@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabSmapsData, getTabSmapsMaxRss,} from "../../../../database/SqlLite.js";
-import {Smaps, SmapsTreeObj} from "../../../../bean/SmapsStruct.js";
-import {Utils} from "../../base/Utils.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import {
+    getTabSmapsData,
+    getTabSmapsMaxRss,
+} from '../../../../database/SqlLite.js';
+import { Smaps, SmapsTreeObj } from '../../../../bean/SmapsStruct.js';
+import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-smaps-statistics')
 export class TabPaneSmapsStatistics extends BaseElement {
@@ -26,12 +29,14 @@ export class TabPaneSmapsStatistics extends BaseElement {
 
     set data(val: SelectionParam | any) {
         // @ts-ignore
-        this.tbl?.shadowRoot?.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-        this.queryDataByDB(val)
+        this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.queryDataByDB(val);
     }
 
     initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-smaps-statistics');
+        this.tbl = this.shadowRoot?.querySelector<LitTable>(
+            '#tb-smaps-statistics'
+        );
     }
 
     connectedCallback() {
@@ -39,142 +44,211 @@ export class TabPaneSmapsStatistics extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
 
-
     queryDataByDB(val: SelectionParam | any) {
-        getTabSmapsMaxRss(val.leftNs, val.rightNs).then(maxRes => {
-            let sumRss = maxRes[0].max_value
-            let allTree: SmapsTreeObj = new SmapsTreeObj("All", "", "*All*");
-            let dataTree: SmapsTreeObj = new SmapsTreeObj("DATA", "", "DATA");
-            let textTree: SmapsTreeObj = new SmapsTreeObj("TEXT", "", "TEXT");
-            let constTree: SmapsTreeObj = new SmapsTreeObj("CONST", "", "CONST");
-            let otherTree: SmapsTreeObj = new SmapsTreeObj("OTHER", "", "OTHER");
-            getTabSmapsData(val.leftNs, val.rightNs).then(result => {
+        getTabSmapsMaxRss(val.leftNs, val.rightNs).then((maxRes) => {
+            let sumRss = maxRes[0].max_value;
+            let allTree: SmapsTreeObj = new SmapsTreeObj('All', '', '*All*');
+            let dataTree: SmapsTreeObj = new SmapsTreeObj('DATA', '', 'DATA');
+            let textTree: SmapsTreeObj = new SmapsTreeObj('TEXT', '', 'TEXT');
+            let constTree: SmapsTreeObj = new SmapsTreeObj(
+                'CONST',
+                '',
+                'CONST'
+            );
+            let otherTree: SmapsTreeObj = new SmapsTreeObj(
+                'OTHER',
+                '',
+                'OTHER'
+            );
+            getTabSmapsData(val.leftNs, val.rightNs).then((result) => {
                 if (result.length != null && result.length > 0) {
                     for (let id = 0; id < result.length; id++) {
-                        let smaps = result[id]
+                        let smaps = result[id];
                         switch (smaps.permission.trim()) {
-                            case "rw-":
-                                smaps.type = "DATA"
-                                this.handleTree(smaps, id, "DATA", dataTree, sumRss);
+                            case 'rw-':
+                                smaps.type = 'DATA';
+                                this.handleTree(
+                                    smaps,
+                                    id,
+                                    'DATA',
+                                    dataTree,
+                                    sumRss
+                                );
                                 break;
-                            case "r-x":
-                                smaps.type = "TEXT"
-                                this.handleTree(smaps, id, "TEXT", textTree, sumRss);
+                            case 'r-x':
+                                smaps.type = 'TEXT';
+                                this.handleTree(
+                                    smaps,
+                                    id,
+                                    'TEXT',
+                                    textTree,
+                                    sumRss
+                                );
                                 break;
-                            case "r--":
-                                smaps.type = "CONST"
-                                this.handleTree(smaps, id, "CONST", constTree, sumRss);
+                            case 'r--':
+                                smaps.type = 'CONST';
+                                this.handleTree(
+                                    smaps,
+                                    id,
+                                    'CONST',
+                                    constTree,
+                                    sumRss
+                                );
                                 break;
                             default:
-                                smaps.type = "OTHER"
-                                this.handleTree(smaps, id, "OTHER", otherTree, sumRss);
+                                smaps.type = 'OTHER';
+                                this.handleTree(
+                                    smaps,
+                                    id,
+                                    'OTHER',
+                                    otherTree,
+                                    sumRss
+                                );
                                 break;
                         }
-                        this.handleAllDataTree(smaps, id, "All", allTree, sumRss);
+                        this.handleAllDataTree(
+                            smaps,
+                            id,
+                            'All',
+                            allTree,
+                            sumRss
+                        );
                         if (id == result.length - 1) {
-                            this.handleSmapsTreeObj(dataTree, sumRss)
-                            this.handleSmapsTreeObj(textTree, sumRss)
-                            this.handleSmapsTreeObj(constTree, sumRss)
-                            this.handleSmapsTreeObj(otherTree, sumRss)
-                            this.handleSmapsTreeObj(allTree, sumRss)
+                            this.handleSmapsTreeObj(dataTree, sumRss);
+                            this.handleSmapsTreeObj(textTree, sumRss);
+                            this.handleSmapsTreeObj(constTree, sumRss);
+                            this.handleSmapsTreeObj(otherTree, sumRss);
+                            this.handleSmapsTreeObj(allTree, sumRss);
                         }
                     }
-                    this.tbl!.recycleDataSource = [allTree, dataTree, textTree, constTree, otherTree]
+                    this.tbl!.recycleDataSource = [
+                        allTree,
+                        dataTree,
+                        textTree,
+                        constTree,
+                        otherTree,
+                    ];
                 } else {
-                    this.tbl!.recycleDataSource = []
+                    this.tbl!.recycleDataSource = [];
                 }
-            })
-        })
-
+            });
+        });
     }
 
     private calculatePercentage(divisor: number, dividend: number) {
         if (dividend == 0) {
-            return 0
+            return 0;
         } else {
-            return (divisor / dividend) * 100
+            return (divisor / dividend) * 100;
         }
     }
 
     private handleSmapsTreeObj(smapsTreeObj: SmapsTreeObj, sumRss: number) {
-        smapsTreeObj.rsspro = this.calculatePercentage(smapsTreeObj.rss, sumRss)
-        smapsTreeObj.rssproStr = smapsTreeObj.rsspro.toFixed(2) + "%"
-        smapsTreeObj.regStr = smapsTreeObj.reg + ""
-        smapsTreeObj.rssStr = Utils.getBinaryByteWithUnit(smapsTreeObj.rss * 1024)
-        smapsTreeObj.dirtyStr = Utils.getBinaryByteWithUnit(smapsTreeObj.dirty * 1024)
-        smapsTreeObj.swapperStr = Utils.getBinaryByteWithUnit(smapsTreeObj.swapper * 1024)
-        smapsTreeObj.sizeStr = Utils.getBinaryByteWithUnit(smapsTreeObj.size * 1024)
-        smapsTreeObj.respro = this.calculatePercentage(smapsTreeObj.rss, smapsTreeObj.size)
-        smapsTreeObj.pssStr = Utils.getBinaryByteWithUnit(smapsTreeObj.pss * 1024)
-        smapsTreeObj.resproStr = smapsTreeObj.respro.toFixed(2) + "%"
+        smapsTreeObj.rsspro = this.calculatePercentage(
+            smapsTreeObj.rss,
+            sumRss
+        );
+        smapsTreeObj.rssproStr = smapsTreeObj.rsspro.toFixed(2) + '%';
+        smapsTreeObj.regStr = smapsTreeObj.reg + '';
+        smapsTreeObj.rssStr = Utils.getBinaryByteWithUnit(
+            smapsTreeObj.rss * 1024
+        );
+        smapsTreeObj.dirtyStr = Utils.getBinaryByteWithUnit(
+            smapsTreeObj.dirty * 1024
+        );
+        smapsTreeObj.swapperStr = Utils.getBinaryByteWithUnit(
+            smapsTreeObj.swapper * 1024
+        );
+        smapsTreeObj.sizeStr = Utils.getBinaryByteWithUnit(
+            smapsTreeObj.size * 1024
+        );
+        smapsTreeObj.respro = this.calculatePercentage(
+            smapsTreeObj.rss,
+            smapsTreeObj.size
+        );
+        smapsTreeObj.pssStr = Utils.getBinaryByteWithUnit(
+            smapsTreeObj.pss * 1024
+        );
+        smapsTreeObj.resproStr = smapsTreeObj.respro.toFixed(2) + '%';
     }
 
-
-    private handleAllDataTree(smaps: Smaps, id: number, parentId: string, dataTree: SmapsTreeObj, sumRss: number) {
-        let type = smaps.type
-        let obj = new SmapsTreeObj(id + "", parentId, type);
-        obj.path = smaps.path
-        obj.rss = smaps.rss
-        obj.rsspro = this.calculatePercentage(smaps.rss, sumRss)
-        obj.rssproStr = obj.rsspro.toFixed(2) + "%"
-        obj.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024)
-        obj.dirty = smaps.dirty
-        obj.dirtyStr = Utils.getBinaryByteWithUnit(smaps.dirty * 1024)
-        obj.swapper = smaps.swapper
-        obj.swapperStr = Utils.getBinaryByteWithUnit(smaps.swapper * 1024)
-        obj.size = smaps.size
-        obj.sizeStr = Utils.getBinaryByteWithUnit(smaps.size * 1024)
-        obj.pss = smaps.pss
-        obj.pssStr = Utils.getBinaryByteWithUnit(smaps.pss * 1024)
-        obj.respro = smaps.reside
-        obj.resproStr = smaps.reside.toFixed(2) + "%"
-        dataTree.reg += 1
-        if (dataTree.children.length > 1 && dataTree.path != "< multiple >") {
-            dataTree.path = "< multiple >"
+    private handleAllDataTree(
+        smaps: Smaps,
+        id: number,
+        parentId: string,
+        dataTree: SmapsTreeObj,
+        sumRss: number
+    ) {
+        let type = smaps.type;
+        let obj = new SmapsTreeObj(id + '', parentId, type);
+        obj.path = smaps.path;
+        obj.rss = smaps.rss;
+        obj.rsspro = this.calculatePercentage(smaps.rss, sumRss);
+        obj.rssproStr = obj.rsspro.toFixed(2) + '%';
+        obj.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024);
+        obj.dirty = smaps.dirty;
+        obj.dirtyStr = Utils.getBinaryByteWithUnit(smaps.dirty * 1024);
+        obj.swapper = smaps.swapper;
+        obj.swapperStr = Utils.getBinaryByteWithUnit(smaps.swapper * 1024);
+        obj.size = smaps.size;
+        obj.sizeStr = Utils.getBinaryByteWithUnit(smaps.size * 1024);
+        obj.pss = smaps.pss;
+        obj.pssStr = Utils.getBinaryByteWithUnit(smaps.pss * 1024);
+        obj.respro = smaps.reside;
+        obj.resproStr = smaps.reside.toFixed(2) + '%';
+        dataTree.reg += 1;
+        if (dataTree.children.length > 1 && dataTree.path != '< multiple >') {
+            dataTree.path = '< multiple >';
         }
-        dataTree.rss += smaps.rss
-        dataTree.dirty += smaps.dirty
-        dataTree.swapper += smaps.swapper
-        dataTree.size += smaps.size
-        dataTree.respro += smaps.reside
-        dataTree.pss += smaps.pss
-        dataTree.children.push(obj)
+        dataTree.rss += smaps.rss;
+        dataTree.dirty += smaps.dirty;
+        dataTree.swapper += smaps.swapper;
+        dataTree.size += smaps.size;
+        dataTree.respro += smaps.reside;
+        dataTree.pss += smaps.pss;
+        dataTree.children.push(obj);
     }
 
-    private handleTree(smaps: Smaps, id: number, parentId: string, dataTree: SmapsTreeObj, sumRss: number) {
-        let type = smaps.start_addr + " (" + smaps.size / 4 + " pages)"
-        let obj = new SmapsTreeObj(id + "", parentId, type);
-        obj.path = smaps.path
-        obj.rss = smaps.rss
-        obj.rsspro = this.calculatePercentage(smaps.rss, sumRss)
-        obj.rssproStr = obj.rsspro.toFixed(2) + "%"
-        obj.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024)
-        obj.dirty = smaps.dirty
-        obj.dirtyStr = Utils.getBinaryByteWithUnit(smaps.dirty * 1024)
-        obj.swapper = smaps.swapper
-        obj.swapperStr = Utils.getBinaryByteWithUnit(smaps.swapper * 1024)
-        obj.size = smaps.size
-        obj.sizeStr = Utils.getBinaryByteWithUnit(smaps.size * 1024)
-        obj.pss = smaps.pss
-        obj.pssStr = Utils.getBinaryByteWithUnit(smaps.pss * 1024)
-        obj.respro = smaps.reside
-        obj.resproStr = smaps.reside.toFixed(2) + "%"
-        dataTree.reg += 1
-        if (dataTree.children.length > 1 && dataTree.path != "< multiple >") {
-            dataTree.path = "< multiple >"
+    private handleTree(
+        smaps: Smaps,
+        id: number,
+        parentId: string,
+        dataTree: SmapsTreeObj,
+        sumRss: number
+    ) {
+        let type = smaps.start_addr + ' (' + smaps.size / 4 + ' pages)';
+        let obj = new SmapsTreeObj(id + '', parentId, type);
+        obj.path = smaps.path;
+        obj.rss = smaps.rss;
+        obj.rsspro = this.calculatePercentage(smaps.rss, sumRss);
+        obj.rssproStr = obj.rsspro.toFixed(2) + '%';
+        obj.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024);
+        obj.dirty = smaps.dirty;
+        obj.dirtyStr = Utils.getBinaryByteWithUnit(smaps.dirty * 1024);
+        obj.swapper = smaps.swapper;
+        obj.swapperStr = Utils.getBinaryByteWithUnit(smaps.swapper * 1024);
+        obj.size = smaps.size;
+        obj.sizeStr = Utils.getBinaryByteWithUnit(smaps.size * 1024);
+        obj.pss = smaps.pss;
+        obj.pssStr = Utils.getBinaryByteWithUnit(smaps.pss * 1024);
+        obj.respro = smaps.reside;
+        obj.resproStr = smaps.reside.toFixed(2) + '%';
+        dataTree.reg += 1;
+        if (dataTree.children.length > 1 && dataTree.path != '< multiple >') {
+            dataTree.path = '< multiple >';
         }
-        dataTree.rss += smaps.rss
-        dataTree.dirty += smaps.dirty
-        dataTree.swapper += smaps.swapper
-        dataTree.size += smaps.size
-        dataTree.pss += smaps.pss
-        dataTree.children.push(obj)
+        dataTree.rss += smaps.rss;
+        dataTree.dirty += smaps.dirty;
+        dataTree.swapper += smaps.swapper;
+        dataTree.size += smaps.size;
+        dataTree.pss += smaps.pss;
+        dataTree.children.push(obj);
     }
 
     initHtml(): string {

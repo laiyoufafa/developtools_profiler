@@ -20,8 +20,8 @@
 
 #include "log.h"
 
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 
@@ -223,8 +223,8 @@ TableBase::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table, uin
     : context_(nullptr),
       table_(table),
       dataCache_(dataCache),
-      rowCount_(rowCount),
-      indexMap_(std::make_unique<IndexMap>(0, rowCount))
+      indexMap_(std::make_unique<IndexMap>(0, rowCount)),
+      rowCount_(rowCount)
 {
 }
 
@@ -252,10 +252,10 @@ void TableBase::Cursor::FilterTS(unsigned char op, sqlite3_value* argv, const st
         case SQLITE_INDEX_CONSTRAINT_LT: {
             indexMap_->IntersectLessEqual(times, v, getValue);
             break;
-        case SQLITE_INDEX_CONSTRAINT_ISNOTNULL: {
-            indexMap_->RemoveNullElements(times, v);
-            break;
-        }
+            case SQLITE_INDEX_CONSTRAINT_ISNOTNULL: {
+                indexMap_->RemoveNullElements(times, v);
+                break;
+            }
             default:
                 break;
         } // end of switch (op)

@@ -36,7 +36,8 @@ void PagedMemoryDataParser::ParsePagedMemoryEvent()
     if (!reader_->GetPagedMemoryMap().size()) {
         return;
     }
-    for (auto mapItor = reader_->GetPagedMemoryMap().begin(); mapItor != reader_->GetPagedMemoryMap().end(); mapItor++) {
+    for (auto mapItor = reader_->GetPagedMemoryMap().begin(); mapItor != reader_->GetPagedMemoryMap().end();
+         mapItor++) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_PAGED_MEMORY, STAT_EVENT_RECEIVED);
         auto pagedMemoryFixedHeadrAddr = mapItor->second;
         bool callIdExistFlag = false;
@@ -83,9 +84,10 @@ void PagedMemoryDataParser::ParsePagedMemoryEvent()
         auto size = pagedMemoryFixedHeadrAddr->size;
 
         traceDataCache_->GetPagedMemorySampleData()->AppendNewData(currentCallId_, type, ipid, newStartTs, newEndTs,
-                                                                     duration, size, addr, itid);
+                                                                   duration, size, addr, itid);
         if (!callIdExistFlag) {
-            ParseCallStackData(userIpsAddr, pagedMemoryFixedHeadrAddr->nips, pagedMemoryFixedHeadrAddr->pid, currentCallId_);
+            ParseCallStackData(userIpsAddr, pagedMemoryFixedHeadrAddr->nips, pagedMemoryFixedHeadrAddr->pid,
+                               currentCallId_);
         }
     }
 }

@@ -14,7 +14,7 @@
  */
 
 // @ts-ignore
-import {WakeUpTimeBean} from "../../../dist/trace/bean/WakeUpTimeBean.js"
+import { WakeUpTimeBean } from '../../../dist/trace/bean/WakeUpTimeBean.js';
 
 describe('WakeUpTimeBean Test', () => {
     let wakeUpTimeBean = new WakeUpTimeBean();
@@ -22,18 +22,22 @@ describe('WakeUpTimeBean Test', () => {
         wakeUpTimeBean = {
             wakeTs: 0,
             startTs: 0,
-            preRow: 0
+            preRow: 0,
         };
-        expect(wakeUpTimeBean).not.toBeUndefined()
-        expect(wakeUpTimeBean).toMatchInlineSnapshot({
-  wakeTs: expect.any(Number),
-  startTs: expect.any(Number),
-  preRow: expect.any(Number) }, `
+        expect(wakeUpTimeBean).not.toBeUndefined();
+        expect(wakeUpTimeBean).toMatchInlineSnapshot(
+            {
+                wakeTs: expect.any(Number),
+                startTs: expect.any(Number),
+                preRow: expect.any(Number),
+            },
+            `
 Object {
   "preRow": Any<Number>,
   "startTs": Any<Number>,
   "wakeTs": Any<Number>,
 }
-`);
+`
+        );
     });
-})
+});

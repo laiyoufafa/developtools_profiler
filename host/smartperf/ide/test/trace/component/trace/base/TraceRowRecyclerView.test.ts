@@ -14,15 +14,14 @@
  */
 
 // @ts-ignore
-import {TraceRowRecyclerView} from "../../../../../dist/trace/component/trace/base/TraceRowRecyclerView.js";
+import { TraceRowRecyclerView } from '../../../../../dist/trace/component/trace/base/TraceRowRecyclerView.js';
 
-describe("TraceRow Test", () => {
-    beforeAll(() => {
-    })
+describe('TraceRow Test', () => {
+    beforeAll(() => {});
 
     it('Utils Test01', () => {
         let traceRow = new TraceRowRecyclerView();
-        expect(traceRow)
+        expect(traceRow);
     });
 
     it('Test02', function () {
@@ -32,8 +31,8 @@ describe("TraceRow Test", () => {
 
     it('Test03', function () {
         let traceRow = new TraceRowRecyclerView();
-        traceRow.measureHeight = jest.fn(()=>true)
-        traceRow.dataSource = true
+        traceRow.measureHeight = jest.fn(() => true);
+        traceRow.dataSource = true;
         expect(traceRow.dataSource).toBeTruthy();
     });
 
@@ -44,38 +43,37 @@ describe("TraceRow Test", () => {
 
     it('Test05', function () {
         let traceRow = new TraceRowRecyclerView();
-        traceRow.renderType=false
+        traceRow.renderType = false;
         expect(traceRow.renderType).toBeFalsy();
     });
 
     it('Test06', function () {
         let traceRow = new TraceRowRecyclerView();
-        const obj={
-            folder:false,
-            top:0,
-            name:"",
-            children:false,
-            rowId:"",
-            rowType:"",
-            rowParentId:"1",
-            expansion:false,
-            rowHidden:false,
-            rowHeight:40
-        }
-        const el={
-            obj:undefined,
-            style:{top:1,visibility:'visible'},
-            name:"",
-            rowId:"",
-            rowType:"",
-            rowParentId:"1",
-            expansion:false,
-            rowHidden:false,
-            setAttribute:"",
-            removeAttribute:""
-
-        }
-        expect(traceRow.refreshRow(el,!obj)).toBeUndefined();
+        const obj = {
+            folder: false,
+            top: 0,
+            name: '',
+            children: false,
+            rowId: '',
+            rowType: '',
+            rowParentId: '1',
+            expansion: false,
+            rowHidden: false,
+            rowHeight: 40,
+        };
+        const el = {
+            obj: undefined,
+            style: { top: 1, visibility: 'visible' },
+            name: '',
+            rowId: '',
+            rowType: '',
+            rowParentId: '1',
+            expansion: false,
+            rowHidden: false,
+            setAttribute: '',
+            removeAttribute: '',
+        };
+        expect(traceRow.refreshRow(el, !obj)).toBeUndefined();
     });
 
     it('Test08', function () {
@@ -128,6 +126,6 @@ describe("TraceRow Test", () => {
         </div>
 
         "
-`)
+`);
     });
-})
+});

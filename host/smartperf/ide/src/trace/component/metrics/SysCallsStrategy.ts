@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
-import {info} from "../../../log/Log.js";
+import { info } from '../../../log/Log.js';
 
-export const initSysCallsStrategy = (metricData: Array<any>): FunctionListItem => {
-    info("System Calls Strategy data length is:", metricData.length)
-    let functionListItems: Array<FunctionItem> = []
+export const initSysCallsStrategy = (
+    metricData: Array<any>
+): FunctionListItem => {
+    info('System Calls Strategy data length is:', metricData.length);
+    let functionListItems: Array<FunctionItem> = [];
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let functionNames = metricData[sqlIndex].funName;
         let durMaxes = metricData[sqlIndex].maxDur;
@@ -28,21 +30,21 @@ export const initSysCallsStrategy = (metricData: Array<any>): FunctionListItem =
             durMax: durMaxes,
             durMin: durMines,
             durAvg: durAvgs,
-        }
-        functionListItems?.push(functionItem)
+        };
+        functionListItems?.push(functionItem);
     }
     return {
-        function: functionListItems
-    }
-}
+        function: functionListItems,
+    };
+};
 
 export interface FunctionListItem {
-    function: Array<FunctionItem>
+    function: Array<FunctionItem>;
 }
 
 export interface FunctionItem {
-    functionName: string
-    durMax: string
-    durMin: string
-    durAvg: string
+    functionName: string;
+    durMax: string;
+    durMin: string;
+    durAvg: string;
 }

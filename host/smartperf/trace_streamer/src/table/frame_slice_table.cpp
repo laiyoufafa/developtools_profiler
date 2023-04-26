@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TS, VSYNC, IPID, ITID, CALLSTACK_ROW, DUR, SRC, DST, TYPE, TYPE_DESC, FLAG };
+enum Index { ID = 0, TS, VSYNC, IPID, ITID, CALLSTACK_ID, DUR, SRC, DST, TYPE, TYPE_DESC, FLAG, DEPTH, FRAME_NO };
 }
 FrameSliceTable::FrameSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -27,13 +27,15 @@ FrameSliceTable::FrameSliceTable(const TraceDataCache* dataCache) : TableBase(da
     tableColumn_.push_back(TableBase::ColumnInfo("vsync", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callstack_row", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("callstack_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("src", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("dst", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("type_desc", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("flag", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("frame_no", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -156,15 +158,14 @@ int FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                                     frameSliceObj_.InternalTidsData());
                 break;
             case IPID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
-                                    frameSliceObj_.InternalTidsData());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), frameSliceObj_.Ipids());
                 break;
             case VSYNC:
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), frameSliceObj_.VsyncIds());
                 break;
-            case CALLSTACK_ROW:
+            case CALLSTACK_ID:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int(argv[i])),
-                                    frameSliceObj_.CallStackRows());
+                                    frameSliceObj_.CallStackIds());
                 break;
             case DUR:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int(argv[i])), frameSliceObj_.Durs());
@@ -174,6 +175,12 @@ int FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                 break;
             case FLAG:
                 indexMap_->MixRange(c.op, static_cast<uint8_t>(sqlite3_value_int(argv[i])), frameSliceObj_.Flags());
+                break;
+            case DEPTH:
+                indexMap_->MixRange(c.op, static_cast<uint8_t>(sqlite3_value_int(argv[i])), frameSliceObj_.Depths());
+                break;
+            case FRAME_NO:
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), frameSliceObj_.FrameNos());
                 break;
             default:
                 break;
@@ -202,7 +209,7 @@ int FrameSliceTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.TimeStampData()[CurrentRow()]));
             break;
         case VSYNC:
             sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.VsyncIds()[CurrentRow()]));
@@ -213,8 +220,8 @@ int FrameSliceTable::Cursor::Column(int column) const
         case ITID:
             sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.InternalTidsData()[CurrentRow()]));
             break;
-        case CALLSTACK_ROW:
-            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.CallStackRows()[CurrentRow()]));
+        case CALLSTACK_ID:
+            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.CallStackIds()[CurrentRow()]));
             break;
         case DUR:
             if (frameSliceObj_.Durs()[CurrentRow()] != INVALID_UINT64) {
@@ -240,6 +247,16 @@ int FrameSliceTable::Cursor::Column(int column) const
         case FLAG:
             if (frameSliceObj_.Flags()[CurrentRow()] != INVALID_UINT8) {
                 sqlite3_result_int(context_, static_cast<int32_t>(frameSliceObj_.Flags()[CurrentRow()]));
+            }
+            break;
+        case DEPTH:
+            if (frameSliceObj_.Depths()[CurrentRow()] != INVALID_UINT8) {
+                sqlite3_result_int(context_, static_cast<int32_t>(frameSliceObj_.Depths()[CurrentRow()]));
+            }
+            break;
+        case FRAME_NO:
+            if (frameSliceObj_.FrameNos()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int(context_, static_cast<int32_t>(frameSliceObj_.FrameNos()[CurrentRow()]));
             }
             break;
         default:

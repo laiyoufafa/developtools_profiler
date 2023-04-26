@@ -38,8 +38,10 @@ public:
     ~PerfDataParser();
     void InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, uint64_t size);
     void Finish();
+    bool ReloadSymbolFiles(std::vector<std::string>& symbolsPaths);
 
 private:
+    bool Reload();
     bool LoadPerfData();
     void UpdateEventConfigInfo();
     void UpdateCmdlineInfo() const;
@@ -71,9 +73,7 @@ private:
     std::unique_ptr<uint8_t[]> buffer_ = {};
     size_t bufferSize_ = 0;
     bool cpuOffMode_ = false;
-    std::set<uint64_t> cpuOffids_ = {};
-    std::map<pid_t, std::unique_ptr<PerfRecordSample>> prevSampleCache_ = {};
-    Report report_;
+    std::unique_ptr<Report> report_ = nullptr;
     uint32_t useClockId_ = 0;
     uint32_t clockId_ = 0;
     enum PerfClockType {
@@ -89,14 +89,13 @@ private:
     DataIndex suspendStatIndex_ = 0;
     DataIndex unkonwnStateIndex_ = 0;
     std::unordered_multimap<uint64_t, uint64_t> tidToPid_ = {};
-    const std::map<uint32_t, uint32_t> perfToTSClockType_ = {
-        {PERF_CLOCK_REALTIME, TS_CLOCK_REALTIME},
-        {PERF_CLOCK_MONOTONIC, TS_MONOTONIC},
-        {PERF_CLOCK_MONOTONIC_RAW, TS_MONOTONIC_RAW},
-        {PERF_CLOCK_BOOTTIME, TS_CLOCK_BOOTTIME}
-    };
+    const std::map<uint32_t, uint32_t> perfToTSClockType_ = {{PERF_CLOCK_REALTIME, TS_CLOCK_REALTIME},
+                                                             {PERF_CLOCK_MONOTONIC, TS_MONOTONIC},
+                                                             {PERF_CLOCK_MONOTONIC_RAW, TS_MONOTONIC_RAW},
+                                                             {PERF_CLOCK_BOOTTIME, TS_CLOCK_BOOTTIME}};
     std::map<uint64_t, uint64_t> fileDataDictIdToFileId_ = {};
     QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint32_t> frameToCallChainId_;
+    const std::string tmpPerfData_ = "ts_tmp.perf.data";
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

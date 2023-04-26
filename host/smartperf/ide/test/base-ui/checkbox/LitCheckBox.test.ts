@@ -14,16 +14,14 @@
  */
 
 // @ts-ignore
-import {LitCheckBox} from "../../../dist/base-ui/checkbox/LitCheckBox.js";
+import { LitCheckBox } from '../../../dist/base-ui/checkbox/LitCheckBox.js';
 
-describe('checkBox Test', ()=>{
-
+describe('checkBox Test', () => {
     it('checkBoxTest01', function () {
-         let litCheckBox = new LitCheckBox();
-         expect(litCheckBox).not.toBeUndefined()
-         expect(litCheckBox).not.toBeNull()
+        let litCheckBox = new LitCheckBox();
+        expect(litCheckBox).not.toBeUndefined();
+        expect(litCheckBox).not.toBeNull();
     });
-
 
     it('checkBoxTest02', function () {
         let litCheckBox = new LitCheckBox();
@@ -32,44 +30,41 @@ describe('checkBox Test', ()=>{
 
     it('checkBoxTest03', function () {
         let litCheckBox = new LitCheckBox();
-        litCheckBox.checked = true
+        litCheckBox.checked = true;
         expect(litCheckBox.checked).toBeTruthy();
     });
 
+    it('checkBoxTest04', function () {
+        let litCheckBox = new LitCheckBox();
+        expect(litCheckBox.value).toEqual('');
+    });
 
     it('checkBoxTest04', function () {
         let litCheckBox = new LitCheckBox();
-        expect(litCheckBox.value).toEqual("");
+        litCheckBox.value = 'test';
+        expect(litCheckBox.value).toEqual('test');
     });
-
-
-    it('checkBoxTest04', function () {
-        let litCheckBox = new LitCheckBox();
-        litCheckBox.value = "test"
-        expect(litCheckBox.value).toEqual("test");
-    });
-
 
     it('checkBoxTest05', function () {
-        document.body.innerHTML =  `<lit-check-box></lit-check-box>
-        `
+        document.body.innerHTML = `<lit-check-box></lit-check-box>
+        `;
         let litCheckBox = new LitCheckBox();
-        litCheckBox.checked = false
+        litCheckBox.checked = false;
         expect(litCheckBox.checked).toBeFalsy();
     });
     it('checkBoxTest06', function () {
-        document.body.innerHTML =  `<lit-check-box></lit-check-box>
-        `
+        document.body.innerHTML = `<lit-check-box></lit-check-box>
+        `;
         let litCheckBox = new LitCheckBox();
-        litCheckBox.indeterminate = false
+        litCheckBox.indeterminate = false;
         expect(litCheckBox.indeterminate).toBeFalsy();
     });
 
     it('checkBoxTest07', function () {
-        document.body.innerHTML =  `<lit-check-box></lit-check-box>
-        `
+        document.body.innerHTML = `<lit-check-box></lit-check-box>
+        `;
         let litCheckBox = new LitCheckBox();
-        litCheckBox.indeterminate = true
+        litCheckBox.indeterminate = true;
         expect(litCheckBox.indeterminate).toBeTruthy();
     });
 
@@ -158,4 +153,4 @@ describe('checkBox Test', ()=>{
         "
 `);
     });
-})
+});

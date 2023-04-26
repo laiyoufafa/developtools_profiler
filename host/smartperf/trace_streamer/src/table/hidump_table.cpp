@@ -144,7 +144,7 @@ int HidumpTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** arg
                 break;
             case TS:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
-                                    hidumpObj_.TimeStamData());
+                                    hidumpObj_.TimeStampData());
                 break;
             case FPS:
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), hidumpObj_.Fpss());
@@ -176,7 +176,7 @@ int HidumpTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(hidumpObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(hidumpObj_.TimeStampData()[CurrentRow()]));
             break;
         case FPS: {
             sqlite3_result_int64(context_, static_cast<int64_t>(hidumpObj_.Fpss()[CurrentRow()]));

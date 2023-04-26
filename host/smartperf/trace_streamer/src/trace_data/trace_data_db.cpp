@@ -33,8 +33,8 @@
 const int ONCE_MAX_MB = 1024 * 1024 * 4;
 namespace SysTuning {
 namespace TraceStreamer {
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 using namespace SysTuning::base;
@@ -200,8 +200,9 @@ void TraceDataDB::ExecuteSql(const std::string_view& sql)
 
     sqlite3_finalize(stmt);
 }
-int TraceDataDB::SearchData()
+std::vector<std::string> TraceDataDB::SearchData()
 {
+    std::vector<std::string> values = {};
     Prepare();
     std::string line;
     bool printResult = false;
@@ -212,17 +213,36 @@ int TraceDataDB::SearchData()
             std::cout << "If you want to quit either type -q or press CTRL-Z" << std::endl;
             continue;
         }
+        values.clear();
+        std::string option = "";
+        size_t pos = std::string::npos;
+        if ((pos = line.find(" ")) != std::string::npos) {
+            option = line.substr(0, pos);
+            auto left = line.substr(pos + 1, -1);
+            while ((pos = left.find(",")) != std::string::npos) {
+                values.push_back(left.substr(0, pos + 1));
+                left = left.substr(pos + 1, -1);
+            }
+            values.push_back(left);
+        }
+        printf("option:%s\n", option.c_str());
         if (!line.compare("-q") || !line.compare("-quit")) {
             break;
         } else if (!line.compare("-e")) {
             TS_LOGI("the db file will be at current folder, the name is default.db");
-            return ExportDatabase("default.db");
+            (void)ExportDatabase("default.db");
+            return values;
         } else if (!line.compare("-help") || !line.compare("-h")) {
             std::cout << "use info" << std::endl;
             continue;
         } else if (!line.compare("-p")) {
             std::cout << "will print result of query" << std::endl;
             printResult = true;
+            continue;
+        } else if (!option.compare("-s")) {
+            if (!values.empty()) {
+                return values;
+            }
             continue;
         } else if (!line.compare("-up")) {
             std::cout << "will not print result of query" << std::endl;
@@ -242,7 +262,7 @@ int TraceDataDB::SearchData()
         std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
         printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
     }
-    return 0;
+    return values;
 }
 int TraceDataDB::SearchDatabase(const std::string& sql, bool print)
 {

@@ -14,26 +14,35 @@
  */
 
 // @ts-ignore
-import {debug, error, info, log, trace, warn, SpLog, LogLevel} from "../../dist/log/Log.js";
+import {
+    debug,
+    error,
+    info,
+    log,
+    trace,
+    warn,
+    SpLog,
+    LogLevel,
+} from '../../dist/log/Log.js';
 
 describe(' logTest', () => {
-    ``
+    ``;
     it('LogTest01', () => {
-        error("111")
-    })
+        error('111');
+    });
     it('LogTest02', () => {
-        warn("111")
-    })
+        warn('111');
+    });
     it('LogTest03', () => {
-        info("111")
-    })
+        info('111');
+    });
     it('LogTest04', () => {
-        debug("111")
-    })
+        debug('111');
+    });
     it('LogTest05', () => {
-        trace("111")
-    })
+        trace('111');
+    });
     it('LogTest06', () => {
-        log("111")
-    })
+        log('111');
+    });
 });

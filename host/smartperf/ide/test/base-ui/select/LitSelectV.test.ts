@@ -14,98 +14,103 @@
  */
 
 // @ts-ignore
-import {LitSelectV} from "../../../dist/base-ui/select/LitSelectV.js";
+import { LitSelectV } from '../../../dist/base-ui/select/LitSelectV.js';
 
 describe('LitSelectV Test', () => {
-    let litSelectV = new LitSelectV()
+    let litSelectV = new LitSelectV();
     it('LitSelectVTest01', function () {
-        expect(litSelectV.value).not.toBeUndefined()
-    })
+        expect(litSelectV.value).not.toBeUndefined();
+    });
     it('LitSelectVTest02', function () {
-        litSelectV.rounded = true
-        expect(litSelectV.rounded).toBeTruthy()
-    })
+        litSelectV.rounded = true;
+        expect(litSelectV.rounded).toBeTruthy();
+    });
     it('LitSelectVTest06', function () {
-        litSelectV.rounded = false
-        expect(litSelectV.rounded).toBeFalsy()
-    })
+        litSelectV.rounded = false;
+        expect(litSelectV.rounded).toBeFalsy();
+    });
     it('LitSelectVTest03', function () {
-        expect(litSelectV.placement).toBe("")
-
-    })
+        expect(litSelectV.placement).toBe('');
+    });
     it('LitSelectVTest04', function () {
-        litSelectV.placement = true
-        expect(litSelectV.placement).toBeTruthy()
-
-    })
+        litSelectV.placement = true;
+        expect(litSelectV.placement).toBeTruthy();
+    });
     it('LitSelectVTest05', function () {
-        litSelectV.placement = false
-        expect(litSelectV.placement).toBeFalsy()
-
-    })
+        litSelectV.placement = false;
+        expect(litSelectV.placement).toBeFalsy();
+    });
     it('LitSelectVTest07', function () {
-        litSelectV.boder = true
-        expect(litSelectV.border).toBeTruthy()
-    })
+        litSelectV.boder = true;
+        expect(litSelectV.border).toBeTruthy();
+    });
     it('LitSelectVTest08', function () {
-        litSelectV.border = false
-        expect(litSelectV.border).toBe("false")
-    })
+        litSelectV.border = false;
+        expect(litSelectV.border).toBe('false');
+    });
     it('LitSelectVTest14', function () {
-        litSelectV.border = true
-        expect(litSelectV.border).toBe("true")
-    })
+        litSelectV.border = true;
+        expect(litSelectV.border).toBe('true');
+    });
     it('LitSelectVTest09', function () {
-        litSelectV.defaultValue = "test"
-        expect(litSelectV.defaultValue).toBe("test")
-    })
+        litSelectV.defaultValue = 'test';
+        expect(litSelectV.defaultValue).toBe('test');
+    });
     it('LitSelectVTest010', function () {
-        litSelectV.placeholder = "test"
-        expect(litSelectV.placeholder).toBe("test")
-    })
+        litSelectV.placeholder = 'test';
+        expect(litSelectV.placeholder).toBe('test');
+    });
     it('LitSelectVTest011', function () {
-        litSelectV.all = true
-        expect(litSelectV.all).toBeTruthy()
-    })
+        litSelectV.all = true;
+        expect(litSelectV.all).toBeTruthy();
+    });
     it('LitSelectVTest012', function () {
-        litSelectV.all = false
-        expect(litSelectV.all).toBeFalsy()
-    })
+        litSelectV.all = false;
+        expect(litSelectV.all).toBeFalsy();
+    });
     it('LitSelectVTest013', function () {
-        let value = [{
-            length:1,
-        }]
-        let valueStr = ""
-        expect(litSelectV.dataSource(value,valueStr)).toBeUndefined()
-    })
+        let value = [
+            {
+                length: 1,
+            },
+        ];
+        let valueStr = '';
+        expect(litSelectV.dataSource(value, valueStr)).toBeUndefined();
+    });
     it('LitSelectVTest014', function () {
-        let value = [{
-            length:1,
-        }]
-        let valueStr = "aa"
-        expect(litSelectV.dataSource(value,valueStr)).toBeUndefined()
-    })
+        let value = [
+            {
+                length: 1,
+            },
+        ];
+        let valueStr = 'aa';
+        expect(litSelectV.dataSource(value, valueStr)).toBeUndefined();
+    });
     it('LitSelectVTest015', function () {
-        expect(litSelectV.connectedCallback()).toBeUndefined()
-    })
+        expect(litSelectV.connectedCallback()).toBeUndefined();
+    });
     it('LitSelectVTest016', function () {
-        let valueStr = "aa";
-        expect(litSelectV.dataSource([],valueStr)).toBeUndefined();
-    })
+        let valueStr = 'aa';
+        expect(litSelectV.dataSource([], valueStr)).toBeUndefined();
+    });
     it('LitSelectVTest017', function () {
-        let value = [{
-            length:1,
-        }];
-        let valueStr = "aa";
-        litSelectV.all  = true;
-        expect(litSelectV.dataSource(value,valueStr)).toBeUndefined();
-    })
+        let value = [
+            {
+                length: 1,
+            },
+        ];
+        let valueStr = 'aa';
+        litSelectV.all = true;
+        expect(litSelectV.dataSource(value, valueStr)).toBeUndefined();
+    });
     it('LitSelectVTest018', function () {
-        let value = [{
-            length:1,
-        }];
-        let valueStr = "aa";
-        litSelectV.title  = "Event List";
-        expect(litSelectV.dataSource(value,valueStr)).toBeUndefined();
-    })
-})
+        let value = [
+            {
+                length: 1,
+            },
+        ];
+        let valueStr = 'aa';
+        litSelectV.title = 'Event List';
+        expect(litSelectV.dataSource(value, valueStr)).toBeUndefined();
+    });
+});

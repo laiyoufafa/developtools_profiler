@@ -217,7 +217,7 @@ void SystemEventFilterTable::Cursor::FilterSorted(int col, unsigned char op, sql
                 default:
                     break;
             } // end of switch (op)
-        } // end of case TS
+        }     // end of case TS
         default:
             // can't filter, all rows
             break;

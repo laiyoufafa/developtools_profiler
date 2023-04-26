@@ -27,47 +27,47 @@ public:
     FrameFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~FrameFilter() override;
     void BeginVsyncEvent(uint64_t ts,
-                         uint64_t ipid,
-                         uint64_t itid,
+                         uint32_t ipid,
+                         uint32_t itid,
                          uint64_t expectStart,
                          uint64_t expectEnd,
                          uint32_t vsyncId,
-                         uint32_t callStackSliceRow);
-    bool BeginOnvsyncEvent(uint64_t ts, uint64_t itid, uint64_t expectStart, uint64_t callStackSliceRow);
-    bool MarkRSOnvsyncEvent(uint64_t ts, uint64_t itid);
-    bool EndOnVsyncEvent(uint64_t ts, uint64_t itid);
-    bool BeginRSTransactionData(uint64_t ts, uint64_t itid, uint32_t franeNum);
+                         uint32_t callStackSliceId);
+    bool MarkRSOnvsyncEvent(uint64_t ts, uint32_t itid);
+    bool EndOnVsyncEvent(uint64_t ts, uint32_t itid);
+    bool BeginRSTransactionData(uint64_t ts, uint32_t itid, uint32_t franeNum);
     typedef struct {
-        uint64_t sourceItid;
+        uint32_t sourceItid;
         uint32_t frameNum;
     } FrameMap;
-    bool BeginProcessCommandUni(uint64_t ts, uint64_t itid, const std::vector<FrameMap>& frame, uint32_t sliceIndex);
-    bool EndVsyncEvent(uint64_t ts, uint64_t itid);
-    bool StartFrameQueue(uint64_t ts, uint64_t itid);
-    bool EndFrameQueue(uint64_t ts, uint64_t itid);
+    bool BeginProcessCommandUni(uint64_t ts, uint32_t itid, const std::vector<FrameMap>& frame, uint32_t sliceIndex);
+    bool EndVsyncEvent(uint64_t ts, uint32_t itid);
+    bool StartFrameQueue(uint64_t ts, uint32_t itid);
+    bool EndFrameQueue(uint64_t ts, uint32_t itid);
     void Finish();
 
 private:
-    typedef enum FrameSliceType {
-        ACTURAL_SLICE,
-        EXPECT_SLICE
-    } FrameSliceType;
+    typedef enum FrameSliceType { ACTURAL_SLICE, EXPECT_SLICE } FrameSliceType;
     class FrameSlice {
     public:
-        FrameSlice() {
-        }
+        FrameSlice() {}
         uint64_t startTs_ = INVALID_UINT64;
+        // @deprecated it will be deleted later
         uint64_t expectedStartTs_ = INVALID_UINT64;
+        // if a frame experience video lag, is depend on if the real end ts is later then the expected ts, rather then
+        // the dur. noted at 2023/4/6
         uint64_t expectedEndTs_ = INVALID_UINT64;
+        // @deprecated it will be deleted later
         uint64_t expectedDur_ = INVALID_UINT64;
         uint64_t endTs_ = INVALID_UINT64;
+        bool gpuEnd_ = true;
         FrameSliceType frameType_ = ACTURAL_SLICE;
         uint32_t vsyncId_ = INVALID_UINT32;
         uint64_t frameQueueStartTs_ = INVALID_UINT64;
         bool vsyncEnd_ = false;
         bool isRsMainThread_ = false;
         uint32_t frameNum_ = INVALID_UINT32;
-        uint64_t callStackSliceRow_ = INVALID_UINT64;
+        uint64_t callStackSliceId_ = INVALID_UINT64;
         uint64_t frameSliceRow_ = INVALID_UINT64;
         uint64_t frameExpectedSliceRow_ = INVALID_UINT64;
         std::vector<uint64_t> sourceSlice_ = {};
@@ -75,8 +75,10 @@ private:
         uint64_t dstFrameSliceId_ = INVALID_UINT64;
         uint64_t dstExpectedFrameSliceId_ = INVALID_UINT64;
     };
-    std::map<uint64_t /* tid */, std::map<uint32_t /* vsyncId */, std::shared_ptr<FrameSlice>>> vsyncRenderSlice_ = {};
-    std::map<uint64_t /* tid */, std::map<uint32_t /* frameNum */, std::shared_ptr<FrameSlice>>> dstRenderSlice_ = {};
+    std::unordered_map<uint32_t /* tid */, std::vector<std::shared_ptr<FrameSlice>>> vsyncRenderSlice_ = {};
+    std::unordered_map<uint32_t /* tid */, std::unordered_map<uint32_t /* frameNum */, std::shared_ptr<FrameSlice>>>
+        dstRenderSlice_ = {};
+    bool checkFrameAlwasy_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

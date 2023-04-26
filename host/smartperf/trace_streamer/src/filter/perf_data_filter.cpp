@@ -47,6 +47,15 @@ size_t PerfDataFilter::AppendPerfCallChain(uint64_t sampleId,
     fileIdToRowInChainTable_.Insert(fileId, symbolId, size);
     return size;
 }
+void PerfDataFilter::BeforeReload()
+{
+    traceDataCache_->GetPerfCallChainData()->Clear();
+    traceDataCache_->GetPerfFilesData()->Clear();
+    fileIdToRowInFileTable_.Clear();
+    fileIdToRowInChainTable_.Clear();
+    fileIds_.clear();
+    fileIdToRow_.clear();
+}
 void PerfDataFilter::Finish()
 {
     auto fileIds = traceDataCache_->GetPerfCallChainData()->FileIds();

@@ -14,21 +14,20 @@
  */
 
 // @ts-ignore
-import {LitMainMenu} from "../../../dist/base-ui/menu/LitMainMenu.js";
-import {MenuItem} from "../../../src/base-ui/menu/LitMainMenu.js";
+import { LitMainMenu } from '../../../dist/base-ui/menu/LitMainMenu.js';
+import { MenuItem } from '../../../src/base-ui/menu/LitMainMenu.js';
 
-describe("LitMainMenu Test", () => {
-
+describe('LitMainMenu Test', () => {
     it('LitMainMenu01', () => {
         let litMainMenu = new LitMainMenu();
-        expect(litMainMenu).not.toBeUndefined()
-        expect(litMainMenu).not.toBeNull()
+        expect(litMainMenu).not.toBeUndefined();
+        expect(litMainMenu).not.toBeNull();
     });
 
     it('LitMainMenu01', () => {
         let litMainMenu = new LitMainMenu();
-        expect(litMainMenu).not.toBeUndefined()
-        expect(litMainMenu).not.toBeNull()
+        expect(litMainMenu).not.toBeUndefined();
+        expect(litMainMenu).not.toBeNull();
     });
 
     it('LitMainMenu02', () => {
@@ -40,21 +39,20 @@ describe("LitMainMenu Test", () => {
                 describe: 'Open or record a new trace',
                 children: [
                     {
-                        title: "Open trace file",
-                        icon: "folder",
+                        title: 'Open trace file',
+                        icon: 'folder',
                         fileChoose: true,
-                        fileHandler: function (ev: InputEvent) {
-                        }
-
+                        fileHandler: function (ev: InputEvent) {},
                     },
                     {
-                        title: "Record new trace", icon: "copyhovered", clickHandler: function (item: MenuItem) {
-                        }
-                    }
-                ]
-            }
-        ]
-        expect(litMainMenu.menus.length).toBe(1)
+                        title: 'Record new trace',
+                        icon: 'copyhovered',
+                        clickHandler: function (item: MenuItem) {},
+                    },
+                ],
+            },
+        ];
+        expect(litMainMenu.menus.length).toBe(1);
     });
 
     it('LitMainMenu03', () => {
@@ -142,20 +140,19 @@ describe("LitMainMenu Test", () => {
                 describe: 'Open or record a new trace',
                 children: [
                     {
-                        title: "Open trace file",
-                        icon: "folder",
+                        title: 'Open trace file',
+                        icon: 'folder',
                         fileChoose: true,
-                        fileHandler: function (ev: InputEvent) {
-                        }
-
+                        fileHandler: function (ev: InputEvent) {},
                     },
                     {
-                        title: "Record new trace", icon: "copyhovered", clickHandler: function (item: MenuItem) {
-                        }
-                    }
-                ]
-            }
-        ]
-        expect(litMainMenu.menus.length).toBe(1)
+                        title: 'Record new trace',
+                        icon: 'copyhovered',
+                        clickHandler: function (item: MenuItem) {},
+                    },
+                ],
+            },
+        ];
+        expect(litMainMenu.menus.length).toBe(1);
     });
-})
+});

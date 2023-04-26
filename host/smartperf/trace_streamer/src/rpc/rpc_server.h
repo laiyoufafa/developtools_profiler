@@ -24,7 +24,7 @@ namespace TraceStreamer {
 class RpcServer {
 public:
     using ResultCallBack = std::function<void(const std::string /* result */, int)>;
-
+    using ParseELFFileCallBack = std::function<void(const std::string, int)>;
     using SendDataCallBack = std::function<void(const char*, int, int)>;
     // In order to bind HTTP, maintain a unified interface, even if some parameters are useless
     bool ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
@@ -40,7 +40,14 @@ public:
     int UpdateTraceTime(const uint8_t* data, int len);
     int TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len);
     int WasmExportDatabase(ResultCallBack resultCallBack);
+    int DownloadELFCallback(const std::string fileName,
+                            size_t totalLen,
+                            const uint8_t* data,
+                            size_t len,
+                            int count,
+                            ParseELFFileCallBack parseELFFile);
     std::map<int, std::string> g_thirdPartyConfig;
+
 private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;

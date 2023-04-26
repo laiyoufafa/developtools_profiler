@@ -43,6 +43,7 @@ public:
     const std::map<DataIndex, const ElfEventFixedHeader*>& GetElfPathIndexToElfAddr() const;
     QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex>& GetTracerEventToStrIndexMap();
     SymbolAndFilePathIndex GetSymbolNameIndexFromElfSym(uint64_t ip);
+
 private:
     bool ReadEbpfData();
     bool InitEbpfHeader();
@@ -62,6 +63,7 @@ private:
 public:
     uint64_t maxKernelAddr_ = 0;
     uint64_t minKernelAddr_ = std::numeric_limits<uint64_t>::max();
+
 private:
     std::unique_ptr<uint8_t[]> buffer_;
     uint64_t bufferSize_ = 0;
@@ -83,7 +85,7 @@ private:
         uint64_t size = 0;
         DataIndex name = 0;
     };
-    std::map <uint64_t, AddrDesc> kernelSymbolMap_ = {};
+    std::map<uint64_t, AddrDesc> kernelSymbolMap_ = {};
     static const uint32_t MAX_SYMBOL_LENGTH = 256;
     char strSymbolName_[MAX_SYMBOL_LENGTH] = {0};
 };

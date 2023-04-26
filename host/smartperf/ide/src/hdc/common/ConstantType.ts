@@ -23,10 +23,7 @@ export const ERR_IO_FAIL = -14000;
 export const CMDSTR_SHELL:string = "shell";
 export const CMDSTR_FILE_SEND:string = "file send";
 export const CMDSTR_FILE_RECV:string = "file recv";
-export const HDC_DEVICE_FILTER = {
-    classCode: 255,
-    subclassCode: 80,
-    protocolCode: 1
-} as USBDeviceFilter;
+// @ts-ignore
+export const HDC_DEVICE_FILTER = {classCode: 255, subclassCode: 80, protocolCode: 1} as USBDeviceFilter;
 
 export const HDC_DEVICE_FILTERS = [HDC_DEVICE_FILTER];

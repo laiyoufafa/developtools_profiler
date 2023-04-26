@@ -204,32 +204,27 @@ void ClockEventFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqli
     switch (col) {
         case ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) {
-                return row;
-            };
+            auto getValue = [](const uint32_t& row) { return row; };
             switch (op) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
-                    indexMap_->IntersectabcEqual(
-                        dataCache_->GetConstClockEventFilterData().IdsData(), v, getValue);
+                    indexMap_->IntersectabcEqual(dataCache_->GetConstClockEventFilterData().IdsData(), v, getValue);
                     break;
                 case SQLITE_INDEX_CONSTRAINT_GT:
                     v++;
                 case SQLITE_INDEX_CONSTRAINT_GE: {
-                    indexMap_->IntersectGreaterEqual(
-                        dataCache_->GetConstClockEventFilterData().IdsData(), v, getValue);
+                    indexMap_->IntersectGreaterEqual(dataCache_->GetConstClockEventFilterData().IdsData(), v, getValue);
                     break;
                 }
                 case SQLITE_INDEX_CONSTRAINT_LE:
                     v++;
                 case SQLITE_INDEX_CONSTRAINT_LT: {
-                    indexMap_->IntersectLessEqual(
-                        dataCache_->GetConstClockEventFilterData().IdsData(), v, getValue);
+                    indexMap_->IntersectLessEqual(dataCache_->GetConstClockEventFilterData().IdsData(), v, getValue);
                     break;
                 }
                 default:
                     break;
             } // end of switch (op)
-        } // end of case TS
+        }     // end of case TS
         default:
             // can't filter, all rows
             break;

@@ -14,9 +14,10 @@
  */
 
 // @ts-ignore
-import {SpRecordTrace} from "../../../dist/trace/component/SpRecordTrace.js"
+import { SpRecordTrace } from '../../../dist/trace/component/SpRecordTrace.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -26,136 +27,192 @@ window.ResizeObserver = window.ResizeObserver ||
 describe('SpRecordTrace Test', () => {
     document.body.innerHTML = `
     <sp-application><sp-record-trace id="aaa"></sp-record-trace></sp-application>
-   `
-    let spRecordTrace = document.querySelector('#aaa') as SpRecordTrace
+   `;
+    let spRecordTrace = document.querySelector('#aaa') as SpRecordTrace;
     it('SpRecordTraceTest01', function () {
-        expect(SpRecordTrace.initHtml).not.toBe('')
+        expect(SpRecordTrace.initHtml).not.toBe('');
     });
 
     it('SpRecordTraceTest02', function () {
-        SpRecordTrace.patentNode=jest.fn(()=>true);
-        expect(SpRecordTrace.initElements).toBeUndefined()
+        SpRecordTrace.patentNode = jest.fn(() => true);
+        expect(SpRecordTrace.initElements).toBeUndefined();
     });
 
     it('SpRecordTraceTest04', function () {
-        let traceEvents = SpRecordTrace.createTraceEvents = ['Scheduling details', 'CPU Frequency and idle states',
-            'High frequency memory', 'Advanced ftrace config', 'Syscalls' , 'Board voltages & frequency'];
-        expect(traceEvents[0].indexOf('binder/binder_lock')).toBe(-1)
+        let traceEvents = (SpRecordTrace.createTraceEvents = [
+            'Scheduling details',
+            'CPU Frequency and idle states',
+            'High frequency memory',
+            'Advanced ftrace config',
+            'Syscalls',
+            'Board voltages & frequency',
+        ]);
+        expect(traceEvents[0].indexOf('binder/binder_lock')).toBe(-1);
     });
 
     it('SpRecordTraceTest05', function () {
-        spRecordTrace.spAllocations = jest.fn(()=>undefined)
-        spRecordTrace.spAllocations.appProcess = jest.fn(()=>"")
-        spRecordTrace.spAllocations.appProcess.indexOf = jest.fn(()=>"")
-        spRecordTrace.spAllocations.appProcess.lastIndexOf = jest.fn(()=>1)
-        spRecordTrace.spAllocations.appProcess.slice = jest.fn(()=>1)
-        expect(spRecordTrace.createNativePluginConfig(1)).toEqual({"configData": {"fileName": "",
-                "filterSize": undefined, "fpUnwind": undefined, "mallocFreeMatchingCnt": 1000,
-                "mallocFreeMatchingInterval": 1000, "maxStackDepth": undefined, "pid": 1,"processName": "",
-                "saveFile": false, "smbPages": undefined, "stringCompressed": true}, "pluginName": "nativehook", "sampleInterval": 1000})
+        spRecordTrace.spAllocations = jest.fn(() => undefined);
+        spRecordTrace.spAllocations.appProcess = jest.fn(() => '');
+        spRecordTrace.spAllocations.appProcess.indexOf = jest.fn(() => '');
+        spRecordTrace.spAllocations.appProcess.lastIndexOf = jest.fn(() => 1);
+        spRecordTrace.spAllocations.appProcess.slice = jest.fn(() => 1);
+        expect(spRecordTrace.createNativePluginConfig(1)).toEqual({
+            configData: {
+                blocked: true,
+                fileName: '',
+                filterSize: undefined,
+                fpUnwind: undefined,
+                mallocFreeMatchingCnt: 1000,
+                mallocFreeMatchingInterval: 1000,
+                maxStackDepth: undefined,
+                pid: 1,
+                processName: '',
+                saveFile: false,
+                smbPages: undefined,
+                stringCompressed: true,
+            },
+            pluginName: 'nativehook',
+            sampleInterval: 1000,
+        });
     });
 
     it('SpRecordTraceTest06', function () {
-        expect(spRecordTrace.createFpsPluginConfig()).not.toBeUndefined()
+        expect(spRecordTrace.createFpsPluginConfig()).not.toBeUndefined();
     });
     it('SpRecordTraceTest07', function () {
-        expect(spRecordTrace.vs).not.toBeUndefined()
+        expect(spRecordTrace.vs).not.toBeUndefined();
     });
     it('SpRecordTraceTest08', function () {
-        spRecordTrace.vs = true
-        expect(spRecordTrace.vs).toBeTruthy()
+        spRecordTrace.vs = true;
+        expect(spRecordTrace.vs).toBeTruthy();
     });
 
     it('SpRecordTraceTest10', function () {
         let devs = {
-            length:1,
-        }
-        expect(spRecordTrace.compareArray(devs)).toBeTruthy()
+            length: 1,
+        };
+        expect(spRecordTrace.compareArray(devs)).toBeTruthy();
     });
     it('SpRecordTraceTest09', function () {
-        spRecordTrace.vs = false
-        expect(spRecordTrace.vs).toBeFalsy()
+        spRecordTrace.vs = false;
+        expect(spRecordTrace.vs).toBeFalsy();
     });
     it('SpRecordTraceTest11', function () {
         let devs = {
-            length:1,
-        }
-        expect(spRecordTrace.compareArray(!devs)).toBeTruthy()
+            length: 1,
+        };
+        expect(spRecordTrace.compareArray(!devs)).toBeTruthy();
     });
     it('SpRecordTraceTest12', function () {
-        spRecordTrace.showHint = true
-        expect(spRecordTrace.showHint).toBeUndefined()
+        spRecordTrace.showHint = true;
+        expect(spRecordTrace.showHint).toBeUndefined();
     });
     it('SpRecordTraceTest13', function () {
-        spRecordTrace.showHint = false
-        expect(spRecordTrace.showHint).toBeUndefined()
+        spRecordTrace.showHint = false;
+        expect(spRecordTrace.showHint).toBeUndefined();
     });
     it('SpRecordTraceTest14', function () {
         let event = {
-            isTrusted:true,
+            isTrusted: true,
             device: {
-                serialNumber:"string"
-            }
-        }
-        expect(spRecordTrace.usbDisConnectionListener(event)).toBeUndefined()
+                serialNumber: 'string',
+            },
+        };
+        expect(spRecordTrace.usbDisConnectionListener(event)).toBeUndefined();
     });
     it('SpRecordTraceTest15', function () {
         let traceResult = {
-            indexOf:jest.fn(()=>undefined)
-        }
+            indexOf: jest.fn(() => undefined),
+        };
 
-        expect(spRecordTrace.isSuccess(traceResult)).toBe(1)
+        expect(spRecordTrace.isSuccess(traceResult)).toBe(1);
     });
     it('SpRecordTraceTest16', function () {
-        expect(spRecordTrace.createSessionRequest()).toStrictEqual({"pluginConfigs": [], "requestId": 1, "sessionConfig": {"buffers":
-                    [{"pages": 16384, "policy": 0}], "keepAliveTime": 0, "resultFile": "/data/local/tmp/hiprofiler_data.htrace", "resultMaxSize": 0,
-                "sampleDuration": 50000, "sessionMode": 0}})
+        expect(spRecordTrace.createSessionRequest()).toStrictEqual({
+            pluginConfigs: [],
+            requestId: 1,
+            sessionConfig: {
+                buffers: [{ pages: 16384, policy: 0 }],
+                keepAliveTime: 0,
+                resultFile: '/data/local/tmp/hiprofiler_data.htrace',
+                resultMaxSize: 0,
+                sampleDuration: 30000,
+                sessionMode: 0,
+            },
+        });
     });
     it('SpRecordTraceTest17', function () {
         let that = {
-            createProcessPlugin:jest.fn(()=>undefined),
-            createCpuPlugin:jest.fn(()=>undefined),
-            createDiskIOPlugin:jest.fn(()=>undefined),
-            createNetworkPlugin:jest.fn(()=>undefined),
-        }
+            createProcessPlugin: jest.fn(() => undefined),
+            createCpuPlugin: jest.fn(() => undefined),
+            createDiskIOPlugin: jest.fn(() => undefined),
+            createNetworkPlugin: jest.fn(() => undefined),
+        };
         let request = {
-            pluginConfigs:{
-                push:jest.fn(()=>undefined),
-            }
-        }
-        expect(spRecordTrace.createMonitorPlugin(that, request)).toBeUndefined()
+            pluginConfigs: {
+                push: jest.fn(() => undefined),
+            },
+        };
+        expect(
+            spRecordTrace.createMonitorPlugin(that, request)
+        ).toBeUndefined();
     });
     it('SpRecordTraceTest18', function () {
-        expect(spRecordTrace.createNetworkPlugin()).toStrictEqual({"configData": {"testFile": "/data/local/tmp/"},
-            "pluginName": "network-plugin", "sampleInterval": 1000})
+        expect(spRecordTrace.createNetworkPlugin()).toStrictEqual({
+            configData: { testFile: '/data/local/tmp/' },
+            pluginName: 'network-plugin',
+            sampleInterval: 1000,
+        });
     });
     it('SpRecordTraceTest19', function () {
-        expect(spRecordTrace.createDiskIOPlugin()).toStrictEqual({"configData": {"reportIoStats": "IO_REPORT"},
-            "pluginName": "diskio-plugin", "sampleInterval": 1000})
+        expect(spRecordTrace.createDiskIOPlugin()).toStrictEqual({
+            configData: { reportIoStats: 'IO_REPORT' },
+            pluginName: 'diskio-plugin',
+            sampleInterval: 1000,
+        });
     });
     it('SpRecordTraceTest20', function () {
-        expect(spRecordTrace.createCpuPlugin()).toStrictEqual({"configData": {"pid": 0, "reportProcessInfo": true},
-            "pluginName": "cpu-plugin", "sampleInterval": 1000})
+        expect(spRecordTrace.createCpuPlugin()).toStrictEqual({
+            configData: { pid: 0, reportProcessInfo: true },
+            pluginName: 'cpu-plugin',
+            sampleInterval: 1000,
+        });
     });
     it('SpRecordTraceTest21', function () {
-        expect(spRecordTrace.createProcessPlugin()).toStrictEqual({"configData": {"report_cpu": true,
-                "report_diskio": true, "report_process_tree": true, "report_pss": true}, "pluginName": "process-plugin", "sampleInterval": 1000})
+        expect(spRecordTrace.createProcessPlugin()).toStrictEqual({
+            configData: {
+                report_cpu: true,
+                report_diskio: true,
+                report_process_tree: true,
+                report_pss: true,
+            },
+            pluginName: 'process-plugin',
+            sampleInterval: 1000,
+        });
     });
     it('SpRecordTraceTest22', function () {
         let traceConfig = {
-            forEach:jest.fn(()=>undefined)
-        }
-        expect(spRecordTrace.createTraceEvents(traceConfig)).toStrictEqual([])
+            forEach: jest.fn(() => undefined),
+        };
+        expect(spRecordTrace.createTraceEvents(traceConfig)).toStrictEqual([]);
     });
     it('SpRecordTraceTest23', function () {
-        spRecordTrace.spRecordPerf = jest.fn(()=>undefined)
-        spRecordTrace.spRecordPerf.getPerfConfig = jest.fn(()=>undefined)
-        expect(spRecordTrace.createHiperConfig()).toStrictEqual({"configData": {"isRoot": false,
-                "outfileName": "/data/local/tmp/perf.data", "recordArgs": "-f undefined -a  --cpu-limit undefined -e hw-cpu-cycles --call-stack undefined -j undefined"}, "pluginName": "hiperf-plugin", "sampleInterval": NaN})
+        spRecordTrace.spRecordPerf = jest.fn(() => undefined);
+        spRecordTrace.spRecordPerf.getPerfConfig = jest.fn(() => undefined);
+        expect(spRecordTrace.createHiperConfig()).toStrictEqual({
+            configData: {
+                isRoot: false,
+                outfileName: '/data/local/tmp/perf.data',
+                recordArgs:
+                    '-f undefined -a  --cpu-limit undefined -e hw-cpu-cycles --call-stack undefined -j undefined',
+            },
+            pluginName: 'hiperf-plugin',
+            sampleInterval: NaN,
+        });
     });
 
     it('SpRecordTraceTest24', function () {
-        expect(spRecordTrace.isSuccess('Signal')).toBe(2)
+        expect(spRecordTrace.isSuccess('Signal')).toBe(2);
     });
 
     it('SpRecordTraceTest25', function () {
@@ -165,5 +222,4 @@ describe('SpRecordTrace Test', () => {
     it('SpRecordTraceTest26', function () {
         expect(spRecordTrace.isSuccess('')).toBe(0);
     });
-
-})
+});

@@ -154,11 +154,10 @@ int MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         const auto& c = cs[i];
         switch (c.col) {
             case TS:
-                FilterTS(c.op, argv[i], measureObj.TimeStamData());
+                FilterTS(c.op, argv[i], measureObj.TimeStampData());
                 break;
             case FILTER_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
-                                    measureObj.FilterIdData());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), measureObj.FilterIdData());
                 break;
             default:
                 break;
@@ -190,7 +189,7 @@ int MeasureTable::Cursor::Column(int column) const
             sqlite3_result_text(context_, "measure", STR_DEFAULT_LEN, nullptr);
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.TimeStampData()[CurrentRow()]));
             break;
         case DUR:
             if (measureObj.DursData()[CurrentRow()] != INVALID_UINT64) {

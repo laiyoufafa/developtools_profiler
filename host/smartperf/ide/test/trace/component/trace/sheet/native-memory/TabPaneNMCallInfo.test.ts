@@ -14,27 +14,30 @@
  */
 
 // @ts-ignore
-import {TabPaneNMCallInfo} from "../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMCallInfo.js"
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+import { TabPaneNMCallInfo } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMCallInfo.js';
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}));
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 
 describe('TabPaneNMCallInfo Test', () => {
-    document.body.innerHTML = '<tabpane-native-callinfo id="ddd"></tabpane-native-callinfo>'
-    let tabPaneNMCallInfo = document.querySelector<TabPaneNMCallInfo>('#ddd')
+    document.body.innerHTML =
+        '<tabpane-native-callinfo id="ddd"></tabpane-native-callinfo>';
+    let tabPaneNMCallInfo = document.querySelector<TabPaneNMCallInfo>('#ddd');
 
     let nativeHookData = [
         {
             eventId: 0,
-            eventType: "",
-            subType: "",
+            eventType: '',
+            subType: '',
             heapSize: 0,
-            addr: "",
+            addr: '',
             startTs: 0,
             endTs: 0,
             sumHeapSize: 0,
@@ -45,10 +48,10 @@ describe('TabPaneNMCallInfo Test', () => {
         },
         {
             eventId: 0,
-            eventType: "",
-            subType: "",
+            eventType: '',
+            subType: '',
             heapSize: 0,
-            addr: "",
+            addr: '',
             startTs: 0,
             endTs: 0,
             sumHeapSize: 0,
@@ -57,28 +60,28 @@ describe('TabPaneNMCallInfo Test', () => {
             tid: 0,
             isSelected: false,
         },
-    ]
+    ];
 
-    tabPaneNMCallInfo.currentSelection = jest.fn(()=>true)
+    tabPaneNMCallInfo.currentSelection = jest.fn(() => true);
     TabPaneNMCallInfo.data = {
-        cpus:  [],
+        cpus: [],
         threadIds: [],
         trackIds: [],
         funTids: [],
         heapIds: [],
         nativeMemory: [],
-        leftNs:  0,
+        leftNs: 0,
         rightNs: 0,
         hasFps: false,
-        statisticsSelectData: undefined
-    }
+        statisticsSelectData: undefined,
+    };
 
     it('TabPaneNMCallInfoTest08', function () {
         let hookLeft = {
-            id: "",
+            id: '',
             pid: '',
-            library: "",
-            title: "",
+            library: '',
+            title: '',
             count: 0,
             children: [],
             depth: 0,
@@ -86,15 +89,15 @@ describe('TabPaneNMCallInfo Test', () => {
             isHover: false,
             parent: undefined,
             size: 2,
-            symbol: "",
+            symbol: '',
             type: 0,
             heapSize: 0,
-            heapSizeStr: "",
+            heapSizeStr: '',
             eventId: 0,
-            threadId: 0
-        }
+            threadId: 0,
+        };
         let groupByWithTid = tabPaneNMCallInfo.setRightTableData(hookLeft);
-        expect(groupByWithTid).toBeUndefined()
+        expect(groupByWithTid).toBeUndefined();
     });
 
     it('TabPaneNMCallInfoTest10', function () {
@@ -102,25 +105,27 @@ describe('TabPaneNMCallInfo Test', () => {
     });
 
     it('TabPaneNMCallInfoTest11', function () {
-        let tab = new TabPaneNMCallInfo()
+        let tab = new TabPaneNMCallInfo();
         let MockqueryNativeHookEventTid = sqlit.queryNativeHookEventTid;
-        MockqueryNativeHookEventTid.mockResolvedValue([{
-            eventId: 0,
-            eventType: "AllocEvent",
-            heap_size: 2,
-            addr: "addr",
-            startTs: 0,
-            endTs: 500,
-            tid: 2,
-            threadName: "threadName"
-        }])
+        MockqueryNativeHookEventTid.mockResolvedValue([
+            {
+                eventId: 0,
+                eventType: 'AllocEvent',
+                heap_size: 2,
+                addr: 'addr',
+                startTs: 0,
+                endTs: 500,
+                tid: 2,
+                threadName: 'threadName',
+            },
+        ]);
         tab.data = {
             leftNs: 0,
             rightNs: 500,
-            nativeMemory: "All Heap & Anonymous VM"
-        }
+            nativeMemory: 'All Heap & Anonymous VM',
+        };
 
-        tab.startWorker = jest.fn(()=>true)
+        tab.startWorker = jest.fn(() => true);
         expect(tab.data).toBeUndefined();
     });
 
@@ -212,23 +217,27 @@ describe('TabPaneNMCallInfo Test', () => {
 `);
     });
     it('TabPaneNMCallInfoTest04', function () {
-        TabPaneNMCallInfo.getParentTree = jest.fn(()=>true)
+        TabPaneNMCallInfo.getParentTree = jest.fn(() => true);
         let hook = {
-            id:"1",
-            dur:1,
-            children:[],
-        }
-        let id = "1";
-        expect(tabPaneNMCallInfo.getParentTree([hook],{id},[])).not.toBeUndefined();
+            id: '1',
+            dur: 1,
+            children: [],
+        };
+        let id = '1';
+        expect(
+            tabPaneNMCallInfo.getParentTree([hook], { id }, [])
+        ).not.toBeUndefined();
     });
     it('TabPaneNMCallInfoTest05', function () {
-        TabPaneNMCallInfo.getChildTree = jest.fn(()=>true)
+        TabPaneNMCallInfo.getChildTree = jest.fn(() => true);
         let hook = {
-            eventId:"1",
-            dur:1,
-            children:[],
-        }
-        expect(tabPaneNMCallInfo.getChildTree([hook],"1",[])).not.toBeUndefined();
+            eventId: '1',
+            dur: 1,
+            children: [],
+        };
+        expect(
+            tabPaneNMCallInfo.getChildTree([hook], '1', [])
+        ).not.toBeUndefined();
     });
     it('TabPaneNMCallInfoTest13', function () {
         expect(tabPaneNMCallInfo.showButtomMenu()).toBeUndefined();
@@ -237,4 +246,4 @@ describe('TabPaneNMCallInfo Test', () => {
         let isShow = 1;
         expect(tabPaneNMCallInfo.showButtomMenu(isShow)).toBeUndefined();
     });
-})
+});

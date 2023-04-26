@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+jest.mock("../../../dist/trace/component/trace/base/TraceRow.js", () => {
+    return {}
+});
+
 // @ts-ignore
 import {HeapStruct} from "../../../dist/trace/bean/HeapStruct.js"
 

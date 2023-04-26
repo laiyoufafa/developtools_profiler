@@ -143,8 +143,7 @@ int GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
                 FilterId(c.op, argv[i]);
                 break;
             case FRAME_ROW:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
-                                    gpuSliceObj_.FrameRows());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), gpuSliceObj_.FrameRows());
                 break;
             case DUR:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), gpuSliceObj_.Durs());

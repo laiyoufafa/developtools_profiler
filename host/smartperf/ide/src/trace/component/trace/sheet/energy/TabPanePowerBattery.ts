@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabPowerBatteryData} from "../../../../database/SqlLite.js";
-import {SpHiSysEventChart} from "../../../chart/SpHiSysEventChart.js";
-import "../../../../../base-ui/table/lit-table.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { getTabPowerBatteryData } from '../../../../database/SqlLite.js';
+import { SpHiSysEventChart } from '../../../chart/SpHiSysEventChart.js';
+import '../../../../../base-ui/table/lit-table.js';
 
 @element('tabpane-power-battery')
 export class TabPanePowerBattery extends BaseElement {
     private tbl: LitTable | null | undefined;
 
     set data(val: SelectionParam | any) {
-        this.queryDataByDB(val)
+        this.queryDataByDB(val);
     }
 
     connectedCallback() {
@@ -33,71 +33,97 @@ export class TabPanePowerBattery extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl!.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl!.reMeauseHeight()
+                this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl!.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
 
     initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-power-battery-energy');
+        this.tbl = this.shadowRoot?.querySelector<LitTable>(
+            '#tb-power-battery-energy'
+        );
     }
 
     queryDataByDB(val: SelectionParam | any) {
-        getTabPowerBatteryData(val.rightNs).then(result => {
-            let list: Array<any> = []
+        getTabPowerBatteryData(val.rightNs).then((result) => {
+            let list: Array<any> = [];
             let powerData: any = {
-                "POWER_IDE_BATTERY": {
+                POWER_IDE_BATTERY: {
                     gas_gauge: [],
                     charge: [],
                     screen: [],
                     level: [],
                     current: [],
                     capacity: [],
-                    appName: "",
+                    appName: '',
                     uid: [],
-                }
-            }
-            result.forEach(item => {
+                },
+            };
+            result.forEach((item) => {
                 let powerDatum: any = powerData[item.eventName];
-                if (item.appKey.toLocaleLowerCase() === "appname") {
-                    powerDatum['appName'] = SpHiSysEventChart.app_name
+                if (item.appKey.toLocaleLowerCase() === 'appname') {
+                    powerDatum['appName'] = SpHiSysEventChart.app_name;
                 } else {
-                    let eventData: Array<string> = item.eventValue.split(",");
+                    let eventData: Array<string> = item.eventValue.split(',');
                     if (eventData.length > 0) {
-                        let i = eventData.length - 1 >= 0 ? eventData.length - 1 : 0
-                        powerDatum[item.appKey.toLocaleLowerCase()] = eventData[i]
+                        let i =
+                            eventData.length - 1 >= 0
+                                ? eventData.length - 1
+                                : 0;
+                        powerDatum[item.appKey.toLocaleLowerCase()] =
+                            eventData[i];
                     } else {
-                        powerDatum[item.appKey.toLocaleLowerCase()] = eventData.toString()
+                        powerDatum[item.appKey.toLocaleLowerCase()] =
+                            eventData.toString();
                     }
                 }
-            })
-            list.push({name: 'Gas Gauge', value: powerData["POWER_IDE_BATTERY"].gas_gauge + " mAh"})
-            list.push({name: 'Charge', value: powerData["POWER_IDE_BATTERY"].charge})
-            list.push({name: 'Screen', value: powerData["POWER_IDE_BATTERY"].screen})
-            list.push({name: 'Level', value: powerData["POWER_IDE_BATTERY"].level + " %"})
-            list.push({name: 'Current', value: powerData["POWER_IDE_BATTERY"].current+ " mA"} )
-            list.push({name: 'Capacity', value: powerData["POWER_IDE_BATTERY"].capacity + " mAh"})
-            list.push({name: 'APP Name', value: SpHiSysEventChart.app_name!})
+            });
+            list.push({
+                name: 'Gas Gauge',
+                value: powerData['POWER_IDE_BATTERY'].gas_gauge + ' mAh',
+            });
+            list.push({
+                name: 'Charge',
+                value: powerData['POWER_IDE_BATTERY'].charge,
+            });
+            list.push({
+                name: 'Screen',
+                value: powerData['POWER_IDE_BATTERY'].screen,
+            });
+            list.push({
+                name: 'Level',
+                value: powerData['POWER_IDE_BATTERY'].level + ' %',
+            });
+            list.push({
+                name: 'Current',
+                value: powerData['POWER_IDE_BATTERY'].current + ' mA',
+            });
+            list.push({
+                name: 'Capacity',
+                value: powerData['POWER_IDE_BATTERY'].capacity + ' mAh',
+            });
+            list.push({ name: 'APP Name', value: SpHiSysEventChart.app_name! });
             if (list.length > 0) {
-                this.tbl!.recycleDataSource = list
+                this.tbl!.recycleDataSource = list;
             } else {
-                this.tbl!.recycleDataSource = []
+                this.tbl!.recycleDataSource = [];
             }
-            this.tbl?.shadowRoot?.querySelectorAll<HTMLDivElement>(".tr").forEach(tr => {
-                let td = tr.querySelectorAll<HTMLDivElement>(".td");
-                this.setTableStyle(td[0], "0.9", "16px")
-                this.setTableStyle(td[1], "0.6", "20px")
-
-            })
-        })
+            this.tbl?.shadowRoot
+                ?.querySelectorAll<HTMLDivElement>('.tr')
+                .forEach((tr) => {
+                    let td = tr.querySelectorAll<HTMLDivElement>('.td');
+                    this.setTableStyle(td[0], '0.9', '16px');
+                    this.setTableStyle(td[1], '0.6', '20px');
+                });
+        });
     }
 
     setTableStyle(td: HTMLDivElement, opacity: string, lineHeight: string) {
-        td.style.fontWeight = "400"
-        td.style.fontSize = "14px"
-        td.style.opacity = opacity
-        td.style.lineHeight = lineHeight
+        td.style.fontWeight = '400';
+        td.style.fontSize = '14px';
+        td.style.opacity = opacity;
+        td.style.lineHeight = lineHeight;
     }
 
     initHtml(): string {

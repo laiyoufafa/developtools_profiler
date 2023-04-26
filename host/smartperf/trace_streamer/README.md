@@ -2,7 +2,7 @@
 TraceStreamer是一个trace数据解析程序，可以将一个trace文本文件或者基于proto序列化的二进制文件转换成为sqlite数据库的形式。 TraceStreamer使用C++实现，支持在ohos, linux, mac等系统上使用，具有良好的跨平台特性。  
 ![GitHub Logo](./figures/trace_streamer_stream.png)   
 ## 关于TraceStreamer的使用说明
-TraceStreamer工具可以2种方式使用  
+TraceStreamer工具可以2种方式使用： 
 1. 可以将系统离线trace文件解析并转为db，此工具支持基于文本的trace和基于proto的trace。  
 2. TraceStreamer工具还可以WebAssembly的方式在浏览器中运行，需提供相关接口给js文件。  
 
@@ -113,7 +113,7 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamer_Init_ThirdParty_Config(int dataLen)
 } // extern "C"
 ```
 
-### 你也可以执行如下命令查看应用帮助
+### 可以执行如下命令查看应用帮助
 ```./trace_streamer --help```
 
 ### TraceStreamer支持解析的事件列表
@@ -139,7 +139,7 @@ TraceStreamer设计过程中使用了流式处理的思想，数据从入口进�
 ![GitHub Logo](./figures/filters.png)
 
 ## Stat表设计
-具体内容参见 [des_stat](../doc/des_stat.md)
+具体内容参见 [des_stat](./doc/des_stat.md)。
 ## TraceStreamer开发环境搭建和编译运行指引
 
 本应用使用gn作为构建工具。
@@ -148,11 +148,11 @@ TraceStreamer设计过程中使用了流式处理的思想，数据从入口进�
 在windows平台上，需使用支持c++17标准的clang编译器。  
 # 对外部的依赖
 本应用依赖与sqlite、protobuf(htrace解析部分依赖)、nlohmann_json。  
-本应用同时依赖于src/protos/protogen.sh目录下文件来生成相关pb.h，pb.cc文件
+本应用同时依赖于src/protos/protogen.sh目录下文件来生成相关pb.h，pb.cc文件。
 _____ 
 
 ### 编译linux和Mac应用
-在目录下有build.sh脚本，在不同的平台上会判断系统版本，编译相应系统的应用
+在目录下有build.sh脚本，在不同的平台上会判断系统版本，编译相应系统的应用。
 ```
 ./build.sh linux
 ./build.sh macx
@@ -164,5 +164,5 @@ _____
 ```
 
 ### 开始编译
-本工具建议独立编译， 通过部署第三方依赖库，emsdk，可编译出支持不同平台的应用。   
+本工具建议独立编译，通过部署第三方依赖库，emsdk，可编译出支持不同平台的应用。   
 具体方法可参考[compile_trace_streamer](./doc/compile_trace_streamer.md)。

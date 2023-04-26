@@ -14,9 +14,9 @@
  */
 
 // @ts-ignore
-import {FuncStruct} from "../../../dist/trace/bean/FuncStruct.js"
+import { FuncStruct } from '../../../dist/trace/bean/FuncStruct.js';
 
-describe('FuncStruct Test', ()=>{
+describe('FuncStruct Test', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -25,72 +25,83 @@ describe('FuncStruct Test', ()=>{
     const dataResource = {
         frame: {
             x: 20,
-            y: 20
-        }
-    }
+            y: 20,
+        },
+    };
 
     const durData = {
         frame: {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
-        dur: 5
-    }
+        dur: 5,
+    };
 
-    FuncStruct.isSelected = jest.fn(()=> true)
+    FuncStruct.isSelected = jest.fn(() => true);
 
     it('FuncStructTest01', function () {
-        expect(FuncStruct.draw(ctx, dataResource)).toBeUndefined()
+        expect(FuncStruct.draw(ctx, dataResource)).toBeUndefined();
     });
 
     it('FuncStructTest02', function () {
-        expect(FuncStruct.draw(ctx, durData)).toBeUndefined()
+        expect(FuncStruct.draw(ctx, durData)).toBeUndefined();
     });
     it('FuncStructTest03', function () {
-        expect(FuncStruct.drawString(ctx, 2, durData, durData.frame)).toBeUndefined()
+        expect(
+            FuncStruct.drawString(ctx, 2, durData, durData.frame)
+        ).toBeUndefined();
     });
     it('FuncStructTest06 ', function () {
-        expect(FuncStruct.drawString(ctx,3,durData,durData.frame)).toBeUndefined()
-
+        expect(
+            FuncStruct.drawString(ctx, 3, durData, durData.frame)
+        ).toBeUndefined();
     });
 
     it('FuncStructTest04', function () {
-        expect(FuncStruct.isSelected({
-            startTs: 10,
-            dur: 10,
-            funName: ''
-        })).toBeTruthy();
+        expect(
+            FuncStruct.isSelected({
+                startTs: 10,
+                dur: 10,
+                funName: '',
+            })
+        ).toBeTruthy();
     });
 
-
     it('FuncStructTest05', function () {
-        expect(FuncStruct.isBinder({
-            startTs: 10,
-            dur: 10,
-            funName: null
-        })).toBeFalsy();
+        expect(
+            FuncStruct.isBinder({
+                startTs: 10,
+                dur: 10,
+                funName: null,
+            })
+        ).toBeFalsy();
     });
 
     it('FuncStructTest07', function () {
-        expect(FuncStruct.drawString(ctx,300,durData,durData.frame)).toBeUndefined()
-
+        expect(
+            FuncStruct.drawString(ctx, 300, durData, durData.frame)
+        ).toBeUndefined();
     });
 
     it('FuncStructTest08', function () {
-        expect(FuncStruct.isBinderAsync({
-            startTs: 10,
-            dur: 10,
-            funName: null
-        })).toBeFalsy();
+        expect(
+            FuncStruct.isBinderAsync({
+                startTs: 10,
+                dur: 10,
+                funName: null,
+            })
+        ).toBeFalsy();
     });
 
     it('FuncStructTest09', function () {
-        expect(FuncStruct.isBinderAsync({
-            startTs: 20,
-            dur: 20,
-            funName: 'funName'
-        })).toBeFalsy();
+        expect(
+            FuncStruct.isBinderAsync({
+                startTs: 20,
+                dur: 20,
+                funName: 'funName',
+            })
+        ).toBeFalsy();
     });
-})
+});

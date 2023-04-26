@@ -31,8 +31,10 @@ public:
     PagedMemoryDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~PagedMemoryDataParser();
     void ParsePagedMemoryEvent();
+
 protected:
     std::unique_ptr<HtracePluginTimeParser> timeParser_;
+
 private:
     uint64_t currentCallId_ = 0;
 };

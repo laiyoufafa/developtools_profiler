@@ -29,8 +29,8 @@ BytraceParser::BytraceParser(TraceDataCache* dataCache, const TraceStreamerFilte
     : ParserBase(filters),
       eventParser_(std::make_unique<BytraceEventParser>(dataCache, filters)),
 #ifdef SUPPORTTHREAD
-      supportThread_(true),
-      dataSegArray_(std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE))
+      dataSegArray_(std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE)),
+      supportThread_(true)
 #else
       dataSegArray_(std::make_unique<DataSegment[]>(1))
 #endif
@@ -86,6 +86,9 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
             break;
         }
         if (isBytrace_) {
+            if (!traceBegan_) {
+                traceBegan_ = true;
+            }
             ParseTraceDataItem(bufferLine);
         } else {
             ParseJsonData(bufferLine);
@@ -104,10 +107,10 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
     return;
 }
 int32_t BytraceParser::JGetData(json& jMessage,
-                             JsonData& jData,
-                             size_t& maxArraySize,
-                             std::vector<size_t>& noArrayIndex,
-                             std::vector<size_t>& arrayIndex)
+                                JsonData& jData,
+                                size_t& maxArraySize,
+                                std::vector<size_t>& noArrayIndex,
+                                std::vector<size_t>& arrayIndex)
 {
     for (auto i = jMessage.begin(); i != jMessage.end(); i++) {
         if (i.key() == "name_") {
@@ -120,7 +123,7 @@ int32_t BytraceParser::JGetData(json& jMessage,
             continue;
         }
         if (i.key() == "time_") {
-            jData.timestamp = i.value();
+            jData.timeStamp = i.value();
             continue;
         }
         if (i.key() == "tag_" && i.value() != "PowerStats") {
@@ -152,11 +155,11 @@ void BytraceParser::NoArrayDataParse(JsonData jData, std::vector<size_t> noArray
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = eventParser_->traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timeStamp, eventSourceIndex, keyIndex, 1,
+                                                                     0, valueIndex);
         } else {
             DataIndex valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 0,
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timeStamp, eventSourceIndex, keyIndex, 0,
                                                                      valueIndex, 0);
         }
     }
@@ -174,13 +177,13 @@ void BytraceParser::ArrayDataParse(JsonData jData,
             streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
             if (value.is_number()) {
                 DataIndex valueIndex = value;
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                         valueIndex, 0);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timeStamp, eventSourceIndex, keyIndex,
+                                                                         0, valueIndex, 0);
             } else if (value.is_string()) {
                 std::string strValue = value;
                 DataIndex valueIndex = eventParser_->traceDataCache_->GetDataIndex(strValue);
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 1,
-                                                                         0, valueIndex);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timeStamp, eventSourceIndex, keyIndex,
+                                                                         1, 0, valueIndex);
             }
         }
     }
@@ -195,11 +198,11 @@ void BytraceParser::CommonDataParser(JsonData jData, DataIndex eventSourceIndex)
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = eventParser_->traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timeStamp, eventSourceIndex, keyIndex, 1,
+                                                                     0, valueIndex);
         } else {
             DataIndex valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 0,
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timeStamp, eventSourceIndex, keyIndex, 0,
                                                                      valueIndex, 0);
         }
     }
@@ -293,7 +296,7 @@ int BytraceParser::GetNextSegment()
 
 void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const
 {
-    const uint64_t US_TO_NS = 1000;
+    const uint64_t S_TO_NS = 1e9;
     size_t index = 0;
     std::string pidStr = matcheLine[++index].str();
     std::optional<uint32_t> optionalPid = base::StrToUInt32(pidStr);
@@ -312,6 +315,7 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
         return;
     }
     std::string timeStr = matcheLine[++index].str();
+    // Directly parsing double may result in accuracy loss issues
     std::optional<double> optionalTime = base::StrToDouble(timeStr);
     if (!optionalTime.has_value()) {
         TS_LOGD("Illegal ts %s", timeStr.c_str());
@@ -326,8 +330,7 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
     seg.bufLine.argsStr = StrTrim(matcheLine.suffix());
     seg.bufLine.pid = optionalPid.value();
     seg.bufLine.cpu = optionalCpu.value();
-    seg.bufLine.ts = round(static_cast<uint64_t>(optionalTime.value() * 1e6));
-    seg.bufLine.ts *= US_TO_NS;
+    seg.bufLine.ts = optionalTime.value() * S_TO_NS;
     seg.bufLine.tGidStr = tGidStr;
     seg.bufLine.eventName = eventName;
     seg.status = TS_PARSE_STATUS_PARSED;

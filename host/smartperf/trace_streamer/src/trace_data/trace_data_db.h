@@ -24,6 +24,14 @@
 extern "C" {
 #include "sqlite3.h"
 }
+struct ElfSymbolTable {
+    std::string filePathId;
+    uint64_t textVaddr;
+    uint32_t textOffset;
+    uint32_t symEntSize;
+    std::vector<uint8_t> strTable;
+    std::vector<uint8_t> symTable;
+};
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -42,7 +50,7 @@ public:
 public:
     using ResultCallBack = std::function<void(const std::string /* json result */, int)>;
     int ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack = nullptr);
-    int SearchData();
+    std::vector<std::string> SearchData();
     int OperateDatabase(const std::string& sql);
     int SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);

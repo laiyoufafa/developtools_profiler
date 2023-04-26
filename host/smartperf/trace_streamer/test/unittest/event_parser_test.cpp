@@ -79,7 +79,7 @@ HWTEST_F(EventParserTest, ParseLine, TestSize.Level1)
               stream_.traceDataCache_->GetStatAndInfo()->GetValue(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_DATA_INVALID));
     auto readStatIndex = stream_.traceDataCache_->GetConstSchedSliceData().EndStatesData()[0];
     EXPECT_EQ(TASK_RUNNABLE, readStatIndex);
-    auto realTimeStamp = stream_.traceDataCache_->GetConstSchedSliceData().TimeStamData()[0];
+    auto realTimeStamp = stream_.traceDataCache_->GetConstSchedSliceData().TimeStampData()[0];
     EXPECT_TRUE(bytraceLine.ts == realTimeStamp);
     auto realCpu = stream_.traceDataCache_->GetConstSchedSliceData().CpusData()[0];
     EXPECT_TRUE(bytraceLine.cpu == realCpu);
@@ -809,7 +809,7 @@ HWTEST_F(EventParserTest, ParseSchedWakingByAbnormalInitParam, TestSize.Level1)
     BytraceLine bytraceLine;
     bytraceLine.ts = 1616439852302;
     bytraceLine.pid = 1;
-    static std::unordered_map<std::string, std::string> args {
+    static std::unordered_map<std::string, std::string> args{
         {"prio", "120"}, {"comm", "thread1"}, {"pid", ""}, {"target_cpu", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.SchedWakingEvent(args, bytraceLine);
@@ -957,7 +957,7 @@ HWTEST_F(EventParserTest, CheckTracePoint, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.CheckTracePoint(str);
 
-    EXPECT_TRUE(result == SUCCESS);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
 }
 
 /**
@@ -972,7 +972,7 @@ HWTEST_F(EventParserTest, CheckTracePointEmptyString, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.CheckTracePoint(str);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -987,7 +987,7 @@ HWTEST_F(EventParserTest, CheckTracePointNoSplit, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.CheckTracePoint(str);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1002,7 +1002,7 @@ HWTEST_F(EventParserTest, CheckTracePointMultiType, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.CheckTracePoint(str);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1017,7 +1017,7 @@ HWTEST_F(EventParserTest, CheckTracePointCheckSingleCharacter, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.CheckTracePoint(str);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1032,7 +1032,7 @@ HWTEST_F(EventParserTest, CheckTracePointCheckErrorSplit, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.CheckTracePoint(str);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1048,7 +1048,7 @@ HWTEST_F(EventParserTest, GetTracePoint, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.GetTracePoint(str, point);
 
-    EXPECT_TRUE(result == SUCCESS);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
 }
 
 /**
@@ -1064,7 +1064,7 @@ HWTEST_F(EventParserTest, GetTracePointParseEmptyString, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.GetTracePoint(str, point);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1080,7 +1080,7 @@ HWTEST_F(EventParserTest, GetTracePointParseErrorSubEventType, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.GetTracePoint(str, point);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1112,7 +1112,7 @@ HWTEST_F(EventParserTest, GetThreadGroupIdParseErrorPid, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.GetThreadGroupId(str, length);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1129,7 +1129,7 @@ HWTEST_F(EventParserTest, HandlerB, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
 
-    EXPECT_TRUE(result == SUCCESS);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
 }
 
 /**
@@ -1146,7 +1146,7 @@ HWTEST_F(EventParserTest, HandlerBAbnormal, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1163,7 +1163,7 @@ HWTEST_F(EventParserTest, HandlerCsf, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
-    EXPECT_TRUE(result == SUCCESS);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
 }
 
 /**
@@ -1180,7 +1180,7 @@ HWTEST_F(EventParserTest, HandlerCsfParseEmptyString, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 
 /**
@@ -1197,7 +1197,7 @@ HWTEST_F(EventParserTest, HandlerCsfParseErrorFormate, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
-    EXPECT_TRUE(result == ERROR);
+    EXPECT_TRUE(result == PARSE_ERROR);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

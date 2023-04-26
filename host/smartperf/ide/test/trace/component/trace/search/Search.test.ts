@@ -14,20 +14,19 @@
  */
 
 // @ts-ignore
-import {LitSearch} from "../../../../../dist/trace/component/trace/search/Search.js";
+import { LitSearch } from '../../../../../dist/trace/component/trace/search/Search.js';
 
-describe(" SearchTest", () => {
-    beforeAll(() => {
-    })
+describe(' SearchTest', () => {
+    beforeAll(() => {});
     it('Search Test01', () => {
         let search = new LitSearch();
-        expect(search).not.toBeUndefined()
+        expect(search).not.toBeUndefined();
     });
 
     it('Search Test02', () => {
         let search = new LitSearch();
-        search.list = ["1"];
-        expect(search.list[0]).toBe("1");
+        search.list = ['1'];
+        expect(search.list[0]).toBe('1');
     });
 
     it('Search Test03', () => {
@@ -45,25 +44,25 @@ describe(" SearchTest", () => {
     it('Search Test05', () => {
         let search = new LitSearch();
         search.index = 1;
-        expect(search.setPercent("1",2)).toBeUndefined();
+        expect(search.setPercent('1', 2)).toBeUndefined();
     });
 
     it('Search Test06', () => {
         let search = new LitSearch();
         search.index = 1;
-        expect(search.setPercent("1",101)).toBeUndefined();
+        expect(search.setPercent('1', 101)).toBeUndefined();
     });
 
     it('Search Test07', () => {
         let search = new LitSearch();
         search.index = 1;
-        expect(search.setPercent("1",-1)).toBeUndefined();
+        expect(search.setPercent('1', -1)).toBeUndefined();
     });
 
     it('Search Test08', () => {
         let search = new LitSearch();
         search.index = 1;
-        expect(search.setPercent("1",-2)).toBeUndefined();
+        expect(search.setPercent('1', -2)).toBeUndefined();
     });
 
     it('Search Test09', () => {
@@ -73,8 +72,8 @@ describe(" SearchTest", () => {
 
     it('Search Test11', function () {
         let search = new LitSearch();
-        search.search = jest.fn(()=>undefined)
-        search.search.blur = jest.fn(()=>true)
+        search.search = jest.fn(() => undefined);
+        search.search.blur = jest.fn(() => true);
         expect(search.blur()).toBeUndefined();
     });
 
@@ -94,6 +93,7 @@ describe(" SearchTest", () => {
             align-items: center;
             border: 1px solid var(--dark-border,#c5c5c5);
             width: 35vw;
+            overflow: hidden;
             }
         .root input{
             outline: none;
@@ -122,6 +122,11 @@ describe(" SearchTest", () => {
           color: #4f7ab3;
           font-size: 1em;
         }
+        .text-Roll::placeholder {
+          font-weight: 700;
+          color: #DB5860;
+          font-size: 1em;
+        }
         :host([show-search-info]) .search-info{
             display: inline-flex;
         }
@@ -134,7 +139,25 @@ describe(" SearchTest", () => {
         .search-info lit-icon{
             font-weight: bold;
         }
-
+        
+        :host([textRoll]) input {
+            position: relative;
+            animation: textRoll 5s ease-in-out 0s backwards;
+            white-space: nowrap;
+            overflow: hidden;
+            display: block;
+            text-overflow: ellipsis;
+        }
+      
+        @keyframes textRoll {
+            0% {
+                left: 0;
+            }
+            100% {
+                left: 100%;
+            }
+        }       
+        
         </style>
         <div class=\\"root\\" style=\\"display: none\\">
             <lit-icon id=\\"search-icon\\" name=\\"search\\" size=\\"20\\" color=\\"#aaaaaa\\">
@@ -162,5 +185,4 @@ describe(" SearchTest", () => {
         let search = new LitSearch();
         expect(search.isLoading).toBeFalsy();
     });
-
 });

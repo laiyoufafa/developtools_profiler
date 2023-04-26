@@ -175,7 +175,7 @@ int CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** 
                 FilterId(c.op, argv[i]);
                 break;
             case TS:
-                FilterTS(c.op, argv[i], slicesObj_.TimeStamData());
+                FilterTS(c.op, argv[i], slicesObj_.TimeStampData());
                 break;
             case CALL_ID:
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), slicesObj_.CallIds());
@@ -210,7 +210,7 @@ int CallStackTable::Cursor::Column(int col) const
             sqlite3_result_int64(context_, CurrentRow());
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.TimeStampData()[CurrentRow()]));
             break;
         case DUR:
             sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.DursData()[CurrentRow()]));
@@ -257,19 +257,30 @@ int CallStackTable::Cursor::Column(int col) const
             }
             break;
         case CHAIN_ID:
-            sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            if (!slicesObj_.ChainIds()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            }
             break;
         case SPAN_ID:
-            sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            if (!slicesObj_.SpanIds()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            }
             break;
         case PARENT_SPAN_ID:
-            sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            if (!slicesObj_.ParentSpanIds()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
+            }
             break;
         case FLAG:
-            sqlite3_result_text(context_, slicesObj_.Flags()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            if (!slicesObj_.Flags()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, slicesObj_.Flags()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            }
             break;
         case ARGS:
-            sqlite3_result_text(context_, slicesObj_.ArgsData()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            if (!slicesObj_.ArgsData()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, slicesObj_.ArgsData()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            }
             break;
         default:
             TS_LOGF("Unregistered column : %d", col);

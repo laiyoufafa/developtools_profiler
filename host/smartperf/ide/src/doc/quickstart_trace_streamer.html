@@ -759,7 +759,7 @@
 <div class="mume markdown-preview-out  ">
     <h1 class="mume-header fontColor">trace_streamer工具说明</h1>
     <p class="fontColor">trace_streamer是一个trace数据流转化器，可以将一个trace文本文件或者基于proto序列化的二进制文件转换成为sqlite数据库的形式。 trace_streamer使用C++实现，支持在ohos, linux, mac等系统上使用，具有良好的跨平台特性。</p>
-    <img src=".././figures/trace_streamer_stream.png" alt="GitHub Logo"></p>
+    <img src=".././figures/traceStreamer/trace_streamer_stream.png" alt="GitHub Logo"></p>
     <h2 class="mume-header fontColor">
         关于trace解析工具的使用说明：</h2>
     <p class="fontColor">trace_streamer工具可以2种方式使用</p>
@@ -843,9 +843,9 @@ TraceStreamer在解析数据过程中，使用ipid(internal pid)唯一标识进�
     <h4 class="mume-header fontColor">举例</h4>
 
     <p class="fontColor">CPU频率： <br>
-        <img src=".././figures/cpu_frequency.png" alt="GitHub Logo"><br>
+        <img src=".././figures/traceStreamer/cpu_frequency.png" alt="GitHub Logo"><br>
         内存占用：  <br>
-        <img src=".././figures/mem_usage.png" alt="GitHub Logo"></p>
+        <img src=".././figures/traceStreamer/mem_usage.png" alt="GitHub Logo"></p>
     <h3 class="mume-header fontColor">3. 过滤器</h3>
 
     <p class="fontColor">TraceStreamer设计过程中使用了流式处理的思想，数据从入口进入以后，就像进入一条河流，从上游流向下游，在河道中央有很多过滤器，每种过滤器会将流过的数据中自己关注的内容吸附捕捉到。最终，每个过滤器都拥有了大量同类型的数据，而且这些数据都是按时间序列排列的。TraceStreamer使用filterid来标识同一种用途的数据，可以方便在UI中绘制。  <br>

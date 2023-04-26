@@ -14,15 +14,15 @@
  */
 
 // @ts-ignore
-import {SmpsChart} from "../../../../dist/trace/component/chart/SmpsChart.js"
+import { SmapsChart } from '../../../../dist/trace/component/chart/SmapsChart.js';
 // @ts-ignore
-import {SpChartManager} from "../../../../dist/trace/component/chart/SpChartManager.js";
-import {querySmapsDataMax} from "../../../../src/trace/database/SqlLite.js";
+import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
 
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -30,21 +30,24 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 describe('SpMpsChart Test', () => {
     let MockquerySmapsExits = sqlit.querySmapsExits;
-    MockquerySmapsExits.mockResolvedValue([{
-        event_name: "trace_smaps",
-        stat_type: "received",
-        count: 1
-    }])
+    MockquerySmapsExits.mockResolvedValue([
+        {
+            event_name: 'trace_smaps',
+            stat_type: 'received',
+            count: 1,
+        },
+    ]);
 
-    let MockquerySmapsDataMax = sqlit.querySmapsDataMax
-    MockquerySmapsDataMax.mockResolvedValue([{
-        max_value: 11111,
-    }])
+    let MockquerySmapsDataMax = sqlit.querySmapsDataMax;
+    MockquerySmapsDataMax.mockResolvedValue([
+        {
+            max_value: 11111,
+        },
+    ]);
     let trace = new SpChartManager();
-    let spMapsChart = new SmpsChart(trace);
+    let spMapsChart = new SmapsChart(trace);
     it('SpMpsChart01', function () {
-        spMapsChart.init()
-        expect(SmpsChart).toBeInstanceOf(Function);
+        spMapsChart.init();
+        expect(SmapsChart).toBeInstanceOf(Function);
     });
-
-})
+});

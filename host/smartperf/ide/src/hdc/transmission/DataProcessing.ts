@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import {TransmissionInterface} from "./TransmissionInterface.js";
-import {PACKET_FLAG, USB_PACKET_FLAG} from "../common/ConstantType.js";
-import {USBHead} from "../message/USBHead.js";
-import {DataMessage} from "../message/DataMessage.js";
-import {DataListener} from "../hdcclient/DataListener.js";
-import {PayloadProtect} from "../message/PayloadProtect.js";
-import {Serialize} from "../common/Serialize.js";
-import {PayloadHead} from "../message/PayloadHead.js";
-import {UsbProtocolOption} from "../hdcclient/UsbProtocolOption.js";
-import {toHex16} from "../common/BaseConversion.js";
-import {error, log} from "../../log/Log.js";
+import { TransmissionInterface } from './TransmissionInterface.js';
+import { PACKET_FLAG, USB_PACKET_FLAG } from '../common/ConstantType.js';
+import { USBHead } from '../message/USBHead.js';
+import { DataMessage } from '../message/DataMessage.js';
+import { DataListener } from '../hdcclient/DataListener.js';
+import { PayloadProtect } from '../message/PayloadProtect.js';
+import { Serialize } from '../common/Serialize.js';
+import { PayloadHead } from '../message/PayloadHead.js';
+import { UsbProtocolOption } from '../hdcclient/UsbProtocolOption.js';
+import { toHex16 } from '../common/BaseConversion.js';
+import { error, log } from '../../log/Log.js';
 
 export class DataProcessing {
     private readonly transmissionChannel: TransmissionInterface;
@@ -33,7 +33,10 @@ export class DataProcessing {
     private static vCode: number = 0x09;
     private static checkSum: number = 0;
 
-    constructor(dataListener: DataListener, transmissionChannel: TransmissionInterface) {
+    constructor(
+        dataListener: DataListener,
+        transmissionChannel: TransmissionInterface
+    ) {
         this.dataListener = dataListener;
         this.transmissionChannel = transmissionChannel;
     }
@@ -53,19 +56,21 @@ export class DataProcessing {
                         this.dataListener.createDataMessage(message);
                     }
                 } else {
-                    log("head is null")
+                    log('head is null');
                 }
             }
         } catch (e) {
             let ubsHead = new USBHead([-1, -1], -1, -1, -1);
             let message = new DataMessage(ubsHead);
             this.dataListener.createDataMessage(message);
-            error("error", e)
+            error('error', e);
         }
     }
 
     public async readUsbHead(): Promise<USBHead | null> {
-        let res = await this.transmissionChannel.readData(USBHead.getUSBHeadLength());
+        let res = await this.transmissionChannel.readData(
+            USBHead.getUSBHeadLength()
+        );
         if (res) {
             let useHead: USBHead = USBHead.parseHeadData(res);
             return useHead;
@@ -78,19 +83,40 @@ export class DataProcessing {
         return data;
     }
 
-    public async send(sessionId: number, channelId: number, commandFlag: number, data: Uint8Array, dataSize: number): Promise<boolean> {
-        let protectBuf: PayloadProtect = new PayloadProtect(channelId, commandFlag, DataProcessing.checkSum, DataProcessing.vCode);
+    public async send(
+        sessionId: number,
+        channelId: number,
+        commandFlag: number,
+        data: Uint8Array,
+        dataSize: number
+    ): Promise<boolean> {
+        let protectBuf: PayloadProtect = new PayloadProtect(
+            channelId,
+            commandFlag,
+            DataProcessing.checkSum,
+            DataProcessing.vCode
+        );
         let pbs = Serialize.serializePayloadProtect(protectBuf);
-        let payloadHead: PayloadHead = new PayloadHead([PACKET_FLAG.charCodeAt(0), PACKET_FLAG.charCodeAt(1)], [0, 0], 1, pbs.byteLength, dataSize)
+        let payloadHead: PayloadHead = new PayloadHead(
+            [PACKET_FLAG.charCodeAt(0), PACKET_FLAG.charCodeAt(1)],
+            [0, 0],
+            1,
+            pbs.byteLength,
+            dataSize
+        );
         let dataView = payloadHead.getDataView();
         let playHeadArray = new Uint8Array(dataView.buffer);
         let finalBufSize = dataView.byteLength + pbs.byteLength + dataSize;
         let finalBuf = new Uint8Array(finalBufSize);
         finalBuf.set(playHeadArray);
-        finalBuf.set(pbs, dataView.byteLength)
+        finalBuf.set(pbs, dataView.byteLength);
         finalBuf.set(data, dataView.byteLength + pbs.byteLength);
         if (this.transmissionChannel) {
-            let header = this.buildPacketHeader(sessionId, UsbProtocolOption.USB_OPTION_HEADER, finalBufSize);
+            let header = this.buildPacketHeader(
+                sessionId,
+                UsbProtocolOption.USB_OPTION_HEADER,
+                finalBufSize
+            );
             await this.transmissionChannel.writeData(header);
             await this.transmissionChannel.writeData(finalBuf);
             return true;
@@ -100,8 +126,17 @@ export class DataProcessing {
         }
     }
 
-    private buildPacketHeader(sessionId: number, option: number, dataSize: number): Uint8Array {
-        let head: USBHead = new USBHead([USB_PACKET_FLAG.charCodeAt(0), USB_PACKET_FLAG.charCodeAt(1)], option, sessionId, dataSize);
+    private buildPacketHeader(
+        sessionId: number,
+        option: number,
+        dataSize: number
+    ): Uint8Array {
+        let head: USBHead = new USBHead(
+            [USB_PACKET_FLAG.charCodeAt(0), USB_PACKET_FLAG.charCodeAt(1)],
+            option,
+            sessionId,
+            dataSize
+        );
         let dataView = head.getDataView();
         return new Uint8Array(dataView.buffer);
     }
@@ -109,5 +144,4 @@ export class DataProcessing {
     public stopReadData() {
         this.readData = false;
     }
-
 }

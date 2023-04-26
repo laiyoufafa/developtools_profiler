@@ -39,6 +39,7 @@ public:
                                uint64_t fileId,
                                uint64_t symbolId);
     void Finish();
+    void BeforeReload();
 
 private:
     DoubleMap<uint64_t, uint32_t, uint64_t> fileIdToRowInFileTable_;

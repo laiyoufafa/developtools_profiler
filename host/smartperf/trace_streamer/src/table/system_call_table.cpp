@@ -59,7 +59,7 @@ int SystemCallTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().IpidsData()[CurrentRow()]);
             break;
         case TS:
-            sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().TimeStamData()[CurrentRow()]);
+            sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().TimeStampData()[CurrentRow()]);
             break;
         case RET:
             sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().RetsData()[CurrentRow()]);

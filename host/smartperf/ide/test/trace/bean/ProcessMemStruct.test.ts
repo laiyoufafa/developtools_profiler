@@ -14,9 +14,9 @@
  */
 
 // @ts-ignore
-import {ProcessMemStruct} from "../../../dist/trace/bean/ProcessMemStruct.js"
+import { ProcessMemStruct } from '../../../dist/trace/bean/ProcessMemStruct.js';
 
-describe('ProcessMemStruct Test', ()=>{
+describe('ProcessMemStruct Test', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -27,12 +27,12 @@ describe('ProcessMemStruct Test', ()=>{
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         startNS: 200,
-        value: 50
-    }
+        value: 50,
+    };
     it('ProcessMemStructTest01', function () {
-        expect(ProcessMemStruct.draw(ctx, data)).toBeUndefined()
+        expect(ProcessMemStruct.draw(ctx, data)).toBeUndefined();
     });
-})
+});

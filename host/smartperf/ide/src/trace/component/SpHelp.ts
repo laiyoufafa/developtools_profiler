@@ -13,41 +13,54 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../base-ui/BaseElement.js";
-import {LitMainMenuGroup} from "../../base-ui/menu/LitMainMenuGroup.js";
-import {LitMainMenu, MenuItem} from "../../base-ui/menu/LitMainMenu.js";
-import {LitMainMenuItem} from "../../base-ui/menu/LitMainMenuItem";
+import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup.js';
+import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu.js';
+import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
 
 @element('sp-help')
 export class SpHelp extends BaseElement {
-    private appContent: HTMLElement | undefined | null
+    private appContent: HTMLElement | undefined | null;
 
     get dark() {
-        return this.hasAttribute("dark");
+        return this.hasAttribute('dark');
     }
 
     set dark(dark: boolean) {
         if (dark) {
-            this.setAttribute("dark", '' + dark);
+            this.setAttribute('dark', '' + dark);
         } else {
-            this.removeAttribute("dark")
+            this.removeAttribute('dark');
         }
-        this.appContent!.innerHTML = "<object type=\"text/html\" data="
-            + "/application/doc/quickstart_hiprofiler_cmd.html?"
-            + dark
-            + " width=\"100%\" height=\"100%\"></object>"
+        this.appContent!.innerHTML =
+            '<object type="text/html" data=' +
+            '/application/doc/quickstart_device_record.html?' +
+            dark +
+            ' width="100%" height="100%"></object>';
     }
 
     initElements(): void {
-        let that = this
+        let that = this;
         let parentElement = this.parentNode as HTMLElement;
-        parentElement.style.overflow = 'hidden'
-        this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement
-        let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu
-        let header = mainMenu.shadowRoot?.querySelector('.header') as HTMLDivElement
-        let version = mainMenu.shadowRoot?.querySelector('.version') as HTMLDivElement
-        header.style.display = 'none'
-        version.style.display = 'none'
+        parentElement.style.overflow = 'hidden';
+        this.appContent = this.shadowRoot?.querySelector(
+            '#app-content'
+        ) as HTMLElement;
+        let mainMenu = this.shadowRoot?.querySelector(
+            '#main-menu'
+        ) as LitMainMenu;
+        let header = mainMenu.shadowRoot?.querySelector(
+            '.header'
+        ) as HTMLDivElement;
+        let color = mainMenu.shadowRoot?.querySelector(
+            '.color'
+        ) as HTMLDivElement;
+        let version = mainMenu.shadowRoot?.querySelector(
+            '.version'
+        ) as HTMLDivElement;
+        header.style.display = 'none';
+        version.style.display = 'none';
+        color.style.display = 'none';
         mainMenu.menus = [
             {
                 collapsed: false,
@@ -55,122 +68,171 @@ export class SpHelp extends BaseElement {
                 describe: '',
                 children: [
                     {
-                        title: "设备端抓取trace指导", icon: "", clickHandler: function (item: MenuItem) {
+                        title: '设备端抓取trace说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data=" + "/application/doc/quickstart_hiprofiler_cmd.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_device_record.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "web端抓取trace指导", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'web端抓取trace说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/capture_online.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_web_record.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "网页加载trace说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'web端加载trace说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/quickstart_smartperf.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_systemtrace.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "Native Memory抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'Native Memory抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/native_memory.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_native_memory.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "Ability Monitor抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'Ability Monitor抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/ability_monitor.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_ability_monitor.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "HiPerf的抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'HiPerf的抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/perf.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_hiperf.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "Sql分析和Metrics说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'Sql分析和Metrics说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/des_metris_support.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_sql_metrics.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "FileSystem抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'FileSystem抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/file_system.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_filesystem.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "页内存抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: '页内存抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/memory_fetching.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_page_fault.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "Bio抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'Bio抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/bio_record.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_bio.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "进程smaps抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: '进程smaps抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/smaps.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_smaps.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "HiSystemEvent抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'HiSystemEvent抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/hiSystemEvent.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_hisystemevent.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "sdk抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: 'sdk抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/sdk_capture_display.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    }
-                ]
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_sdk.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'Frame timeline抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_Frametimeline.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'Scheduling analysis抓取和展示说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_schedulinganalysis.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                ],
             },
             {
                 collapsed: false,
@@ -178,75 +240,83 @@ export class SpHelp extends BaseElement {
                 describe: '',
                 children: [
                     {
-                        title: "TraceStreamer数据库说明",
-                        icon: "",
+                        title: 'TraceStreamer数据库说明',
+                        icon: '',
                         clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/des_tables.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "编译Trace_streamer",
-                        icon: "",
-                        clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/compile_trace_streamer.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "TraceStreamer 解析数据状态表",
-                        icon: "",
-                        clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/des_stat.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "TraceStreamer支持解析事件列表",
-                        icon: "",
-                        clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/des_support_event.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "trace_streamer工具说明",
-                        icon: "",
-                        clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/quickstart_trace_streamer.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "binder事件上下文如何关联", icon: "", clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/des_binder.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                                '<object type="text/html" data=' +
+                                '/application/doc/des_tables.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
                     {
-                        title: "wakeup唤醒说明",
-                        icon: "",
+                        title: '编译Trace_streamer',
+                        icon: '',
                         clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/des_wakup.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    }
-                ]
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/compile_trace_streamer.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'TraceStreamer 解析数据状态表',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/des_stat.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'TraceStreamer支持解析事件列表',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/des_support_event.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'trace_streamer工具说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_trace_streamer.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'binder事件上下文如何关联',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/des_binder.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                    {
+                        title: 'wakeup唤醒说明',
+                        icon: '',
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/des_wakup.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
+                    },
+                ],
             },
             {
                 collapsed: false,
@@ -254,38 +324,47 @@ export class SpHelp extends BaseElement {
                 describe: '',
                 children: [
                     {
-                        title: "SmartPerf 编译指导",
-                        icon: "",
+                        title: 'SmartPerf 编译指导',
+                        icon: '',
                         clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/compile_smartperf.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
+                            that.appContent!.innerHTML =
+                                '<object type="text/html" data=' +
+                                '/application/doc/quickstart_smartperflinux_compile_guide.html?' +
+                                that.dark +
+                                ' width="100%" height="100%"></object>';
+                        },
                     },
-                ]
+                ],
             },
-        ]
-        mainMenu.style.width = '290px'
-        let body = mainMenu.shadowRoot?.querySelector('.menu-body') as HTMLDivElement
-        let groups = body.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group')
-        groups.forEach(value => {
-            let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item')
-            items.forEach(item => {
-                item.style.width = '290px'
-            })
-            if(value.title == 'TraceStreamer'){
-                let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-                items.forEach(i =>{
-                    if(i.title != 'TraceStreamer数据库说明'){
+        ];
+        mainMenu.style.width = '300px';
+        let body = mainMenu.shadowRoot?.querySelector(
+            '.menu-body'
+        ) as HTMLDivElement;
+        let groups = body.querySelectorAll<LitMainMenuGroup>(
+            'lit-main-menu-group'
+        );
+        groups.forEach((value) => {
+            let items =
+                value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+            items.forEach((item) => {
+                item.style.width = '300px';
+            });
+            if (value.title == 'TraceStreamer') {
+                let items =
+                    value.querySelectorAll<LitMainMenuItem>(
+                        'lit-main-menu-item'
+                    );
+                items.forEach((i) => {
+                    if (i.title != 'TraceStreamer数据库说明') {
                         i.style.display = 'none';
                     }
-                })
+                });
             }
-            if(value.title == 'SmartPerf'){
+            if (value.title == 'SmartPerf') {
                 value.style.display = 'none';
             }
-        })
+        });
     }
 
     initHtml(): string {

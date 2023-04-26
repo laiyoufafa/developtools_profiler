@@ -13,35 +13,19 @@
  * limitations under the License.
  */
 
-import {BaseStruct} from "./BaseStruct.js";
-import {Rect} from "../component/trace/timer-shaft/Rect.js";
+import { BaseStruct } from './BaseStruct.js';
+import { Rect } from '../component/trace/timer-shaft/Rect.js';
+import { Utils } from '../component/trace/base/Utils.js';
 
 const padding = 1;
 
 export class ThreadStruct extends BaseStruct {
-    static runningColor: string = "#467b3b";
-    static rColor = "#a0b84d";
-    static uninterruptibleSleepColor = "#f19d38";
-    static sColor = "#FBFBFB";
+    static runningColor: string = '#467b3b';
+    static rColor = '#a0b84d';
+    static uninterruptibleSleepColor = '#f19d38';
+    static sColor = '#FBFBFB';
     static hoverThreadStruct: ThreadStruct | undefined;
     static selectThreadStruct: ThreadStruct | undefined;
-    static statusMap: any = {
-        "D": "Uninterruptible Sleep",
-        "S": "Sleeping",
-        "R": "Runnable",
-        "Running": "Running",
-        "R+": "Runnable (Preempted)",
-        "DK": "Uninterruptible Sleep + Wake Kill",
-        "I": "Task Dead",
-        "T": "Stopped",
-        "t": "Traced",
-        "X": "Exit (Dead)",
-        "Z": "Exit (Zombie)",
-        "K": "Wake Kill",
-        "W": "Waking",
-        "P": "Parked",
-        "N": "No Load"
-    }
     hasSched: number | undefined;
     pid: number | undefined;
     processName: string | undefined;
@@ -62,78 +46,153 @@ export class ThreadStruct extends BaseStruct {
 
     static draw(ctx: CanvasRenderingContext2D, data: ThreadStruct) {
         if (data.frame) {
-            ctx.globalAlpha = 1
+            ctx.globalAlpha = 1;
             let stateText = data.state || '';
-            if ("S" == data.state) {
+            if ('S' == data.state) {
                 ctx.fillStyle = ThreadStruct.sColor;
                 ctx.globalAlpha = 0.2; // transparency
-                ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
+                ctx.fillRect(
+                    data.frame.x,
+                    data.frame.y + padding,
+                    data.frame.width,
+                    data.frame.height - padding * 2
+                );
                 ctx.globalAlpha = 1; // transparency
-            } else if ("R" == data.state) {
+            } else if ('R' == data.state) {
                 ctx.fillStyle = ThreadStruct.rColor;
-                ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
-                ctx.fillStyle = "#fff";
-                ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
-            } else if ("D" == data.state) {
+                ctx.fillRect(
+                    data.frame.x,
+                    data.frame.y + padding,
+                    data.frame.width,
+                    data.frame.height - padding * 2
+                );
+                ctx.fillStyle = '#fff';
+                ThreadStruct.drawString(
+                    ctx,
+                    ThreadStruct.getEndState(data.state || ''),
+                    2,
+                    data.frame
+                );
+            } else if ('D' == data.state) {
                 ctx.fillStyle = ThreadStruct.uninterruptibleSleepColor;
-                ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
-                ctx.fillStyle = "#fff";
-                ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
-            } else if ("Running" == data.state) {
+                ctx.fillRect(
+                    data.frame.x,
+                    data.frame.y + padding,
+                    data.frame.width,
+                    data.frame.height - padding * 2
+                );
+                ctx.fillStyle = '#fff';
+                ThreadStruct.drawString(
+                    ctx,
+                    ThreadStruct.getEndState(data.state || ''),
+                    2,
+                    data.frame
+                );
+            } else if ('Running' == data.state) {
                 ctx.fillStyle = ThreadStruct.runningColor;
-                ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
-                ctx.fillStyle = "#fff";
-                ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
+                ctx.fillRect(
+                    data.frame.x,
+                    data.frame.y + padding,
+                    data.frame.width,
+                    data.frame.height - padding * 2
+                );
+                ctx.fillStyle = '#fff';
+                ThreadStruct.drawString(
+                    ctx,
+                    ThreadStruct.getEndState(data.state || ''),
+                    2,
+                    data.frame
+                );
             } else {
                 ctx.fillStyle = ThreadStruct.rColor;
-                ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
-                ctx.fillStyle = "#fff";
-                ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
+                ctx.fillRect(
+                    data.frame.x,
+                    data.frame.y + padding,
+                    data.frame.width,
+                    data.frame.height - padding * 2
+                );
+                ctx.fillStyle = '#fff';
+                ThreadStruct.drawString(
+                    ctx,
+                    ThreadStruct.getEndState(data.state || ''),
+                    2,
+                    data.frame
+                );
             }
-            if (ThreadStruct.selectThreadStruct && ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) && ThreadStruct.selectThreadStruct.state != "S") {
-                ctx.strokeStyle = '#232c5d'
-                ctx.lineWidth = 2
-                ctx.strokeRect(data.frame.x, data.frame.y + padding, data.frame.width - 2, data.frame.height - padding * 2)
+            if (
+                ThreadStruct.selectThreadStruct &&
+                ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) &&
+                ThreadStruct.selectThreadStruct.state != 'S'
+            ) {
+                ctx.strokeStyle = '#232c5d';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(
+                    data.frame.x,
+                    data.frame.y + padding,
+                    data.frame.width - 2,
+                    data.frame.height - padding * 2
+                );
             }
         }
     }
 
-    static drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect) {
+    static drawString(
+        ctx: CanvasRenderingContext2D,
+        str: string,
+        textPadding: number,
+        frame: Rect
+    ) {
         let textMetrics = ctx.measureText(str);
-        let charWidth = Math.round(textMetrics.width / str.length)
+        let charWidth = Math.round(textMetrics.width / str.length);
         if (textMetrics.width < frame.width - textPadding * 2) {
-            let x2 = Math.floor(frame.width / 2 - textMetrics.width / 2 + frame.x + textPadding)
-            ctx.textBaseline = "middle"
-            ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2), frame.width - textPadding * 2)
+            let x2 = Math.floor(
+                frame.width / 2 - textMetrics.width / 2 + frame.x + textPadding
+            );
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+                str,
+                x2,
+                Math.floor(frame.y + frame.height / 2),
+                frame.width - textPadding * 2
+            );
             return;
         }
         if (frame.width - textPadding * 2 > charWidth * 4) {
             let chatNum = (frame.width - textPadding * 2) / charWidth;
-            let x1 = frame.x + textPadding
-            ctx.textBaseline = "middle"
-            ctx.fillText(str.substring(0, chatNum - 4) + '...', x1, Math.floor(frame.y + frame.height / 2), frame.width - textPadding * 2)
+            let x1 = frame.x + textPadding;
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+                str.substring(0, chatNum - 4) + '...',
+                x1,
+                Math.floor(frame.y + frame.height / 2),
+                frame.width - textPadding * 2
+            );
             return;
         }
     }
 
     static getEndState(state: string): string {
-        let statusMapElement = ThreadStruct.statusMap[state];
+        let statusMapElement = Utils.getEndState(state);
         if (statusMapElement) {
-            return statusMapElement
+            return statusMapElement;
         } else {
-            if ("" == statusMapElement || statusMapElement == null) {
-                return "";
+            if ('' == statusMapElement || statusMapElement == null) {
+                return '';
             }
-            return "Unknown State";
+            return 'Unknown State';
         }
     }
 
     static equals(d1: ThreadStruct, d2: ThreadStruct): boolean {
-        if (d1 && d2 && d1.cpu == d2.cpu &&
+        if (
+            d1 &&
+            d2 &&
+            d1.cpu == d2.cpu &&
             d1.tid == d2.tid &&
             d1.state == d2.state &&
             d1.startTime == d2.startTime &&
-            d1.dur == d2.dur) {
+            d1.dur == d2.dur
+        ) {
             return true;
         } else {
             return false;

@@ -20,9 +20,9 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceHidumpParser::HtraceHidumpParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx),
-      clockId_(0)
-    {}
+    : HtracePluginTimeParser(dataCache, ctx), clockId_(0)
+{
+}
 
 HtraceHidumpParser::~HtraceHidumpParser()
 {

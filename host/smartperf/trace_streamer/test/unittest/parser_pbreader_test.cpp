@@ -85,7 +85,7 @@ HWTEST_F(ParserPbreaderTest, HtracePbreaderParserTest, TestSize.Level1)
         char line1[lineLength];
         char line2[lineLength];
         const std::string command1 = "md5sum data/resource/pbreaderhtrace.db";
-        const std::string md5DbPath = "md5sum "+ dbPath;
+        const std::string md5DbPath = "md5sum " + dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {

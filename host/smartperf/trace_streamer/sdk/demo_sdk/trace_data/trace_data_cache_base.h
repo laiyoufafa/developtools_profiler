@@ -16,7 +16,6 @@
 #ifndef TRACE_DATA_CACHE_BASE_H
 #define TRACE_DATA_CACHE_BASE_H
 
-
 #include <array>
 #include <deque>
 #include <map>
@@ -42,7 +41,6 @@ public:
     MetaData metaData_;
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
-
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

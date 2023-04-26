@@ -22,7 +22,6 @@
 #include "trace_streamer_filters.h"
 #include "cpu_plugin_result.pb.h"
 
-
 namespace SysTuning {
 namespace TraceStreamer {
 class HtraceProcessParser : public HtracePluginTimeParser {

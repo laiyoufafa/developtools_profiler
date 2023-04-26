@@ -14,10 +14,9 @@
  */
 
 // @ts-ignore
-import {SpRecordPerf} from "../../../../dist/trace/component/setting/SpRecordPerf.js";
+import { SpRecordPerf } from '../../../../dist/trace/component/setting/SpRecordPerf.js';
 
-describe('SpRecordPerf Test', ()=>{
-
+describe('SpRecordPerf Test', () => {
     let spRecordPerf = new SpRecordPerf();
     it('SpRecordPerfTest01', function () {
         expect(spRecordPerf).not.toBeUndefined();
@@ -54,7 +53,6 @@ describe('SpRecordPerf Test', ()=>{
     it('SpRecordPerfTest05', function () {
         expect(spRecordPerf.unDisable()).toBeUndefined();
     });
-
 
     it('SpRecordPerfTest04', function () {
         expect(spRecordPerf.initHtml()).toMatchInlineSnapshot(`
@@ -212,7 +210,7 @@ describe('SpRecordPerf Test', ()=>{
     });
 
     it('SpRecordPerfTest07', function () {
-        spRecordPerf.startSamp = true
+        spRecordPerf.startSamp = true;
         expect(spRecordPerf.startSamp).toBeTruthy();
     });
-})
+});

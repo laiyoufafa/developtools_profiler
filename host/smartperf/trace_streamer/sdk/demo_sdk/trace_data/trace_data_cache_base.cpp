@@ -19,6 +19,5 @@
 namespace SysTuning {
 namespace TraceStreamer {
 
-
 } // namespace TraceStreamer
 } // namespace SysTuning

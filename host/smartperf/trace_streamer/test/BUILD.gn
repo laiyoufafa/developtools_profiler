@@ -17,49 +17,49 @@ import("test_ts.gni")
 
 if (is_test) {
   ohos_unittest("trace_streamer_ut") {
-    sources = [
-      "unittest/binder_filter_test.cpp",
-      "unittest/bio_parser_test.cpp",
-      "unittest/bytrace_parser_test.cpp",
-      "unittest/clock_filter_test.cpp",
-      "unittest/cpu_filter_test.cpp",
-      "unittest/ebpf_file_system_test.cpp",
-      "unittest/ebpf_parser_test.cpp",
-      "unittest/event_parser_test.cpp",
-      "unittest/filter_filter_test.cpp",
-      "unittest/hidump_parser_test.cpp",
-      "unittest/hilog_parser_test.cpp",
-      "unittest/hisys_event_parser_test.cpp",
-      "unittest/htrace_binder_event_test.cpp",
-      "unittest/htrace_cpu_data_parser_test.cpp",
-      "unittest/htrace_cpu_detail_parser_test.cpp",
-      "unittest/htrace_diskio_parser_test.cpp",
-      "unittest/htrace_event_parser_test.cpp",
-      "unittest/htrace_irq_event_test.cpp",
-      "unittest/htrace_mem_parser_test.cpp",
-      "unittest/htrace_network_parser_test.cpp",
-      "unittest/htrace_process_parser_test.cpp",
-      "unittest/htrace_sys_mem_parser_test.cpp",
-      "unittest/htrace_sys_vmem_parser_test.cpp",
-      "unittest/http_server_test.cpp",
-      "unittest/irq_filter_test.cpp",
-      "unittest/measure_filter_test.cpp",
-      "unittest/native_hook_parser_test.cpp",
-      "unittest/paged_memory_parser_test.cpp",
-      "unittest/process_filter_test.cpp",
-      "unittest/proto_reader_test.cpp",
-      "unittest/rpc_server_test.cpp",
-      "unittest/slice_filter_test.cpp",
-      "unittest/smaps_parser_test.cpp",
-      "unittest/span_join_test.cpp",
-      "unittest/table_test.cpp",
-      "unittest/wasm_func_test.cpp",
-    ]
     if (is_test) {
-      if (!is_pbreader) {
-        sources += [ "unittest/parser_test.cpp" ]
+      if (is_pbdecoder) {
+        sources = [
+          "unittest/binder_filter_test.cpp",
+          "unittest/bio_parser_test.cpp",
+          "unittest/bytrace_parser_test.cpp",
+          "unittest/clock_filter_test.cpp",
+          "unittest/cpu_filter_test.cpp",
+          "unittest/ebpf_file_system_test.cpp",
+          "unittest/ebpf_parser_test.cpp",
+          "unittest/event_parser_test.cpp",
+          "unittest/filter_filter_test.cpp",
+          "unittest/hidump_parser_test.cpp",
+          "unittest/hilog_parser_test.cpp",
+          "unittest/hisys_event_parser_test.cpp",
+          "unittest/htrace_binder_event_test.cpp",
+          "unittest/htrace_cpu_data_parser_test.cpp",
+          "unittest/htrace_cpu_detail_parser_test.cpp",
+          "unittest/htrace_diskio_parser_test.cpp",
+          "unittest/htrace_event_parser_test.cpp",
+          "unittest/htrace_irq_event_test.cpp",
+          "unittest/htrace_mem_parser_test.cpp",
+          "unittest/htrace_network_parser_test.cpp",
+          "unittest/htrace_process_parser_test.cpp",
+          "unittest/htrace_sys_mem_parser_test.cpp",
+          "unittest/htrace_sys_vmem_parser_test.cpp",
+          "unittest/http_server_test.cpp",
+          "unittest/irq_filter_test.cpp",
+          "unittest/measure_filter_test.cpp",
+          "unittest/native_hook_parser_test.cpp",
+          "unittest/paged_memory_parser_test.cpp",
+          "unittest/parser_test.cpp",
+          "unittest/process_filter_test.cpp",
+          "unittest/proto_reader_test.cpp",
+          "unittest/rpc_server_test.cpp",
+          "unittest/slice_filter_test.cpp",
+          "unittest/smaps_parser_test.cpp",
+          "unittest/span_join_test.cpp",
+          "unittest/table_test.cpp",
+          "unittest/wasm_func_test.cpp",
+        ]
       } else {
-        sources += [ "unittest/parser_pbreader_test.cpp" ]
+        sources = [ "unittest/parser_pbreader_test.cpp" ]
       }
     }
     deps = [
@@ -72,7 +72,7 @@ if (is_test) {
       "//third_party/sqlite:sqlite",
     ]
     if (is_test) {
-      if (!is_pbreader) {
+      if (is_pbdecoder) {
         deps += [ "../src/parser/htrace_parser:htrace_parser" ]
       } else {
         deps += [
@@ -118,7 +118,7 @@ if (is_test) {
       "${OHOS_TEST_PROTO_DIR}",
     ]
     if (is_test) {
-      if (!is_pbreader) {
+      if (is_pbdecoder) {
         include_dirs += [
           "../src/parser/htrace_parser",
           "../src/parser/htrace_parser/htrace_event_parser",

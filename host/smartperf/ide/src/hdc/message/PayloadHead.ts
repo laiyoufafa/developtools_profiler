@@ -13,16 +13,22 @@
  * limitations under the License.
  */
 
-import {BaseBean} from "./BaseBean.js";
+import { BaseBean } from './BaseBean.js';
 
 export class PayloadHead extends Object implements BaseBean {
     private _flag: Array<number> = [0, 0]; //uint8_t  ct.c_uint8 * 2
     private _reserve: Array<number>; //uint8_t // encrypt'flag or others options ct.c_uint8 * 2
-    private _protocolVer: number;// uint8_t 1
+    private _protocolVer: number; // uint8_t 1
     private _headSize: number = 0; // uint16_t 2
     private _dataSize: number = 0; // uint32_t 4
 
-    constructor(flag: Array<number>, reserve: Array<number>, protocolVer: number, headSize: number, dataSize: number) {
+    constructor(
+        flag: Array<number>,
+        reserve: Array<number>,
+        protocolVer: number,
+        headSize: number,
+        dataSize: number
+    ) {
         super();
         this._flag = flag;
         this._reserve = reserve;
@@ -46,20 +52,26 @@ export class PayloadHead extends Object implements BaseBean {
         return view;
     }
 
-   static parsePlayHead(data: DataView): PayloadHead {
+    static parsePlayHead(data: DataView): PayloadHead {
         let flagZero = data.getUint8(0);
         let flagOne = data.getUint8(1);
         let reserveZero = data.getUint8(2);
-        let reserveOne = data.getUint8(3,);
+        let reserveOne = data.getUint8(3);
         let protocolVer = data.getUint8(4);
         let headSize = data.getUint16(5);
-       let dataSize;
+        let dataSize;
         if (data.byteLength < 11) {
             dataSize = 0;
         } else {
             dataSize = data.getUint32(7);
         }
-        return new PayloadHead([flagZero, flagOne], [reserveZero, reserveOne], protocolVer, headSize, dataSize)
+        return new PayloadHead(
+            [flagZero, flagOne],
+            [reserveZero, reserveOne],
+            protocolVer,
+            headSize,
+            dataSize
+        );
     }
 
     get flag(): Array<number> {
@@ -87,7 +99,11 @@ export class PayloadHead extends Object implements BaseBean {
     }
 
     toString(): string {
-        return "PayloadHead: " + this.getDataView.toString()
-            + ", parsePlayHead: " + PayloadHead.parsePlayHead.toString()
+        return (
+            'PayloadHead: ' +
+            this.getDataView.toString() +
+            ', parsePlayHead: ' +
+            PayloadHead.parsePlayHead.toString()
+        );
     }
 }

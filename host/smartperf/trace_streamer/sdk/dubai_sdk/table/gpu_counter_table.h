@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class GpuCounterTable : public TableBase {
 public:
-    explicit GpuCounterTable(const TraceDataCache* storage);
+    explicit GpuCounterTable(const TraceDataCache* dataCache);
     ~GpuCounterTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 

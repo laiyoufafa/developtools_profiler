@@ -35,7 +35,7 @@ public:
     uint32_t AppendNewProcessData(uint32_t pid, const std::string& name, uint64_t startTs);
     InternalTid NewInternalThread(uint32_t tid);
     Thread* GetThreadData(InternalTid internalTid);
-    void UpdateTraceTime(uint64_t timestamp);
+    void UpdateTraceTime(uint64_t timeStamp);
     void MixTraceTime(uint64_t timestampMin, uint64_t timestampMax);
     CallStack* GetInternalSlicesData();
     CallStack* GetIrqData();
@@ -61,6 +61,7 @@ public:
     LogInfo* GetHilogData();
     NativeHook* GetNativeHookData();
     NativeHookFrame* GetNativeHookFrameData();
+    NativeHookStatistic* GetNativeHookStatisticsData();
     Hidump* GetHidumpData();
     PerfCallChain* GetPerfCallChainData();
     PerfFiles* GetPerfFilesData();
@@ -94,6 +95,15 @@ public:
     FrameSlice* GetFrameSliceData();
     FrameMaps* GetFrameMapsData();
     GPUSlice* GetGPUSliceData();
+    JsHeapFiles* GetJsHeapFilesData();
+    JsHeapEdges* GetJsHeapEdgesData();
+    JsHeapInfo* GetJsHeapInfoData();
+    JsHeapLocation* GetJsHeapLocationData();
+    JsHeapNodes* GetJsHeapNodesData();
+    JsHeapSample* GetJsHeapSampleData();
+    JsHeapString* GetJsHeapStringData();
+    JsHeapTraceFuncInfo* GetJsHeapTraceFuncInfoData();
+    JsHeapTraceNode* GetJsHeapTraceNodeData();
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

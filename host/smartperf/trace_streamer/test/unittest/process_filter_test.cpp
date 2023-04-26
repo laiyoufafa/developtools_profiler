@@ -354,10 +354,10 @@ HWTEST_F(ProcessFilterTest, UpdateThreadWithName, TestSize.Level1)
 {
     TS_LOGI("test26-16");
     uint32_t tid = 869;
-    uint64_t timestamp = 168758662957020;
+    uint64_t timeStamp = 168758662957020;
     std::string_view threadName = "RenderThread";
-    streamFilters_.processFilter_->UpdateOrCreateThread(timestamp, tid);
-    streamFilters_.processFilter_->UpdateOrCreateThreadWithName(timestamp, tid, threadName);
+    streamFilters_.processFilter_->UpdateOrCreateThread(timeStamp, tid);
+    streamFilters_.processFilter_->UpdateOrCreateThreadWithName(timeStamp, tid, threadName);
     auto itid = streamFilters_.processFilter_->GetInternalTid(tid);
     EXPECT_TRUE(itid != INVALID_ID);
     Thread* thread = traceDataCache_.GetThreadData(itid);
@@ -373,9 +373,9 @@ HWTEST_F(ProcessFilterTest, UpdateProcessWithName, TestSize.Level1)
 {
     TS_LOGI("test26-17");
     uint32_t pid = 869;
-    uint64_t timestamp = 168758662957020;
+    uint64_t timeStamp = 168758662957020;
     std::string_view processName = "RenderProcess";
-    auto ipid = streamFilters_.processFilter_->GetOrCreateInternalPid(timestamp, pid);
+    auto ipid = streamFilters_.processFilter_->GetOrCreateInternalPid(timeStamp, pid);
     EXPECT_TRUE(ipid != INVALID_ID);
     streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     Process* process = traceDataCache_.GetProcessData(ipid);

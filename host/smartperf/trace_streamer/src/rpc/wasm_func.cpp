@@ -32,9 +32,19 @@ uint32_t g_sendDataBufSize;
 using ExportDBCallback = void (*)(const char* data, uint32_t len, int finish);
 ExportDBCallback g_dbCallback;
 
+using ParseELFFunction = void (*)(const char* data, uint32_t len, int finish);
+ParseELFFunction g_parseELFCallback;
+uint8_t* g_FileNameBuf;
+uint32_t g_FileNameSize;
+
 void ResultCallback(const std::string& jsonResult, int finish)
 {
     g_reply(jsonResult.data(), jsonResult.size(), finish);
+}
+
+void ParseELFCallback(const std::string& SODataResult, int finish)
+{
+    g_parseELFCallback(SODataResult.data(), SODataResult.size(), finish);
 }
 EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction, uint32_t reqBufferSize)
 {
@@ -42,6 +52,14 @@ EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction, uint32_t r
     g_reqBuf = new uint8_t[reqBufferSize];
     g_reqBufferSize = reqBufferSize;
     return g_reqBuf;
+}
+
+EMSCRIPTEN_KEEPALIVE uint8_t* InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
+{
+    g_parseELFCallback = parseELFCallback;
+    g_FileNameBuf = new uint8_t[reqBufferSize];
+    g_FileNameSize = reqBufferSize;
+    return g_FileNameBuf;
 }
 
 EMSCRIPTEN_KEEPALIVE int UpdateTraceTime(int len)
@@ -56,7 +74,8 @@ void ThirdPary_SendDataCallback(const char* pluginData, int len, int componentId
     }
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack,
+                                                                      uint32_t reqBufferSize)
 {
     g_sendData = sendDataCallBack;
     g_sendDataBuf = new uint8_t[reqBufferSize];
@@ -101,6 +120,14 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerParseData(const uint8_t* data, int dataLen
 EMSCRIPTEN_KEEPALIVE int TraceStreamerParseDataEx(int dataLen)
 {
     if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr)) {
+        return 0;
+    }
+    return -1;
+}
+EMSCRIPTEN_KEEPALIVE int TraceStreamerDownloadELFEx(int totalLen, int fileNameLen, int dataLen, int count)
+{
+    std::string fileName(reinterpret_cast<const char*>(g_FileNameBuf), fileNameLen);
+    if (g_wasmTraceStreamer.DownloadELFCallback(fileName, totalLen, g_reqBuf, dataLen, count, &ParseELFCallback)) {
         return 0;
     }
     return -1;

@@ -13,57 +13,72 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
+
 // @ts-ignore
-import {smaps, SmapsRender, SmapsStruct} from "../../../../dist/trace/database/ui-worker/ProcedureWorkerSmaps.js"
+import {
+    smaps,
+    SmapsRender,
+    SmapsStruct,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerSmaps.js';
 
 describe('ProcedureWorkerSmaps Test', () => {
-
     it('ProcedureWorkerSmapsTest01', function () {
-        let List = [{
-            length: 1,
-            ts: 1,
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
+        let List = [
+            {
+                length: 1,
+                ts: 1,
+                frame: {
+                    x: 20,
+                    y: 20,
+                    width: 100,
+                    height: 100,
+                },
             },
-        }]
-        let arr = [{
-            frame: null,
-            length: 1,
-        }]
+        ];
+        let arr = [
+            {
+                frame: null,
+                length: 1,
+            },
+        ];
         let frame = {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        expect(smaps(List, arr, 1, 1, 1, frame, true)).toBeUndefined()
+            height: 100,
+        };
+        expect(smaps(List, arr, 1, 1, 1, frame, true)).toBeUndefined();
     });
 
     it('ProcedureWorkerSmapsTest02', function () {
-        let List = [{
-            length: 1,
-            ts: 1,
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
+        let List = [
+            {
+                length: 1,
+                ts: 1,
+                frame: {
+                    x: 20,
+                    y: 20,
+                    width: 100,
+                    height: 100,
+                },
             },
-        }]
-        let arr = [{
-            frame: null,
-            length: 0,
-        }]
+        ];
+        let arr = [
+            {
+                frame: null,
+                length: 0,
+            },
+        ];
         let frame = {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        expect(smaps(List, arr, 1, 1, 1, frame, false)).toBeUndefined()
+            height: 100,
+        };
+        expect(smaps(List, arr, 1, 1, 1, frame, false)).toBeUndefined();
     });
 
     it('ProcedureWorkerSmapsTest03', () => {
@@ -74,11 +89,11 @@ describe('ProcedureWorkerSmaps Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             startTime: 1,
-            ts: 1
-        }
+            ts: 1,
+        };
         const canvas = document.createElement('canvas');
         canvas.width = 1;
         canvas.height = 1;
@@ -94,18 +109,20 @@ describe('ProcedureWorkerSmaps Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             ts: 1,
-            dur: 1
-        }
+            dur: 1,
+        };
         let frame = {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        expect(SmapsStruct.setSmapsFrame(node, 2, 1, 2, 2, frame)).toBeUndefined();
+            height: 100,
+        };
+        expect(
+            SmapsStruct.setSmapsFrame(node, 2, 1, 2, 2, frame)
+        ).toBeUndefined();
     });
 
     it('ProcedureWorkerSmapsTest05', () => {
@@ -116,25 +133,27 @@ describe('ProcedureWorkerSmaps Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             ts: 0,
-            dur: 3
-        }
+            dur: 3,
+        };
         let frame = {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        expect(SmapsStruct.setSmapsFrame(node, 2, 1, 2, 2, frame)).toBeUndefined();
+            height: 100,
+        };
+        expect(
+            SmapsStruct.setSmapsFrame(node, 2, 1, 2, 2, frame)
+        ).toBeUndefined();
     });
 
     it('ProcedureWorkerSmapsTest06', function () {
-        let sMapsRender = new SmapsRender()
+        let sMapsRender = new SmapsRender();
         let req = {
             lazyRefresh: true,
-            type: "",
+            type: '',
             startNS: 1,
             endNS: 1,
             totalNS: 1,
@@ -142,17 +161,17 @@ describe('ProcedureWorkerSmaps Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             useCache: false,
             range: {
-                refresh: "",
+                refresh: '',
             },
             canvas: '',
             context: {
-                font: "11px sans-serif",
-                fillStyle: "#ffffff",
-                globalAlpha: 0.6
+                font: '11px sans-serif',
+                fillStyle: '#ffffff',
+                globalAlpha: 0.6,
             },
             lineColor: '',
             isHover: true,
@@ -168,11 +187,11 @@ describe('ProcedureWorkerSmaps Test', () => {
             height: 100,
             params: {
                 maxValue: 10,
-                maxValueName: "maxValueName",
-                rowName: "rowName"
-            }
-        }
-        window.postMessage = jest.fn(() => true)
-        expect(sMapsRender.render(req, [], [])).toBeUndefined()
+                maxValueName: 'maxValueName',
+                rowName: 'rowName',
+            },
+        };
+        window.postMessage = jest.fn(() => true);
+        expect(sMapsRender.render(req, [], [])).toBeUndefined();
     });
-})
+});

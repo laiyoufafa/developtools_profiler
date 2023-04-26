@@ -218,8 +218,8 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
     std::string className = GetDescriptorClass(descriptor) + "_Reader";
     codePrinter_->Print(
         "class $name$ : public "
-        "TypedProtoReader<$maxFieldID$> {\n",
-        "name", className, "maxFieldID", std::to_string(maxFieldID));
+        "TypedProtoReader<$maxDataAreaID$> {\n",
+        "name", className, "maxDataAreaID", std::to_string(maxFieldID));
     codePrinter_->Print(" public:\n");
     maxFieldID = 1 + maxFieldID;
 
@@ -242,7 +242,7 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
     for (int32_t i = 0; i < descriptor->field_count(); ++i) {
         const FieldDescriptor* field = descriptor->field(i);
         if (field->number() > maxFieldID) {
-            codePrinter_->Print("// field $name$ exceeded the maximum\n", "name", field->name());
+            codePrinter_->Print("// dataArea $name$ exceeded the maximum\n", "name", field->name());
             continue;
         }
         TypeDesc typeDesc{};
@@ -313,7 +313,7 @@ std::string ProtoReaderGenerator::GetFieldNumberConstant(const FieldDescriptor* 
     std::string name = field->camelcase_name();
     if (!name.empty()) {
         name.at(0) = Uppercase(name.at(0));
-        name = "k" + name + "FieldNumber";
+        name = "k" + name + "DataAreaNumber";
         return name;
     }
     return "";

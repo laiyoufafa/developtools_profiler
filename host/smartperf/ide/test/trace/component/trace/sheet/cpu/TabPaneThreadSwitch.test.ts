@@ -14,16 +14,17 @@
  */
 
 // @ts-ignore
-import {TabPaneThreadSwitch} from "../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneThreadSwitch.js"
+import { TabPaneThreadSwitch } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneThreadSwitch.js';
 // @ts-ignore
-import {LitTable} from "../../../../../../dist/base-ui/table/lit-table.js";
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
 // @ts-ignore
-import {SpSystemTrace} from "../../../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
 
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -31,89 +32,94 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 
 describe('TabPaneContextSwitch Test', () => {
-    document.body.innerHTML = `<div class="ddd"><lit-table id="tb-states"></lit-table><div>`
+    document.body.innerHTML = `<div class="ddd"><lit-table id="tb-states"></lit-table><div>`;
     let tab = document.querySelector('.ddd') as HTMLDivElement;
     let tabPaneThreadSwitch = new TabPaneThreadSwitch();
     tabPaneThreadSwitch.tbl = jest.fn(() => tab);
     tabPaneThreadSwitch.tbl.treeElement = jest.fn(() => tab);
     tabPaneThreadSwitch.tbl.tableElement = jest.fn(() => tab);
-    SpSystemTrace.SPT_DATA = [{
-        process: "",
-        processId: 0,
-        thread: "",
-        threadId: 0,
-        state: '',
-        dur: 0,
-        start_ts: 0,
-        end_ts: 0,
-        cpu: 0,
-        priority: "-",
-        note: "-",
-    }, {
-        process: "",
-        processId: 1,
-        thread: "",
-        threadId: 1,
-        state: '',
-        dur: 0,
-        start_ts: 0,
-        end_ts: 0,
-        cpu: 0,
-        priority: "-",
-        note: "-",
-    }, {
-        process: "",
-        processId: 2,
-        thread: "",
-        threadId: 2,
-        state: '',
-        dur: 0,
-        start_ts: 0,
-        end_ts: 0,
-        cpu: 0,
-        priority: "-",
-        note: "-",
-    }]
+    SpSystemTrace.SPT_DATA = [
+        {
+            process: '',
+            processId: 0,
+            thread: '',
+            threadId: 0,
+            state: '',
+            dur: 0,
+            start_ts: 0,
+            end_ts: 0,
+            cpu: 0,
+            priority: '-',
+            note: '-',
+        },
+        {
+            process: '',
+            processId: 1,
+            thread: '',
+            threadId: 1,
+            state: '',
+            dur: 0,
+            start_ts: 0,
+            end_ts: 0,
+            cpu: 0,
+            priority: '-',
+            note: '-',
+        },
+        {
+            process: '',
+            processId: 2,
+            thread: '',
+            threadId: 2,
+            state: '',
+            dur: 0,
+            start_ts: 0,
+            end_ts: 0,
+            cpu: 0,
+            priority: '-',
+            note: '-',
+        },
+    ];
 
     let dataArray = {
-        id: "",
-        pid: "",
-        title: "",
+        id: '',
+        pid: '',
+        title: '',
         children: [],
-        process: "",
+        process: '',
         processId: 0,
-        thread: "",
+        thread: '',
         threadId: 0,
-        state: "",
+        state: '',
         wallDuration: 0,
-        avgDuration: "",
+        avgDuration: '',
         count: 0,
         minDuration: 0,
         maxDuration: 0,
-        stdDuration: "",
-    }
+        stdDuration: '',
+    };
 
     it('TabPaneThreadSwitchTest03', function () {
         expect(tabPaneThreadSwitch.getDataBySPT(0, 0, [])).toBeUndefined();
     });
 
     it('TabPaneThreadSwitchTest04', function () {
-        let mockgetProcessThreadDataByRange = sqlit.getStatesProcessThreadDataByRange
-        mockgetProcessThreadDataByRange.mockResolvedValue([{
-                process: "process",
+        let mockgetProcessThreadDataByRange =
+            sqlit.getStatesProcessThreadDataByRange;
+        mockgetProcessThreadDataByRange.mockResolvedValue([
+            {
+                process: 'process',
                 processId: 1,
-                thread: "thread",
-                state: "state",
+                thread: 'thread',
+                state: 'state',
                 threadId: 1,
                 dur: 1000,
                 end_ts: 2000,
                 start_ts: 2000,
-                cpu: 1111
-            }]
-        )
-        tabPaneThreadSwitch.tbl.recycleDataSource = jest.fn(() => dataArray)
-        expect(tabPaneThreadSwitch.data = dataArray).toBeTruthy();
-
+                cpu: 1111,
+            },
+        ]);
+        tabPaneThreadSwitch.tbl.recycleDataSource = jest.fn(() => dataArray);
+        expect((tabPaneThreadSwitch.data = dataArray)).toBeTruthy();
     });
 
     it('TabPaneThreadSwitchTest05', function () {
@@ -130,14 +136,14 @@ describe('TabPaneContextSwitch Test', () => {
             padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-        <lit-table id="tb-ts" style="height: auto" tree>
-            <lit-table-column width="500px" title="Event/Process/Thread" data-index="title" key="title" align="flex-start">
+        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
+        <lit-table id=\\"tb-ts\\" style=\\"height: auto\\" tree>
+            <lit-table-column width=\\"500px\\" title=\\"Event/Process/Thread\\" data-index=\\"title\\" key=\\"title\\" align=\\"flex-start\\">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" >
+            <lit-table-column width=\\"1fr\\" title=\\"Count\\" data-index=\\"count\\" key=\\"count\\" align=\\"flex-start\\" >
             </lit-table-column>
         </lit-table>
         "
 `);
     });
-})
+});

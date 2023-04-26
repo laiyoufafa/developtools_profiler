@@ -205,7 +205,8 @@ int FileSystemSampleTable::Cursor::Column(int column) const
             break;
         case CALLCHAIN_ID:
             if (fileSystemSampleTableObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
             } else {
                 sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
             }

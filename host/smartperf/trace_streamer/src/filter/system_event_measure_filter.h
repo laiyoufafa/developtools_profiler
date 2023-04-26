@@ -35,9 +35,10 @@ public:
     SystemEventMeasureFilter(const SystemEventMeasureFilter&) = delete;
     SystemEventMeasureFilter& operator=(const SystemEventMeasureFilter&) = delete;
     ~SystemEventMeasureFilter() override;
-    void AppendNewMeasureData(DataIndex nameIndex, uint64_t timestamp, int64_t value);
+    void AppendNewMeasureData(DataIndex nameIndex, uint64_t timeStamp, int64_t value);
     uint32_t AppendNewMeasureFilter(DataIndex nameIndex);
     void Clear();
+
 private:
     uint32_t GetOrCreateFilterId(DataIndex nameIndex);
     void AddCertainFilterId(DataIndex nameIndex, uint64_t filterId);

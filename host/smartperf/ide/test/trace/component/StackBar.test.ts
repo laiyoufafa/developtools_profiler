@@ -14,18 +14,17 @@
  */
 
 // @ts-ignore
-import {StackBar} from "../../../dist/trace/component/StackBar.js"
+import { StackBar } from '../../../dist/trace/component/StackBar.js';
 
 describe('StackBar Test', () => {
-
     let stackBar = new StackBar();
 
     it('StackBarTest01', function () {
-        expect(stackBar.initHtml()).not.toBe('')
+        expect(stackBar.initHtml()).not.toBe('');
     });
 
     it('StackBarTest02', function () {
-        expect(stackBar.initElements()).toBeUndefined()
+        expect(stackBar.initElements()).toBeUndefined();
     });
 
     it('StackBarTest03', function () {
@@ -35,11 +34,14 @@ describe('StackBar Test', () => {
     });
 
     it('StackBarTest04', function () {
-        let htmlDivElement = stackBar.createBarElement({
-            state: "",
-            color: "",
-            value: 0,
-        }, 5);
+        let htmlDivElement = stackBar.createBarElement(
+            {
+                state: '',
+                color: '',
+                value: 0,
+            },
+            5
+        );
         let hasDivEl = htmlDivElement.toLocaleString().length > 5;
         expect(hasDivEl).toBeTruthy();
     });
@@ -63,5 +65,5 @@ describe('StackBar Test', () => {
             </div>
         "
 `);
-   });
-})
+    });
+});

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {DataMessage} from "../message/DataMessage.js";
+import { DataMessage } from '../message/DataMessage.js';
 
 export class DataMessageQueue<T> {
     private eleArray: Array<T>;
@@ -40,17 +40,21 @@ export class DataMessageQueue<T> {
 }
 
 interface Resolver {
-    (data: DataMessage): void
+    (data: DataMessage): void;
 }
 
 export class AsyncQueue<T> {
-    private promiseQueue: DataMessageQueue<Promise<DataMessage>> = new DataMessageQueue<Promise<DataMessage>>();
-    private resolverQueue: DataMessageQueue<Resolver> = new DataMessageQueue<Resolver>();
+    private promiseQueue: DataMessageQueue<Promise<DataMessage>> =
+        new DataMessageQueue<Promise<DataMessage>>();
+    private resolverQueue: DataMessageQueue<Resolver> =
+        new DataMessageQueue<Resolver>();
 
     add() {
-        this.promiseQueue.push(new Promise(resolve => {
-            this.resolverQueue.push(resolve);
-        }));
+        this.promiseQueue.push(
+            new Promise((resolve) => {
+                this.resolverQueue.push(resolve);
+            })
+        );
     }
 
     enqueue(item: DataMessage) {

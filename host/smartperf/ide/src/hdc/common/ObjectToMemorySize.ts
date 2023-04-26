@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-export class objectToMemorySize{
-    private seen = new WeakSet
+export class objectToMemorySize {
+    private seen = new WeakSet();
 
     /**
      * objectToSize
@@ -25,44 +25,45 @@ export class objectToMemorySize{
      *
      * @param object
      */
-    objectToSize(object: any): any{
-        const objType = typeof object
+    objectToSize(object: any): any {
+        const objType = typeof object;
         switch (objType) {
             case 'string':
-                return object.length * 2
+                return object.length * 2;
             case 'boolean':
-                return 4
+                return 4;
             case 'number':
-                return 8
+                return 8;
             case 'object':
                 if (Array.isArray(object)) {
-                    return object.map(this.objectToSize).reduce((res, cur) => res + cur, 0)
+                    return object
+                        .map(this.objectToSize)
+                        .reduce((res, cur) => res + cur, 0);
                 } else {
-                    return this.sizeOfObj(object)
+                    return this.sizeOfObj(object);
                 }
             default:
-                return 0
+                return 0;
         }
     }
 
-    sizeOfObj(object: any): number{
-        if (object === null) return 0
+    sizeOfObj(object: any): number {
+        if (object === null) return 0;
 
-        let bytes = 0
+        let bytes = 0;
         // The key in the object also takes up memory space
-        const props = Object.keys(object)
+        const props = Object.keys(object);
         for (let i = 0; i < props.length; i++) {
-            const key = props[i]
+            const key = props[i];
             // Whether the value is repeated or not, the key needs to be calculated
-            bytes += this.objectToSize(key)
+            bytes += this.objectToSize(key);
             if (typeof object[key] === 'object' && object[key] !== null) {
                 // 这里需要注意value使用相同内存空间（只需计算一次内存）
-                if (this.seen.has(object[key])) continue
-                this.seen.add(object[key])
+                if (this.seen.has(object[key])) continue;
+                this.seen.add(object[key]);
             }
-            bytes += this.objectToSize(object[key])
+            bytes += this.objectToSize(object[key]);
         }
-        return bytes
+        return bytes;
     }
 }
-

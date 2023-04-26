@@ -13,37 +13,52 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {Counter, SelectionData, SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabCounters, getTabVirtualCounters} from "../../../../database/SqlLite.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import {
+    Counter,
+    SelectionData,
+    SelectionParam,
+} from '../../../../bean/BoxSelection.js';
+import {
+    getTabCounters,
+    getTabVirtualCounters,
+} from '../../../../database/SqlLite.js';
 
 @element('tabpane-clock-counter')
 export class TabPaneClockCounter extends BaseElement {
     private tbl: LitTable | null | undefined;
     private range: HTMLLabelElement | null | undefined;
-    private source: Array<SelectionData> = []
+    private source: Array<SelectionData> = [];
 
     set data(val: SelectionParam | any) {
         //@ts-ignore
-        this.tbl?.shadowRoot?.querySelector(".table")?.style?.height = (this.parentElement!.clientHeight - 45) + "px";
-        this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms";
+        this.tbl?.shadowRoot?.querySelector('.table')?.style?.height =
+            this.parentElement!.clientHeight - 45 + 'px';
+        this.range!.textContent =
+            'Selected range: ' +
+            parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) +
+            ' ms';
         let dataSource: Array<SelectionData> = [];
         let collect = val.clockMapData;
         let sumCount = 0;
         for (let key of collect.keys()) {
             let counters = collect.get(key);
-            let sd = this.createSelectCounterData(key,counters, val.leftNs, val.rightNs);
-            sumCount += Number.parseInt(sd.count||"0");
+            let sd = this.createSelectCounterData(
+                key,
+                counters,
+                val.leftNs,
+                val.rightNs
+            );
+            sumCount += Number.parseInt(sd.count || '0');
             dataSource.push(sd);
         }
         let sumData = new SelectionData();
         sumData.count = sumCount.toString();
-        sumData.process = " ";
+        sumData.process = ' ';
         dataSource.splice(0, 0, sumData);
-        this.source = dataSource
-        this.tbl!.recycleDataSource = dataSource
-
+        this.source = dataSource;
+        this.tbl!.recycleDataSource = dataSource;
     }
 
     initElements(): void {
@@ -51,7 +66,7 @@ export class TabPaneClockCounter extends BaseElement {
         this.range = this.shadowRoot?.querySelector('#time-range');
         this.tbl!.addEventListener('column-click', (evt) => {
             // @ts-ignore
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -60,8 +75,8 @@ export class TabPaneClockCounter extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
@@ -99,20 +114,29 @@ export class TabPaneClockCounter extends BaseElement {
         `;
     }
 
-    createSelectCounterData(name: string,list: Array<any>, leftNs: number, rightNs: number): SelectionData {
+    createSelectCounterData(
+        name: string,
+        list: Array<any>,
+        leftNs: number,
+        rightNs: number
+    ): SelectionData {
         let selectData = new SelectionData();
         if (list.length > 0) {
             let range = rightNs - leftNs;
             let first = list[0];
             selectData.trackId = first.filterId;
             selectData.name = name;
-            selectData.first = first.value + "";
-            selectData.count = list.length + "";
-            selectData.last = list[list.length - 1].value + "";
-            selectData.delta = (parseInt(selectData.last) - parseInt(selectData.first)) + "";
-            selectData.rate = (parseInt(selectData.delta) / (range * 1.0 / 1000000000)).toFixed(4);
-            selectData.min = first.value + "";
-            selectData.max = "0";
+            selectData.first = first.value + '';
+            selectData.count = list.length + '';
+            selectData.last = list[list.length - 1].value + '';
+            selectData.delta =
+                parseInt(selectData.last) - parseInt(selectData.first) + '';
+            selectData.rate = (
+                parseInt(selectData.delta) /
+                ((range * 1.0) / 1000000000)
+            ).toFixed(4);
+            selectData.min = first.value + '';
+            selectData.max = '0';
             let weightAvg = 0.0;
             for (let i = 0; i < list.length; i++) {
                 let counter = list[i];
@@ -122,11 +146,11 @@ export class TabPaneClockCounter extends BaseElement {
                 if (counter.value > parseInt(selectData.max)) {
                     selectData.max = counter.value.toString();
                 }
-                let start = i == 0 ? leftNs : counter.startNS
-                let end = i == list.length - 1 ? rightNs : list[i + 1].startNS
-                weightAvg += counter.value * ((end - start) * 1.0 / range);
+                let start = i == 0 ? leftNs : counter.startNS;
+                let end = i == list.length - 1 ? rightNs : list[i + 1].startNS;
+                weightAvg += counter.value * (((end - start) * 1.0) / range);
             }
-            selectData.avgWeight = weightAvg.toFixed(2)
+            selectData.avgWeight = weightAvg.toFixed(2);
         }
         return selectData;
     }
@@ -135,7 +159,7 @@ export class TabPaneClockCounter extends BaseElement {
         // @ts-ignore
         function compare(property, sort, type) {
             return function (a: SelectionData, b: SelectionData) {
-                if (a.process == " " || b.process == " ") {
+                if (a.process == ' ' || b.process == ' ') {
                     return 0;
                 }
                 if (type === 'number') {
@@ -145,7 +169,8 @@ export class TabPaneClockCounter extends BaseElement {
                     // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
+                    } else {
+                        // @ts-ignore
                         if (b[property] == a[property]) {
                             return 0;
                         } else {
@@ -153,15 +178,14 @@ export class TabPaneClockCounter extends BaseElement {
                         }
                     }
                 }
-            }
+            };
         }
 
         if (detail.key === 'name') {
-            this.source.sort(compare(detail.key, detail.sort, 'string'))
+            this.source.sort(compare(detail.key, detail.sort, 'string'));
         } else {
-            this.source.sort(compare(detail.key, detail.sort, 'number'))
+            this.source.sort(compare(detail.key, detail.sort, 'number'));
         }
         this.tbl!.recycleDataSource = this.source;
     }
-
 }

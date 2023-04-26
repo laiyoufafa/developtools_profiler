@@ -174,7 +174,7 @@ int DataTypeTable::Cursor::Column(int col) const
             break;
         case DESC:
             sqlite3_result_text(context_, dataCache_->GetDataFromDict(dataTypeObj_.DataDesc()[CurrentRow()]).c_str(),
-                STR_DEFAULT_LEN, nullptr);
+                                STR_DEFAULT_LEN, nullptr);
             break;
         default:
             TS_LOGF("Unknown column %d", col);

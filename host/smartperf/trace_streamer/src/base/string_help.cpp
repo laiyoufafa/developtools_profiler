@@ -17,12 +17,11 @@
 #include <memory.h>
 #include <string>
 #include <vector>
-namespace SysTuning {
-namespace base {
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
     } while (0)
+#if !is_mingw
 int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
 {
     if (srcSize > destSize || src == nullptr || dest == nullptr) {
@@ -35,7 +34,6 @@ int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
     }
     return 0;
 }
-#if !is_mingw
 int sscanf_s(const char* buffer, const char* format, ...)
 {
     va_list ap;
@@ -78,5 +76,3 @@ int sprintf_s(char* strDest, size_t destMax, const char* format, ...)
     __builtin_va_end(ap);
     return ret;
 }
-} // namespace base
-} // namespace SysTuning

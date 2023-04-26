@@ -18,7 +18,19 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index {ID = 0, IPID, TYPE, PID, NAME, START_TS, SWITCH_COUNT, THREAD_COUNT, SLICE_COUNT, MEM_COUNT };
+enum Index {
+    ID = 0,
+    IPID,
+    TYPE,
+    PID,
+    NAME,
+    START_TS,
+    SWTICH_COUNT,
+    SWITCH_COUNT,
+    THREAD_COUNT,
+    SLICE_COUNT,
+    MEM_COUNT
+};
 }
 ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -28,7 +40,9 @@ ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCach
     tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
+    // remove the 'swtich_count' after three release version
     tableColumn_.push_back(TableBase::ColumnInfo("swtich_count", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("switch_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("thread_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("slice_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("mem_count", "INTEGER"));
@@ -228,6 +242,7 @@ int ProcessTable::Cursor::Column(int col) const
             }
             break;
         case SWITCH_COUNT:
+        case SWTICH_COUNT:
             sqlite3_result_int64(context_, process.switchCount_);
             break;
         case THREAD_COUNT:

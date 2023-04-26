@@ -1,6 +1,7 @@
 # 编译UT
+本文档给了编译trace_streamer的UT代码的方法。  
 直接运行./build.sh test 即可编译ut代码，编译ut时，可能会遇到一些问题，需要将部分代码做如下处理：  
-v412.pb.h 大约第36行，添加如下内容
+v412.pb.h 大约第36行，添加如下内容：
 ```
 #ifdef major
 #undef major
@@ -9,11 +10,11 @@ v412.pb.h 大约第36行，添加如下内容
 #undef minor
 #endif
 ```
-gtest-port.h 第286行，在
+gtest-port.h 第286行。
 ```
 #include <sstream>
 ```
-修改为
+修改为：
 ```
 #undef private
 #define private private

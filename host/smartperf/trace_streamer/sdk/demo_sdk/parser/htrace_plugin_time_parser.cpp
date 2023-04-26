@@ -17,7 +17,8 @@ namespace SysTuning {
 namespace TraceStreamer {
 HtracePluginTimeParser::HtracePluginTimeParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : EventParserBase(dataCache, ctx)
-{}
+{
+}
 void HtracePluginTimeParser::UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp)
 {
     minTs_ = std::min(minTs_, asyncTimestamp);

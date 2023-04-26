@@ -139,7 +139,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerExitTestEmpty, TestSize.Level1)
     uint32_t ret = 1;
     std::string appName = "app1";
     uint32_t tid1 = 1;
-    int32_t irq = 12;                                    // 1 for handled, else for unhandled
+    int32_t irq = 12; // 1 for handled, else for unhandled
 
     IrqHandlerExitFormat* irqHandlerExitEvent = new IrqHandlerExitFormat();
     irqHandlerExitEvent->set_irq(irq);
@@ -504,8 +504,8 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTestNotMatch, TestSize.Level1)
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SOFTIRQ_EXIT,
-                                                                        STAT_EVENT_DATA_LOST) == 1);
+    EXPECT_TRUE(
+        stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SOFTIRQ_EXIT, STAT_EVENT_DATA_LOST) == 1);
     eventParser.Clear();
 }
 } // namespace TraceStreamer
