@@ -79,9 +79,9 @@ inline uint32_t EncodeVarint(uint8_t* buf, T v)
 {
     // https://developers.google.com/protocol-buffers/docs/encoding
     // Unsigned Integers and Signed Integers(intN)
-    uint64_t value = (uint64_t)v;
+    uint64_t value = static_cast<uint64_t>(v);
     uint32_t size = 0;
-    while (value > (uint64_t)VARINT_MAX_1BYTE) {
+    while (value > static_cast<uint64_t>(VARINT_MAX_1BYTE)) {
         buf[size] = (VARINT_MASK_PAYLOAD & value) | VARINT_MASK_MSB;
         size++;
         value >>= VARINT_PAYLOAD_BITS;
