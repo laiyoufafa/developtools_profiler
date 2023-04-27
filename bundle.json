@@ -82,7 +82,8 @@
         "//developtools/profiler/device:fuzztest",
         "//developtools/profiler/device:unittest",
         "//developtools/profiler/interfaces/kits/test:unittest",
-        "//developtools/profiler/hidebug/test/unittest:unittest"
+        "//developtools/profiler/hidebug/test/unittest:unittest",
+        "//developtools/profiler/hiebpf/test:unittest"
       ]
     }
   }
