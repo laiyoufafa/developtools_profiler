@@ -131,7 +131,7 @@ bool TraceFileWriter::WriteHeader()
 // delete first split file if split file num over max
 void TraceFileWriter::DeleteOldSplitFile()
 {
-    if (splitFilePaths_.empty() || (splitFilePaths_.size() <= splitFileMaxNum_)) {
+    if (splitFilePaths_.size() <= splitFileMaxNum_) {
         HILOG_INFO(LOG_CORE, "splitFilePaths_ size %zu, no need to delete.", splitFilePaths_.size());
         return;
     }
