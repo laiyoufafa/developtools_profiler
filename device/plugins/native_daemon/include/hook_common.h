@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,29 +83,44 @@ struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
     };
 };
 
-struct ClientConfig {
+struct alignas(8) ClientConfig {
     void Reset()
     {
-        filterSize_ = 0;
-        mallocDisable_ = false;
-        mmapDisable_ = false;
-        freeStackData_ = false;
-        munmapStackData_ = false;
-        maxStackDepth_ = 0;
-        fpunwind_ = false;
+        filterSize = 0;
+        shareMemroySize = 0;
+        clockId = CLOCK_REALTIME;
+        maxStackDepth = 0;
+        mallocDisable = false;
+        mmapDisable = false;
+        freeStackData = false;
+        munmapStackData = false;
+        fpunwind = false;
         isBlocked = false;
         memtraceEnable = false;
     }
 
-    uint32_t filterSize_;
-    bool mallocDisable_;
-    bool mmapDisable_;
-    bool freeStackData_;
-    bool munmapStackData_;
-    uint8_t maxStackDepth_;
-    bool fpunwind_;
-    bool isBlocked;
-    bool memtraceEnable;
+    std::string ToString()
+    {
+        std::stringstream ss;
+        ss << "filterSize:" << filterSize << ", shareMemroySize:" << shareMemroySize
+            << ", clockId:" << clockId << ", maxStackDepth:" << std::to_string(maxStackDepth)
+            << ", mallocDisable:" << mallocDisable << ", mmapDisable:" << mmapDisable
+            << ", freeStackData:" << freeStackData << ", munmapStackData:" << munmapStackData
+            << ", fpunwind:" << fpunwind << ", isBlocked:" << isBlocked << ", memtraceEnable:" << memtraceEnable;
+        return ss.str();
+    }
+
+    uint32_t filterSize = 0;
+    uint32_t shareMemroySize = 0;
+    clockid_t clockId = 0;
+    uint8_t maxStackDepth = 0;
+    bool mallocDisable = false;
+    bool mmapDisable = false;
+    bool freeStackData = false;
+    bool munmapStackData = false;
+    bool fpunwind = false;
+    bool isBlocked = false;
+    bool memtraceEnable = false;
 };
 
 struct StandaloneRawStack {
@@ -116,4 +131,4 @@ struct StandaloneRawStack {
     uint8_t fpDepth; // fp mode fpDepth is ip depth, dwarf mode is invalid
 };
 
-#endif // HOOK_SERVICE_H
+#endif // HOOK_COMMON_H

@@ -33,6 +33,6 @@ bool VerifyPath(const std::string& filePath, const std::vector<std::string>& val
 bool ReadFile(const std::string& filePath, const std::vector<std::string>& validPaths, std::string& fileContent);
 std::string GetErrorMsg();
 std::string GetTimeStr();
+clockid_t GetClockId(const std::string& clockIdStr);
 } // COMMON
-
 #endif // COMMON_H

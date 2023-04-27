@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <elf.h>
 #include <unistd.h>
 
+#include "common.h"
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "elf_parser.h"
@@ -38,9 +39,9 @@ constexpr static uint32_t DLOPEN_FRAME_INDEX = 4;
 
 using namespace OHOS::Developtools::NativeDaemon;
 
-StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig& hookConfig)
-    : dataRepeater_(dataRepeater), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]),
-      hookConfig_(hookConfig), fpHookData_(nullptr, nullptr)
+StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig& hookConfig,
+    clockid_t pluginDataClockId) : dataRepeater_(dataRepeater), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]),
+    hookConfig_(hookConfig), fpHookData_(nullptr, nullptr), pluginDataClockId_(pluginDataClockId)
 {
     runtime_instance = std::make_shared<VirtualRuntime>(hookConfig_);
 
@@ -61,6 +62,9 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const
     }
     HILOG_INFO(LOG_CORE, "statistics_interval = %d statisticsInterval_ = %lld \n",
         hookConfig_.statistics_interval(), statisticsInterval_.count());
+    hookDataClockId_ = COMMON::GetClockId(hookConfig_.clock());
+    HILOG_INFO(LOG_CORE, "StackPreprocess(): pluginDataClockId = %d hookDataClockId = %d \n",
+        pluginDataClockId_, hookDataClockId_);
     // create file
     if (hookConfig_.save_file()) {
         if (hookConfig_.file_name() != "") {
@@ -130,12 +134,12 @@ bool StackPreprocess::StopTakeResults()
 
     isStopTakeData_ = true;
     dataRepeater_->PutRawStack(nullptr, false);
-    HILOG_INFO(LOG_CORE, "Wait thread join");
+    HILOG_INFO(LOG_CORE, "StopTakeResults Wait thread join");
 
     if (thread_.joinable()) {
         thread_.join();
     }
-    HILOG_INFO(LOG_CORE, "Wait thread join success");
+    HILOG_INFO(LOG_CORE, "StopTakeResults Wait thread join success");
     return true;
 }
 
@@ -155,7 +159,7 @@ void StackPreprocess::TakeResults()
     while (1) {
         BatchNativeHookData stackData;
         RawStackPtr batchRawStack[MAX_BATCH_CNT] = {nullptr};
-        auto result = dataRepeater_->TakeRawData(hookConfig_.malloc_free_matching_interval(),
+        auto result = dataRepeater_->TakeRawData(hookConfig_.malloc_free_matching_interval(), hookDataClockId_,
             MAX_BATCH_CNT, batchRawStack);
         if (!result || isStopTakeData_) {
             break;
@@ -787,8 +791,8 @@ void StackPreprocess::Flush(const uint8_t* src, size_t size)
     pluginData.set_status(0);
     pluginData.set_data(src, size);
     struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+    clock_gettime(pluginDataClockId_, &ts);
+    pluginData.set_clock_id(static_cast<ProfilerPluginData_ClockId>(pluginDataClockId_));
     pluginData.set_tv_sec(ts.tv_sec);
     pluginData.set_tv_nsec(ts.tv_nsec);
     writer_->WriteMessage(pluginData, "nativehook");
@@ -853,7 +857,7 @@ bool StackPreprocess::FlushRecordStatistics()
         return false;
     }
     struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(hookDataClockId_, &ts);
     BatchNativeHookData statisticsData;
     for (auto [addr, statistics] : statisticsPeriodData_) {
         NativeHookData* hookData = statisticsData.add_events();

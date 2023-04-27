@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,9 @@
 #include "writer_adapter.h"
 #include "hook_standalone.h"
 #include "hook_common.h"
+
+using namespace OHOS::Developtools::NativeDaemon;
+
 namespace {
 const int SLEEP_ONE_SECOND = 1000;
 const int BUF_MAX_LEN = 10;

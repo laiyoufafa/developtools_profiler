@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <functional>
 #include <iomanip>
 
+#include "common.h"
 #include "command_poller.h"
 #include "logging.h"
 #include "openssl/sha.h"
@@ -257,8 +258,9 @@ bool PluginManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>&
             return false;
         }
 
-        HILOG_DEBUG(LOG_CORE, "%s:index = %d", __func__, it->second);
+        HILOG_INFO(LOG_CORE, "%s:index = %d, clock = %s", __func__, it->second, config[idx].clock().c_str());
         pluginModules_[it->second]->SetConfigData(config[idx].config_data());
+        pluginModules_[it->second]->SetClockId(COMMON::GetClockId(config[idx].clock()));
     }
     return true;
 }
@@ -425,9 +427,10 @@ bool PluginManager::PullResult(uint32_t pluginId)
     pluginData.set_data(buffer.get(), length);
 
     struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clockid_t clockId = pluginModules_[pluginId]->GetClockId();
+    clock_gettime(clockId, &ts);
 
-    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+    pluginData.set_clock_id(static_cast<ProfilerPluginData_ClockId>(clockId));
     pluginData.set_tv_sec(ts.tv_sec);
     pluginData.set_tv_nsec(ts.tv_nsec);
 

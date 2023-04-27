@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,9 +34,7 @@
 #include "hook_common.h"
 #include "common.h"
 
-using namespace OHOS::Developtools::NativeDaemon;
-
-namespace {
+namespace OHOS::Developtools::NativeDaemon {
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
 const int PAGE_BYTES = 4096;
 std::shared_ptr<BufferWriter> g_buffWriter;
@@ -49,7 +47,6 @@ const int MOVE_BIT_32 = 32;
 const int SIGNAL_START_HOOK = 36;
 const int SIGNAL_STOP_HOOK = 37;
 const std::string VERSION = "1.01";
-}  // namespace
 
 bool HookManager::CheckProcess()
 {
@@ -163,10 +160,24 @@ bool HookManager::UnloadPlugin(const uint32_t pluginId)
     return true;
 }
 
+void HookManager::GetClientConfig(const NativeHookConfig& nativeHookConfig, ClientConfig& clientConfig)
+{
+    clientConfig.shareMemroySize = hookConfig_.smb_pages() * PAGE_BYTES;
+    clientConfig.filterSize = hookConfig_.filter_size();
+    clientConfig.clockId = COMMON::GetClockId(hookConfig_.clock());
+    clientConfig.maxStackDepth = hookConfig_.max_stack_depth();
+    clientConfig.mallocDisable = hookConfig_.malloc_disable();
+    clientConfig.mmapDisable = hookConfig_.mmap_disable();
+    clientConfig.freeStackData = hookConfig_.free_stack_report();
+    clientConfig.munmapStackData = hookConfig_.munmap_stack_report();
+    clientConfig.fpunwind = hookConfig_.fp_unwind();
+    clientConfig.isBlocked = hookConfig_.blocked();
+    clientConfig.memtraceEnable = hookConfig_.memtrace_enable();
+}
+
 bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& config)
 {
     HILOG_DEBUG(LOG_CORE, "CreatePluginSession");
-    UNUSED_PARAMETER(config);
     smbName_ = "hooknativesmb";
     // save config
     std::string cfgData = config[0].config_data();
@@ -205,14 +216,9 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
 
     eventPoller_->Init();
     eventPoller_->Start();
-
     eventPoller_->AddFileDescriptor(eventNotifier_->GetFd(), std::bind(&HookManager::ReadShareMemory, this));
-
     HILOG_INFO(LOG_CORE, "hookservice smbFd = %d, eventFd = %d\n", shareMemoryBlock_->GetfileDescriptor(),
                eventNotifier_->GetFd());
-
-    // hook config |F F            F F              F F F F       F F F F      F F F F|
-    //              stack depth    malloctype       filtersize    sharememory  size
 
     if (hookConfig_.max_stack_depth() < DLOPEN_MIN_UNWIND_DEPTH) {
         // set default max depth
@@ -221,22 +227,6 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
 #if defined(__arm__)
     hookConfig_.set_fp_unwind(false); // if OS is 32-bit,set fp_unwind false.
 #endif
-    uint64_t hookConfig = (uint8_t)hookConfig_.max_stack_depth();
-    hookConfig <<= MOVE_BIT_8;
-
-    hookConfig |= hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
-    hookConfig |= hookConfig_.mmap_disable() ? MMAPDISABLE : 0;
-    hookConfig |= hookConfig_.free_stack_report() ? FREEMSGSTACK : 0;
-    hookConfig |= hookConfig_.munmap_stack_report() ? MUNMAPMSGSTACK : 0;
-    hookConfig |= hookConfig_.fp_unwind() ? FPUNWIND : 0;
-    hookConfig |= hookConfig_.blocked() ? BLOCKED : 0;
-    hookConfig |= hookConfig_.memtrace_enable() ? MEMTRACE_ENABLE : 0;
-
-    hookConfig <<= MOVE_BIT_16;
-    hookConfig |= hookConfig_.filter_size();
-    hookConfig <<= MOVE_BIT_32;
-    hookConfig |= bufferSize;
-
     // offlinem symbolization, callframe must be compressed
     if (hookConfig_.offline_symbolization()) {
         hookConfig_.set_callframe_compress(true);
@@ -254,19 +244,24 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     }
 
     isRecordAccurately_ = hookConfig_.record_accurately();
-    HILOG_INFO(LOG_CORE, "hookConfig filter size = %d, malloc disable = %d mmap disable = %d smb size = %u",
-        hookConfig_.filter_size(), hookConfig_.malloc_disable(), hookConfig_.mmap_disable(), bufferSize);
+    HILOG_INFO(LOG_CORE, "hookConfig filter size = %d, malloc disable = %d mmap disable = %d",
+        hookConfig_.filter_size(), hookConfig_.malloc_disable(), hookConfig_.mmap_disable());
     HILOG_INFO(LOG_CORE, "hookConfig fp unwind = %d, max stack depth = %d, record_accurately=%d",
         hookConfig_.fp_unwind(), hookConfig_.max_stack_depth(), isRecordAccurately_);
     HILOG_INFO(LOG_CORE, "hookConfig  offline_symbolization = %d", hookConfig_.offline_symbolization());
 
+    ClientConfig clientConfig;
+    GetClientConfig(hookConfig_, clientConfig);
+    std::string clientConfigStr = clientConfig.ToString();
+    HILOG_INFO(LOG_CORE, "send hook client config:%s\n", clientConfigStr.c_str());
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
-                                                eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
+                                                eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), clientConfig);
     CHECK_NOTNULL(hookService_, false, "HookService create failed!");
 
     stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);
     CHECK_TRUE(stackData_ != nullptr, false, "Create StackDataRepeater FAIL");
-    stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_);
+    clockid_t pluginDataClockId = COMMON::GetClockId(config[0].clock());
+    stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_, pluginDataClockId);
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "Create StackPreprocess FAIL");
     stackPreprocess_->SetWriter(g_buffWriter);
     if (hookConfig_.offline_symbolization() && pid_ != 0) {
@@ -430,26 +425,4 @@ void HookManager::RegisterWriter(const BufferWriterPtr& writer)
     g_buffWriter = writer;
     return;
 }
-
-bool HookManager::SendProtobufPackage(uint8_t *cache, size_t length)
-{
-    if (g_buffWriter == nullptr) {
-        HILOG_ERROR(LOG_CORE, "HookManager:: BufferWriter empty, should set writer first");
-        return false;
-    }
-    ProfilerPluginData pluginData;
-    pluginData.set_name("nativehook");
-    pluginData.set_status(0);
-    pluginData.set_data(cache, length);
-
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-
-    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
-    pluginData.set_tv_sec(ts.tv_sec);
-    pluginData.set_tv_nsec(ts.tv_nsec);
-
-    g_buffWriter->WriteMessage(pluginData, "nativehook");
-    g_buffWriter->Flush();
-    return true;
 }

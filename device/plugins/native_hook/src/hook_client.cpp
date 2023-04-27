@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -140,7 +140,7 @@ bool ohos_malloc_hook_on_start(void)
     pthread_setspecific(g_hookTid, nullptr);
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
-    g_minSize = g_ClientConfig.filterSize_;
+    g_minSize = g_ClientConfig.filterSize;
     constexpr int paramBufferLen = 128;
     char paramOutBuf[paramBufferLen] = {0};
     int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
@@ -214,7 +214,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (fn) {
         ret = fn(size);
     }
-    if (g_ClientConfig.mallocDisable_ || IsPidChanged()) {
+    if (g_ClientConfig.mallocDisable || IsPidChanged()) {
         return ret;
     }
     if (!ohos_set_filter_size(size, ret)) {
@@ -229,14 +229,14 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     const char* stackendptr = nullptr;
     int stackSize = 0;
     int fpStackDepth = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -270,7 +270,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     auto holder = weakClient.lock();
     if (holder != nullptr) {
         int realSize = 0;
-        if (g_ClientConfig.fpunwind_) {
+        if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
             realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
@@ -307,7 +307,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     if (fn) {
         pRet = fn(number, size);
     }
-    if (g_ClientConfig.mallocDisable_ || IsPidChanged()) {
+    if (g_ClientConfig.mallocDisable || IsPidChanged()) {
         return pRet;
     }
     if (!ohos_set_filter_size(number * size, pRet)) {
@@ -319,14 +319,14 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     const char* stackendptr = nullptr;
     int stackSize = 0;
     int fpStackDepth = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -360,7 +360,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     auto holder = weakClient.lock();
     if (holder != nullptr) {
         int realSize = 0;
-        if (g_ClientConfig.fpunwind_) {
+        if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
             realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
@@ -386,7 +386,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     if (fn) {
         pRet = fn(ptr, size);
     }
-    if (g_ClientConfig.mallocDisable_ || IsPidChanged()) {
+    if (g_ClientConfig.mallocDisable || IsPidChanged()) {
         return pRet;
     }
     if (!ohos_set_filter_size(size, pRet)) {
@@ -399,16 +399,16 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     const char* stackendptr = nullptr;
     int stackSize = 0;
     int fpStackDepth = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
         stackSize = 0;
-        if (g_ClientConfig.freeStackData_) {
+        if (g_ClientConfig.freeStackData) {
             (void)memcpy_s(freeData.ip, sizeof(freeData.ip) / sizeof(uint64_t),
                            rawdata.ip, sizeof(rawdata.ip) / sizeof(uint64_t));
         }
@@ -433,7 +433,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        if (g_ClientConfig.freeStackData_) {
+        if (g_ClientConfig.freeStackData) {
             (void)memcpy_s(freeData.regs, sizeof(freeData.regs) / sizeof(char),
                            rawdata.regs, sizeof(rawdata.regs) / sizeof(char));
         }
@@ -456,7 +456,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         freeData.ts = rawdata.ts;
         (void)memcpy_s(freeData.tname, sizeof(freeData.tname) / sizeof(char),
                        rawdata.tname, sizeof(rawdata.tname) / sizeof(char));
-        if (g_ClientConfig.fpunwind_) {
+        if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
             realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
@@ -482,7 +482,7 @@ void hook_free(void (*free_func)(void*), void* p)
     if (free_func) {
         free_func(p);
     }
-    if (g_ClientConfig.mallocDisable_ || IsPidChanged()) {
+    if (g_ClientConfig.mallocDisable || IsPidChanged()) {
         return;
     }
     {
@@ -498,15 +498,15 @@ void hook_free(void (*free_func)(void*), void* p)
     const char* stackendptr = nullptr;
     int stackSize = 0;
     int fpStackDepth = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.freeStackData_) {
-        if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.freeStackData) {
+        if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
-            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
             stackSize = 0;
 #endif
         } else {
@@ -542,7 +542,7 @@ void hook_free(void (*free_func)(void*), void* p)
     auto holder = weakClient.lock();
     if (holder != nullptr) {
         int realSize = 0;
-        if (g_ClientConfig.fpunwind_) {
+        if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
             realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
@@ -558,7 +558,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (fn) {
         ret = fn(addr, length, prot, flags, fd, offset);
     }
-    if (g_ClientConfig.mmapDisable_ || IsPidChanged()) {
+    if (g_ClientConfig.mmapDisable || IsPidChanged()) {
         return ret;
     }
     StackRawData rawdata = {{{0}}};
@@ -566,14 +566,14 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     const char* stackendptr = nullptr;
     int stackSize = 0;
     int fpStackDepth = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -626,7 +626,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     auto holder = weakClient.lock();
     if (holder != nullptr) {
         int realSize = 0;
-        if (g_ClientConfig.fpunwind_) {
+        if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
             realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
@@ -642,7 +642,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     if (fn) {
         ret = fn(addr, length);
     }
-    if (g_ClientConfig.mmapDisable_ || IsPidChanged()) {
+    if (g_ClientConfig.mmapDisable || IsPidChanged()) {
         return ret;
     }
     int stackSize = 0;
@@ -650,15 +650,15 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int fpStackDepth = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.munmapStackData_) {
-        if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.munmapStackData) {
+        if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
-            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
             stackSize = 0;
 #endif
         } else {
@@ -695,7 +695,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     auto holder = weakClient.lock();
     if (holder != nullptr) {
         int realSize = 0;
-        if (g_ClientConfig.fpunwind_) {
+        if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
             realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
@@ -717,7 +717,7 @@ int hook_prctl(int(*fn)(int, ...),
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
         BaseStackRawData rawdata = {};
-        clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+        clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = static_cast<uint32_t>(g_hookPid);
         rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
@@ -746,14 +746,14 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.fpunwind_) {
+    if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {

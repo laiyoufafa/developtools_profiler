@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,6 +103,20 @@ void PluginModule::SetConfigData(const std::string& data)
 std::string PluginModule::GetConfigData() const
 {
     return configData_;
+}
+
+void PluginModule::SetClockId(clockid_t clockId)
+{
+    clockId_ = clockId;
+    HILOG_INFO(LOG_CORE, "SetClockId: plugin=%s, clock=%d", GetPluginName().c_str(), clockId);
+    if (writerAdapter_ != nullptr && writerAdapter_->GetWriter() != nullptr) {
+        writerAdapter_->GetWriter()->SetClockId(clockId);
+    }
+}
+
+clockid_t PluginModule::GetClockId() const
+{
+    return clockId_;
 }
 
 bool PluginModule::GetPluginName(std::string& pluginName)

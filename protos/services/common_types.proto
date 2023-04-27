@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Huawei Device Co., Ltd.
+// Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -21,6 +21,7 @@ message ProfilerPluginConfig {
     string plugin_sha256 = 2;
     uint32 sample_interval = 3;
     bytes  config_data = 4;
+    string clock = 5;
 }
 
 message ProfilerPluginState {
@@ -41,16 +42,17 @@ message ProfilerPluginData {
     bytes data = 3;
     enum ClockId {
         CLOCKID_REALTIME = 0;
-        CLOCKID_REALTIME_ALARM = 1;     // since Linux 3.0; Linux-specific
-        CLOCKID_REALTIME_COARSE = 2;    // since Linux 2.6.32; Linux-specific
-        CLOCKID_TAI = 3;                // since Linux 3.10; Linux-specific
-        CLOCKID_MONOTONIC = 4;
-        CLOCKID_MONOTONIC_COARSE = 5;   // since Linux 2.6.32; Linux-specific
-        CLOCKID_MONOTONIC_RAW = 6;      // since Linux 2.6.28; Linux-specific
+        CLOCKID_MONOTONIC = 1;
+        CLOCKID_PROCESS_CPUTIME_ID = 2; // since Linux 2.6.12
+        CLOCKID_THREAD_CPUTIME_ID = 3;  // since Linux 2.6.12
+        CLOCKID_MONOTONIC_RAW = 4;      // since Linux 2.6.28; Linux-specific
+        CLOCKID_REALTIME_COARSE = 5;    // since Linux 2.6.32; Linux-specific
+        CLOCKID_MONOTONIC_COARSE = 6;   // since Linux 2.6.32; Linux-specific
         CLOCKID_BOOTTIME = 7;           // since Linux 2.6.39; Linux-specific
-        CLOCKID_BOOTTIME_ALARM = 8;     // since Linux 3.0; Linux-specific
-        CLOCKID_PROCESS_CPUTIME_ID = 9; // since Linux 2.6.12
-        CLOCKID_THREAD_CPUTIME_ID = 10; // since Linux 2.6.12
+        CLOCKID_REALTIME_ALARM = 8;     // since Linux 3.0; Linux-specific
+        CLOCKID_BOOTTIME_ALARM = 9;     // since Linux 3.0; Linux-specific
+        CLOCKID_SGI_CYCLE = 10;
+        CLOCKID_TAI = 11;               // since Linux 3.10; Linux-specific
     };
     ClockId clock_id = 4;
     uint64 tv_sec = 5;

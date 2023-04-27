@@ -23,6 +23,7 @@
 #include "command_poller.h"
 
 using namespace testing::ext;
+using namespace OHOS::Developtools::NativeDaemon;
 
 namespace {
 const std::string DEFAULT_HIPROFILERD_PATH("/system/bin/hiprofilerd");

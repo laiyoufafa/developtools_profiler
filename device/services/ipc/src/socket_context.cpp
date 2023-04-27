@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,7 +62,7 @@ SocketContext::~SocketContext()
     if (recvThread_.joinable()) {
         recvThread_.join();
     }
-    HILOG_ERROR(LOG_CORE, "recvThread join success");
+    HILOG_ERROR(LOG_CORE, "~SocketContext recvThread join success");
 }
 
 int SocketContext::RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint32_t size)
@@ -188,14 +188,17 @@ bool SocketContext::SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg)
 }
 #endif
 
-bool SocketContext::SendHookConfig(uint64_t config)
+bool SocketContext::SendHookConfig(const uint8_t* config, size_t len)
 {
+    if (config == nullptr || len == 0) {
+        return false;
+    }
+
     struct ProtocolHead phead;
     phead.protoType = PROTOCOL_TYPE_PROTOBUF;
-    phead.protoSize = sizeof(config) + sizeof(struct ProtocolHead);
+    phead.protoSize = len + sizeof(struct ProtocolHead);
     send(socketHandle_, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0);
-    send(socketHandle_, &config , sizeof(config), 0);
-
+    send(socketHandle_, config , len, 0);
     return true;
 }
 

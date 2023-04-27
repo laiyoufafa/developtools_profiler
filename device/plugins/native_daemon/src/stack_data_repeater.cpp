@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -96,7 +96,8 @@ bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData, bool isRecordAcc
     return true;
 }
 
-RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, uint32_t batchCount, RawStackPtr batchRawStack[])
+RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, clockid_t clockId, uint32_t batchCount,
+    RawStackPtr batchRawStack[])
 {
     uint32_t rawDataQueueSize = 0;
     std::unique_lock<std::mutex> lock(mutex_);
@@ -127,7 +128,7 @@ RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, uint32_t batchCount,
     slotCondVar_.notify_one();
     if (result != nullptr && during > 0 && rawDataQueueSize < SLOW_DOWN_THRESHOLD) {
         struct timespec now = {};
-        clock_gettime(CLOCK_REALTIME, &now);
+        clock_gettime(clockId, &now);
         uint64_t curDuring = (now.tv_sec - result->stackConext->ts.tv_sec) * 1000;
         int diff = during - curDuring;
         if (diff > 0) {
