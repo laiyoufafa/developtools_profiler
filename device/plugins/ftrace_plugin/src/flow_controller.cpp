@@ -46,6 +46,9 @@ namespace {
     constexpr uint32_t MIN_BLOCK_SIZE_PAGES = 256;     // 1  MB
     constexpr uint32_t PARSE_CMDLINE_COUNT = 1000;
     const std::set<std::string> g_availableClocks = { "boot", "global", "local", "mono" };
+    constexpr uint32_t SAVED_CMDLINE_SIZE_SMALL = 1024; // save cmdline sizes for cpu num less than 8
+    constexpr uint32_t SAVED_CMDLINE_SIZE_LARGE = 4096; // save cmdline sizes for cpu num no less than 8
+    constexpr int OCTA_CORE_CPU = 8; // 8 core
 } // namespace
 
 FTRACE_NS_BEGIN
@@ -193,6 +196,11 @@ int FlowController::StartCapture(void)
 
     // clear old trace
     FtraceFsOps::GetInstance().ClearTraceBuffer();
+
+    uint32_t savedCmdlinesSize = platformCpuNum_ < OCTA_CORE_CPU ? SAVED_CMDLINE_SIZE_SMALL : SAVED_CMDLINE_SIZE_LARGE;
+    if (!FtraceFsOps::GetInstance().SetSavedCmdLinesSize(savedCmdlinesSize)) {
+        HILOG_ERROR(LOG_CORE, "SetSavedCmdLinesSize %u fail.", savedCmdlinesSize);
+    }
 
     // enable additional record options
     FtraceFsOps::GetInstance().SetRecordCmdOption(true);
