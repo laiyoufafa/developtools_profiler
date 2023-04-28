@@ -24,7 +24,7 @@
 
 namespace OHOS {
     namespace SmartPerf {
-        float ParseTrace::ParseTraceNoah(const std::string &fileNamePath, const std::string &appPid)
+        float ParseTrace::ParseTraceNoh(const std::string &fileNamePath, const std::string &appPid)
         {
             int conversion = 1000;
             float code = -1;
@@ -34,19 +34,18 @@ namespace OHOS {
                 infile.close();
                 return code;
             } else {
-                code = SmartPerf::ParseTrace::ParseNoahTrace(fileNamePath, appPid);
+                code = SmartPerf::ParseTrace::ParseNohTrace(fileNamePath, appPid);
             }
             infile.close();
             return code * conversion;
         }
-        float ParseTrace::ParseNoahTrace(const std::string &fileNamePath, const std::string &appPid)
+        float ParseTrace::ParseNohTrace(const std::string &fileNamePath, const std::string &appPid)
         {
             std::string line;
             std::string::size_type positionPid;
             float codeTime = -1;
             while (getline(infile, line)) {
                 startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
-                windowTime = SmartPerf::ParseTrace::GetWindowTime(line, windowTime);
                 frameId = SmartPerf::ParseTrace::GetFrameId(line, appPid, frameId);
 				
                 positionPid = line.find("[" + appPid + "," + frameId + "]");
@@ -67,7 +66,7 @@ namespace OHOS {
                     }
                 }
             }
-            codeTime = SmartPerf::ParseTrace::GetTimeNoah(startTime, endTime, windowTime);
+            codeTime = SmartPerf::ParseTrace::GetTime(startTime, endTime);
             return codeTime;
         }
         std::string ParseTrace::GetFrameId(std::string line, std::string appPid, std::string fid)
@@ -161,7 +160,7 @@ namespace OHOS {
                     int timeNum = endNum - endFlagNum;
                     float interval = 0.3;
                     if (timeNum < interval) {
-                            endTimeFlag = endTime;
+                        endTimeFlag = endTime;
                     } else {
                         if (std::stof(endTimeFlag) == 0) {
                             endTimeFlag = endTime;
@@ -211,20 +210,6 @@ namespace OHOS {
             return codeTime;
         }
         float ParseTrace::GetTime(std::string start, std::string end)
-        {
-            size_t point = end.find(".");
-            float codeTime = -1;
-            size_t subNum = 2;
-            end = end.substr(point - subNum);
-            start = start.substr(point - subNum);
-            if (std::stof(end) == 0 || std::stof(start) == 0) {
-            } else {
-                float displayTime = 0.040;
-                codeTime = std::stof(end) - std::stof(start) + displayTime;
-            }
-            return codeTime;
-        }
-        float  ParseTrace::GetTimeNoah(std::string start, std::string end, std::string wt)
         {
             float codeTime = -1;
             if (std::stof(end) == 0 || std::stof(start) == 0) {
