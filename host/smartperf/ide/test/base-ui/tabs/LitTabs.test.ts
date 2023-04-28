@@ -14,123 +14,127 @@
  */
 
 // @ts-ignore
-import {LitTabs} from "../../../dist/base-ui/tabs/lit-tabs.js";
+import { LitTabs } from '../../../dist/base-ui/tabs/lit-tabs.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-describe('LitSwitch Test', ()=>{
+describe('LitSwitch Test', () => {
     let litTabs = new LitTabs();
 
-    litTabs.position = 'position'
-    litTabs.mode = 'mode'
-    litTabs.activekey = 'activekey'
+    litTabs.position = 'position';
+    litTabs.mode = 'mode';
+    litTabs.activekey = 'activekey';
 
-
-        litTabs.nav = jest.fn(()=>{
+    litTabs.nav = jest.fn(() => {
         let el = document.createElement('div');
         let htmlDivElement = document.createElement('div');
-        htmlDivElement.setAttribute('class', 'nav-item[data-key=\'${key}\']')
+        htmlDivElement.setAttribute('class', "nav-item[data-key='${key}']");
 
-        el.appendChild(htmlDivElement)
-        return el
-    })
+        el.appendChild(htmlDivElement);
+        return el;
+    });
 
-    LitTabs.nav = jest.fn(()=>{
-        return document.createElement('div') as HTMLDivElement
-    })
+    LitTabs.nav = jest.fn(() => {
+        return document.createElement('div') as HTMLDivElement;
+    });
 
-    LitTabs.nav.querySelectorAll = jest.fn(()=>{
-        return ['fd']
-    })
+    LitTabs.nav.querySelectorAll = jest.fn(() => {
+        return ['fd'];
+    });
 
-    it('litTabsTest1', ()=>{
+    it('litTabsTest1', () => {
         expect(litTabs.activekey).toBe('activekey');
-    })
+    });
 
-    it('litTabsTest01', ()=>{
+    it('litTabsTest01', () => {
         expect(litTabs.onTabClick).toBeUndefined();
-    })
+    });
 
-    it('litTabsTest02', ()=>{
-        litTabs.nav = jest.fn(()=> true)
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
-        })
-        litTabs.nav.querySelectorAll = jest.fn(()=> true)
+    it('litTabsTest02', () => {
+        litTabs.nav = jest.fn(() => true);
+        litTabs.nav.querySelector = jest.fn(() => {
+            return document.createElement('div') as HTMLDivElement;
+        });
+        litTabs.nav.querySelectorAll = jest.fn(() => true);
         expect(litTabs.updateDisabled('key', 'value')).toBeUndefined();
-    })
+    });
 
-    it('litTabsTest03', ()=>{
-        litTabs.nav = jest.fn(()=> true)
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
-        })
-        litTabs.nav.querySelectorAll = jest.fn(()=> true)
+    it('litTabsTest03', () => {
+        litTabs.nav = jest.fn(() => true);
+        litTabs.nav.querySelector = jest.fn(() => {
+            return document.createElement('div') as HTMLDivElement;
+        });
+        litTabs.nav.querySelectorAll = jest.fn(() => true);
         expect(litTabs.updateCloseable('key', 'value')).toBeUndefined();
-    })
+    });
 
-    it('litTabsTest04', ()=>{
-        litTabs.nav = jest.fn(()=> true)
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
-        })
-        litTabs.nav.querySelectorAll = jest.fn(()=> true)
+    it('litTabsTest04', () => {
+        litTabs.nav = jest.fn(() => true);
+        litTabs.nav.querySelector = jest.fn(() => {
+            return document.createElement('div') as HTMLDivElement;
+        });
+        litTabs.nav.querySelectorAll = jest.fn(() => true);
 
-        expect(litTabs.updateHidden('key', "true")).toBeUndefined();
-    })
+        expect(litTabs.updateHidden('key', 'true')).toBeUndefined();
+    });
 
-    it('litTabsTest13', ()=>{
-        litTabs.nav = jest.fn(()=> true)
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
-        })
-        litTabs.nav.querySelectorAll = jest.fn(()=> true)
+    it('litTabsTest13', () => {
+        litTabs.nav = jest.fn(() => true);
+        litTabs.nav.querySelector = jest.fn(() => {
+            return document.createElement('div') as HTMLDivElement;
+        });
+        litTabs.nav.querySelectorAll = jest.fn(() => true);
 
-        expect(litTabs.updateHidden('key', !"true")).toBeUndefined();
-    })
+        expect(litTabs.updateHidden('key', !'true')).toBeUndefined();
+    });
 
-    it('litTabsTest05', ()=>{
+    it('litTabsTest05', () => {
         expect(litTabs.initTabPos()).toBeUndefined();
-    })
+    });
 
-    it('litTabsTest07', ()=>{
-    //     litTabs.nav.querySelectorAll = jest.fn(()=> true)
-    //     litTabs.nav.querySelectorAll.forEach = jest.fn(()=> true)
-        expect(litTabs.activeByKey(null||undefined)).toBeUndefined();
-    })
+    it('litTabsTest07', () => {
+        expect(litTabs.activeByKey(null || undefined)).toBeUndefined();
+    });
 
-    it('litTabsTest06', ()=>{
+    it('litTabsTest06', () => {
         expect(litTabs.activePane('Key')).toBeFalsy();
-    })
+    });
 
-    it('litTabsTest007', ()=>{
-        expect(litTabs.connectedCallback()).toBeUndefined()
-    })
-    it('litTabsTest8', ()=>{
-        expect(litTabs.attributeChangedCallback('activekey', 'disabled', 'activekey')).toBeUndefined()
-    })
+    it('litTabsTest007', () => {
+        expect(litTabs.connectedCallback()).toBeUndefined();
+    });
+    it('litTabsTest8', () => {
+        expect(
+            litTabs.attributeChangedCallback(
+                'activekey',
+                'disabled',
+                'activekey'
+            )
+        ).toBeUndefined();
+    });
 
-    it('litTabsTest9', ()=>{
+    it('litTabsTest9', () => {
         expect(litTabs.adoptedCallback()).toBeUndefined();
-    })
+    });
 
-    it('litTabsTest09', ()=>{
+    it('litTabsTest09', () => {
         expect(litTabs.disconnectedCallback()).toBeUndefined();
-    })
-    it('litTabsTest10', ()=>{
+    });
+    it('litTabsTest10', () => {
         expect(litTabs.position).toBe('position');
-    })
+    });
 
-    it('litTabsTest11', ()=>{
+    it('litTabsTest11', () => {
         expect(litTabs.mode).toBe('mode');
-    })
+    });
 
-    it('litTabsTest12', ()=>{
+    it('litTabsTest12', () => {
         expect(litTabs.shadowRoot.innerHTML).toMatchInlineSnapshot(`
 "
         <style>
@@ -191,7 +195,7 @@ describe('LitSwitch Test', ()=>{
             display: flex;
             position: relative;
             height: 38px;
-            z-index: 3;
+            z-index: auto;
             /*justify-content: center;*/
             /*align-items: center;*/
         }
@@ -530,27 +534,27 @@ describe('LitSwitch Test', ()=>{
         </div>
         "
 `);
-    })
+    });
 
-    it('litTabsTest14', ()=>{
-        litTabs.nav = jest.fn(()=> true);
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
+    it('litTabsTest14', () => {
+        litTabs.nav = jest.fn(() => true);
+        litTabs.nav.querySelector = jest.fn(() => {
+            return document.createElement('div') as HTMLDivElement;
         });
-        litTabs.nav.querySelectorAll = jest.fn(()=> true);
+        litTabs.nav.querySelectorAll = jest.fn(() => true);
         expect(litTabs.updateDisabled('key', undefined)).toBeUndefined();
     });
 
-    it('litTabsTest15', ()=>{
-        litTabs.nav = jest.fn(()=> true);
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
+    it('litTabsTest15', () => {
+        litTabs.nav = jest.fn(() => true);
+        litTabs.nav.querySelector = jest.fn(() => {
+            return document.createElement('div') as HTMLDivElement;
         });
-        litTabs.nav.querySelectorAll = jest.fn(()=> true);
+        litTabs.nav.querySelectorAll = jest.fn(() => true);
         expect(litTabs.updateCloseable('key', undefined)).toBeUndefined();
     });
 
-    it('litTabsTest19', ()=>{
+    it('litTabsTest19', () => {
         expect(litTabs.activePane(null)).toBe(false);
-    })
-})
+    });
+});

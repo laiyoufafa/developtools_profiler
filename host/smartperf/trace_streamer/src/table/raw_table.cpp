@@ -162,7 +162,7 @@ int RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
                     rawObj_.NameData());
                 break;
             case TS:
-                FilterTS(c.op, argv[i], rawObj_.TimeStamData());
+                FilterTS(c.op, argv[i], rawObj_.TimeStampData());
                 break;
             case INTERNAL_TID:
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
@@ -198,7 +198,7 @@ int RawTable::Cursor::Column(int column) const
             sqlite3_result_text(context_, "raw", STR_DEFAULT_LEN, nullptr);
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(rawObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(rawObj_.TimeStampData()[CurrentRow()]));
             break;
         case NAME: {
             if (rawObj_.NameData()[CurrentRow()] == RAW_CPU_IDLE) {

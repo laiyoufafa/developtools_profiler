@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,23 +16,32 @@
 
 #include <cinttypes>
 #include <memory>
+#include <sys/statvfs.h>
+#include <unistd.h>
 
+#include "common.h"
 #include "logging.h"
 
 using CharPtr = std::unique_ptr<char>::pointer;
 using ConstCharPtr = std::unique_ptr<const char>::pointer;
 
 namespace {
-const int MB_TO_BYTE = 1024 * 1024;
-const int MIN_BYTE = 200;
+constexpr int MB_TO_BYTE = (1024 * 1024);
+constexpr int GB_TO_BYTE = (1024 * 1024 * 1024);
+constexpr int SPLIT_FILE_MIN_SIZE = 200;    // split file min size
+constexpr int SPLIT_FILE_DEFAULT_NUM = 10;  // split file default num
 } // namespace
 
-TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32_t singleFileMaxSizeMb)
-    : path_(path), writeBytes_(0)
+TraceFileWriter::TraceFileWriter(const std::string& path) : TraceFileWriter(path, false, 0, 0)
 {
-    isSplitFile_ = splitFile;
-    singleFileMaxSize_ = (singleFileMaxSizeMb < MIN_BYTE) ? (MIN_BYTE * MB_TO_BYTE) :
-        (singleFileMaxSizeMb * MB_TO_BYTE);
+}
+
+TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32_t splitFileMaxSizeMb,
+    uint32_t splitFileMaxNum) : path_(path), isSplitFile_(splitFile)
+{
+    splitFileMaxSize_ = (splitFileMaxSizeMb < SPLIT_FILE_MIN_SIZE) ? (SPLIT_FILE_MIN_SIZE * MB_TO_BYTE) :
+        (splitFileMaxSizeMb * MB_TO_BYTE);
+    splitFileMaxNum_ = (splitFileMaxNum == 0) ? SPLIT_FILE_DEFAULT_NUM : splitFileMaxNum;
     oldPath_ = path;
     fileNum_ = 1;
 
@@ -90,18 +99,11 @@ void TraceFileWriter::SetTimeStamp()
         static_cast<uint64_t>(ts.tv_nsec);
 }
 
-static std::string GetCurrentTime()
-{
-    const int usMs = 1000;
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return std::to_string(tv.tv_sec * usMs + tv.tv_usec / usMs);
-}
-
 bool TraceFileWriter::WriteHeader()
 {
+    LogDiskUsage();
     if (isSplitFile_) {
-        std::string timeStr = GetCurrentTime();
+        std::string timeStr = COMMON::GetTimeStr();
         int pos = static_cast<int>(oldPath_.find_last_of('.'));
         if (pos != 0) {
             path_ = oldPath_.substr(0, pos) + "_" + timeStr + "_" + std::to_string(fileNum_) +
@@ -109,6 +111,8 @@ bool TraceFileWriter::WriteHeader()
         } else {
             path_ = oldPath_ + "_" + timeStr + "_" + std::to_string(fileNum_);
         }
+        splitFilePaths_.push(path_);
+        DeleteOldSplitFile();
     }
 
     stream_.open(path_, std::ios_base::out | std::ios_base::binary);
@@ -122,6 +126,20 @@ bool TraceFileWriter::WriteHeader()
     dataSize_ = header_.HEADER_SIZE;
     HILOG_INFO(LOG_CORE, "write file(%s) header end", path_.c_str());
     return true;
+}
+
+// delete first split file if split file num over max
+void TraceFileWriter::DeleteOldSplitFile()
+{
+    if (splitFilePaths_.size() <= splitFileMaxNum_) {
+        HILOG_INFO(LOG_CORE, "splitFilePaths_ size %zu, no need to delete.", splitFilePaths_.size());
+        return;
+    }
+
+    std::string splitFilePath = splitFilePaths_.front();
+    int ret = unlink(splitFilePath.c_str());
+    HILOG_INFO(LOG_CORE, "DeleteOldSplitFile remove %s return %d. ", splitFilePath.c_str(), ret);
+    splitFilePaths_.pop();
 }
 
 long TraceFileWriter::Write(const void* data, size_t size)
@@ -156,9 +174,9 @@ long TraceFileWriter::Write(const void* data, size_t size)
 bool TraceFileWriter::IsSplitFile(uint32_t size)
 {
     dataSize_ += sizeof(uint32_t) + size;
-    if (dataSize_ >= singleFileMaxSize_) {
-        HILOG_INFO(LOG_CORE, "need to split the file(%s), data size:%d, size: %d, singleFileMaxSize_:%d",
-            path_.c_str(), dataSize_, size, singleFileMaxSize_);
+    if (dataSize_ >= splitFileMaxSize_) {
+        HILOG_INFO(LOG_CORE, "need to split the file(%s), data size:%d, size: %d, splitFileMaxSize_:%d",
+            path_.c_str(), dataSize_, size, splitFileMaxSize_);
 
         // update old file header
         Finish();
@@ -168,7 +186,10 @@ bool TraceFileWriter::IsSplitFile(uint32_t size)
         fileNum_++;
 
         // write header of the new file
-        WriteHeader();
+        if (!WriteHeader()) {
+            return false;
+        }
+
         // write the plugin config of the new file
         for (size_t i = 0; i < pluginConfigsData_.size(); i++) {
             Write(pluginConfigsData_[i].data(), pluginConfigsData_[i].size());
@@ -225,4 +246,29 @@ bool TraceFileWriter::Flush()
 void TraceFileWriter::SetStopSplitFile(bool isStop)
 {
     isStop_ = isStop;
+}
+
+void TraceFileWriter::LogDiskUsage()
+{
+    std::string diskPath = "/data/local/tmp/";
+    std::string::size_type pos = oldPath_.find_last_of('/');
+    if (pos != std::string::npos) {
+        diskPath = oldPath_.substr(0, pos);
+    }
+
+    struct statvfs diskInfo;
+    int ret = statvfs(diskPath.c_str(), &diskInfo);
+    if (ret != 0) {
+        std::string errorMsg = COMMON::GetErrorMsg();
+        HILOG_ERROR(LOG_CORE, "LogDiskUsage() return %d, path:%s, msg:%s", ret, diskPath.c_str(), errorMsg.c_str());
+        return;
+    }
+
+    unsigned long long freeSize = static_cast<unsigned long long>(diskInfo.f_bsize) *
+        static_cast<unsigned long long>(diskInfo.f_bfree);
+    unsigned long long totalSize = static_cast<unsigned long long>(diskInfo.f_bsize) *
+        static_cast<unsigned long long>(diskInfo.f_blocks);
+    float freePercent = static_cast<float>(freeSize) / static_cast<float>(totalSize);
+    uint32_t freeSizeGb = freeSize / GB_TO_BYTE;
+    HILOG_INFO(LOG_CORE, "LogDiskUsage() freePercent:%.1f, freeSizeGb:%u", freePercent * 100, freeSizeGb);
 }

@@ -14,148 +14,164 @@
  */
 
 // @ts-ignore
-import {TabPaneNMSampleList} from "../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMSampleList.js"
+import { TabPaneNMSampleList } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMSampleList.js';
 // @ts-ignore
-import {LitTable} from "../../../../../../dist/base-ui/table/lit-table";
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table';
 // @ts-ignore
-import {NativeHookSampleQueryInfo, NativeHookSamplerInfo} from "../../../../../../dist/trace/bean/NativeHook.js";
+import {
+    NativeHookSampleQueryInfo,
+    NativeHookSamplerInfo,
+} from '../../../../../../dist/trace/bean/NativeHook.js';
 // @ts-ignore
-import {NativeMemory} from "../../../../../../dist/trace/bean/NativeHook.js";
+import { NativeMemory } from '../../../../../../dist/trace/bean/NativeHook.js';
 // @ts-ignore
-import {queryAllHookData} from "../../../../../../dist/trace/database/SqlLite.js";
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+import { queryAllHookData } from '../../../../../../dist/trace/database/SqlLite.js';
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}));
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 describe('TabPaneNMSampleList Test', () => {
-    document.body.innerHTML = '<tabpane-native-sample id="ddt"></tabpane-native-sample>'
-    let tabPaneNMSampleList = document.querySelector<TabPaneNMSampleList>('#ddt')
+    document.body.innerHTML =
+        '<tabpane-native-sample id="ddt"></tabpane-native-sample>';
+    let tabPaneNMSampleList =
+        document.querySelector<TabPaneNMSampleList>('#ddt');
 
-    TabPaneNMSampleList.source = [{
-        current: "",
-        currentSize: 0,
-        startTs: 0,
-        heapSize: 0,
-        snapshot: "",
-        growth: "",
-        total: 0,
-        totalGrowth: "",
-        existing: 0,
-        children: [],
-        tempList: [],
-        timestamp: "",
-        eventId: -1,
-    }]
-    TabPaneNMSampleList.filterSelect = '0'
+    TabPaneNMSampleList.source = [
+        {
+            current: '',
+            currentSize: 0,
+            startTs: 0,
+            heapSize: 0,
+            snapshot: '',
+            growth: '',
+            total: 0,
+            totalGrowth: '',
+            existing: 0,
+            children: [],
+            tempList: [],
+            timestamp: '',
+            eventId: -1,
+        },
+    ];
+    TabPaneNMSampleList.filterSelect = '0';
 
-    tabPaneNMSampleList.currentSelection = jest.fn(()=>true)
+    tabPaneNMSampleList.currentSelection = jest.fn(() => true);
     let dat = {
-        cpus:  [],
+        cpus: [],
         threadIds: [],
         trackIds: [],
         funTids: [],
         heapIds: [],
         nativeMemory: [],
-        leftNs:  0,
+        leftNs: 0,
         rightNs: 0,
         hasFps: false,
-        statisticsSelectData: undefined
-    }
+        statisticsSelectData: undefined,
+    };
 
-    let NativeHookSnapshotTypes = [{
-        eventId: -1,
-        current: 0,
-        eventType: "",
-        subType: "",
-        growth: 0,
-        existing: 0,
-        addr: "",
-        startTs: 0,
-        endTs: 0,
-        total: 0,
-        children: [],
-    }]
+    let NativeHookSnapshotTypes = [
+        {
+            eventId: -1,
+            current: 0,
+            eventType: '',
+            subType: '',
+            growth: 0,
+            existing: 0,
+            addr: '',
+            startTs: 0,
+            endTs: 0,
+            total: 0,
+            children: [],
+        },
+    ];
 
+    let MockNativeHookSnapshotTypes = sqlit.queryNativeHookSnapshotTypes;
 
-    let MockNativeHookSnapshotTypes = sqlit.queryNativeHookSnapshotTypes
+    MockNativeHookSnapshotTypes.mockResolvedValue([
+        new NativeHookSampleQueryInfo(),
+    ]);
 
-    MockNativeHookSnapshotTypes.mockResolvedValue([new NativeHookSampleQueryInfo()])
-
-    tabPaneNMSampleList.data = dat
+    tabPaneNMSampleList.data = dat;
     it('TabPaneNMSampleListTest01', function () {
-        expect(TabPaneNMSampleList.serSelection(dat)).toBeUndefined()
+        expect(TabPaneNMSampleList.serSelection(dat)).toBeUndefined();
     });
 
     it('TabPaneNMSampleListTest02', function () {
         let sampleData = new NativeMemory();
 
-        let MockqueryAllHookData = sqlit.queryAllHookData
-        MockqueryAllHookData.mockResolvedValue([new NativeHookSampleQueryInfo()])
+        let MockqueryAllHookData = sqlit.queryAllHookData;
+        MockqueryAllHookData.mockResolvedValue([
+            new NativeHookSampleQueryInfo(),
+        ]);
 
-        expect(TabPaneNMSampleList.addSampleData(sampleData)).toBeUndefined()
+        expect(TabPaneNMSampleList.addSampleData(sampleData)).toBeUndefined();
     });
 
     it('TabPaneNMSampleListTest04', function () {
         let snapshot = {
-            current: "",
+            current: '',
             currentSize: 0,
             startTs: 0,
             heapSize: 0,
-            snapshot: "",
-            growth: "",
+            snapshot: '',
+            growth: '',
             total: 0,
-            totalGrowth: "",
+            totalGrowth: '',
             existing: 0,
             children: [],
             tempList: [],
-            timestamp: "",
+            timestamp: '',
             eventId: -1,
-        }
+        };
 
         let snapshotLeft = {
-            current: "",
+            current: '',
             currentSize: 0,
             startTs: 0,
             heapSize: 0,
-            snapshot: "",
-            growth: "",
+            snapshot: '',
+            growth: '',
             total: 0,
-            totalGrowth: "",
+            totalGrowth: '',
             existing: 0,
             children: [snapshot],
             tempList: [],
-            timestamp: "",
+            timestamp: '',
             eventId: -1,
-        }
+        };
 
         let snapshotRight = {
-            current: "",
+            current: '',
             currentSize: 0,
             startTs: 0,
             heapSize: 0,
-            snapshot: "",
-            growth: "",
+            snapshot: '',
+            growth: '',
             total: 0,
-            totalGrowth: "",
+            totalGrowth: '',
             existing: 0,
             children: [snapshot],
             tempList: [],
-            timestamp: "",
+            timestamp: '',
             eventId: -1,
-        }
-        expect(TabPaneNMSampleList.prepChild(snapshotLeft, snapshotRight)).toBeUndefined()
+        };
+        expect(
+            TabPaneNMSampleList.prepChild(snapshotLeft, snapshotRight)
+        ).toBeUndefined();
     });
 
     it('TabPaneNMSampleListTest10', function () {
-        expect(TabPaneNMSampleList.data).toBeUndefined()
+        expect(TabPaneNMSampleList.data).toBeUndefined();
     });
 
     it('TabPaneNMSampleListTest11', function () {
-        expect(TabPaneNMSampleList.initTypes()).toBeUndefined()
+        expect(TabPaneNMSampleList.initTypes()).toBeUndefined();
     });
 
     it('TabPaneNMSampleListTest05', function () {
@@ -202,24 +218,38 @@ describe('TabPaneNMSampleList Test', () => {
     });
 
     it('TabPaneNMSampleListTest09', function () {
-        let rootSample = new NativeHookSamplerInfo()
+        let rootSample = new NativeHookSamplerInfo();
 
-        let merageSample  ={
-            growth:1,
-            endTs:2,
-            startTs:2,
-            addr:"1",
-            eventId:0,
-        }
-        expect(TabPaneNMSampleList.merageSampleData(1,1,rootSample,merageSample)).toBeUndefined()
+        let merageSample = {
+            growth: 1,
+            endTs: 2,
+            startTs: 2,
+            addr: '1',
+            eventId: 0,
+        };
+        expect(
+            TabPaneNMSampleList.merageSampleData(1, 1, rootSample, merageSample)
+        ).toBeUndefined();
     });
 
     it('TabPaneNMSampleListTest12', function () {
-        let rootSample = new NativeHookSamplerInfo()
+        let rootSample = new NativeHookSamplerInfo();
 
-        let MockqueryAllHookData = sqlit.queryAllHookData
+        let MockqueryAllHookData = sqlit.queryAllHookData;
 
-        MockqueryAllHookData.mockResolvedValue([{eventId:1,eventType:"aa",subType:1, addr:"aaaa",growth:2,startTs:11111, endTs:211111}])
-        expect(TabPaneNMSampleList.queryAllHookInfo(dat,rootSample)).toBeUndefined();
+        MockqueryAllHookData.mockResolvedValue([
+            {
+                eventId: 1,
+                eventType: 'aa',
+                subType: 1,
+                addr: 'aaaa',
+                growth: 2,
+                startTs: 11111,
+                endTs: 211111,
+            },
+        ]);
+        expect(
+            TabPaneNMSampleList.queryAllHookInfo(dat, rootSample)
+        ).toBeUndefined();
     });
-})
+});

@@ -14,21 +14,21 @@
  */
 
 // @ts-ignore
-import {LitTableColumn} from "../../../dist/base-ui/table/lit-table-column.js";
+import { LitTableColumn } from '../../../dist/base-ui/table/lit-table-column.js';
 
-describe('LitTableGroup Test', ()=>{
+describe('LitTableGroup Test', () => {
     let litTableColumn = new LitTableColumn();
-    litTableColumn.title = 'title'
+    litTableColumn.title = 'title';
 
-    it('LitTableGroupTest01', ()=>{
+    it('LitTableGroupTest01', () => {
         expect(litTableColumn.adoptedCallback()).toBeUndefined();
-    })
+    });
 
-    it('LitTableGroupTest02', ()=>{
+    it('LitTableGroupTest02', () => {
         expect(litTableColumn.connectedCallback()).toBeUndefined();
-    })
+    });
 
-    it('LitTableGroupTest03', ()=>{
+    it('LitTableGroupTest03', () => {
         expect(litTableColumn.shadowRoot.innerHTML).toMatchInlineSnapshot(`
 "
         <style>
@@ -40,5 +40,5 @@ describe('LitTableGroup Test', ()=>{
         <slot id=\\"slot\\"></slot>
         "
 `);
-    })
-})
+    });
+});

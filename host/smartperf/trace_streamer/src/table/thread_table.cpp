@@ -474,7 +474,7 @@ int ThreadTable::Cursor::Column(int col) const
             sqlite3_result_int(context_, thread.switchCount_);
             break;
         }
-        
+
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;

@@ -22,7 +22,6 @@
 #include "rpc_server.h"
 #include "../trace_streamer/trace_streamer_selector.h"
 
-
 namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {

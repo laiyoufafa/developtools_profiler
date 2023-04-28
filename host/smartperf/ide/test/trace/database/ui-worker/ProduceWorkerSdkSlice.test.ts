@@ -13,150 +13,171 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
+
 // @ts-ignore
-import {SdkSliceRender,SdkSliceStruct} from "../../../../dist/trace/database/ui-worker/ProduceWorkerSdkSlice.js"
+import {
+    SdkSliceRender,
+    SdkSliceStruct,
+} from '../../../../dist/trace/database/ui-worker/ProduceWorkerSdkSlice.js';
 
 describe('ProduceWorkerSdkSlice Test', () => {
-
     it('ProduceWorkerSdkSliceTest01', function () {
-        let sdkSliceRender = new SdkSliceRender()
-        let list = [{
-            length:1,
-            frame :{
-                x:1,
-                Y:10,
-                width:100,
-                height:20,
-            }
-        }]
-        let res = [{
-            length:1,
-            frame:null,
-        }]
-        expect(sdkSliceRender.sdkSlice(list,res,1,5,4,true)).toBeUndefined()
+        let sdkSliceRender = new SdkSliceRender();
+        let list = [
+            {
+                length: 1,
+                frame: {
+                    x: 1,
+                    Y: 10,
+                    width: 100,
+                    height: 20,
+                },
+            },
+        ];
+        let res = [
+            {
+                length: 1,
+                frame: null,
+            },
+        ];
+        expect(
+            sdkSliceRender.sdkSlice(list, res, 1, 5, 4, true)
+        ).toBeUndefined();
     });
 
     it('ProduceWorkerSdkSliceTest02', function () {
-        let sdkSliceRender = new SdkSliceRender()
-        let list = [{
-            length:1,
-            frame :{
-                x:1,
-                Y:10,
-                width:100,
-                height:20,
-            }
-        }]
-        let res = [{
-            length:0,
-            frame:null,
-        }]
-        expect(sdkSliceRender.sdkSlice(list,res,1,5,4,false)).toBeUndefined()
+        let sdkSliceRender = new SdkSliceRender();
+        let list = [
+            {
+                length: 1,
+                frame: {
+                    x: 1,
+                    Y: 10,
+                    width: 100,
+                    height: 20,
+                },
+            },
+        ];
+        let res = [
+            {
+                length: 0,
+                frame: null,
+            },
+        ];
+        expect(
+            sdkSliceRender.sdkSlice(list, res, 1, 5, 4, false)
+        ).toBeUndefined();
     });
 
-    it('ProduceWorkerSdkSliceTest03',()=>{
+    it('ProduceWorkerSdkSliceTest03', () => {
         const data = {
-            startNs:1,
-            value:1,
-            frame:{
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
-            },
-            start_ts:1
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        expect(SdkSliceStruct.draw(ctx,data)).toBeUndefined();
-    });
-
-    it('ProduceWorkerSdkSliceTest04',()=>{
-        let node = {
-            startNs:1,
-            value:1,
-            frame:{
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
-            },
-            start_ts:1,
-            end_ts:2
-        }
-        let frame = {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100
-        }
-        expect(SdkSliceStruct.setSdkSliceFrame(node,2,2,3,1,frame)).toBeUndefined();
-    });
-
-    it('ProduceWorkerSdkSliceTest05',()=>{
-        let node = {
-            startNs:1,
-            value:1,
-            frame:{
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
-            },
-            start_ts:3,
-            end_ts:5
-        }
-        let frame = {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100
-        }
-        expect(SdkSliceStruct.setSdkSliceFrame(node,2,2,3,1,frame)).toBeUndefined();
-    });
-
-    it('ProduceWorkerSdkSliceTest06', function () {
-        let sdkSliceRender = new SdkSliceRender()
-        let  req = {
-            lazyRefresh:true,
-            type:"",
-            startNS:1,
-            endNS:1,
-            totalNS:1,
+            startNs: 1,
+            value: 1,
             frame: {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
-            useCache:false,
-            range:{
-                refresh:"",
+            start_ts: 1,
+        };
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        expect(SdkSliceStruct.draw(ctx, data)).toBeUndefined();
+    });
+
+    it('ProduceWorkerSdkSliceTest04', () => {
+        let node = {
+            startNs: 1,
+            value: 1,
+            frame: {
+                x: 20,
+                y: 20,
+                width: 100,
+                height: 100,
             },
-            canvas:'',
-            context:{
-                font:"11px sans-serif",
-                fillStyle:"#ec407a",
-                globalAlpha:0.6,
-            },
-            lineColor:'',
-            isHover:'',
-            hoverX:1,
-            params:'',
-            wakeupBean:undefined,
-            flagMoveInfo:'',
-            flagSelectedInfo:'',
-            slicesTime:3,
-            id:1,
+            start_ts: 1,
+            end_ts: 2,
+        };
+        let frame = {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        window.postMessage = jest.fn(()=>true)
-        expect(sdkSliceRender.render(req,[],[])).toBeUndefined()
+            height: 100,
+        };
+        expect(
+            SdkSliceStruct.setSdkSliceFrame(node, 2, 2, 3, 1, frame)
+        ).toBeUndefined();
     });
 
-})
+    it('ProduceWorkerSdkSliceTest05', () => {
+        let node = {
+            startNs: 1,
+            value: 1,
+            frame: {
+                x: 20,
+                y: 20,
+                width: 100,
+                height: 100,
+            },
+            start_ts: 3,
+            end_ts: 5,
+        };
+        let frame = {
+            x: 20,
+            y: 20,
+            width: 100,
+            height: 100,
+        };
+        expect(
+            SdkSliceStruct.setSdkSliceFrame(node, 2, 2, 3, 1, frame)
+        ).toBeUndefined();
+    });
+
+    it('ProduceWorkerSdkSliceTest06', function () {
+        let sdkSliceRender = new SdkSliceRender();
+        let req = {
+            lazyRefresh: true,
+            type: '',
+            startNS: 1,
+            endNS: 1,
+            totalNS: 1,
+            frame: {
+                x: 20,
+                y: 20,
+                width: 100,
+                height: 100,
+            },
+            useCache: false,
+            range: {
+                refresh: '',
+            },
+            canvas: '',
+            context: {
+                font: '11px sans-serif',
+                fillStyle: '#ec407a',
+                globalAlpha: 0.6,
+            },
+            lineColor: '',
+            isHover: '',
+            hoverX: 1,
+            params: '',
+            wakeupBean: undefined,
+            flagMoveInfo: '',
+            flagSelectedInfo: '',
+            slicesTime: 3,
+            id: 1,
+            x: 20,
+            y: 20,
+            width: 100,
+            height: 100,
+        };
+        window.postMessage = jest.fn(() => true);
+        expect(sdkSliceRender.render(req, [], [])).toBeUndefined();
+    });
+});

@@ -26,10 +26,11 @@ public:
     explicit ParserBase(const TraceStreamerFilters* filter);
     virtual ~ParserBase() = default;
     virtual void ParseTraceDataSegment(std::unique_ptr<uint8_t[]>, size_t size) = 0;
+
 protected:
     virtual void ParseTraceDataItem(const std::string& buffer) = 0;
     std::deque<uint8_t> packagesBuffer_ = {};
-    const TraceStreamerFilters *streamFilters_;
+    const TraceStreamerFilters* streamFilters_;
     BuiltinClocks clock_;
 };
 } // namespace TraceStreamer

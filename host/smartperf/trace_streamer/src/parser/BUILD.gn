@@ -31,10 +31,10 @@ ohos_source_set("parser") {
     "thread_state.h",
   ]
   deps = [ "ebpf_parser:ebpf_parser" ]
-  if (is_pbreader) {
-    deps += [ "htrace_pbreader_parser:htrace_pbreader_parser" ]
-  } else {
+  if (is_pbdecoder) {
     deps += [ "htrace_parser:htrace_parser" ]
+  } else {
+    deps += [ "htrace_pbreader_parser:htrace_pbreader_parser" ]
   }
   include_dirs = [
     "//third_party/protobuf/src",
@@ -62,11 +62,11 @@ ohos_source_set("parser") {
     "//third_party/json-master/include",
     "//third_party/json-master/include/nlohmann",
   ]
-  if (is_pbreader) {
-    include_dirs += [ "./htrace_pbreader_parser" ]
-    include_dirs += [ "../../include" ]
+  if (is_pbdecoder) {
+    include_dirs += [ "htrace_parser" ]
   } else {
-    include_dirs += [ "./htrace_parser" ]
+    include_dirs += [ "htrace_pbreader_parser" ]
+    include_dirs += [ "../proto_reader/include" ]
   }
 
   if (enable_ts_utest && !use_wasm) {

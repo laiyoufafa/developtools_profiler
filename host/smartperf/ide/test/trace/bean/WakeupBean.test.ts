@@ -14,7 +14,7 @@
  */
 
 // @ts-ignore
-import {WakeupBean} from "../../../dist/trace/bean/WakeupBean.js"
+import { WakeupBean } from '../../../dist/trace/bean/WakeupBean.js';
 
 describe('WakeupBean Test', () => {
     let wakeUpBean = new WakeupBean();
@@ -22,25 +22,28 @@ describe('WakeupBean Test', () => {
         wakeUpBean = {
             wakeupTime: 0,
             cpu: 0,
-            process: "",
+            process: '',
             pid: 0,
-            thread: "",
+            thread: '',
             tid: 0,
             schedulingLatency: 0,
-            schedulingDesc: "",
-            ts: 0
+            schedulingDesc: '',
+            ts: 0,
         };
-        expect(wakeUpBean).not.toBeUndefined()
-        expect(wakeUpBean).toMatchInlineSnapshot({
-  wakeupTime: expect.any(Number),
-  cpu: expect.any(Number),
-  process: expect.any(String),
-  pid: expect.any(Number),
-  thread: expect.any(String),
-  tid: expect.any(Number),
-  schedulingLatency: expect.any(Number),
-  schedulingDesc: expect.any(String),
-  ts: expect.any(Number) }, `
+        expect(wakeUpBean).not.toBeUndefined();
+        expect(wakeUpBean).toMatchInlineSnapshot(
+            {
+                wakeupTime: expect.any(Number),
+                cpu: expect.any(Number),
+                process: expect.any(String),
+                pid: expect.any(Number),
+                thread: expect.any(String),
+                tid: expect.any(Number),
+                schedulingLatency: expect.any(Number),
+                schedulingDesc: expect.any(String),
+                ts: expect.any(Number),
+            },
+            `
 Object {
   "cpu": Any<Number>,
   "pid": Any<Number>,
@@ -52,7 +55,7 @@ Object {
   "ts": Any<Number>,
   "wakeupTime": Any<Number>,
 }
-`);
+`
+        );
     });
-
-})
+});

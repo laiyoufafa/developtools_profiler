@@ -14,62 +14,61 @@
  */
 
 // @ts-ignore
-import {LitTabpane} from "../../../dist/base-ui/tabs/lit-tabpane.js";
+import { LitTabpane } from '../../../dist/base-ui/tabs/lit-tabpane.js';
 
-describe('LitTabPane Test', ()=>{
+describe('LitTabPane Test', () => {
     let litTabPane = new LitTabpane();
 
-    litTabPane.tab = 'tab'
-    litTabPane.disabled = null || false
-    litTabPane.disabled = !null || !false
-    litTabPane.hidden = 'hidden'
-    litTabPane.closeable = false
-    litTabPane.key = 'key'
+    litTabPane.tab = 'tab';
+    litTabPane.disabled = null || false;
+    litTabPane.disabled = !null || !false;
+    litTabPane.hidden = 'hidden';
+    litTabPane.closeable = false;
+    litTabPane.key = 'key';
 
-    it('LitTabPaneTest1', ()=>{
-        expect(litTabPane.attributeChangedCallback('disabled', 'disabled', '')).toBeUndefined()
-    })
+    it('LitTabPaneTest1', () => {
+        expect(
+            litTabPane.attributeChangedCallback('disabled', 'disabled', '')
+        ).toBeUndefined();
+    });
 
-    it('LitTabPaneTest2', ()=>{
+    it('LitTabPaneTest2', () => {
         expect(litTabPane.tab).toBe('tab');
-    })
+    });
 
-    it('LitTabPaneTest3', ()=>{
+    it('LitTabPaneTest3', () => {
         expect(litTabPane.icon).toBeNull();
-    })
+    });
 
-    it('LitTabPaneTest4', ()=>{
+    it('LitTabPaneTest4', () => {
         expect(litTabPane.disabled).toBeTruthy();
-    })
+    });
 
-    it('LitTabPaneTest5', ()=>{
+    it('LitTabPaneTest5', () => {
         expect(litTabPane.hidden).toBeTruthy();
-    })
+    });
 
-    it('LitTabPaneTest6', ()=>{
-        litTabPane.closeable = 'closeable'
+    it('LitTabPaneTest6', () => {
+        litTabPane.closeable = 'closeable';
         expect(litTabPane.closeable).toBeTruthy();
-    })
+    });
 
-    it('LitTabPaneTest7', ()=>{
+    it('LitTabPaneTest7', () => {
         expect(litTabPane.key).toBe('key');
-    })
+    });
 
     it('LitTabPaneTest9 ', function () {
-        expect(litTabPane.connectedCallback()).toBeUndefined()
-
+        expect(litTabPane.connectedCallback()).toBeUndefined();
     });
 
     it('LitTabPaneTest10 ', function () {
-        expect(litTabPane.disconnectedCallback()).toBeUndefined()
-
+        expect(litTabPane.disconnectedCallback()).toBeUndefined();
     });
 
     it('LitTabPaneTest11 ', function () {
-        expect(litTabPane.adoptedCallback()).toBeUndefined()
-
+        expect(litTabPane.adoptedCallback()).toBeUndefined();
     });
-    it('LitTabPaneTest8', ()=>{
+    it('LitTabPaneTest8', () => {
         expect(litTabPane.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
@@ -83,5 +82,5 @@ describe('LitTabPane Test', ()=>{
         <slot></slot>
         "
 `);
-    })
-})
+    });
+});

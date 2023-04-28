@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {DiskAbilityMonitorStruct} from "../../../dist/trace/bean/DiskAbilityMonitorStruct.js"
+import { DiskAbilityMonitorStruct } from '../../../dist/trace/bean/DiskAbilityMonitorStruct.js';
 
-describe('DiskAbilityMonitorStruct Test', ()=> {
+describe('DiskAbilityMonitorStruct Test', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -26,31 +26,28 @@ describe('DiskAbilityMonitorStruct Test', ()=> {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         startNS: 200,
-        value: 50
-    }
+        value: 50,
+    };
 
     const Sourcedata = {
         frame: {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-
+            height: 100,
         },
         value: 50,
-        maxDiskRate: 50
-
-    }
+        maxDiskRate: 50,
+    };
 
     it('DiskAbilityMonitorStructTest01', function () {
-        expect(DiskAbilityMonitorStruct.draw(ctx, data)).toBeUndefined()
+        expect(DiskAbilityMonitorStruct.draw(ctx, data)).toBeUndefined();
     });
 
     it('DiskAbilityMonitorStructTest02', function () {
-        expect(DiskAbilityMonitorStruct.draw(ctx, Sourcedata)).toBeUndefined()
+        expect(DiskAbilityMonitorStruct.draw(ctx, Sourcedata)).toBeUndefined();
     });
-
-})
+});

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {info} from "../../../log/Log.js";
+import { info } from '../../../log/Log.js';
 
 export const initTest = (metricData: Array<any>): ProcessInfoListItem => {
     let processInfoListItems: Array<ProcessInfoItem> = [];
@@ -30,39 +30,42 @@ export const initTest = (metricData: Array<any>): ProcessInfoListItem => {
             threads: {
                 // @ts-ignore
                 threadName: stat_type,
-                cpu: [{
-                    cpu: eventName,
-                    minFreq: stat_type,
-                    maxFreq: count,
-                    avgFrequency: source,
-                    duration: serverity,
-                }],
-            }
-        }
-        processInfoListItems?.push(processInfoSource)
+                cpu: [
+                    {
+                        cpu: eventName,
+                        minFreq: stat_type,
+                        maxFreq: count,
+                        avgFrequency: source,
+                        duration: serverity,
+                    },
+                ],
+            },
+        };
+        processInfoListItems?.push(processInfoSource);
     }
     return {
-        processInfo: processInfoListItems
-    }
-}
+        processInfo: processInfoListItems,
+    };
+};
 
-export const initCpuStrategyData = (metricData: Array<any>): ProcessInfoListItem => {
-    info("Cpu Strategy data length is:", metricData.length)
+export const initCpuStrategyData = (
+    metricData: Array<any>
+): ProcessInfoListItem => {
+    info('Cpu Strategy data length is:', metricData.length);
     let processInfoListItems: Array<ProcessInfoItem> = [];
     if (metricData.length == 10) {
-
     } else {
-
     }
-    const splitChar: string = ','
+    const splitChar: string = ',';
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         if (metricData[sqlIndex].avg_frequency == null) {
-            continue
+            continue;
         }
         let cpus = metricData[sqlIndex].cpu.split(splitChar);
         let minFrequencies = metricData[sqlIndex].min_freq.split(splitChar);
         let maxFrequencies = metricData[sqlIndex].max_freq.split(splitChar);
-        let avgFrequencies = metricData[sqlIndex].avg_frequency.split(splitChar);
+        let avgFrequencies =
+            metricData[sqlIndex].avg_frequency.split(splitChar);
         let durations = metricData[sqlIndex].dur.split(splitChar);
 
         let arrayCpu = [];
@@ -73,23 +76,23 @@ export const initCpuStrategyData = (metricData: Array<any>): ProcessInfoListItem
                 maxFreq: maxFrequencies[index],
                 avgFrequency: avgFrequencies[index],
                 duration: durations[index],
-            }
+            };
             arrayCpu.push(cpuIndex);
         }
         let processInfoSource: ProcessInfoItem = {
             threads: {
                 cpu: arrayCpu,
-            }
-        }
-        processInfoListItems?.push(processInfoSource)
+            },
+        };
+        processInfoListItems?.push(processInfoSource);
     }
     return {
-        processInfo: processInfoListItems
+        processInfo: processInfoListItems,
     };
-}
+};
 
 export interface ProcessInfoListItem {
-    processInfo: Array<ProcessInfoItem>
+    processInfo: Array<ProcessInfoItem>;
 }
 
 export interface ProcessInfoItem {

@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-import {element} from "../BaseElement.js";
+import { element } from '../BaseElement.js';
 
 @element('lit-table-group')
 export class LitTableGroup extends HTMLElement {
     constructor() {
         super();
-        const shadowRoot = this.attachShadow({mode: 'open'});
+        const shadowRoot = this.attachShadow({ mode: 'open' });
         shadowRoot.innerHTML = `
         <style>
         :host{ }
         </style>
         <slot id="sl"></slot>
-        `
+        `;
     }
 
     static get observedAttributes() {
-        return ['title']
+        return ['title'];
     }
 
     get title() {
@@ -40,17 +40,15 @@ export class LitTableGroup extends HTMLElement {
         this.setAttribute('title', value);
     }
 
-    connectedCallback() {
+    connectedCallback() {}
 
-    }
+    disconnectedCallback() {}
 
-    disconnectedCallback() {
+    adoptedCallback() {}
 
-    }
-
-    adoptedCallback() {
-    }
-
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    }
+    attributeChangedCallback(
+        name: string,
+        oldValue: string,
+        newValue: string
+    ) {}
 }

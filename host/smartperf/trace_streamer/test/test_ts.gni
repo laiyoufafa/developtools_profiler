@@ -17,7 +17,7 @@ if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
   OHOS_MEMORY_PROTO_DIR = "//src/multi_platform"
   OHOS_SERVICE_PROTO_DIR = "//src/multi_platform"
   OHOS_PROTO_GEN = "//third_party/protogen"
-  if (target == "test") {
+  if (is_test) {
     OHOS_MEMORY_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/memory_data"
     OHOS_NETWORK_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/network_data"
     OHOS_DISKIO_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/diskio_data"

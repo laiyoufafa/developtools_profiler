@@ -107,8 +107,7 @@ void FileSystemDataParser::ParseFileSystemEvent()
         filePathId =
             tracerEventToStrIndexMap.Find(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
         if (filePathId != INVALID_UINT64) {
-            tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid,
-                                            fsFixedHeadrAddr->startTime);
+            tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
         }
 
         // get read or writ size

@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
-import {SpSystemTrace} from "../SpSystemTrace.js";
-import {getFps} from "../../database/SqlLite.js";
-import {TraceRow} from "../trace/base/TraceRow.js";
-import {info} from "../../../log/Log.js";
-import {renders} from "../../database/ui-worker/ProcedureWorker.js";
-import {FpsRender, FpsStruct} from "../../database/ui-worker/ProcedureWorkerFPS.js";
+import { SpSystemTrace } from '../SpSystemTrace.js';
+import { getFps } from '../../database/SqlLite.js';
+import { TraceRow } from '../trace/base/TraceRow.js';
+import { info } from '../../../log/Log.js';
+import { renders } from '../../database/ui-worker/ProcedureWorker.js';
+import {
+    FpsRender,
+    FpsStruct,
+} from '../../database/ui-worker/ProcedureWorkerFPS.js';
 
 export class SpFpsChart {
     private trace: SpSystemTrace;
@@ -34,27 +37,30 @@ export class SpFpsChart {
         }
         let startTime = new Date().getTime();
         let fpsRow = TraceRow.skeleton<FpsStruct>();
-        fpsRow.rowId = `fps`
-        fpsRow.rowType = TraceRow.ROW_TYPE_FPS
-        fpsRow.rowParentId = ''
-        FpsStruct.maxFps = 0
-        fpsRow.style.height = '40px'
-        fpsRow.name = "FPS"
-        fpsRow.supplier = () => new Promise<Array<any>>((resolve, reject) => resolve(res));
+        fpsRow.rowId = `fps`;
+        fpsRow.rowType = TraceRow.ROW_TYPE_FPS;
+        fpsRow.rowParentId = '';
+        FpsStruct.maxFps = 0;
+        fpsRow.style.height = '40px';
+        fpsRow.name = 'FPS';
+        fpsRow.supplier = () =>
+            new Promise<Array<any>>((resolve, reject) => resolve(res));
         fpsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         fpsRow.selectChangeHandler = this.trace.selectChangeHandler;
-        fpsRow.focusHandler = ev => {
-            let tip = "";
+        fpsRow.focusHandler = (ev) => {
+            let tip = '';
             if (FpsStruct.hoverFpsStruct) {
-                tip = `<span>${FpsStruct.hoverFpsStruct.fps || 0}</span> `
+                tip = `<span>${FpsStruct.hoverFpsStruct.fps || 0}</span> `;
             }
-            this.trace?.displayTip(fpsRow,FpsStruct.hoverFpsStruct,tip)
-        }
+            this.trace?.displayTip(fpsRow, FpsStruct.hoverFpsStruct, tip);
+        };
 
         fpsRow.onThreadHandler = (useCache) => {
-            let context = fpsRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-            fpsRow.canvasSave( context);
-            (renders["fps"] as FpsRender).renderMainThread(
+            let context = fpsRow.collect
+                ? this.trace.canvasFavoritePanelCtx!
+                : this.trace.canvasPanelCtx!;
+            fpsRow.canvasSave(context);
+            (renders['fps'] as FpsRender).renderMainThread(
                 {
                     context: context,
                     useCache: useCache,
@@ -62,10 +68,10 @@ export class SpFpsChart {
                 },
                 fpsRow
             );
-            fpsRow.canvasRestore( context);
-        }
-        this.trace.rowsEL?.appendChild(fpsRow)
+            fpsRow.canvasRestore(context);
+        };
+        this.trace.rowsEL?.appendChild(fpsRow);
         let durTime = new Date().getTime() - startTime;
-        info('The time to load the FPS data is: ', durTime)
+        info('The time to load the FPS data is: ', durTime);
     }
 }

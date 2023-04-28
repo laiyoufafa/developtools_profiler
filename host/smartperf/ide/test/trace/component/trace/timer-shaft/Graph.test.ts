@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {Graph} from "../../../../../dist/trace/component/trace/timer-shaft/Graph.js";
+import { Graph } from '../../../../../dist/trace/component/trace/timer-shaft/Graph.js';
 
-describe('Flag Test',()=>{
-
+describe('Flag Test', () => {
     it('FlagTest01 ', function () {
         let graph = new Graph();
         expect(graph).not.toBeUndefined();
     });
-})
+});

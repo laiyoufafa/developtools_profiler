@@ -13,23 +13,27 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {Utils} from "../../base/Utils.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-cpu-state-click')
 export class TabPaneCpuStateClick extends BaseElement {
     private tbl: LitTable | null | undefined;
 
-    set data(val:any) {
-        if(val){
-            this.tbl!.dataSource = [{
-                startNS:Utils.getTimeString(val.startTs),
-                absoluteTime:(val.startTs + (window as any).recordStartNS)/1000000000,
-                dur:Utils.getProbablyTime(val.dur),
-                state:val.value,
-                cpu:`Cpu ${val.cpu}`
-            }]
+    set data(val: any) {
+        if (val) {
+            this.tbl!.dataSource = [
+                {
+                    startNS: Utils.getTimeString(val.startTs),
+                    absoluteTime:
+                        (val.startTs + (window as any).recordStartNS) /
+                        1000000000,
+                    dur: Utils.getProbablyTime(val.dur),
+                    state: val.value,
+                    cpu: `Cpu ${val.cpu}`,
+                },
+            ];
         }
     }
 
@@ -42,10 +46,10 @@ export class TabPaneCpuStateClick extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
-        }).observe(this.parentElement!)
+        }).observe(this.parentElement!);
     }
 
     initHtml(): string {
@@ -71,5 +75,4 @@ export class TabPaneCpuStateClick extends BaseElement {
         </lit-table>
         `;
     }
-
 }

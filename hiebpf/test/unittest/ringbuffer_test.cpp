@@ -434,7 +434,7 @@ HWTEST_F(RingbufferTest, Resize, TestSize.Level1)
     std::string putStr = "";
     std::string testStr = "222222";
     std::string destStr = "this is hiebpf test file";
-    const int size = destStr.size();
+    const int size = destStr.length();
     ret = ringBuffer->Put(destStr);
     EXPECT_EQ(ret, size);
     while (putStr.size() < (ringBuffer->bufSize_ - size - 1)) {
@@ -442,8 +442,8 @@ HWTEST_F(RingbufferTest, Resize, TestSize.Level1)
     }
     ret = ringBuffer->Put(putStr.c_str());
     EXPECT_EQ(ret, putStr.size());
-    char buff[size + 1] = {0};
-    ret = ringBuffer->Get(buff, size);
+    char buff[1024] = {0}; // 1024 is the size of buff
+    ret = ringBuffer->Get(buff, sizeof(buff) - 1);
     EXPECT_EQ(ret, size);
     EXPECT_STREQ(buff, destStr.c_str());
     ret = ringBuffer->Put(testStr);

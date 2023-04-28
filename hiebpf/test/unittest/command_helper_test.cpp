@@ -84,7 +84,7 @@ HWTEST_F(CommandHelperTest, DoHelp, TestSize.Level1)
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::ARG_SERVER_START]);
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::ARG_SERVER_STOP]);
     commandHelper.DoHelp(commandHelper.SUPPORTED_ARGS[CommandHelper::NR_SUPPORTED_ARGS]);
-    std::string out = testing::internal::GetCaptureStdout();
+    std::string out = testing::internal::GetCapturedStdout();
     EXPECT_EQ(out.empty(), false);
     EXPECT_TRUE(out.find(commandHelper.SUPPORTED_ARGS[CommandHelper::NR_SUPPORTED_ARGS]) != std::string::npos);
 }

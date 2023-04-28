@@ -28,19 +28,13 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
                                   uint64_t prevPior,
                                   uint64_t prevState,
                                   uint32_t nextPid,
-                                  uint64_t nextPior)
+                                  uint64_t nextPior,
+                                  DataIndex nextInfo)
 {
     auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, 0, cpu, nextPid, 0, nextPior);
     auto prevTidOnCpu = cpuToRowSched_.find(cpu);
     if (prevTidOnCpu != cpuToRowSched_.end()) {
-        if (prevState == TASK_UNINTERRUPTIBLE || prevState == TASK_DK) {
-            if (!pidToSchedSliceRow.count(prevPid)) {
-                pidToSchedSliceRow.insert(std::make_pair(prevPid, prevTidOnCpu->second.row));
-            } else {
-                pidToSchedSliceRow.at(prevPid) = prevTidOnCpu->second.row;
-            }
-        }
-        traceDataCache_->GetSchedSliceData()->Update(prevTidOnCpu->second.row, ts, prevState, prevPior);
+        traceDataCache_->GetSchedSliceData()->Update(prevTidOnCpu->second.row, ts, prevState);
         cpuToRowSched_.at(cpu).row = index;
     } else {
         cpuToRowSched_.insert(std::make_pair(cpu, RowPos{nextPid, index}));
@@ -53,11 +47,19 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
             lastRow = RowOfInternalTidInStateTable(nextPid);
             traceDataCache_->GetThreadStateData()->UpdateDuration(static_cast<TableRowId>(lastRow), ts);
         }
-        index = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, cpu, nextPid, TASK_RUNNING);
+        auto index =
+            traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, cpu, nextPid, TASK_RUNNING);
+        if (nextInfo != INVALID_DATAINDEX) {
+            ArgsSet args;
+            args.AppendArg(nextInfo_, BASE_DATA_TYPE_STRING, nextInfo);
+            auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
+            traceDataCache_->GetThreadStateData()->SetArgSetId(index, argSetId);
+        }
         RemberInternalTidInStateTable(nextPid, index, TASK_RUNNING);
         if (cpuToRowThreadState_.find(cpu) == cpuToRowThreadState_.end()) {
             cpuToRowThreadState_.insert(std::make_pair(cpu, index));
         } else {
+            // only one thread on run on a cpu at a certain time
             if (traceDataCache_->GetThreadStateData()->ItidsData()[cpuToRowThreadState_.at(cpu)] != prevPid) {
                 if (!traceDataCache_->GetThreadStateData()->End(static_cast<TableRowId>(cpuToRowThreadState_.at(cpu)),
                                                                 ts)) {
@@ -77,31 +79,58 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
             traceDataCache_->GetThreadStateData()->UpdateDuration(static_cast<TableRowId>(lastRow), ts);
             streamFilters_->processFilter_->AddCpuStateCount(prevPid);
             auto thread = traceDataCache_->GetThreadData(prevPid);
-            if (thread && !thread->switchCount_){
+            if (thread && !thread->switchCount_) {
                 thread->switchCount_ = 1;
             }
         }
-        auto temp = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, INVALID_CPU,
-                                                                             prevPid, prevState);
-        RemberInternalTidInStateTable(prevPid, temp, prevState);
+        auto threadStateRow =
+            traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, INVALID_CPU, prevPid, prevState);
+        if (prevState == TASK_UNINTERRUPTIBLE || prevState == TASK_DK) {
+            if (!pidToThreadSliceRow.count(prevPid)) {
+                pidToThreadSliceRow.emplace(std::make_pair(prevPid, threadStateRow));
+            } else {
+                pidToThreadSliceRow.at(prevPid) = threadStateRow;
+            }
+        }
+        RemberInternalTidInStateTable(prevPid, threadStateRow, prevState);
     }
 }
 
-bool CpuFilter::InsertBlockedReasonEvent(uint64_t ts, uint64_t cpu, uint32_t iTid, bool iowait, DataIndex caller, uint32_t delay)
+bool CpuFilter::InsertBlockedReasonEvent(uint64_t ts,
+                                         uint64_t cpu,
+                                         uint32_t iTid,
+                                         bool iowait,
+                                         DataIndex caller,
+                                         uint32_t delay)
 {
-    if (!pidToSchedSliceRow.count(iTid)) {
-        return false;
+    if (pidToThreadSliceRow.count(iTid)) {
+        // ArgSet
+        ArgsSet args;
+        args.AppendArg(ioWait_, BASE_DATA_TYPE_INT, iowait);
+        args.AppendArg(caller_, BASE_DATA_TYPE_STRING, caller);
+        if (delay != INVALID_UINT32) {
+            args.AppendArg(delay_, BASE_DATA_TYPE_INT, delay);
+        }
+        auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
+        auto row = pidToThreadSliceRow.at(iTid);
+        traceDataCache_->GetThreadStateData()->SetArgSetId(row, argSetId);
+        if (iowait) {
+            auto state = traceDataCache_->GetThreadStateData()->StatesData()[row];
+            if (state == TASK_UNINTERRUPTIBLE) {
+                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_UNINTERRUPTIBLE_IO);
+            } else if (state == TASK_DK) { // state == TASK_DK
+                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_DK_IO);
+            }
+        } else {
+            auto state = traceDataCache_->GetThreadStateData()->StatesData()[row];
+            if (state == TASK_UNINTERRUPTIBLE) {
+                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_UNINTERRUPTIBLE_NIO);
+            } else if (state == TASK_DK) { // state == TASK_DK
+                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_DK_NIO);
+            }
+        }
+        pidToThreadSliceRow.erase(iTid);
     }
-    auto row = pidToSchedSliceRow.at(iTid);
-    // ArgSet
-    ArgsSet args;
-    args.AppendArg(ioWait_, BASE_DATA_TYPE_INT, iowait);
-    args.AppendArg(caller_, BASE_DATA_TYPE_STRING, caller);
-    args.AppendArg(delay_, BASE_DATA_TYPE_INT, delay);
-    auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
-
-    traceDataCache_->GetSchedSliceData()->UpdateArg(row, argSetId);
-    pidToSchedSliceRow.erase(iTid);
     return true;
 }
 bool CpuFilter::InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint32_t pid)

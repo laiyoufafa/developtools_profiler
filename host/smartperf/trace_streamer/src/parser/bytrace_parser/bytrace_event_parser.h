@@ -45,6 +45,7 @@ public:
     void FilterAllEvents();
     void BeginFilterEvents(EventInfo* event);
     void Clear();
+
 private:
     using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine line)>;
     bool SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const;
@@ -108,6 +109,7 @@ private:
     const DataIndex schedBlockedReasonId_ = traceDataCache_->GetDataIndex("sched_blocked_reason");
     const DataIndex cpuFrequencyLimitMaxNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
     const DataIndex cpuFrequencyLimitMinNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
+
 protected:
     TraceStreamerConfig config_{};
 };

@@ -14,32 +14,35 @@
  */
 
 // @ts-ignore
-import {HeapTreeDataBean} from "../../../dist/trace/bean/HeapTreeDataBean.js"
+import { HeapTreeDataBean } from '../../../dist/trace/bean/HeapTreeDataBean.js';
 
-describe('HeapTreeDataBean Test', ()=>{
-    let heapTreeDataBean  = new HeapTreeDataBean();
+describe('HeapTreeDataBean Test', () => {
+    let heapTreeDataBean = new HeapTreeDataBean();
 
     it('HeapTreeDataBeanTest01', function () {
         heapTreeDataBean = {
-            MoudleName: "MoudleName",
-            AllocationFunction: "AllocationFunction",
+            MoudleName: 'MoudleName',
+            AllocationFunction: 'AllocationFunction',
             startTs: 0,
             endTs: 0,
-            eventType: "eventType",
+            eventType: 'eventType',
             depth: 0,
             heapSize: 0,
-            eventId: "eventId",
-        }
-        expect(heapTreeDataBean).not.toBeUndefined()
-        expect(heapTreeDataBean).toMatchInlineSnapshot({
-  MoudleName: expect.any(String),
-  AllocationFunction: expect.any(String),
-  startTs: expect.any(Number),
-  endTs: expect.any(Number),
-  eventType: expect.any(String),
-  depth: expect.any(Number),
-  heapSize: expect.any(Number),
-  eventId: expect.any(String) }, `
+            eventId: 'eventId',
+        };
+        expect(heapTreeDataBean).not.toBeUndefined();
+        expect(heapTreeDataBean).toMatchInlineSnapshot(
+            {
+                MoudleName: expect.any(String),
+                AllocationFunction: expect.any(String),
+                startTs: expect.any(Number),
+                endTs: expect.any(Number),
+                eventType: expect.any(String),
+                depth: expect.any(Number),
+                heapSize: expect.any(Number),
+                eventId: expect.any(String),
+            },
+            `
 Object {
   "AllocationFunction": Any<String>,
   "MoudleName": Any<String>,
@@ -50,6 +53,7 @@ Object {
   "heapSize": Any<Number>,
   "startTs": Any<Number>,
 }
-`)
+`
+        );
     });
-})
+});

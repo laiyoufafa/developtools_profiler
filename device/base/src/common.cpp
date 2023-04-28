@@ -401,4 +401,17 @@ std::string GetErrorMsg()
     std::string errorMsg(buffer);
     return errorMsg;
 }
+
+std::string GetTimeStr()
+{
+    time_t now = time(nullptr);
+    struct tm tmTime;
+    localtime_r(&now, &tmTime);
+
+    char buffer[32] = {0};
+    (void)sprintf_s(buffer, sizeof(buffer), "%04d%02d%02d_%02d%02d%02d", tmTime.tm_year + 1900, tmTime.tm_mon + 1,
+        tmTime.tm_mday, tmTime.tm_hour, tmTime.tm_min, tmTime.tm_sec);
+    std::string timeStr(buffer);
+    return timeStr;
+}
 } // namespace COMMON

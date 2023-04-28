@@ -13,31 +13,30 @@
  * limitations under the License.
  */
 
-
-import {ProcedureLogicWorkerPerf} from "./ProcedureLogicWorkerPerf.js";
-import {ProcedureLogicWorkerNativeMemory} from "./ProcedureLogicWorkerNativeNemory.js";
-import {ProcedureLogicWorkerFileSystem} from "./ProcedureLogicWorkerFileSystem.js";
-import {ProcedureLogicWorkerSPT} from "./ProcedureLogicWorkerSPT.js";
-import {ProcedureLogicWorkerCpuState} from "./ProcedureLogicWorkerCpuState.js";
-import {ProcedureLogicWorkerSchedulingAnalysis} from "./ProcedureLogicWorkerSchedulingAnalysis.js";
+import { ProcedureLogicWorkerPerf } from './ProcedureLogicWorkerPerf.js';
+import { ProcedureLogicWorkerNativeMemory } from './ProcedureLogicWorkerNativeNemory.js';
+import { ProcedureLogicWorkerFileSystem } from './ProcedureLogicWorkerFileSystem.js';
+import { ProcedureLogicWorkerSPT } from './ProcedureLogicWorkerSPT.js';
+import { ProcedureLogicWorkerCpuState } from './ProcedureLogicWorkerCpuState.js';
+import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSchedulingAnalysis.js';
 
 let logicWorker: any = {
-    "perf":new ProcedureLogicWorkerPerf(),
-    "native-memory":new ProcedureLogicWorkerNativeMemory(),
-    "fileSystem":new ProcedureLogicWorkerFileSystem(),
-    "CpuState":new ProcedureLogicWorkerCpuState(),
-    "spt":new ProcedureLogicWorkerSPT(),
-    "scheduling":new ProcedureLogicWorkerSchedulingAnalysis()
-}
+    perf: new ProcedureLogicWorkerPerf(),
+    'native-memory': new ProcedureLogicWorkerNativeMemory(),
+    fileSystem: new ProcedureLogicWorkerFileSystem(),
+    CpuState: new ProcedureLogicWorkerCpuState(),
+    spt: new ProcedureLogicWorkerSPT(),
+    scheduling: new ProcedureLogicWorkerSchedulingAnalysis(),
+};
 
-function match(req:any) {
+function match(req: any) {
     Reflect.ownKeys(logicWorker).filter((it) => {
         if (req.type && req.type.startsWith(it as string)) {
             logicWorker[it].handle(req);
         }
-    })
+    });
 }
 
 self.onmessage = function (e: any) {
     match(e.data);
-}
+};

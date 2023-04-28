@@ -13,10 +13,20 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
+
 // @ts-ignore
-import {cpu, CpuStruct,CpuRender,rtCpu,EmptyRender} from "../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js";
+import {
+    cpu,
+    CpuStruct,
+    CpuRender,
+    rtCpu,
+    EmptyRender,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js';
 // @ts-ignore
-import {Rect} from "../../../../dist/trace/component/trace/timer-shaft/Rect.js";
+import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 
 describe(' Test', () => {
     const dataSource = {
@@ -24,11 +34,11 @@ describe(' Test', () => {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         startNS: 200,
-        processId : ''
-    }
+        processId: '',
+    };
 
     it('CPUTest03', () => {
         const canvas = document.createElement('canvas');
@@ -41,22 +51,21 @@ describe(' Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             startNS: 200,
-            value: 50
-        }
-        expect(CpuStruct.draw(ctx, data)).toBeUndefined()
-    })
+            value: 50,
+        };
+        expect(CpuStruct.draw(ctx, data)).toBeUndefined();
+    });
 
     it('CPUTest04', () => {
-        expect(CpuStruct.equals(new CpuStruct(),new CpuStruct())).toBeTruthy();
-    })
+        expect(CpuStruct.equals(new CpuStruct(), new CpuStruct())).toBeTruthy();
+    });
 
     it('CPUTest06', () => {
-        expect(CpuStruct.equals([],dataSource)).toBeFalsy()
-    })
-
+        expect(CpuStruct.equals([], dataSource)).toBeFalsy();
+    });
 
     it('CPUTest05', () => {
         const canvas = document.createElement('canvas');
@@ -69,79 +78,88 @@ describe(' Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             startNS: 200,
-            value: 50
-        }
-        expect(CpuStruct.draw(ctx, data)).toBeUndefined()
-    })
-
-
-    it('CPUTest07', function () {
-        let cpuRender = new CpuRender()
-        let node = [{
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
-            },
-            startNS: 200,
-            length:1,
-            height:2
-        }]
-        let  frame = {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100
-        }
-        let list = [{
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
-            },
-            startNS: 200,
-            length:2,
-            height:2
-        }]
-        expect(cpuRender.cpu(list ,node,1,1,1,frame,true)).toBeUndefined()
+            value: 50,
+        };
+        expect(CpuStruct.draw(ctx, data)).toBeUndefined();
     });
 
     it('CPUTest07', function () {
-        let cpuRender = new CpuRender()
-        let node = [{
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
+        let cpuRender = new CpuRender();
+        let node = [
+            {
+                frame: {
+                    x: 20,
+                    y: 20,
+                    width: 100,
+                    height: 100,
+                },
+                startNS: 200,
+                length: 1,
+                height: 2,
             },
-            startNS: 200,
-            length:1,
-            height:0
-        }]
-        let  frame = {
+        ];
+        let frame = {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        let list = [{
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100
+            height: 100,
+        };
+        let list = [
+            {
+                frame: {
+                    x: 20,
+                    y: 20,
+                    width: 100,
+                    height: 100,
+                },
+                startNS: 200,
+                length: 2,
+                height: 2,
             },
-            startNS: 200,
-            length:2,
-            height:2
-        }]
-        expect(cpuRender.cpu(list ,node,1,1,1,frame,false)).toBeUndefined()
+        ];
+        expect(cpuRender.cpu(list, node, 1, 1, 1, frame, true)).toBeUndefined();
+    });
+
+    it('CPUTest07', function () {
+        let cpuRender = new CpuRender();
+        let node = [
+            {
+                frame: {
+                    x: 20,
+                    y: 20,
+                    width: 100,
+                    height: 100,
+                },
+                startNS: 200,
+                length: 1,
+                height: 0,
+            },
+        ];
+        let frame = {
+            x: 20,
+            y: 20,
+            width: 100,
+            height: 100,
+        };
+        let list = [
+            {
+                frame: {
+                    x: 20,
+                    y: 20,
+                    width: 100,
+                    height: 100,
+                },
+                startNS: 200,
+                length: 2,
+                height: 2,
+            },
+        ];
+        expect(
+            cpuRender.cpu(list, node, 1, 1, 1, frame, false)
+        ).toBeUndefined();
     });
 
     it('CPUTest08', () => {
@@ -150,16 +168,18 @@ describe(' Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             startNS: 200,
-            length:1,
-            height:0,
-            startTime:0,
-            dur:1
-        }
-        expect(CpuStruct.setCpuFrame(node,1,1,1,{width:10})).toBeUndefined()
-    })
+            length: 1,
+            height: 0,
+            startTime: 0,
+            dur: 1,
+        };
+        expect(
+            CpuStruct.setCpuFrame(node, 1, 1, 1, { width: 10 })
+        ).toBeUndefined();
+    });
 
     it('CPUTest09', () => {
         let node = {
@@ -167,89 +187,91 @@ describe(' Test', () => {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
             startNS: 200,
-            length:1,
-            height:0,
-            startTime:2,
-            dur:1
-        }
-        expect(CpuStruct.setCpuFrame(node,1,1,1,{width:10})).toBeUndefined()
-    })
+            length: 1,
+            height: 0,
+            startTime: 2,
+            dur: 1,
+        };
+        expect(
+            CpuStruct.setCpuFrame(node, 1, 1, 1, { width: 10 })
+        ).toBeUndefined();
+    });
 
     it('CPUTest10', function () {
-        let emptyRender = new EmptyRender()
-        let  req = {
-            type:"",
-            startNS:1,
-            endNS:1,
-            totalNS:1,
+        let emptyRender = new EmptyRender();
+        let req = {
+            type: '',
+            startNS: 1,
+            endNS: 1,
+            totalNS: 1,
             frame: {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
-            canvas:'',
-            context:{},
-            lineColor:'',
-            isHover:'',
-            hoverX:1,
-            params:'',
-            wakeupBean:undefined,
-            flagMoveInfo:'',
-            flagSelectedInfo:'',
-            slicesTime:3,
-            id:1,
+            canvas: '',
+            context: {},
+            lineColor: '',
+            isHover: '',
+            hoverX: 1,
+            params: '',
+            wakeupBean: undefined,
+            flagMoveInfo: '',
+            flagSelectedInfo: '',
+            slicesTime: 3,
+            id: 1,
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        window.postMessage = jest.fn(()=>true)
-        expect(emptyRender.render(req,[],[])).toBeUndefined()
+            height: 100,
+        };
+        window.postMessage = jest.fn(() => true);
+        expect(emptyRender.render(req, [], [])).toBeUndefined();
     });
 
     it('CPUTest11', function () {
-        let cpuRender = new CpuRender()
-        let  req = {
-            lazyRefresh:true,
-            type:"",
-            startNS:1,
-            endNS:1,
-            totalNS:1,
+        let cpuRender = new CpuRender();
+        let req = {
+            lazyRefresh: true,
+            type: '',
+            startNS: 1,
+            endNS: 1,
+            totalNS: 1,
             frame: {
                 x: 20,
                 y: 20,
                 width: 100,
-                height: 100
+                height: 100,
             },
-            useCache:false,
-            range:{
-                refresh:"",
+            useCache: false,
+            range: {
+                refresh: '',
             },
-            canvas:'',
-            context:{
-                font:"11px sans-serif",
-                fillStyle:"#ec407a",
-                globalAlpha:0.6,
+            canvas: '',
+            context: {
+                font: '11px sans-serif',
+                fillStyle: '#ec407a',
+                globalAlpha: 0.6,
             },
-            lineColor:'',
-            isHover:'',
-            hoverX:1,
-            params:'',
-            wakeupBean:undefined,
-            flagMoveInfo:'',
-            flagSelectedInfo:'',
-            slicesTime:3,
-            id:1,
+            lineColor: '',
+            isHover: '',
+            hoverX: 1,
+            params: '',
+            wakeupBean: undefined,
+            flagMoveInfo: '',
+            flagSelectedInfo: '',
+            slicesTime: 3,
+            id: 1,
             x: 20,
             y: 20,
             width: 100,
-            height: 100
-        }
-        window.postMessage = jest.fn(()=>true)
-        expect(cpuRender.render(req,[],[])).toBeUndefined()
+            height: 100,
+        };
+        window.postMessage = jest.fn(() => true);
+        expect(cpuRender.render(req, [], [])).toBeUndefined();
     });
 });

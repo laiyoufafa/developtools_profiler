@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import {BaseStruct} from "./BaseStruct.js";
+import { BaseStruct } from './BaseStruct.js';
 
 export class SmapsShowStruct extends BaseStruct {
     static hoverStruct: SmapsShowStruct | undefined;
     static selectStruct: SmapsShowStruct | undefined;
-    value: number | undefined
-    startNS: number | undefined
-    dur: number | undefined
+    value: number | undefined;
+    startNS: number | undefined;
+    dur: number | undefined;
 }

@@ -13,14 +13,18 @@
  * limitations under the License.
  */
 
-import {Rect} from "./Rect.js";
+import { Rect } from './Rect.js';
 
 export abstract class Graph {
-    frame: Rect
+    frame: Rect;
     c: CanvasRenderingContext2D;
     canvas: HTMLCanvasElement | undefined | null;
 
-    protected constructor(canvas: HTMLCanvasElement | undefined | null, c: CanvasRenderingContext2D, frame: Rect) {
+    protected constructor(
+        canvas: HTMLCanvasElement | undefined | null,
+        c: CanvasRenderingContext2D,
+        frame: Rect
+    ) {
         this.canvas = canvas;
         this.frame = frame;
         this.c = c;

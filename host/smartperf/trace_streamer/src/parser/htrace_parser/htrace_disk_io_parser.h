@@ -22,7 +22,6 @@
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 
-
 namespace SysTuning {
 namespace TraceStreamer {
 class HtraceDiskIOParser : public HtracePluginTimeParser {
@@ -39,10 +38,10 @@ private:
         int64_t wrSectorsKb;
         int64_t prevRdSectorsKb;
         int64_t prevWrSectorsKb;
-        double rdCountPerSec;  // 每秒从设备读取的数据量 kB_read/s
-        double wrCountPerSec;  // 每秒向设备写入的数据量 kB_wrtn/s
-        uint64_t rdCount;  // 读取的总数据量 kB_read
-        uint64_t wrCount;  // 写入的总数量数据量 kB_wrtn
+        double rdCountPerSec; // 每秒从设备读取的数据量 kB_read/s
+        double wrCountPerSec; // 每秒向设备写入的数据量 kB_wrtn/s
+        uint64_t rdCount;     // 读取的总数据量 kB_read
+        uint64_t wrCount;     // 写入的总数量数据量 kB_wrtn
     };
     std::vector<TsDiskIOData> diskIOData_;
 };

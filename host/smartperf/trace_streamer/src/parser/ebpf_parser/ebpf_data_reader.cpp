@@ -23,11 +23,11 @@ using namespace SysTuning::base;
 using namespace SysTuning::EbpfStdtype;
 EbpfDataReader::EbpfDataReader(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
     : EventParserBase(dataCache, filter),
+      ebpfDataHeader_(reinterpret_cast<EbpfDataHeader*>(startAddr_)),
       pidAndStartAddrToMapsAddr_(nullptr),
       elfAddrAndStValueToSymAddr_(nullptr),
       tracerEventToStrIndex_(INVALID_UINT64),
-      kernelFilePath_(traceDataCache_->GetDataIndex("/proc/kallsyms")),
-      ebpfDataHeader_(reinterpret_cast<EbpfDataHeader*>(startAddr_))
+      kernelFilePath_(traceDataCache_->GetDataIndex("/proc/kallsyms"))
 {
 }
 bool EbpfDataReader::InitEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
@@ -209,8 +209,8 @@ void EbpfDataReader::UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* e
     }
 
     uint64_t fileNameIndex = INVALID_UINT64;
-    auto fileNameAddr = const_cast<char*>(reinterpret_cast<const char*>(
-        reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen + elfAddr->symTabLen));
+    auto fileNameAddr = const_cast<char*>(reinterpret_cast<const char*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) +
+                                                                        elfAddr->strTabLen + elfAddr->symTabLen));
     fileNameAddr[elfAddr->fileNameLen - 1] = '\0';
     fileNameIndex = traceDataCache_->GetDataIndex(std::string(fileNameAddr));
     elfPathIndexToElfFixedHeaderAddr_.insert(std::make_pair(fileNameIndex, elfAddr));
@@ -299,7 +299,8 @@ bool EbpfDataReader::ReadItemEventPagedMemory(const uint8_t* buffer, uint32_t si
         return false;
     }
     auto pagedMemoryFixedHeaderAddr = reinterpret_cast<const PagedMemoryFixedHeader*>(buffer);
-    endTsToPagedMemoryFixedHeader_.insert(std::make_pair(pagedMemoryFixedHeaderAddr->endTime, pagedMemoryFixedHeaderAddr));
+    endTsToPagedMemoryFixedHeader_.insert(
+        std::make_pair(pagedMemoryFixedHeaderAddr->endTime, pagedMemoryFixedHeaderAddr));
     return true;
 }
 
@@ -325,8 +326,8 @@ bool EbpfDataReader::ReadItemEventStr(const uint8_t* buffer, uint32_t size)
         streamFilters_->processFilter_->GetOrCreateThreadWithPid(strFixedHeaderAddr->tid, strFixedHeaderAddr->pid);
     auto strAddr = const_cast<char*>(reinterpret_cast<const char*>(strFixedHeaderAddr + 1));
     if ((strFixedHeaderAddr->strLen > size - sizeof(StrEventFixedHeader)) || !strFixedHeaderAddr->strLen) {
-        TS_LOGE("invalid str event, strEventFixedHeader = %u, strlen = %d, size = %d",
-                sizeof(StrEventFixedHeader), strFixedHeaderAddr->strLen, size);
+        TS_LOGE("invalid str event, strEventFixedHeader = %u, strlen = %d, size = %d", sizeof(StrEventFixedHeader),
+                strFixedHeaderAddr->strLen, size);
         return true;
     }
     strAddr[strFixedHeaderAddr->strLen - 1] = '\0';

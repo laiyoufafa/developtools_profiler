@@ -58,7 +58,7 @@ public:
     {
         primaryClock_ = primary;
     }
-    ClockId GetPrimaryClock()
+    ClockId GetPrimaryClock() const
     {
         return primaryClock_;
     }
@@ -67,7 +67,7 @@ public:
     void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp);
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
     int InitSnapShotTimeRange(const uint8_t* data, int len);
-    bool HasInitSnapShot()
+    bool HasInitSnapShot() const
     {
         return hasInitSnapShot_;
     }

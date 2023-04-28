@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import {element} from "../BaseElement.js";
-import {LitTabpane} from "./lit-tabpane.js";
+import { element } from '../BaseElement.js';
+import { LitTabpane } from './lit-tabpane.js';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
-    private tabPos: any
-    private nav: HTMLDivElement | undefined | null
-    private line: HTMLDivElement | undefined | null
-    private slots: HTMLSlotElement | undefined | null
+    private tabPos: any;
+    private nav: HTMLDivElement | undefined | null;
+    private line: HTMLDivElement | undefined | null;
+    private slots: HTMLSlotElement | undefined | null;
 
     constructor() {
         super();
-        const shadowRoot = this.attachShadow({mode: 'open'});
+        const shadowRoot = this.attachShadow({ mode: 'open' });
         shadowRoot.innerHTML = `
         <style>
         :host{ 
@@ -422,11 +422,11 @@ export class LitTabs extends HTMLElement {
                 <slot id="slot">NEED CONTENT</slot>
             </div>
         </div>
-        `
+        `;
     }
 
     static get observedAttributes() {
-        return ['activekey', 'mode', 'position']
+        return ['activekey', 'mode', 'position'];
     }
 
     get position() {
@@ -446,7 +446,7 @@ export class LitTabs extends HTMLElement {
     }
 
     get activekey() {
-        return this.getAttribute("activekey") || '';
+        return this.getAttribute('activekey') || '';
     }
 
     set activekey(value: string) {
@@ -461,8 +461,8 @@ export class LitTabs extends HTMLElement {
         if (this.nav) {
             let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
             if (item) {
-                item.querySelector<HTMLSpanElement>("span")!.innerHTML = value;
-                this.initTabPos()
+                item.querySelector<HTMLSpanElement>('span')!.innerHTML = value;
+                this.initTabPos();
             }
         }
     }
@@ -472,11 +472,11 @@ export class LitTabs extends HTMLElement {
             let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
             if (item) {
                 if (value) {
-                    item.setAttribute('data-disabled', '')
+                    item.setAttribute('data-disabled', '');
                 } else {
                     item.removeAttribute('data-disabled');
                 }
-                this.initTabPos()
+                this.initTabPos();
             }
         }
     }
@@ -486,11 +486,11 @@ export class LitTabs extends HTMLElement {
             let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
             if (item) {
                 if (value) {
-                    item.setAttribute('data-closeable', '')
+                    item.setAttribute('data-closeable', '');
                 } else {
                     item.removeAttribute('data-closeable');
                 }
-                this.initTabPos()
+                this.initTabPos();
             }
         }
     }
@@ -499,18 +499,18 @@ export class LitTabs extends HTMLElement {
         if (this.nav) {
             let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
             if (item) {
-                if (value === "true") {
-                    item.setAttribute('data-hidden', '')
+                if (value === 'true') {
+                    item.setAttribute('data-hidden', '');
                 } else {
                     item.removeAttribute('data-hidden');
                 }
-                this.initTabPos()
+                this.initTabPos();
             }
         }
     }
 
     initTabPos() {
-        const items = this.nav!.querySelectorAll<HTMLDivElement>(".nav-item");
+        const items = this.nav!.querySelectorAll<HTMLDivElement>('.nav-item');
         Array.from(items).forEach((a, index) => {
             // @ts-ignore
             this.tabPos[a.dataset.key] = {
@@ -519,154 +519,226 @@ export class LitTabs extends HTMLElement {
                 height: a.offsetHeight,
                 left: a.offsetLeft,
                 top: a.offsetTop,
-                label: a.textContent
-            }
-        })
+                label: a.textContent,
+            };
+        });
         if (this.activekey) {
             if (this.position.startsWith('left')) {
-                this.line?.setAttribute('style', `height:${this.tabPos[this.activekey].height}px;transform:translate(100%,${this.tabPos[this.activekey].top}px)`);
+                this.line?.setAttribute(
+                    'style',
+                    `height:${
+                        this.tabPos[this.activekey].height
+                    }px;transform:translate(100%,${
+                        this.tabPos[this.activekey].top
+                    }px)`
+                );
             } else if (this.position.startsWith('top')) {
                 if (this.tabPos[this.activekey]) {
-                    this.line?.setAttribute('style', `width:${this.tabPos[this.activekey].width}px;transform:translate(${this.tabPos[this.activekey].left}px,100%)`);
+                    this.line?.setAttribute(
+                        'style',
+                        `width:${
+                            this.tabPos[this.activekey].width
+                        }px;transform:translate(${
+                            this.tabPos[this.activekey].left
+                        }px,100%)`
+                    );
                 }
             } else if (this.position.startsWith('right')) {
-                this.line?.setAttribute('style', `height:${this.tabPos[this.activekey].height}px;transform:translate(-100%,${this.tabPos[this.activekey].top}px)`);
+                this.line?.setAttribute(
+                    'style',
+                    `height:${
+                        this.tabPos[this.activekey].height
+                    }px;transform:translate(-100%,${
+                        this.tabPos[this.activekey].top
+                    }px)`
+                );
             } else if (this.position.startsWith('bottom')) {
-                this.line?.setAttribute('style', `width:${this.tabPos[this.activekey].width}px;transform:translate(${this.tabPos[this.activekey].left}px,100%)`);
+                this.line?.setAttribute(
+                    'style',
+                    `width:${
+                        this.tabPos[this.activekey].width
+                    }px;transform:translate(${
+                        this.tabPos[this.activekey].left
+                    }px,100%)`
+                );
             }
         }
     }
 
     connectedCallback() {
         let that = this;
-        this.tabPos = {}
-        this.nav = this.shadowRoot?.querySelector('#nav')
-        this.line = this.shadowRoot?.querySelector('#tab-line')
+        this.tabPos = {};
+        this.nav = this.shadowRoot?.querySelector('#nav');
+        this.line = this.shadowRoot?.querySelector('#tab-line');
         this.slots = this.shadowRoot?.querySelector('#slot');
         this.slots?.addEventListener('slotchange', () => {
-            const elements: Element[] | undefined = this.slots?.assignedElements();
+            const elements: Element[] | undefined =
+                this.slots?.assignedElements();
             let panes = this.querySelectorAll<LitTabpane>('lit-tabpane');
             if (this.activekey) {
-                panes.forEach(a => {
+                panes.forEach((a) => {
                     if (a.key === this.activekey) {
-                        a.style.display = 'block'
+                        a.style.display = 'block';
                     } else {
                         a.style.display = 'none';
                     }
-                })
+                });
             } else {
                 panes.forEach((a, index) => {
                     if (index === 0) {
-                        a.style.display = 'block'
-                        this.activekey = a.key || ''
+                        a.style.display = 'block';
+                        this.activekey = a.key || '';
                     } else {
                         a.style.display = 'none';
                     }
-                })
+                });
             }
-            let navHtml = "";
-            elements?.map(it => it as LitTabpane).forEach(a => {
-                if (a.disabled) {
-                    navHtml += `<div class="nav-item" data-key="${a.key}" data-disabled ${a.closeable ? 'data-closeable' : ''}> 
+            let navHtml = '';
+            elements
+                ?.map((it) => it as LitTabpane)
+                .forEach((a) => {
+                    if (a.disabled) {
+                        navHtml += `<div class="nav-item" data-key="${
+                            a.key
+                        }" data-disabled ${
+                            a.closeable ? 'data-closeable' : ''
+                        }> 
                     ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``} 
                     <span>${a.tab}</span>
-                    <lit-icon class="close-icon" name='close' size="12"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
+                    <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                     </div>`;
-                } else if (a.hidden) {
-                    navHtml += `<div class="nav-item" data-key="${a.key}" data-hidden ${a.closeable ? 'data-closeable' : ''}> 
+                    } else if (a.hidden) {
+                        navHtml += `<div class="nav-item" data-key="${
+                            a.key
+                        }" data-hidden ${a.closeable ? 'data-closeable' : ''}> 
                     ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``} 
                     <span>${a.tab}</span>
-                    <lit-icon class="close-icon" name='close' size="12"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
+                    <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                     </div>`;
-                } else {
-                    if (a.key === this.activekey) {
-                        navHtml += `<div class="nav-item" data-key="${a.key}" data-selected ${a.closeable ? 'data-closeable' : ''}>
-                        ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
-                        <span>${a.tab}</span>
-                        <lit-icon class="close-icon" name='close' size="12"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
-                        </div>`;
                     } else {
-                        navHtml += `<div class="nav-item" data-key="${a.key}" ${a.closeable ? 'data-closeable' : ''}>
-                            ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
+                        if (a.key === this.activekey) {
+                            navHtml += `<div class="nav-item" data-key="${
+                                a.key
+                            }" data-selected ${
+                                a.closeable ? 'data-closeable' : ''
+                            }>
+                        ${
+                            a.icon
+                                ? `<lit-icon name='${a.icon}'></lit-icon>`
+                                : ``
+                        }
+                        <span>${a.tab}</span>
+                        <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
+                        </div>`;
+                        } else {
+                            navHtml += `<div class="nav-item" data-key="${
+                                a.key
+                            }" ${a.closeable ? 'data-closeable' : ''}>
+                            ${
+                                a.icon
+                                    ? `<lit-icon name='${a.icon}'></lit-icon>`
+                                    : ``
+                            }
                             <span>${a.tab}</span>
-                            <lit-icon class="close-icon" name='close' size="12"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
+                            <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                             </div>`;
+                        }
                     }
-
-                }
-            })
+                });
             this.nav!.innerHTML = navHtml;
-            this.initTabPos()
-            this.nav!.querySelectorAll<HTMLElement>('.close-icon').forEach(a => {
-                a.onclick = (e) => {
-                    e.stopPropagation();
-                    const closeKey = (e.target! as HTMLElement).parentElement!.dataset.key;
-                    this.dispatchEvent(new CustomEvent('close-handler', {detail: {key: closeKey}, composed: true}));
+            this.initTabPos();
+            this.nav!.querySelectorAll<HTMLElement>('.close-icon').forEach(
+                (a) => {
+                    a.onclick = (e) => {
+                        e.stopPropagation();
+                        const closeKey = (e.target! as HTMLElement)
+                            .parentElement!.dataset.key;
+                        this.dispatchEvent(
+                            new CustomEvent('close-handler', {
+                                detail: { key: closeKey },
+                                composed: true,
+                            })
+                        );
+                    };
                 }
-            });
-        })
+            );
+        });
         this.nav!.onclick = (e) => {
-            if ((e.target! as HTMLElement).closest('div')!.hasAttribute('data-disabled')) return;
+            if (
+                (e.target! as HTMLElement)
+                    .closest('div')!
+                    .hasAttribute('data-disabled')
+            )
+                return;
             let key = (e.target! as HTMLElement).closest('div')!.dataset.key;
             if (key) {
-                this.activeByKey(key)
+                this.activeByKey(key);
             }
-            let label = (e.target! as HTMLElement).closest('div')!.querySelector('span')!.textContent;
-            this.dispatchEvent(new CustomEvent('onTabClick', {detail: {key: key, tab: label}}))
+            let label = (e.target! as HTMLElement)
+                .closest('div')!
+                .querySelector('span')!.textContent;
+            this.dispatchEvent(
+                new CustomEvent('onTabClick', {
+                    detail: { key: key, tab: label },
+                })
+            );
         };
 
         new ResizeObserver((entries) => {
-            let filling =  this.shadowRoot!.querySelector<HTMLDivElement>("#tab-filling")
+            let filling =
+                this.shadowRoot!.querySelector<HTMLDivElement>('#tab-filling');
 
-            this.shadowRoot!.querySelector<HTMLDivElement>(".tab-nav-container")!.style.height = filling!.offsetWidth+"px"
-
-        }).observe(this.shadowRoot!.querySelector("#tab-filling")!);
+            this.shadowRoot!.querySelector<HTMLDivElement>(
+                '.tab-nav-container'
+            )!.style.height = filling!.offsetWidth + 'px';
+        }).observe(this.shadowRoot!.querySelector('#tab-filling')!);
     }
 
     activeByKey(key: string) {
         if (key === null || key === undefined) return; //如果没有key 不做相应
-        this.nav!.querySelectorAll('.nav-item').forEach(a => {
+        this.nav!.querySelectorAll('.nav-item').forEach((a) => {
             if (a.getAttribute('data-key') === key) {
                 a.setAttribute('data-selected', 'true');
             } else {
                 a.removeAttribute('data-selected');
             }
-        })
+        });
         let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
         let panes = this.querySelectorAll<LitTabpane>('lit-tabpane');
-        panes.forEach(a => {
+        panes.forEach((a) => {
             if (a.key === key) {
                 a.style.display = 'block';
                 this.activekey = a.key;
-                this.initTabPos()
+                this.initTabPos();
             } else {
                 a.style.display = 'none';
             }
-        })
+        });
     }
 
     activePane(key: string) {
         if (key === null || key === undefined) return false;
         let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
         if (tbp) {
-            this.activeByKey(key)
+            this.activeByKey(key);
             return true;
         } else {
             return false;
         }
     }
 
-    disconnectedCallback() {
+    disconnectedCallback() {}
 
-    }
-
-    adoptedCallback() {
-    }
+    adoptedCallback() {}
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name === 'activekey' && this.nav && oldValue !== newValue && newValue != '') {
-            this.activeByKey(newValue)
+        if (
+            name === 'activekey' &&
+            this.nav &&
+            oldValue !== newValue &&
+            newValue != ''
+        ) {
+            this.activeByKey(newValue);
         }
     }
 }
-

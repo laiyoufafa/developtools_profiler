@@ -374,8 +374,8 @@ int SpanJoin::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 bool SpanJoin::Cursor::CaclOverLap()
 {
     if (tableFirst_.ts_ >= tableSecond_.ts_) {
-        if (tableFirst_.partitionState_ == PartitionState::TS_REAL &&
-                tableSecond_.partitionState_ == PartitionState::TS_REAL ||
+        if ((tableFirst_.partitionState_ == PartitionState::TS_REAL &&
+             tableSecond_.partitionState_ == PartitionState::TS_REAL) ||
             tableFirst_.ts_ < tableSecond_.endTs_) {
             return true;
         }

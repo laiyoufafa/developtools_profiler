@@ -14,38 +14,51 @@
  */
 
 // @ts-ignore
-import {SpVirtualMemChart} from "../../../../dist/trace/component/chart/SpVirtualMemChart.js"
+import { SpVirtualMemChart } from '../../../../dist/trace/component/chart/SpVirtualMemChart.js';
 // @ts-ignore
-import {SpSystemTrace} from "../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
 // @ts-ignore
-import {TraceRow} from "../../../../dist/trace/component/trace/base/TraceRow.js";
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}));
+const intersectionObserverMock = () => ({
+    observe: () => null,
+});
+window.IntersectionObserver = jest
+    .fn()
+    .mockImplementation(intersectionObserverMock);
+
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 
 describe('SpVirtualMemChart Test', () => {
-    let spVirtualMemChart = new SpVirtualMemChart(new SpSystemTrace())
+    let spVirtualMemChart = new SpVirtualMemChart(new SpSystemTrace());
     let MockVirtualMemory = sqlit.queryVirtualMemory;
-    MockVirtualMemory.mockResolvedValue([{
-        id:0,
-        name:"name"
-    }])
+    MockVirtualMemory.mockResolvedValue([
+        {
+            id: 0,
+            name: 'name',
+        },
+    ]);
 
     let MockVirtualMemoryData = sqlit.queryVirtualMemoryData;
-    MockVirtualMemoryData.mockResolvedValue([{
-        startTime:0,
-        value:20,
-        filterID:0
-    }])
+    MockVirtualMemoryData.mockResolvedValue([
+        {
+            startTime: 0,
+            value: 20,
+            filterID: 0,
+        },
+    ]);
 
     it('SpVirtualMemChart01', function () {
-        spVirtualMemChart.init()
+        spVirtualMemChart.init();
         expect(spVirtualMemChart).toBeDefined();
     });
 
@@ -54,9 +67,9 @@ describe('SpVirtualMemChart Test', () => {
             canvasNumber: 1,
             alpha: false,
             contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
+            isOffScreen: SpSystemTrace.isCanvasOffScreen,
         });
-        spVirtualMemChart.initVirtualMemoryRow(folder,2,"name",2)
+        spVirtualMemChart.initVirtualMemoryRow(folder, 2, 'name', 2);
         expect(spVirtualMemChart).toBeDefined();
     });
-})
+});

@@ -13,24 +13,29 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {initTest,initCpuStrategyData} from "../../../../dist/trace/component/metrics/CpuStrategy.js";
+import {
+    initTest,
+    initCpuStrategyData,
+} from '../../../../dist/trace/component/metrics/CpuStrategy.js';
 
 describe('CpuStrategy Test', () => {
-    const metricData=[{
-        length:1,
-        event_name:"name",
-        stat_type:1,
-        count:1,
-        source:1,
-        serverity:0,
-        avg_frequency:null,
-        cpu:1,
-        min_freq:"",
-        max_freq:"",
-        duration:1,
-        process_name:"",
-        thread_name:""
-    }]
+    const metricData = [
+        {
+            length: 1,
+            event_name: 'name',
+            stat_type: 1,
+            count: 1,
+            source: 1,
+            serverity: 0,
+            avg_frequency: null,
+            cpu: 1,
+            min_freq: '',
+            max_freq: '',
+            duration: 1,
+            process_name: '',
+            thread_name: '',
+        },
+    ];
 
     it('initTestTest01', () => {
         expect(initTest(metricData)).toBeTruthy();
@@ -39,4 +44,4 @@ describe('CpuStrategy Test', () => {
     it('initCpuStrategyDataTest02', () => {
         expect(initCpuStrategyData(metricData)).toBeTruthy();
     });
-})
+});

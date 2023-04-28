@@ -14,27 +14,27 @@
  */
 
 // @ts-ignore
-import {SpRecordSetting} from "../../../../dist/trace/component/setting/SpRecordSetting.js";
+import { SpRecordSetting } from '../../../../dist/trace/component/setting/SpRecordSetting.js';
 
-describe('SpRecordSetting Test', ()=>{
+describe('SpRecordSetting Test', () => {
     beforeAll(() => {
-        document.body.innerHTML =  `
+        document.body.innerHTML = `
             <record-setting id = "setting"><sp-allocations>
-        `
-    })
+        `;
+    });
     it('new SpRecordSetting', function () {
         expect(new SpRecordSetting()).not.toBeNull();
     });
 
     it(' SpAllocations get Default attrValue', function () {
-        let spEle = document.querySelector("#setting") as SpRecordSetting
+        let spEle = document.querySelector('#setting') as SpRecordSetting;
         expect(spEle.recordMod).toBeTruthy();
-        expect(spEle.bufferSize).toEqual(64)
-        expect(spEle.maxDur).toEqual(50)
+        expect(spEle.bufferSize).toEqual(64);
+        expect(spEle.maxDur).toEqual(30);
     });
 
     it(' SpRecordSetting test', function () {
-        let spEle = document.querySelector("#setting") as SpRecordSetting
+        let spEle = document.querySelector('#setting') as SpRecordSetting;
         expect(spEle.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
@@ -217,7 +217,7 @@ describe('SpRecordSetting Test', ()=>{
             <lit-slider id=\\"max-duration\\" defaultColor=\\"var(--dark-color4,#61CFBE)\\" open dir=\\"right\\">
             </lit-slider>
             <div class='resultValue'>
-                <input class=\\"max_duration_result\\" type=\\"text\\" value = '00:00:50' >
+                <input class=\\"max_duration_result\\" type=\\"text\\" value = '00:00:30' >
                 <span style=\\"text-align: center; margin: 8px 8px 8px 0\\"> h:m:s </span>
             </div>
             
@@ -227,8 +227,7 @@ describe('SpRecordSetting Test', ()=>{
 `);
     });
     it(' SpRecordSettingTest04', function () {
-        let spEle = document.querySelector("#setting") as SpRecordSetting
+        let spEle = document.querySelector('#setting') as SpRecordSetting;
         expect(spEle.resetValue()).toBeUndefined();
     });
-
-})
+});

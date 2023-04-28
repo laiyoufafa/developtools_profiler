@@ -14,13 +14,13 @@
  */
 
 export class AuthType {
-    static AUTH_NONE: number = 0 // uint8
-    static AUTH_TOKEN: number = 1 // uint8
-    static AUTH_SIGNATURE: number = 2 //uint8
-    static AUTH_PUBLICKEY: number = 3 //uint8
-    static AUTH_OK: number = 4 //uint8
+    static AUTH_NONE: number = 0; // uint8
+    static AUTH_TOKEN: number = 1; // uint8
+    static AUTH_SIGNATURE: number = 2; //uint8
+    static AUTH_PUBLICKEY: number = 3; //uint8
+    static AUTH_OK: number = 4; //uint8
 
     static getAuthTypeLength() {
-        return 1
+        return 1;
     }
 }

@@ -13,22 +13,28 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {DisassemblingWindow,Disassembling} from "../../../dist/trace/component/DisassemblingWindow.js"
+import {
+    DisassemblingWindow,
+    Disassembling,
+} from '../../../dist/trace/component/DisassemblingWindow.js';
 
 describe('DisassemblingWindow Test', () => {
     let disassemblingWindow = new DisassemblingWindow();
 
     it('DisassemblingWindowTest01', function () {
-        expect(disassemblingWindow.getMap("","")).not.toBeUndefined();
+        expect(disassemblingWindow.getMap('', '')).not.toBeUndefined();
     });
 
     it('DisassemblingWindowTest02', function () {
-        expect(disassemblingWindow.resetCanvas(2,1,1,1)).toBeUndefined();
+        expect(disassemblingWindow.resetCanvas(2, 1, 1, 1)).toBeUndefined();
     });
 
     it('DisassemblingWindowTest03', function () {
-        document.body.innerHTML = '<div id="ddd"><tab-native-data-modal id="ccc"></tab-native-data-modal><div id="left_table"></div></div>'
-        let disassemblingWindow = document.querySelector('#ccc') as DisassemblingWindow
+        document.body.innerHTML =
+            '<div id="ddd"><tab-native-data-modal id="ccc"></tab-native-data-modal><div id="left_table"></div></div>';
+        let disassemblingWindow = document.querySelector(
+            '#ccc'
+        ) as DisassemblingWindow;
         expect(disassemblingWindow.showLoading()).toBeUndefined();
     });
 
@@ -37,7 +43,6 @@ describe('DisassemblingWindow Test', () => {
     });
 
     it('DisassemblingWindowTest05', function () {
-        expect(disassemblingWindow.showContent("error","")).toBeUndefined();
+        expect(disassemblingWindow.showContent('error', '')).toBeUndefined();
     });
-
-})
+});

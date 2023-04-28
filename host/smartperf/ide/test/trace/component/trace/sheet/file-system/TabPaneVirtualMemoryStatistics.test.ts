@@ -14,10 +14,11 @@
  */
 
 // @ts-ignore
-import {TabPaneVirtualMemoryStatistics} from "../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js";
-import  "../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js";
+import { TabPaneVirtualMemoryStatistics } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js';
+import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -25,11 +26,11 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 describe('TabPaneVirtualMemoryStatistics Test', () => {
     document.body.innerHTML = `<tabpane-virtual-memory-statistics  id="statistics">                      
-</tabpane-virtual-memory-statistics >`
-    let tabPaneVirtualMemoryStatistics =  document.querySelector("#statistics") as  TabPaneVirtualMemoryStatistics
+</tabpane-virtual-memory-statistics >`;
+    let tabPaneVirtualMemoryStatistics = document.querySelector(
+        '#statistics'
+    ) as TabPaneVirtualMemoryStatistics;
     it('TabPaneVirtualMemoryStatisticsTest01', function () {
-
-        expect(tabPaneVirtualMemoryStatistics).toBeDefined()
-
-    })
-})
+        expect(tabPaneVirtualMemoryStatistics).toBeDefined();
+    });
+});

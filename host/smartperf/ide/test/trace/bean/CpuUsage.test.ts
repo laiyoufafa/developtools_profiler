@@ -14,9 +14,9 @@
  */
 
 // @ts-ignore
-import {CpuUsage, Freq} from "../../../dist/trace/bean/CpuUsage.js"
+import { CpuUsage, Freq } from '../../../dist/trace/bean/CpuUsage.js';
 
-describe('CpuUsage Test', ()=>{
+describe('CpuUsage Test', () => {
     let cpuUsage = new CpuUsage();
     let freq = new Freq();
 
@@ -24,31 +24,34 @@ describe('CpuUsage Test', ()=>{
         cpuUsage = {
             cpu: 0,
             usage: 0,
-            usageStr: "",
+            usageStr: '',
             top1: 0,
             top2: 0,
             top3: 0,
             top1Percent: 0,
-            top1PercentStr: "",
+            top1PercentStr: '',
             top2Percent: 0,
-            top2PercentStr: "",
+            top2PercentStr: '',
             top3Percent: 0,
-            top3PercentStr: "",
-        }
-        expect(cpuUsage).not.toBeUndefined()
-        expect(cpuUsage).toMatchInlineSnapshot({
-  cpu: expect.any(Number),
-  usage: expect.any(Number),
-  usageStr: expect.any(String),
-  top1: expect.any(Number),
-  top2: expect.any(Number),
-  top3: expect.any(Number),
-  top1Percent: expect.any(Number),
-  top1PercentStr: expect.any(String),
-  top2Percent: expect.any(Number),
-  top2PercentStr: expect.any(String),
-  top3Percent: expect.any(Number),
-  top3PercentStr: expect.any(String) }, `
+            top3PercentStr: '',
+        };
+        expect(cpuUsage).not.toBeUndefined();
+        expect(cpuUsage).toMatchInlineSnapshot(
+            {
+                cpu: expect.any(Number),
+                usage: expect.any(Number),
+                usageStr: expect.any(String),
+                top1: expect.any(Number),
+                top2: expect.any(Number),
+                top3: expect.any(Number),
+                top1Percent: expect.any(Number),
+                top1PercentStr: expect.any(String),
+                top2Percent: expect.any(Number),
+                top2PercentStr: expect.any(String),
+                top3Percent: expect.any(Number),
+                top3PercentStr: expect.any(String),
+            },
+            `
 Object {
   "cpu": Any<Number>,
   "top1": Any<Number>,
@@ -63,7 +66,8 @@ Object {
   "usage": Any<Number>,
   "usageStr": Any<String>,
 }
-`);
+`
+        );
     });
 
     it('CpuUsageTest02', function () {
@@ -72,19 +76,23 @@ Object {
             value: 0,
             startNs: 0,
             dur: 0,
-        }
-        expect(freq).not.toBeUndefined()
-        expect(cpuUsage).toMatchInlineSnapshot({
-  cpu: expect.any(Number),
-  value: expect.any(Number),
-  startNs: expect.any(Number),
-  dur: expect.any(Number) }, `
+        };
+        expect(freq).not.toBeUndefined();
+        expect(cpuUsage).toMatchInlineSnapshot(
+            {
+                cpu: expect.any(Number),
+                value: expect.any(Number),
+                startNs: expect.any(Number),
+                dur: expect.any(Number),
+            },
+            `
 Object {
   "cpu": Any<Number>,
   "dur": Any<Number>,
   "startNs": Any<Number>,
   "value": Any<Number>,
 }
-`);
+`
+        );
     });
-})
+});

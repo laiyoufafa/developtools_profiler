@@ -196,19 +196,19 @@ int EbpfElfTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.StrTabLens()[CurrentRow()]));
             break;
         case SYM_TAB_LEN: {
-            if (ebpfElfObj_.SymTabLens()[CurrentRow()] != INVALID_UINT64) {
+            if (ebpfElfObj_.SymTabLens()[CurrentRow()] != INVALID_UINT32) {
                 sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.SymTabLens()[CurrentRow()]));
             }
             break;
         }
         case FILE_NAME_LEN: {
-            if (ebpfElfObj_.FileNameLens()[CurrentRow()] != INVALID_UINT64) {
+            if (ebpfElfObj_.FileNameLens()[CurrentRow()] != INVALID_UINT32) {
                 sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.FileNameLens()[CurrentRow()]));
             }
             break;
         }
         case SYM_ENT_LEN: {
-            if (ebpfElfObj_.SymEntLens()[CurrentRow()] != INVALID_UINT64) {
+            if (ebpfElfObj_.SymEntLens()[CurrentRow()] != INVALID_UINT32) {
                 sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.SymEntLens()[CurrentRow()]));
             }
             break;

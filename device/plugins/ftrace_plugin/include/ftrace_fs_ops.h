@@ -38,6 +38,7 @@ public:
     MOCKABLE std::string GetThreadComm(int pid, int tid);
 
     // for ftrace status nodes
+    bool SetSavedCmdLinesSize(uint32_t size);
     MOCKABLE std::string GetSavedCmdLines() const;
     MOCKABLE std::string GetSavedTgids() const;
     MOCKABLE std::string GetPerCpuStats(int cpu) const;

@@ -51,6 +51,7 @@ public:
     {
         return invalid_;
     }
+
 private:
     void SetStat(Stat value)
     {
@@ -59,6 +60,7 @@ private:
 
     void ProcessSate(const std::string& stateStr);
     Direction SetStatByChar(char ch);
+
 private:
     uint32_t state_ = 0;
     std::map<char, Stat> statMap_ = {

@@ -13,26 +13,27 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {initDistributedTermData} from "../../../../dist/trace/component/metrics/DistributeTermStrategy.js";
+import { initDistributedTermData } from '../../../../dist/trace/component/metrics/DistributeTermStrategy.js';
 
 describe('DistributeTermStrategy Test', () => {
-    let metricData=[{
-        length:1,
-        funName:"name",
-        ts:"ts",
-        dur:"",
-        flag: 'fd,fdsf.fds',
-        trace_name:"name1",
-        chainId:"1",
-        spanId:"span",
-        parentSpanId:"",
-        processId:"",
-        threadId:"",
-        threadName:"",
-        processName:""
-    }]
+    let metricData = [
+        {
+            length: 1,
+            funName: 'name',
+            ts: 'ts',
+            dur: '',
+            flag: 'fd,fdsf.fds',
+            trace_name: 'name1',
+            chainId: '1',
+            spanId: 'span',
+            parentSpanId: '',
+            processId: '',
+            threadId: '',
+            threadName: '',
+            processName: '',
+        },
+    ];
     it('initDistributedTermDataTest01', () => {
         expect(initDistributedTermData(metricData)).toBeTruthy();
     });
-
-})
+});

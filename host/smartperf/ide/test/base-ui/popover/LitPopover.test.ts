@@ -14,126 +14,151 @@
  */
 
 // @ts-ignore
-import {LitPopover} from "../../../dist/base-ui/popover/LitPopover.js";
+import { LitPopover } from '../../../dist/base-ui/popover/LitPopover.js';
 
-describe("LitPopover Test", () => {
+describe('LitPopover Test', () => {
     it('LitPopover01', () => {
         let litPopover = new LitPopover();
-        expect(litPopover).not.toBeUndefined()
-        expect(litPopover).not.toBeNull()
+        expect(litPopover).not.toBeUndefined();
+        expect(litPopover).not.toBeNull();
     });
 
     it('LitPopover02', () => {
         let litPopover = new LitPopover();
-        expect(litPopover.open).toBeFalsy()
+        expect(litPopover.open).toBeFalsy();
     });
 
     it('LitPopover03', () => {
         let litPopover = new LitPopover();
-        litPopover.open = true
-        expect(litPopover.open).toBeTruthy()
+        litPopover.open = true;
+        expect(litPopover.open).toBeTruthy();
     });
 
     it('LitPopover04', () => {
         let litPopover = new LitPopover();
-        litPopover.open = false
-        expect(litPopover.open).toBeFalsy()
+        litPopover.open = false;
+        expect(litPopover.open).toBeFalsy();
     });
 
     it('LitPopover05', () => {
         let litPopover = new LitPopover();
-        litPopover.direction = "topleft"
-        expect(litPopover.direction).toEqual("topleft")
+        litPopover.direction = 'topleft';
+        expect(litPopover.direction).toEqual('topleft');
     });
 
     it('LitPopover06', () => {
         let litPopover = new LitPopover();
-        expect(litPopover.direction).toEqual("topright")
+        expect(litPopover.direction).toEqual('topright');
     });
 
     it('LitPopover07', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "multiple"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
-        expect(litPopover.select).toEqual(["# Samples"])
+        litPopover.type = 'multiple';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
+        expect(litPopover.select).toEqual(['# Samples']);
     });
 
     it('LitPopover07', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "radio"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
-        expect(litPopover.select).toEqual(["# Samples"])
+        litPopover.type = 'radio';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
+        expect(litPopover.select).toEqual(['# Samples']);
     });
 
     it('LitPopover08', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "multiple-text"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
-        expect(litPopover.select).toEqual(["# Samples"])
+        litPopover.type = 'multiple-text';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
+        expect(litPopover.select).toEqual(['# Samples']);
     });
 
     it('LitPopover09', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "radio"
-        litPopover.title = "tee"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
-        expect(litPopover.select).toEqual(["# Samples"])
+        litPopover.type = 'radio';
+        litPopover.title = 'tee';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
+        expect(litPopover.select).toEqual(['# Samples']);
     });
 
     it('LitPopover10', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "multiple-text"
-        litPopover.title = "tee"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
+        litPopover.type = 'multiple-text';
+        litPopover.title = 'tee';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
         expect(litPopover.trigger).not.toBeUndefined();
     });
 
     it('LitPopover11', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "multiple-text"
-        litPopover.title = "tee"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: false
-        }]
-        expect(litPopover.limit).toEqual({textLowerLimit:"0",textUpperLimit:"∞"});
+        litPopover.type = 'multiple-text';
+        litPopover.title = 'tee';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: false,
+            },
+        ];
+        expect(litPopover.limit).toEqual({
+            textLowerLimit: '0',
+            textUpperLimit: '∞',
+        });
     });
 
     it('LitPopover14', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "data-ming"
-        litPopover.title = "tee"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: false
-        }]
-        expect(litPopover.limit).toEqual({textLowerLimit:"",textUpperLimit:""});
+        litPopover.type = 'data-ming';
+        litPopover.title = 'tee';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: false,
+            },
+        ];
+        expect(litPopover.limit).toEqual({
+            textLowerLimit: '',
+            textUpperLimit: '',
+        });
     });
 
     it('LitPopover15', () => {
         let litPopover = new LitPopover();
-        litPopover.type = "multiple-text"
-        litPopover.title = "tee"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
-        expect(litPopover.limit).toEqual({textLowerLimit:"0",textUpperLimit:"∞"});
+        litPopover.type = 'multiple-text';
+        litPopover.title = 'tee';
+        litPopover.dataSource = [
+            {
+                text: '# Samples',
+                isSelected: true,
+            },
+        ];
+        expect(litPopover.limit).toEqual({
+            textLowerLimit: '0',
+            textUpperLimit: '∞',
+        });
     });
 
     it('LitPopover12', () => {
@@ -415,14 +440,14 @@ describe("LitPopover Test", () => {
 
     it('LitPopover13', () => {
         let litPopover = new LitPopover();
-        expect(litPopover.connectedCallback()).toBeUndefined()
+        expect(litPopover.connectedCallback()).toBeUndefined();
     });
 
     it('LitPopover16', () => {
         const onclick = jest.fn();
-        let litPopover = document.body.innerHTML = `
+        let litPopover = (document.body.innerHTML = `
             <lit-popover id='popover'></lit-popover>
-        `
+        `);
         const popover = document.getElementById('popover');
         expect(onclick).not.toBeCalled();
         popover!.onclick = onclick;
@@ -430,4 +455,4 @@ describe("LitPopover Test", () => {
         expect(onclick).toBeCalled();
         expect(onclick).toHaveBeenCalledTimes(1);
     });
-})
+});

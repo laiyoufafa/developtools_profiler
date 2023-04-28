@@ -13,46 +13,48 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../base-ui/BaseElement.js";
-import {SelectionData} from "../bean/BoxSelection.js";
-import {Utils} from "./trace/base/Utils.js";
+import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import { SelectionData } from '../bean/BoxSelection.js';
+import { Utils } from './trace/base/Utils.js';
 
 @element('stack-bar')
 export class StackBar extends BaseElement {
     private container: HTMLDivElement | undefined | null;
 
     static get observedAttributes() {
-        return ['mode'];// max min hidden show 三种状态
+        return ['mode']; // max min hidden show 三种状态
     }
 
     set data(val: Array<SelectionData>) {
         let map = new Map<string, StackValue>();
         for (let v of val) {
             if (map.has(v.state)) {
-                let sv = map.get(v.state)
+                let sv = map.get(v.state);
                 sv!.value = sv!.value + v.wallDuration;
-                sv!.state = v.state + " : " + sv!.value.toFixed(7) + "ms";
+                sv!.state = v.state + ' : ' + sv!.value.toFixed(7) + 'ms';
             } else {
                 let sv = new StackValue();
                 sv.value = v.wallDuration;
-                sv.state = v.state + " : " + sv.value.toFixed(7) + "ms";
+                sv.state = v.state + ' : ' + sv.value.toFixed(7) + 'ms';
                 sv.color = Utils.getStateColor(v.stateJX);
                 map.set(v.state, sv);
             }
         }
-        let totalDuration = 0
-        let arr: Array<StackValue> = []
+        let totalDuration = 0;
+        let arr: Array<StackValue> = [];
         for (let key of map.keys()) {
-            if (key == " ") {
+            if (key == ' ') {
                 totalDuration = map.get(key)!.value;
             } else {
                 arr.push(map.get(key)!);
             }
         }
-        arr.sort((a, b) => a.value - b.value)
-        this.container!.innerHTML = ''
+        arr.sort((a, b) => a.value - b.value);
+        this.container!.innerHTML = '';
         for (let stackValue of arr) {
-            this.container!.appendChild(this.createBarElement(stackValue, totalDuration))
+            this.container!.appendChild(
+                this.createBarElement(stackValue, totalDuration)
+            );
         }
     }
 
@@ -80,9 +82,9 @@ export class StackBar extends BaseElement {
     }
 
     getStateWidth(state: string): number {
-        let canvas = document.createElement("canvas");
-        let context = canvas.getContext("2d");
-        context!.font = "9pt";
+        let canvas = document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        context!.font = '9pt';
         let metrics = context!.measureText(state);
         return metrics.width;
     }
@@ -90,39 +92,39 @@ export class StackBar extends BaseElement {
     createBarElement(sv: StackValue, total: number): HTMLDivElement {
         let bar = document.createElement('div');
         bar.setAttribute('class', 'state-text');
-        bar.setAttribute('need-width', this.getStateWidth(sv.state) + "");
+        bar.setAttribute('need-width', this.getStateWidth(sv.state) + '');
         bar.style.backgroundColor = sv.color;
-        bar.textContent = sv.state
-        if (sv.state.startsWith("Sleeping")) {
+        bar.textContent = sv.state;
+        if (sv.state.startsWith('Sleeping')) {
             bar.style.color = '#555555';
         } else {
             bar.style.color = '#ffffff';
         }
-        let weight = (sv.value * 1.0 / total) * 100.00
+        let weight = ((sv.value * 1.0) / total) * 100.0;
         if (weight < 1) {
             weight = 1;
         }
-        bar.style.width = weight + "%"
+        bar.style.width = weight + '%';
         bar.addEventListener('mouseover', (event) => {
             let needWidth = parseFloat(bar.getAttribute('need-width')!);
             let trueWidth = parseFloat(window.getComputedStyle(bar).width);
             if (trueWidth < needWidth) {
-                bar.style.width = (needWidth + 100) + "px"
+                bar.style.width = needWidth + 100 + 'px';
             }
-        })
+        });
         bar.addEventListener('mouseleave', (event) => {
-            let weight = (sv.value * 1.0 / total) * 100.00
+            let weight = ((sv.value * 1.0) / total) * 100.0;
             if (weight < 1) {
                 weight = 1;
             }
-            bar.style.width = weight + "%"
-        })
+            bar.style.width = weight + '%';
+        });
         return bar;
     }
 }
 
 export class StackValue {
-    state: string = "";
-    color: string = "";
-    value: number = 0
+    state: string = '';
+    color: string = '';
+    value: number = 0;
 }

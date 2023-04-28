@@ -13,9 +13,13 @@
  * limitations under the License.
  */
 
-import {HdcCommand} from "./HdcCommand.js";
-import {CMDSTR_FILE_RECV, CMDSTR_FILE_SEND, CMDSTR_SHELL} from "../common/ConstantType.js";
-import {log} from "../../log/Log.js";
+import { HdcCommand } from './HdcCommand.js';
+import {
+    CMDSTR_FILE_RECV,
+    CMDSTR_FILE_SEND,
+    CMDSTR_SHELL,
+} from '../common/ConstantType.js';
+import { log } from '../../log/Log.js';
 
 export class FormatCommand {
     cmdFlag: number; // uint16_t
@@ -29,26 +33,31 @@ export class FormatCommand {
     }
 
     static string2FormatCommand(cmd: string): FormatCommand {
-        log("Command  : " + cmd);
-        let formatCommand = new FormatCommand(-1, "", false);
-        if (cmd.startsWith(CMDSTR_SHELL + " ")) {
+        log('Command  : ' + cmd);
+        let formatCommand = new FormatCommand(-1, '', false);
+        if (cmd.startsWith(CMDSTR_SHELL + ' ')) {
             formatCommand.cmdFlag = HdcCommand.CMD_UNITY_EXECUTE;
-            formatCommand.parameters = cmd.substring((CMDSTR_SHELL + " ").length)
+            formatCommand.parameters = cmd.substring(
+                (CMDSTR_SHELL + ' ').length
+            );
         } else if (cmd.startsWith(CMDSTR_SHELL)) {
             formatCommand.cmdFlag = HdcCommand.CMD_SHELL_INIT;
         } else if (cmd.startsWith(CMDSTR_FILE_RECV)) {
             formatCommand.cmdFlag = HdcCommand.CMD_FILE_INIT;
-            formatCommand.parameters = cmd.substring((CMDSTR_FILE_RECV + " ").length)
+            formatCommand.parameters = cmd.substring(
+                (CMDSTR_FILE_RECV + ' ').length
+            );
         } else if (cmd.startsWith(CMDSTR_FILE_SEND)) {
             formatCommand.cmdFlag = HdcCommand.CMD_FILE_INIT;
-            formatCommand.parameters = cmd.substring((CMDSTR_FILE_SEND + " ").length)
+            formatCommand.parameters = cmd.substring(
+                (CMDSTR_FILE_SEND + ' ').length
+            );
         } else {
             formatCommand.bJumpDo = true;
         }
-        log("formatCommand  cmdFlag is : " + formatCommand.cmdFlag);
-        log("formatCommand  parameters is : " + formatCommand.parameters);
-        log("formatCommand  bJumpDo is : " + formatCommand.bJumpDo);
+        log('formatCommand  cmdFlag is : ' + formatCommand.cmdFlag);
+        log('formatCommand  parameters is : ' + formatCommand.parameters);
+        log('formatCommand  bJumpDo is : ' + formatCommand.bJumpDo);
         return formatCommand;
     }
-
 }

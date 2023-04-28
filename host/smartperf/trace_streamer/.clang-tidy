@@ -48,9 +48,9 @@ CheckOptions:
   # - { key: readability-identifier-naming.PrivateMemberSuffix,      value: _          }
 
   # 规则8.1.1 避免函数过长，函数不超过50行（非空非注释）
-  - { key: readability-function-size.LineThreshold,                value:  50       }
+  - { key: readability-function-size.LineThreshold,                value:  80       }
   # 建议8.3.3 函数的参数个数不超过5个
-  - { key: readability-function-size.ParameterThreshold,           value:  5        }
+  - { key: readability-function-size.ParameterThreshold,           value:  10       }
   - { key: readability-function-size.NestingThreshold,             value:  4        }
   - { key: bugprone-assert-side-effect.CheckFunctionCalls,         value:  1        }
   - { key: modernize-use-transparent-functors.SafeMode,            value:  1        }

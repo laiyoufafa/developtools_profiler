@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#./build.sh sdkdemotest clean
+set -e
 ./build.sh sdkdemotest
-rm out/sdkdemotest/*.xml
+rm -rf out/sdkdemotest/*.xml
 find out/sdkdemotest -name "*.gcda" -print0 | xargs -0 rm
 mkdir -p out/sdkdemotest/data/resource
 cp sdkdemotest/resource/* out/sdkdemotest/data/resource/

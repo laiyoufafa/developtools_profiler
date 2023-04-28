@@ -46,6 +46,7 @@ private:
         int Column(int col) const override;
 
         void FilterId(unsigned char op, sqlite3_value* argv) override;
+
     private:
         std::vector<TableRowId> rowIndexBak_;
         IndexMap* indexMapBack_ = nullptr;

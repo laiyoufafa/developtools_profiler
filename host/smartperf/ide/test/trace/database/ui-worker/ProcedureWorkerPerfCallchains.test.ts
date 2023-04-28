@@ -14,12 +14,13 @@
  */
 
 // @ts-ignore
-import {PerfCallChainThread,PerfCallChainPool} from "../../../../dist/trace/database/ui-worker/ProcedureWorkerPerfCallchains.js"
+import {
+    PerfCallChainThread,
+    PerfCallChainPool,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerPerfCallchains.js';
 
-describe('ProcedureWorkerPerfCallchains Test', ()=>{
-
-    it('ProcedureWorkerPerfCallchainsTest01',()=>{
-        expect(PerfCallChainPool).not.toBeUndefined()
+describe('ProcedureWorkerPerfCallchains Test', () => {
+    it('ProcedureWorkerPerfCallchainsTest01', () => {
+        expect(PerfCallChainPool).not.toBeUndefined();
     });
-
-})
+});

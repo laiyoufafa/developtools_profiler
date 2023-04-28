@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
-import {Flag} from "./Flag.js";
-import {ns2s} from "../TimerShaftElement.js";
+import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
+import { Flag } from './Flag.js';
+import { ns2s } from '../TimerShaftElement.js';
 
 @element('tabpane-flag')
 export class TabPaneFlag extends BaseElement {
@@ -23,41 +23,73 @@ export class TabPaneFlag extends BaseElement {
     private flag: Flag | null = null;
 
     initElements(): void {
-        this.shadowRoot?.querySelector("#color-input")?.addEventListener("change", (event: any) => {
-            if (this.flag) {
-                this.flag.color = event?.target.value
-                document.dispatchEvent(new CustomEvent('flag-change', {detail: this.flag}));
-            }
-        });
-        this.shadowRoot?.querySelector("#text-input")?.addEventListener("keyup", (event: any) => {
-            event.stopPropagation();
-            if (event.keyCode == "13") {
+        this.shadowRoot
+            ?.querySelector('#color-input')
+            ?.addEventListener('change', (event: any) => {
                 if (this.flag) {
-                    (window as any).flagInputFocus = false;
-                    this.flag.text = event?.target.value
-                    document.dispatchEvent(new CustomEvent('flag-change', {detail: this.flag}));
+                    this.flag.color = event?.target.value;
+                    document.dispatchEvent(
+                        new CustomEvent('flag-change', { detail: this.flag })
+                    );
                 }
-            }
-        });
-        this.shadowRoot?.querySelector("#text-input")?.addEventListener("blur", (event: any) => {
-            (window as any).flagInputFocus = false;
-        });
-        this.shadowRoot?.querySelector("#text-input")?.addEventListener("focus", (event: any) => {
-            (window as any).flagInputFocus = true;
-        });
-        this.shadowRoot?.querySelector("#remove-flag")?.addEventListener("click", (event: any) => {
-            if (this.flag) {
-                this.flag.hidden = true;
-                document.dispatchEvent(new CustomEvent('flag-change', {detail: this.flag}));
-            }
-        });
+            });
+        this.shadowRoot
+            ?.querySelector('#text-input')
+            ?.addEventListener('keyup', (event: any) => {
+                event.stopPropagation();
+                if (event.keyCode == '13') {
+                    if (this.flag) {
+                        (window as any).flagInputFocus = false;
+                        window.publish(window.SmartEvent.UI.KeyboardEnable, {
+                            enable: true,
+                        });
+                        this.flag.text = event?.target.value;
+                        document.dispatchEvent(
+                            new CustomEvent('flag-change', {
+                                detail: this.flag,
+                            })
+                        );
+                    }
+                }
+            });
+        this.shadowRoot
+            ?.querySelector('#text-input')
+            ?.addEventListener('blur', (event: any) => {
+                (window as any).flagInputFocus = false;
+                window.publish(window.SmartEvent.UI.KeyboardEnable, {
+                    enable: true,
+                });
+            });
+        this.shadowRoot
+            ?.querySelector('#text-input')
+            ?.addEventListener('focus', (event: any) => {
+                (window as any).flagInputFocus = true;
+                window.publish(window.SmartEvent.UI.KeyboardEnable, {
+                    enable: false,
+                });
+            });
+        this.shadowRoot
+            ?.querySelector('#remove-flag')
+            ?.addEventListener('click', (event: any) => {
+                if (this.flag) {
+                    this.flag.hidden = true;
+                    document.dispatchEvent(
+                        new CustomEvent('flag-change', { detail: this.flag })
+                    );
+                }
+            });
     }
 
     setFlagObj(flagObj: Flag) {
         this.flag = flagObj;
-        this.shadowRoot!.querySelector<HTMLInputElement>("#color-input")!.value = flagObj.color;
-        this.shadowRoot!.querySelector<HTMLInputElement>("#text-input")!.value = flagObj.text;
-        this.shadowRoot!.querySelector<HTMLDivElement>("#flag-time")!.innerHTML = ns2s(flagObj.time)
+        this.shadowRoot!.querySelector<HTMLInputElement>(
+            '#color-input'
+        )!.value = flagObj.color;
+        this.shadowRoot!.querySelector<HTMLInputElement>('#text-input')!.value =
+            flagObj.text;
+        this.shadowRoot!.querySelector<HTMLDivElement>(
+            '#flag-time'
+        )!.innerHTML = ns2s(flagObj.time);
     }
 
     initHtml(): string {
@@ -108,5 +140,4 @@ export class TabPaneFlag extends BaseElement {
         </div>
         `;
     }
-
 }

@@ -46,6 +46,7 @@ public:
     void TractionLocked(int64_t ts, uint32_t pid, const std::string& tag);
     void TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag);
     void Clear();
+
 private:
     std::string GetBinderFlagsDesc(uint32_t flag);
     bool IsValidUint32(uint32_t value) const

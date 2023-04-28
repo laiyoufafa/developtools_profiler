@@ -101,7 +101,7 @@ void HttpServer::Run(int port)
         }
     }
 
-    for (auto& it : clientThreads_) {
+    for (const auto& it : clientThreads_) {
         if (it->thread_.joinable()) {
             it->sock_.Close();
             it->thread_.join();
@@ -146,7 +146,7 @@ void HttpServer::Run(int port)
         }
     }
 
-    for (auto& it : clientThreads_) {
+    for (const auto& it : clientThreads_) {
         if (it->thread_.joinable()) {
             it->sock_.Close();
             it->thread_.join();
@@ -301,8 +301,7 @@ void HttpServer::ProcessClient(HttpSocket& client)
 }
 #endif
 
-void HttpServer::ProcessRequest(HttpSocket& client, RequestST& request)
-{}
+void HttpServer::ProcessRequest(HttpSocket& client, RequestST& request) {}
 
 void HttpServer::ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq)
 {
@@ -362,25 +361,6 @@ void HttpServer::ParseRequest(const uint8_t* requst, size_t& len, RequestST& htt
     httpReq.stat = RequstParseStat::OK;
     len -= (bodyPos + httpReq.bodyLen);
     return;
-}
-
-void HttpServer::HttpResponse(HttpSocket& client, const std::string& status, bool hasBody)
-{
-    std::string res;
-    const size_t maxLenResponse = 1024;
-    res.reserve(maxLenResponse);
-    res += "HTTP/1.1 ";
-    res += status;
-
-    res += "Connection: Keep-Alive\r\n";
-    if (hasBody) {
-        res += "Content-Type: application/json\r\n";
-        res += "Transfer-Encoding: chunked\r\n";
-    }
-    res += "\r\n";
-    if (!client.Send(res.data(), res.size())) {
-        TS_LOGE("send client socket(%d) error", client.GetFd());
-    }
 }
 
 std::vector<std::string_view> HttpServer::StringSplit(std::string_view source, std::string_view split)

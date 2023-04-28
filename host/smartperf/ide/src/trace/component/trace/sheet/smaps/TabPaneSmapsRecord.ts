@@ -13,31 +13,31 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabSmapsData,} from "../../../../database/SqlLite.js";
-import {Utils} from "../../base/Utils.js";
-import {log} from "../../../../../log/Log.js";
-import {Smaps} from "../../../../bean/SmapsStruct.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { getTabSmapsData } from '../../../../database/SqlLite.js';
+import { Utils } from '../../base/Utils.js';
+import { log } from '../../../../../log/Log.js';
+import { Smaps } from '../../../../bean/SmapsStruct.js';
 
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
     private tbl: LitTable | null | undefined;
     private source: Array<Smaps> = [];
-    private queryResult: Array<Smaps> = []
+    private queryResult: Array<Smaps> = [];
 
     set data(val: SelectionParam | any) {
         // @ts-ignore
-        this.tbl?.shadowRoot?.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-        this.queryDataByDB(val)
+        this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.queryDataByDB(val);
     }
 
     initElements(): void {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-smaps-record');
         this.tbl!.addEventListener('column-click', (evt) => {
             // @ts-ignore
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -46,53 +46,63 @@ export class TabPaneSmapsRecord extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
 
     queryDataByDB(val: SelectionParam | any) {
-        getTabSmapsData(val.leftNs, val.rightNs).then(result => {
-            log("getTabSmapsData size :" + result.length);
+        getTabSmapsData(val.leftNs, val.rightNs).then((result) => {
+            log('getTabSmapsData size :' + result.length);
             if (result.length != null && result.length > 0) {
                 for (const smaps of result) {
                     switch (smaps.permission.trim()) {
-                        case "rw-":
-                            smaps.type = "DATA"
+                        case 'rw-':
+                            smaps.type = 'DATA';
                             break;
-                        case "r-x":
-                            smaps.type = "TEXT"
+                        case 'r-x':
+                            smaps.type = 'TEXT';
                             break;
-                        case "r--":
-                            smaps.type = "CONST"
+                        case 'r--':
+                            smaps.type = 'CONST';
                             break;
                         default:
-                            smaps.type = "OTHER"
+                            smaps.type = 'OTHER';
                             break;
                     }
-                    smaps.address = smaps.start_addr  + " - " + smaps.end_addr
-                    smaps.dirtyStr = Utils.getBinaryByteWithUnit(smaps.dirty * 1024)
-                    smaps.swapperStr = Utils.getBinaryByteWithUnit(smaps.swapper * 1024)
-                    smaps.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024)
-                    smaps.pssStr = Utils.getBinaryByteWithUnit(smaps.pss * 1024)
-                    smaps.sizeStr = Utils.getBinaryByteWithUnit(smaps.size * 1024)
-                    let resideS = smaps.reside.toFixed(2)
-                    if (resideS == "0.00") {
-                        smaps.resideStr = "0 %"
+                    smaps.address = smaps.start_addr + ' - ' + smaps.end_addr;
+                    smaps.dirtyStr = Utils.getBinaryByteWithUnit(
+                        smaps.dirty * 1024
+                    );
+                    smaps.swapperStr = Utils.getBinaryByteWithUnit(
+                        smaps.swapper * 1024
+                    );
+                    smaps.rssStr = Utils.getBinaryByteWithUnit(
+                        smaps.rss * 1024
+                    );
+                    smaps.pssStr = Utils.getBinaryByteWithUnit(
+                        smaps.pss * 1024
+                    );
+                    smaps.sizeStr = Utils.getBinaryByteWithUnit(
+                        smaps.size * 1024
+                    );
+                    let resideS = smaps.reside.toFixed(2);
+                    if (resideS == '0.00') {
+                        smaps.resideStr = '0 %';
                     } else {
-                        smaps.resideStr = resideS + "%"
+                        smaps.resideStr = resideS + '%';
                     }
                 }
-                this.source = result
+                this.source = result;
                 this.queryResult = result;
-                this.tbl!.recycleDataSource = this.source
+                this.tbl!.recycleDataSource = this.source;
             } else {
-                this.source = []
-                this.queryResult = []
-                this.tbl!.recycleDataSource = []
+                this.source = [];
+                this.queryResult = [];
+                this.tbl!.recycleDataSource = [];
             }
-        })
+        });
     }
 
     initHtml(): string {
@@ -141,7 +151,8 @@ export class TabPaneSmapsRecord extends BaseElement {
                     // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
+                    } else {
+                        // @ts-ignore
                         if (b[property] == a[property]) {
                             return 0;
                         } else {
@@ -149,14 +160,20 @@ export class TabPaneSmapsRecord extends BaseElement {
                         }
                     }
                 }
-            }
+            };
         }
 
-        if (detail.key === 'dirtyStr' || detail.key === 'swapperStr' || detail.key === 'rssStr' || detail.key === 'sizeStr' || detail.key === 'resideStr') {
-            let key = detail.key.substring(0, detail.key.indexOf("Str"))
-            this.source.sort(compare(key, detail.sort, 'number'))
-        }  else {
-            this.source.sort(compare(detail.key, detail.sort, 'string'))
+        if (
+            detail.key === 'dirtyStr' ||
+            detail.key === 'swapperStr' ||
+            detail.key === 'rssStr' ||
+            detail.key === 'sizeStr' ||
+            detail.key === 'resideStr'
+        ) {
+            let key = detail.key.substring(0, detail.key.indexOf('Str'));
+            this.source.sort(compare(key, detail.sort, 'number'));
+        } else {
+            this.source.sort(compare(detail.key, detail.sort, 'string'));
         }
         this.tbl!.recycleDataSource = this.source;
     }

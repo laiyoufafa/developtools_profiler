@@ -116,7 +116,7 @@ public:
         }
 
         auto itor = fixedTypeToSizeMap_.find(wireType);
-        if (itor != fixedTypeToSizeMap_.end() && length == itor->second) {
+        if (itor != fixedTypeToSizeMap_.end() && length != itor->second) {
             *parseStatus_ = true;
             currentValueValid_ = false;
             return;

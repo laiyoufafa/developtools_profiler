@@ -14,26 +14,26 @@
  */
 
 // @ts-ignore
-import {TabPaneCpuUsage} from "../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuUsage.js"
-const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+import { TabPaneCpuUsage } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuUsage.js';
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-
 describe('TabPaneCpuUsage Test', () => {
     let tabPaneCpuUsage = new TabPaneCpuUsage();
 
-    let mockGetTabCpuUsage =  sqlit.getTabCpuUsage
-    let mockGetTabCpuFreq =  sqlit.getTabCpuFreq
+    let mockGetTabCpuUsage = sqlit.getTabCpuUsage;
+    let mockGetTabCpuFreq = sqlit.getTabCpuFreq;
 
-    mockGetTabCpuUsage.mockResolvedValue([])
-    mockGetTabCpuFreq.mockResolvedValue([])
+    mockGetTabCpuUsage.mockResolvedValue([]);
+    mockGetTabCpuFreq.mockResolvedValue([]);
 
     let selectionData = {
         cpus: [],
@@ -55,78 +55,146 @@ describe('TabPaneCpuUsage Test', () => {
         perfProcess: [],
         perfThread: [],
         perfAll: false,
-    }
+    };
 
     it('TabPaneCpuUsageTest01', function () {
-        expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],0,true)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.sortTable(
+                [
+                    [1, 2, 3, 9, 6, 4],
+                    [5, 2, 1, 4, 9, 6],
+                ],
+                0,
+                true
+            )
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuUsageTest08', function () {
-        expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],0,false)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.sortTable(
+                [
+                    [1, 2, 3, 9, 6, 4],
+                    [5, 2, 1, 4, 9, 6],
+                ],
+                0,
+                false
+            )
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuUsageTest09', function () {
-        expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],2,true)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.sortTable(
+                [
+                    [1, 2, 3, 9, 6, 4],
+                    [5, 2, 1, 4, 9, 6],
+                ],
+                2,
+                true
+            )
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuUsageTest10', function () {
-        expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],2,false)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.sortTable(
+                [
+                    [1, 2, 3, 9, 6, 4],
+                    [5, 2, 1, 4, 9, 6],
+                ],
+                2,
+                false
+            )
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuUsageTest02', function () {
-        expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],1,true)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.sortTable(
+                [
+                    [1, 2, 3, 9, 6, 4],
+                    [5, 2, 1, 4, 9, 6],
+                ],
+                1,
+                true
+            )
+        ).toBeUndefined();
     });
 
     it('TabPaneCpuUsageTest03', function () {
-        expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],1,false)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.sortTable(
+                [
+                    [1, 2, 3, 9, 6, 4],
+                    [5, 2, 1, 4, 9, 6],
+                ],
+                1,
+                false
+            )
+        ).toBeUndefined();
     });
     it('TabPaneCpuUsageTest04', function () {
-        let result = tabPaneCpuUsage.sortFreq([{
-            cpu: 0,
-            value: 0,
-            startNs: 0,
-            dur: 0,
-        },{
-            cpu: 1,
-            value: 2,
-            startNs: 2,
-            dur: 4,
-        }]);
+        let result = tabPaneCpuUsage.sortFreq([
+            {
+                cpu: 0,
+                value: 0,
+                startNs: 0,
+                dur: 0,
+            },
+            {
+                cpu: 1,
+                value: 2,
+                startNs: 2,
+                dur: 4,
+            },
+        ]);
         expect(result[0][0]).toBe(2);
     });
     it('TabPaneCpuUsageTest05', function () {
-        expect(tabPaneCpuUsage.getFreqTop3({
-            cpu: 0,
-            usage: 0,
-            usageStr: "usage",
-            top1: 1,
-            top2: 2,
-            top3: 3,
-            top1Percent: 11,
-            top1PercentStr: "Str1",
-            top2Percent: 22,
-            top2PercentStr: "Str2",
-            top3Percent: 33,
-            top3PercentStr: "Str3",
-        }, undefined, undefined, undefined, 1)).toBeUndefined();
+        expect(
+            tabPaneCpuUsage.getFreqTop3(
+                {
+                    cpu: 0,
+                    usage: 0,
+                    usageStr: 'usage',
+                    top1: 1,
+                    top2: 2,
+                    top3: 3,
+                    top1Percent: 11,
+                    top1PercentStr: 'Str1',
+                    top2Percent: 22,
+                    top2PercentStr: 'Str2',
+                    top3Percent: 33,
+                    top3PercentStr: 'Str3',
+                },
+                undefined,
+                undefined,
+                undefined,
+                1
+            )
+        ).toBeUndefined();
     });
     it('TabPaneCpuUsageTest06', function () {
-        let result = tabPaneCpuUsage.groupByCpuToMap([{
-            cpu: 0,
-            value: 0,
-            startNs: 0,
-            dur: 0,
-        },{
-            cpu: 1,
-            value: 2,
-            startNs: 2,
-            dur: 4,
-        }])
+        let result = tabPaneCpuUsage.groupByCpuToMap([
+            {
+                cpu: 0,
+                value: 0,
+                startNs: 0,
+                dur: 0,
+            },
+            {
+                cpu: 1,
+                value: 2,
+                startNs: 2,
+                dur: 4,
+            },
+        ]);
         expect(result.get(0).length).toBe(1);
     });
 
-    it('TabPaneCurrentSelectionTest07',function(){
-         expect(tabPaneCpuUsage.initHtml()).toMatchInlineSnapshot(`
+    it('TabPaneCurrentSelectionTest07', function () {
+        expect(tabPaneCpuUsage.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -159,8 +227,10 @@ describe('TabPaneCpuUsage Test', () => {
     });
 
     it('TabPaneCpuUsageTest11', function () {
-        document.body.innerHTML =  `<div id="CpuUsage"></div>`
-        let tabPaneCpuUsage = document.querySelector("#CpuUsage") as TabPaneCpuUsage;
+        document.body.innerHTML = `<div id="CpuUsage"></div>`;
+        let tabPaneCpuUsage = document.querySelector(
+            '#CpuUsage'
+        ) as TabPaneCpuUsage;
         expect(tabPaneCpuUsage.sortFreq).toBe(undefined);
     });
-})
+});

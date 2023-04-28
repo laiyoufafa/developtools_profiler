@@ -194,7 +194,7 @@ public:
     {
         body_.pop_back();
     }
-    const std::string& Body()
+    const std::string& Body() const
     {
         return body_;
     }

@@ -13,34 +13,35 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
-import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {getTabLiveProcessData} from "../../../../database/SqlLite.js";
-import {LiveProcess} from "../../../../bean/AbilityMonitor.js";
-import "../../../SpFilter.js";
-import {Utils} from "../../base/Utils.js";
-import {log} from "../../../../../log/Log.js";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { getTabLiveProcessData } from '../../../../database/SqlLite.js';
+import { LiveProcess } from '../../../../bean/AbilityMonitor.js';
+import '../../../SpFilter.js';
+import { Utils } from '../../base/Utils.js';
+import { log } from '../../../../../log/Log.js';
 
 @element('tabpane-live-processes')
 export class TabPaneLiveProcesses extends BaseElement {
     private tbl: LitTable | null | undefined;
     private source: Array<LiveProcess> = [];
-    private queryResult: Array<LiveProcess> = []
+    private queryResult: Array<LiveProcess> = [];
     private float: HTMLDivElement | null | undefined;
-    private search: HTMLInputElement | undefined | null
+    private search: HTMLInputElement | undefined | null;
 
     set data(val: SelectionParam | any) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-        this.queryDataByDB(val)
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.queryDataByDB(val);
     }
 
     initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-live-processes');
+        this.tbl =
+            this.shadowRoot?.querySelector<LitTable>('#tb-live-processes');
         this.tbl!.addEventListener('column-click', (evt) => {
             // @ts-ignore
-            this.sortByColumn(evt.detail)
+            this.sortByColumn(evt.detail);
         });
     }
 
@@ -49,8 +50,8 @@ export class TabPaneLiveProcesses extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement?.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
-                this.tbl?.reMeauseHeight()
+                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+                this.tbl?.reMeauseHeight();
             }
         }).observe(this.parentElement!);
     }
@@ -58,86 +59,96 @@ export class TabPaneLiveProcesses extends BaseElement {
     filterData() {
         if (this.queryResult.length > 0) {
             let filter = this.queryResult.filter((item) => {
-                let array = this.toLiveProcessArray(item)
-                let isInclude = array.filter(value => value.indexOf(this.search!.value) > -1);
-                return isInclude.length > 0
+                let array = this.toLiveProcessArray(item);
+                let isInclude = array.filter(
+                    (value) => value.indexOf(this.search!.value) > -1
+                );
+                return isInclude.length > 0;
             });
             if (filter.length > 0) {
                 this.source = filter;
                 this.tbl!.recycleDataSource = this.source;
             } else {
-                this.source = []
+                this.source = [];
                 this.tbl!.recycleDataSource = [];
             }
         }
     }
 
     toLiveProcessArray(liveProcess: LiveProcess): any[] {
-        let array: Array<string> = []
-        array.push(liveProcess.processId.toString())
-        array.push(liveProcess.processName)
-        array.push(liveProcess.responsibleProcess)
-        array.push(liveProcess.userName)
-        array.push(liveProcess.threads.toString())
-        array.push(liveProcess.cpu)
-        array.push(liveProcess.memory)
-        array.push(liveProcess.diskReads.toString())
-        array.push(liveProcess.diskWrite.toString())
-        return array
+        let array: Array<string> = [];
+        array.push(liveProcess.processId.toString());
+        array.push(liveProcess.processName);
+        array.push(liveProcess.responsibleProcess);
+        array.push(liveProcess.userName);
+        array.push(liveProcess.threads.toString());
+        array.push(liveProcess.cpu);
+        array.push(liveProcess.memory);
+        array.push(liveProcess.diskReads.toString());
+        array.push(liveProcess.diskWrite.toString());
+        return array;
     }
 
     queryDataByDB(val: SelectionParam | any) {
-        getTabLiveProcessData(val.leftNs, val.rightNs).then(item => {
+        getTabLiveProcessData(val.leftNs, val.rightNs).then((item) => {
             if (item.length != null && item.length > 0) {
-                log("getTabLiveProcessData result size : " + item.length)
+                log('getTabLiveProcessData result size : ' + item.length);
                 for (const liveProcess of item) {
-                    liveProcess.processName = liveProcess.processName + '(' + liveProcess.processId + ')'
+                    liveProcess.processName =
+                        liveProcess.processName +
+                        '(' +
+                        liveProcess.processId +
+                        ')';
                     liveProcess.memoryNumber = Number(liveProcess.memory);
-                    liveProcess.memory = Utils.getBinaryByteWithUnit(liveProcess.memoryNumber)
+                    liveProcess.memory = Utils.getBinaryByteWithUnit(
+                        liveProcess.memoryNumber
+                    );
                     if (Number(liveProcess.cpu) > 0) {
-                        liveProcess.cpu = Number(Number(liveProcess.cpu).toFixed(3)) + "%"
+                        liveProcess.cpu =
+                            Number(Number(liveProcess.cpu).toFixed(3)) + '%';
                     } else {
-                        liveProcess.cpu = "0%";
+                        liveProcess.cpu = '0%';
                     }
                     liveProcess.cpuTimeNumber = Number(liveProcess.cpuTime);
-                    liveProcess.cpuTime = this.timeFormat(Number(liveProcess.cpuTime))
+                    liveProcess.cpuTime = this.timeFormat(
+                        Number(liveProcess.cpuTime)
+                    );
                 }
-                this.source = item
+                this.source = item;
                 this.queryResult = item;
                 this.tbl!.recycleDataSource = this.source;
             } else {
-                this.source = []
-                this.queryResult = []
+                this.source = [];
+                this.queryResult = [];
                 this.tbl!.recycleDataSource = [];
             }
-        })
+        });
     }
 
-
     timeFormat(ms: number): string {
-        let currentMs = ms
-        let hours = 3600000
-        let minute1 = 60000
+        let currentMs = ms;
+        let hours = 3600000;
+        let minute1 = 60000;
         let second1 = 1000;
-        let res = "";
+        let res = '';
         if (currentMs >= hours) {
-            res += Math.floor(currentMs / hours) + " h ";
-            currentMs = currentMs - Math.floor(currentMs / hours) * hours
+            res += Math.floor(currentMs / hours) + ' h ';
+            currentMs = currentMs - Math.floor(currentMs / hours) * hours;
         }
         if (currentMs >= minute1) {
-            res += Math.floor(currentMs / minute1) + " min ";
-            currentMs = currentMs - Math.floor(currentMs / minute1) * minute1
+            res += Math.floor(currentMs / minute1) + ' min ';
+            currentMs = currentMs - Math.floor(currentMs / minute1) * minute1;
         }
         if (currentMs >= second1) {
-            res += Math.floor(currentMs / second1) + " s ";
+            res += Math.floor(currentMs / second1) + ' s ';
             currentMs = currentMs - Math.floor(currentMs / second1) * second1;
         }
         if (currentMs > 0) {
-            res += currentMs + " ms ";
+            res += currentMs + ' ms ';
         } else {
-            res += "0 ms ";
+            res += '0 ms ';
         }
-        return res
+        return res;
     }
 
     initHtml(): string {
@@ -172,14 +183,19 @@ export class TabPaneLiveProcesses extends BaseElement {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 } else if (type === 'cpuTime') {
-                    return sort === 2 ? b.cpuTimeNumber - a.cpuTimeNumber : a.cpuTimeNumber - b.cpuTimeNumber;
+                    return sort === 2
+                        ? b.cpuTimeNumber - a.cpuTimeNumber
+                        : a.cpuTimeNumber - b.cpuTimeNumber;
                 } else if (type === 'memory') {
-                    return sort === 2 ? b.memoryNumber - a.memoryNumber : a.memoryNumber - b.memoryNumber;
+                    return sort === 2
+                        ? b.memoryNumber - a.memoryNumber
+                        : a.memoryNumber - b.memoryNumber;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
+                    } else {
+                        // @ts-ignore
                         if (b[property] == a[property]) {
                             return 0;
                         } else {
@@ -187,17 +203,17 @@ export class TabPaneLiveProcesses extends BaseElement {
                         }
                     }
                 }
-            }
+            };
         }
 
         if (detail.key == 'startTime' || detail.key == 'processName') {
-            this.source.sort(compare(detail.key, detail.sort, 'string'))
+            this.source.sort(compare(detail.key, detail.sort, 'string'));
         } else if (detail.key == 'cpuTime') {
-            this.source.sort(compare(detail.key, detail.sort, 'cpuTime'))
+            this.source.sort(compare(detail.key, detail.sort, 'cpuTime'));
         } else if (detail.key == 'memory') {
-            this.source.sort(compare(detail.key, detail.sort, 'memory'))
+            this.source.sort(compare(detail.key, detail.sort, 'memory'));
         } else {
-            this.source.sort(compare(detail.key, detail.sort, 'number'))
+            this.source.sort(compare(detail.key, detail.sort, 'number'));
         }
         this.tbl!.recycleDataSource = this.source;
     }

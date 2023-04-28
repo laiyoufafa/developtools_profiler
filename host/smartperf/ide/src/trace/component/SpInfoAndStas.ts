@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../base-ui/BaseElement.js";
-import {querySelectTraceStats, queryTraceMetaData,} from "../database/SqlLite.js";
-import {LitTable} from "../../base-ui/table/lit-table.js";
-import "../../base-ui/table/lit-table.js";
-import {info} from "../../log/Log.js";
-import {LitProgressBar} from "../../base-ui/progress-bar/LitProgressBar.js";
+import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import {
+    querySelectTraceStats,
+    queryTraceMetaData,
+} from '../database/SqlLite.js';
+import { LitTable } from '../../base-ui/table/lit-table.js';
+import '../../base-ui/table/lit-table.js';
+import { info } from '../../log/Log.js';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
 
 @element('sp-info-and-stats')
 export class SpInfoAndStats extends BaseElement {
@@ -32,27 +35,33 @@ export class SpInfoAndStats extends BaseElement {
     private progressLoad: LitProgressBar | undefined;
 
     static get observedAttributes() {
-        return []
+        return [];
     }
 
     initElements(): void {
-        this.progressLoad = this.shadowRoot?.querySelector(".load-metric") as LitProgressBar;
-        this.metaTableEl = this.shadowRoot!.querySelector<LitTable>('#metaData-table') as LitTable;
-        this.infoTableEl = this.shadowRoot!.querySelector<LitTable>('#stats-table') as LitTable;
+        this.progressLoad = this.shadowRoot?.querySelector(
+            '.load-metric'
+        ) as LitProgressBar;
+        this.metaTableEl = this.shadowRoot!.querySelector<LitTable>(
+            '#metaData-table'
+        ) as LitTable;
+        this.infoTableEl = this.shadowRoot!.querySelector<LitTable>(
+            '#stats-table'
+        ) as LitTable;
 
-        this.infoTableEl.style.overflow = 'visible'
-        this.metaTableEl.style.overflow = 'visible'
-        this.infoTableEl.style.width = 'auto'
-        this.metaTableEl.style.width = 'auto'
+        this.infoTableEl.style.overflow = 'visible';
+        this.metaTableEl.style.overflow = 'visible';
+        this.infoTableEl.style.width = 'auto';
+        this.metaTableEl.style.width = 'auto';
         this.th = this.shadowRoot!.querySelector('.th') as HTMLElement;
     }
 
     initInfoAndStatsData() {
-        this.progressLoad!.loading = true
+        this.progressLoad!.loading = true;
         let time = new Date().getTime();
         this.initMetricItemData().then(() => {
             let durTime = new Date().getTime() - time;
-            info("InfoAndStatsData query time is: " + durTime + "ms")
+            info('InfoAndStatsData query time is: ' + durTime + 'ms');
             if (this.metaData.length > 0) {
                 this.metaTableEl!.recycleDataSource = this.metaData;
             } else {
@@ -60,58 +69,73 @@ export class SpInfoAndStats extends BaseElement {
             }
             new ResizeObserver(() => {
                 if (this.parentElement?.clientHeight != 0) {
-                    this.metaTableEl!.style.height = '100%'
-                    this.metaTableEl!.reMeauseHeight()
+                    this.metaTableEl!.style.height = '100%';
+                    this.metaTableEl!.reMeauseHeight();
                 }
-            }).observe(this.parentElement!)
-            info("metaData(metric) size is: ", this.metaData.length)
+            }).observe(this.parentElement!);
+            info('metaData(metric) size is: ', this.metaData.length);
             if (this.infoData.length > 0) {
                 this.infoTableEl!.recycleDataSource = this.infoData;
             } else {
-                this.infoTableEl!.recycleDataSource = []
+                this.infoTableEl!.recycleDataSource = [];
             }
             new ResizeObserver(() => {
                 if (this.parentElement?.clientHeight != 0) {
-                    this.infoTableEl!.reMeauseHeight()
+                    this.infoTableEl!.reMeauseHeight();
                 }
-            }).observe(this.parentElement!)
-            info("infoData(metric) size is: ", this.infoData.length)
-            let metaDataStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#metaData-table')?.shadowRoot?.querySelector('div.body') as HTMLDivElement
-            let metaDataHeadStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#metaData-table')?.shadowRoot?.querySelector('div.thead') as HTMLDivElement
-            let statsStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#stats-table')?.shadowRoot?.querySelector('div.body') as HTMLDivElement
-            let statsHeadStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#stats-table')?.shadowRoot?.querySelector('div.thead') as HTMLDivElement
+            }).observe(this.parentElement!);
+            info('infoData(metric) size is: ', this.infoData.length);
+            let metaDataStyle: HTMLDivElement | undefined | null =
+                this.shadowRoot
+                    ?.querySelector('#metaData-table')
+                    ?.shadowRoot?.querySelector('div.body') as HTMLDivElement;
+            let metaDataHeadStyle: HTMLDivElement | undefined | null =
+                this.shadowRoot
+                    ?.querySelector('#metaData-table')
+                    ?.shadowRoot?.querySelector('div.thead') as HTMLDivElement;
+            let statsStyle: HTMLDivElement | undefined | null = this.shadowRoot
+                ?.querySelector('#stats-table')
+                ?.shadowRoot?.querySelector('div.body') as HTMLDivElement;
+            let statsHeadStyle: HTMLDivElement | undefined | null =
+                this.shadowRoot
+                    ?.querySelector('#stats-table')
+                    ?.shadowRoot?.querySelector('div.thead') as HTMLDivElement;
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 this.initDataTableStyle(metaDataStyle!);
                 this.initDataTableStyle(metaDataHeadStyle!);
                 this.initDataTableStyle(statsStyle!);
                 this.initDataTableStyle(statsHeadStyle!);
-            }, 20)
+            }, 20);
 
-            this.progressLoad!.loading = false
+            this.progressLoad!.loading = false;
         });
     }
 
     initDataTableStyle(styleTable: HTMLDivElement): void {
         for (let index = 0; index < styleTable.children.length; index++) {
             // @ts-ignore
-            styleTable.children[index].style.backgroundColor = 'var(--dark-background5,#F6F6F6)'
+            styleTable.children[index].style.backgroundColor =
+                'var(--dark-background5,#F6F6F6)';
         }
-        this.metaTableEl!.style.height = 'auto'
-        this.metaTableEl!.style.minHeight = '80%'
-        this.metaTableEl!.style.borderRadius = '16'
-        this.infoTableEl!.style.height = 'auto'
-        this.infoTableEl!.style.minHeight = '80%'
-        this.infoTableEl!.style.borderRadius = '16'
+        this.metaTableEl!.style.height = 'auto';
+        this.metaTableEl!.style.minHeight = '80%';
+        this.metaTableEl!.style.borderRadius = '16';
+        this.infoTableEl!.style.height = 'auto';
+        this.infoTableEl!.style.minHeight = '80%';
+        this.infoTableEl!.style.borderRadius = '16';
     }
 
     async initMetricItemData() {
-        this.metaData = []
-        this.infoData = []
+        this.metaData = [];
+        this.infoData = [];
         let mete = await queryTraceMetaData();
         if (mete) {
             for (let index = 0; index < mete.length; index++) {
-                this.metaData.push({name: mete[index].name, value: mete[index].valueText})
+                this.metaData.push({
+                    name: mete[index].name,
+                    value: mete[index].valueText,
+                });
             }
         }
         let info = await querySelectTraceStats();
@@ -120,20 +144,21 @@ export class SpInfoAndStats extends BaseElement {
                 this.infoData.push({
                     event_name: info[index].event_name,
                     stat_type: info[index].stat_type,
-                    count: info[index].count
-                })
+                    count: info[index].count,
+                });
             }
         }
     }
 
-    connectedCallback() {
-    }
+    connectedCallback() {}
 
-    disconnectedCallback() {
-    }
+    disconnectedCallback() {}
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    }
+    attributeChangedCallback(
+        name: string,
+        oldValue: string,
+        newValue: string
+    ) {}
 
     initHtml(): string {
         return `
@@ -239,7 +264,7 @@ export class SpInfoAndStats extends BaseElement {
             <div class="metadata info">
                 <p>System info and metadata</p>
                 <div id="dataKeyResult">
-                    <lit-table id="metaData-table">
+                    <lit-table id="metaData-table" hideDownload>
                             <lit-table-column title="name" data-index="name" key="name" align="flex-start">
                             </lit-table-column>
                             <lit-table-column title="value" data-index="value" key="value" align="flex-start">
@@ -251,7 +276,7 @@ export class SpInfoAndStats extends BaseElement {
             <div class="metadata stats">
                 <p>Debugging stats</p>
                 <div id="dataValueResult">
-                    <lit-table id="stats-table">
+                    <lit-table id="stats-table" hideDownload>
                             <lit-table-column title="name" data-index="event_name" key="name" align="flex-start">
                             </lit-table-column>
                             <lit-table-column title="value" data-index="count" key="value" align="flex-start">

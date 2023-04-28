@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
-import {LitRadioBox} from "./LitRadioBox.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { LitRadioBox } from './LitRadioBox.js';
 
-@element("lit-radio-group")
+@element('lit-radio-group')
 export class LitRadioGroup extends BaseElement {
     static get observedAttributes() {
-        return ["direction"]
+        return ['direction'];
     }
 
     set layout(vale: string) {
-        this.setAttribute("layout", vale)
+        this.setAttribute('layout', vale);
     }
 
     get direction() {
-        return this.getAttribute("direction")
+        return this.getAttribute('direction');
     }
 
     get value(): Array<string> {
@@ -35,8 +35,7 @@ export class LitRadioGroup extends BaseElement {
         return radio ? [radio.value] : [];
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     //方向
     initHtml(): string {

@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
-import {Serialize} from "../common/Serialize.js";
-import {HdcCommand} from "./HdcCommand.js";
-import {Utils} from "../common/Utils.js";
-import {HANDSHAKE_MESSAGE} from "../common/ConstantType.js";
-import {PayloadHead} from "../message/PayloadHead.js";
-import {TransmissionInterface} from "../transmission/TransmissionInterface.js";
-import {DataProcessing} from "../transmission/DataProcessing.js";
-import {DataListener} from "./DataListener.js";
-import {DataMessage} from "../message/DataMessage.js";
-import {SessionHandShake} from "../message/SessionHandShake.js";
-import {AuthType} from "../message/AuthType.js";
-import {debug, log} from "../../log/Log.js";
-import {HdcStream} from "./HdcStream.js";
-import {toHex16} from "../common/BaseConversion.js";
+import { Serialize } from '../common/Serialize.js';
+import { HdcCommand } from './HdcCommand.js';
+import { Utils } from '../common/Utils.js';
+import { HANDSHAKE_MESSAGE } from '../common/ConstantType.js';
+import { PayloadHead } from '../message/PayloadHead.js';
+import { TransmissionInterface } from '../transmission/TransmissionInterface.js';
+import { DataProcessing } from '../transmission/DataProcessing.js';
+import { DataListener } from './DataListener.js';
+import { DataMessage } from '../message/DataMessage.js';
+import { SessionHandShake } from '../message/SessionHandShake.js';
+import { AuthType } from '../message/AuthType.js';
+import { debug, log } from '../../log/Log.js';
+import { HdcStream } from './HdcStream.js';
+import { toHex16 } from '../common/BaseConversion.js';
 
 export class HdcClient implements DataListener {
+    // @ts-ignore
     usbDevice: USBDevice | undefined;
     sessionId: number = 0;
     private transmissionChannel: TransmissionInterface;
@@ -38,40 +39,74 @@ export class HdcClient implements DataListener {
     private cmdStream: number = -1;
     private stopStream: number = -1;
 
-    constructor(transmissionChannel: TransmissionInterface, usbDevice: USBDevice | undefined) {
+    constructor(
+        transmissionChannel: TransmissionInterface,
+        // @ts-ignore
+        usbDevice: USBDevice | undefined
+    ) {
         this.transmissionChannel = transmissionChannel;
         this.usbDevice = usbDevice;
         this.readDataProcessing = new DataProcessing(this, transmissionChannel);
     }
 
     async connectDevice(): Promise<boolean> {
-        debug("start Connect Device")
+        debug('start Connect Device');
         this.sessionId = Utils.getSessionId();
-        log("sessionId is " + this.sessionId)
+        log('sessionId is ' + this.sessionId);
         // @ts-ignore
-        let handShake: SessionHandShake = new SessionHandShake(HANDSHAKE_MESSAGE, AuthType.AUTH_NONE, this.sessionId, this.usbDevice.serialNumber, "");
+        let handShake: SessionHandShake = new SessionHandShake(
+            HANDSHAKE_MESSAGE,
+            AuthType.AUTH_NONE,
+            this.sessionId,
+			// @ts-ignore
+            this.usbDevice.serialNumber,
+            ''
+        );
         let hs = Serialize.serializeSessionHandShake(handShake);
-        debug("start Connect hs ", hs)
-        let sendResult = await this.readDataProcessing.send(handShake.sessionId, 0, HdcCommand.CMD_KERNEL_HANDSHAKE, hs, hs.length);
+        debug('start Connect hs ', hs);
+        let sendResult = await this.readDataProcessing.send(
+            handShake.sessionId,
+            0,
+            HdcCommand.CMD_KERNEL_HANDSHAKE,
+            hs,
+            hs.length
+        );
         if (sendResult) {
             let handShake = await this.readDataProcessing.readUsbHead();
-            let handBody = await this.readDataProcessing.readBody(handShake!.dataSize);
+            let handBody = await this.readDataProcessing.readBody(
+                handShake!.dataSize
+            );
             if (this.sessionId == handShake!.sessionId) {
-                debug("handShake: ", handShake);
-                let playHeadArray = handBody.buffer.slice(0, PayloadHead.getPayloadHeadLength())
-                let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
-                debug("resultPayloadHead is ", resultPayloadHead);
+                debug('handShake: ', handShake);
+                let playHeadArray = handBody.buffer.slice(
+                    0,
+                    PayloadHead.getPayloadHeadLength()
+                );
+                let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(
+                    new DataView(playHeadArray)
+                );
+                debug('resultPayloadHead is ', resultPayloadHead);
                 let headSize = resultPayloadHead.headSize;
                 let dataSize = resultPayloadHead.dataSize;
-                let resPlayProtectBuffer = handBody.buffer.slice(PayloadHead.getPayloadHeadLength(), PayloadHead.getPayloadHeadLength() + headSize);
-                debug("PlayProtect is ", resPlayProtectBuffer);
-                let resData = handBody.buffer.slice(PayloadHead.getPayloadHeadLength() + headSize, PayloadHead.getPayloadHeadLength() + headSize + dataSize);
-                debug("resData is ", resData);
-                this.readDataProcessing.startReadData().then(() => {
-                });
+                let resPlayProtectBuffer = handBody.buffer.slice(
+                    PayloadHead.getPayloadHeadLength(),
+                    PayloadHead.getPayloadHeadLength() + headSize
+                );
+                debug('PlayProtect is ', resPlayProtectBuffer);
+                let resData = handBody.buffer.slice(
+                    PayloadHead.getPayloadHeadLength() + headSize,
+                    PayloadHead.getPayloadHeadLength() + headSize + dataSize
+                );
+                debug('resData is ', resData);
+                this.readDataProcessing.startReadData().then(() => {});
                 return true;
             } else {
-                log("session is not eq handShake?.sessionId is : " + handShake?.sessionId + " now session is " + this.sessionId)
+                log(
+                    'session is not eq handShake?.sessionId is : ' +
+                        handShake?.sessionId +
+                        ' now session is ' +
+                        this.sessionId
+                );
                 return false;
             }
         } else {
@@ -83,8 +118,7 @@ export class HdcClient implements DataListener {
         try {
             await this.transmissionChannel.close();
             this.readDataProcessing.stopReadData();
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     public bindStream(channel: number, hdcStream: HdcStream) {
@@ -120,4 +154,3 @@ export class HdcClient implements DataListener {
         }
     }
 }
-

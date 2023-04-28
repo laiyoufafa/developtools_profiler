@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-allocation-select')
 export class LitAllocationSelect extends BaseElement {
@@ -22,9 +22,7 @@ export class LitAllocationSelect extends BaseElement {
     private options: any;
 
     static get observedAttributes() {
-        return [
-            'value','disabled','placeholder'
-        ];
+        return ['value', 'disabled', 'placeholder'];
     }
 
     get defaultPlaceholder() {
@@ -40,7 +38,7 @@ export class LitAllocationSelect extends BaseElement {
     }
 
     get value() {
-        return this.getAttribute('value') || "";
+        return this.getAttribute('value') || '';
     }
 
     set value(value: string) {
@@ -49,27 +47,25 @@ export class LitAllocationSelect extends BaseElement {
 
     set processData(value: Array<string>) {
         this.options.innerHTML = '';
-        value.forEach(
-            item => {
-                let option = document.createElement("div");
-                option.className = 'option';
-                option.innerHTML = item;
-                option.style.padding = '8px 10px';
-                this.options.appendChild(option);
-                this.inputElement?.focus();
-            }
-        )
+        value.forEach((item) => {
+            let option = document.createElement('div');
+            option.className = 'option';
+            option.innerHTML = item;
+            option.style.padding = '8px 10px';
+            this.options.appendChild(option);
+            this.inputElement?.focus();
+        });
     }
 
     get placement(): string {
-        return this.getAttribute("placement") || "";
+        return this.getAttribute('placement') || '';
     }
 
     set placement(placement: string) {
         if (placement) {
-            this.setAttribute("placement", placement);
+            this.setAttribute('placement', placement);
         } else {
-            this.removeAttribute("placement");
+            this.removeAttribute('placement');
         }
     }
 
@@ -82,7 +78,9 @@ export class LitAllocationSelect extends BaseElement {
     }
 
     initElements(): void {
-        this.inputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
+        this.inputContent = this.shadowRoot!.querySelector(
+            '.multipleSelect'
+        ) as HTMLDivElement;
         this.addEventListener('click', () => {
             if (this.options.style.visibility == 'visible') {
                 this.options.style.visibility = 'hidden';
@@ -92,13 +90,11 @@ export class LitAllocationSelect extends BaseElement {
                 this.options.style.opacity = '1';
             }
             this.inputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
-        })
+        });
         this.addEventListener('focusout', (e) => {
-            setTimeout(()=>{
-                this.options.style.visibility = 'hidden';
-                this.options.style.opacity = '0';
-            }, 200)
-            })
+            this.options.style.visibility = 'hidden';
+            this.options.style.opacity = '0';
+        });
         this.initData();
     }
 
@@ -201,41 +197,47 @@ export class LitAllocationSelect extends BaseElement {
             <slot></slot>
             <slot name="footer"></slot>
         </div>
-        `
+        `;
     }
 
-    connectedCallback() {
-    }
+    connectedCallback() {}
 
     initData() {
         this.inputElement = this.shadowRoot!.querySelector('input');
-        this.options = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
+        this.options = this.shadowRoot!.querySelector(
+            '.body'
+        ) as HTMLDivElement;
         this.inputElement?.addEventListener('keyup', () => {
-            let filter = [...this.shadowRoot!.querySelectorAll<HTMLDivElement>('.option')].filter((a: HTMLDivElement) => {
+            let filter = [
+                ...this.shadowRoot!.querySelectorAll<HTMLDivElement>('.option'),
+            ].filter((a: HTMLDivElement) => {
                 if (a.textContent!.indexOf(this.inputElement!.value) <= -1) {
-                    a.style.display = "none";
+                    a.style.display = 'none';
                 } else {
-                    a.style.display = "block";
+                    a.style.display = 'block';
                 }
             });
-            this.value = this.inputElement!.value
+            this.value = this.inputElement!.value;
             this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
-        })
-        this.shadowRoot?.querySelectorAll('.option').forEach(a => {
-            a.addEventListener('click', (e) => {
-                a.dispatchEvent(new CustomEvent('onSelected', {
-                    detail: {
-                        selected: true,
-                        text: a.textContent
-                    }
-                }))
-            })
+        });
+        this.shadowRoot?.querySelectorAll('.option').forEach((a) => {
+            a.addEventListener('mousedown', (e) => {
+                a.dispatchEvent(
+                    new CustomEvent('onSelected', {
+                        detail: {
+                            selected: true,
+                            text: a.textContent,
+                        },
+                    })
+                );
+            });
             a.addEventListener('onSelected', (e: any) => {
                 this.inputElement!.value = e.detail.text;
                 this.value = e.detail.text;
-                this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
-            })
-        })
+                this.inputContent!.dispatchEvent(
+                    new CustomEvent('valuable', {})
+                );
+            });
+        });
     }
-
 }

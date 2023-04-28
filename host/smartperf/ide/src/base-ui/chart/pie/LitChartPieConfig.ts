@@ -14,25 +14,26 @@
  */
 
 export interface LitChartPieConfig {
-    appendPadding: number
-    data: any[]
-    angleField: string
-    colorField: string
-    radius: number
-    angleClick?:(it:object) => void
+    appendPadding: number;
+    data: any[];
+    angleField: string;
+    colorField: string;
+    radius: number;
+    angleClick?: (it: object) => void;
     label: {
-        type: string // spider|inner|outer
-        offset?: string
-        content?: (it: object) => string
-        color?: (it: object) => string
+        type: string; // spider|inner|outer
+        offset?: string;
+        content?: (it: object) => string;
+        color?: (it: object) => string;
         style?: {
-            fontSize: number
-            textAlign: string
-        }
-    },
-    showChartLine?:boolean,
-    tip:((a:any)=>string)|undefined
+            fontSize: number;
+            textAlign: string;
+        };
+    };
+    hoverHandler?: (data: any) => void;
+    showChartLine?: boolean;
+    tip: ((a: any) => string) | undefined;
     interactions: {
-        type: string //element-active | element-selected
-    }[]
+        type: string; //element-active | element-selected
+    }[];
 }

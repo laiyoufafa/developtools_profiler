@@ -149,7 +149,7 @@ int InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
         const auto& c = cs[i];
         switch (c.col) {
             case TS:
-                FilterTS(c.op, argv[i], InstantsObj_.TimeStamData());
+                FilterTS(c.op, argv[i], InstantsObj_.TimeStampData());
                 break;
             case NAME:
                 indexMap_->MixRange(c.op,
@@ -199,11 +199,11 @@ int InstantsTable::Cursor::Column(int column) const
     size_t stringIdentity = static_cast<size_t>(InstantsObj_.NameIndexsData()[CurrentRow()]);
     switch (column) {
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(InstantsObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(InstantsObj_.TimeStampData()[CurrentRow()]));
             break;
         case NAME: {
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(),
-                STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(), STR_DEFAULT_LEN,
+                                nullptr);
             break;
         }
         case REF:

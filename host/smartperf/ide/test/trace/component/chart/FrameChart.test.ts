@@ -14,9 +14,10 @@
  */
 
 // @ts-ignore
-import {FrameChart} from "../../../../dist/trace/component/chart/FrameChart.js"
+import { FrameChart } from '../../../../dist/trace/component/chart/FrameChart.js';
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -24,17 +25,11 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 
 describe('FrameChart Test', () => {
-    let node= [
-        {children: ''},
-        {children:{length:0}}
-    ]
-    let node1= [
-        {children: ''},
-        {children:{length:10}}
-    ]
-    let selectData = [length=1]
-    document.body.innerHTML = '<tab-framechart id="ccc"></tab-framechart>'
-    let frameChart = document.querySelector('#ccc') as FrameChart
+    let node = [{ children: '' }, { children: { length: 0 } }];
+    let node1 = [{ children: '' }, { children: { length: 10 } }];
+    let selectData = [(length = 1)];
+    document.body.innerHTML = '<tab-framechart id="ccc"></tab-framechart>';
+    let frameChart = document.querySelector('#ccc') as FrameChart;
 
     it('FrameChartTest01', function () {
         frameChart.tabPaneScrollTop = false;
@@ -42,28 +37,28 @@ describe('FrameChart Test', () => {
     });
 
     it('FrameChartTest02', function () {
-            expect(frameChart.updateFloatHint()).toBeUndefined();
-        });
+        expect(frameChart.updateFloatHint()).toBeUndefined();
+    });
 
     it('FrameChartTest03', function () {
-        frameChart.calculateChartData = jest.fn(()=>true)
-        frameChart.calMaxDepth = jest.fn(()=>true)
+        frameChart.calculateChartData = jest.fn(() => true);
+        frameChart.calMaxDepth = jest.fn(() => true);
         expect(frameChart.redrawChart(selectData)).toBeUndefined();
     });
 
     it('FrameChartTest05', function () {
-        let index = frameChart.scale(2)
+        let index = frameChart.scale(2);
         expect(index).toBe(undefined);
     });
 
     it('FrameChartTest08', function () {
-        frameChart.translationDraw = jest.fn(()=>true)
+        frameChart.translationDraw = jest.fn(() => true);
         expect(frameChart.translation()).toBeUndefined();
     });
 
     it('FrameChartTest14', function () {
         let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(()=>true)
+        frameChart.translationDraw = jest.fn(() => true);
         expect(frameChart.translation(-1)).toBeUndefined();
     });
 
@@ -75,7 +70,7 @@ describe('FrameChart Test', () => {
     it('FrameChartTest11', function () {
         let frameChart = new FrameChart();
         frameChart._mode = 1;
-        frameChart.drawScale = jest.fn(()=>true)
+        frameChart.drawScale = jest.fn(() => true);
         expect(frameChart.calculateChartData()).not.toBeUndefined();
     });
 
@@ -85,37 +80,37 @@ describe('FrameChart Test', () => {
 
     it('FrameChartTest13', function () {
         let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(()=>true)
-        frameChart.lastCanvasXInScale = 0
+        frameChart.translationDraw = jest.fn(() => true);
+        frameChart.lastCanvasXInScale = 0;
         expect(frameChart.translationByScale()).toBe(undefined);
     });
 
     it('FrameChartTest21', function () {
         let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(()=>true)
-        frameChart.canvasX = 4
-        frameChart.lastCanvasXInScale = 1
+        frameChart.translationDraw = jest.fn(() => true);
+        frameChart.canvasX = 4;
+        frameChart.lastCanvasXInScale = 1;
         expect(frameChart.translationByScale()).toBe(undefined);
     });
 
     it('FrameChartTest22', function () {
         let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(()=>true)
+        frameChart.translationDraw = jest.fn(() => true);
         expect(frameChart.translationByScale(1)).toBe(undefined);
     });
     it('FrameChartTest211', function () {
-        expect(frameChart.searchData([],2,2)).toBeNull();
+        expect(frameChart.searchData([], 2, 2)).toBeNull();
     });
 
     it('FrameChartTest15', function () {
         let frameChart = new FrameChart();
-        frameChart.calculateChartData = jest.fn(()=>true)
-        frameChart.xPoint = 1
+        frameChart.calculateChartData = jest.fn(() => true);
+        frameChart.xPoint = 1;
         expect(frameChart.translationDraw()).toBe(undefined);
     });
 
     it('FrameChartTest16', function () {
-        expect(frameChart.onMouseClick({button:0})).toBeUndefined();
+        expect(frameChart.onMouseClick({ button: 0 })).toBeUndefined();
     });
 
     it('FrameChartTest17', function () {
@@ -135,12 +130,16 @@ describe('FrameChart Test', () => {
                 width: auto;
                 font-size: 8px;
                 color: #50809e;
-                flex-direction: column;
-                justify-content: center;
-                align-items: flex-start;
                 padding: 2px 10px;
                 display: none;
-                user-select: none;
+                max-width:400px;
+            }
+            .bold{
+                font-weight: bold;
+            }
+            .text{
+                max-width:350px;
+                word-break: break-all;
             }
             </style>
             <canvas id=\\"canvas\\"></canvas>
@@ -154,15 +153,15 @@ describe('FrameChart Test', () => {
     });
 
     it('FrameChartTest20', function () {
-        expect(frameChart.searchData([],1,1)).toBeNull();
+        expect(frameChart.searchData([], 1, 1)).toBeNull();
     });
 
     it('FrameChartTest23', function () {
-        expect(frameChart.onMouseClick({button:2})).toBeUndefined();
+        expect(frameChart.onMouseClick({ button: 2 })).toBeUndefined();
     });
 
     it('FrameChartTest24', function () {
-        document.body.innerHTML  = `<sp-application></sp-application>`
+        document.body.innerHTML = `<sp-application></sp-application>`;
         expect(frameChart.drawScale()).toBeUndefined();
     });
 
@@ -178,70 +177,69 @@ describe('FrameChart Test', () => {
         expect(frameChart.maxDepth).toBeFalsy();
     });
 
-
     it('FrameChartTest27 ', function () {
         let frameChart = new FrameChart();
-        expect(frameChart.calMaxDepth(node,1)).toBeUndefined()
+        expect(frameChart.calMaxDepth(node, 1)).toBeUndefined();
     });
 
     it('FrameChartTest28 ', function () {
         let frameChart = new FrameChart();
-        expect(frameChart.mode).toBeUndefined()
+        expect(frameChart.mode).toBeUndefined();
     });
 
     it('FrameChartTest29', function () {
         let frameChart = new FrameChart();
-        frameChart.mode  =false
-        expect(frameChart.mode).toBeFalsy()
+        frameChart.mode = false;
+        expect(frameChart.mode).toBeFalsy();
     });
 
     it('FrameChartTest30', function () {
-        frameChart.caldrawArgs  = jest.fn(()=>true)
-        expect(frameChart.caldrawArgs()).toBeTruthy()
+        frameChart.caldrawArgs = jest.fn(() => true);
+        expect(frameChart.caldrawArgs()).toBeTruthy();
     });
 
     it('FrameChartTest31', function () {
         let frameChart = new FrameChart();
-        frameChart.data  = [];
+        frameChart.data = [];
         expect(frameChart.data).toBeFalsy();
     });
 
     it('FrameChartTest32', function () {
         let frameChart = new FrameChart();
-        expect(frameChart.addChartClickListener(()=>{})).toBeUndefined();
+        expect(frameChart.addChartClickListener(() => {})).toBeUndefined();
     });
 
     it('FrameChartTest33', function () {
         let frameChart = new FrameChart();
-        expect(frameChart.removeChartClickListener(()=>{})).toBeUndefined();
+        expect(frameChart.removeChartClickListener(() => {})).toBeUndefined();
     });
 
     it('FrameChartTest34', function () {
         let frameChart = new FrameChart();
-        expect(frameChart.calMaxDepth(node1,10)).toBeUndefined();
+        expect(frameChart.calMaxDepth(node1, 10)).toBeUndefined();
     });
 
     it('FrameChartTest35', function () {
         let frameChart = new FrameChart();
-        frameChart.drawTriangleOnScale  = jest.fn(()=>true);
+        frameChart.drawTriangleOnScale = jest.fn(() => true);
         expect(frameChart.drawTriangleOnScale()).toBeTruthy();
     });
 
     it('FrameChartTest36', function () {
         frameChart._mode = 1;
-        frameChart.drawScale = jest.fn(()=>true);
+        frameChart.drawScale = jest.fn(() => true);
         expect(frameChart.drawScale()).toBeTruthy();
     });
 
     it('FrameChartTest37', function () {
         frameChart._mode = 2;
-        frameChart.drawScale = jest.fn(()=>true);
+        frameChart.drawScale = jest.fn(() => true);
         expect(frameChart.drawScale()).toBeTruthy();
     });
 
     it('FrameChartTest38', function () {
         frameChart._mode = 3;
-        frameChart.drawScale = jest.fn(()=>true);
+        frameChart.drawScale = jest.fn(() => true);
         expect(frameChart.drawScale()).toBeTruthy();
     });
 
@@ -250,19 +248,10 @@ describe('FrameChart Test', () => {
     });
 
     it('FrameChartTest40', function () {
-        expect(frameChart.onMouseClick({button:2})).toBeUndefined();
+        expect(frameChart.onMouseClick({ button: 2 })).toBeUndefined();
     });
 
     it('FrameChartTest41', function () {
-        expect(frameChart.drawDataSet(node,true)).toBeUndefined();
+        expect(frameChart.drawDataSet(node, true)).toBeUndefined();
     });
-
-
-
-
-
-
-
-
-
-})
+});

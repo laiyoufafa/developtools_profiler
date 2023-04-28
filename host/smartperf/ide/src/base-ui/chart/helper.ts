@@ -14,11 +14,11 @@
  */
 
 export const resizeCanvas = (c: HTMLCanvasElement) => {
-    let el: Element = (c.getRootNode({composed: false}) as ShadowRoot).host;
-    let dpr = window.devicePixelRatio || 1
+    let el: Element = (c.getRootNode({ composed: false }) as ShadowRoot).host;
+    let dpr = window.devicePixelRatio || 1;
     c.width = Math.ceil(el.clientWidth * dpr);
     c.height = Math.ceil(el.clientHeight * dpr);
     c.style.width = `${el.clientWidth}px`;
     c.style.height = `${el.clientHeight}px`;
-    c.getContext('2d', {alpha: true})?.scale(dpr, dpr);
-}
+    c.getContext('2d', { alpha: true })?.scale(dpr, dpr);
+};

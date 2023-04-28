@@ -92,6 +92,7 @@ enum SupportedTraceEventType {
     TRACE_NATIVE_HOOK_FREE,
     TRACE_NATIVE_HOOK_MMAP,
     TRACE_NATIVE_HOOK_MUNMAP,
+    TRACE_NATIVE_HOOK_RECORD_STATISTICS,
     TRACE_SYS_MEMORY,
     TRACE_SYS_VIRTUAL_MEMORY,
     TRACE_DISKIO,
@@ -164,6 +165,7 @@ public:
     ~TraceStreamerConfig() = default;
     void PrintInfo() const;
     uint32_t GetStateValue(uint32_t state) const;
+
 public:
     std::map<SupportedTraceEventType, std::string> eventNameMap_ = {};
     std::map<StatType, std::string> eventErrorDescMap_ = {};
@@ -177,6 +179,7 @@ public:
     std::map<SysMeminfoType, std::string> sysMemNameMap_ = {};
     // sys virtual memorty info desc
     std::map<SysVMeminfoType, std::string> sysVirtualMemNameMap_ = {};
+
 private:
     void InitEventNameMap();
     void InitSysMemMap();
@@ -235,6 +238,7 @@ private:
     const std::string TRACE_ACTION_NATIVE_HOOK_FREE = "native_hook_free";
     const std::string TRACE_ACTION_NATIVE_HOOK_MMAP = "native_hook_mmap";
     const std::string TRACE_ACTION_NATIVE_HOOK_MUNMAP = "native_hook_munmap";
+    const std::string TRACE_ACTION_NATIVE_HOOK_RECORD_STATISTICS = "native_hook_record_statistics";
     const std::string TRACE_ACTION_SIGNAL_GENERATE = "signal_generate";
     const std::string TRACE_ACTION_SIGNAL_DELIVER = "signal_deliver";
     const std::string TRACE_ACTION_BLOCK_BIO_BACKMERGE = "trace_block_bio_backmerge";
@@ -457,6 +461,6 @@ private:
     const std::string STAT_SEVERITY_LEVEL_ERROR_DESC = "error";
     const std::string STAT_SEVERITY_LEVEL_FATAL_DESC = "fatal";
 };
-} // namespace TRACE_STREAMER_CONFIG_H
+} // namespace TraceCfg
 } // namespace SysTuning
 #endif

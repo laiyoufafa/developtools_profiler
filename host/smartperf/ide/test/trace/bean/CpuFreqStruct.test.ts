@@ -14,42 +14,45 @@
  */
 
 // @ts-ignore
-import {CpuFreqStruct} from "../../../dist/trace/bean/CpuFreqStruct.js"
+import { CpuFreqStruct } from '../../../dist/trace/bean/CpuFreqStruct.js';
 
-describe('CpuFreqStruct Test', ()=>{
+describe('CpuFreqStruct Test', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
 
-    CpuFreqStruct.hoverCpuFreqStruct = void 0
+    CpuFreqStruct.hoverCpuFreqStruct = void 0;
     const data = {
         frame: {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         startNS: 200,
-        value: 50
-    }
+        value: 50,
+    };
 
     const dataSource = {
         frame: {
             x: 20,
             y: 20,
             width: 100,
-            height: 100
+            height: 100,
         },
         value: 50,
-        maxFreq: 50
-    }
+        maxFreq: 50,
+    };
 
     it('CpuFreqStructTest01', function () {
-        expect(CpuFreqStruct.draw(ctx, data)).toBeUndefined()
-        expect(data).toMatchInlineSnapshot({
-  startNS: expect.any(Number),
-  value: expect.any(Number) }, `
+        expect(CpuFreqStruct.draw(ctx, data)).toBeUndefined();
+        expect(data).toMatchInlineSnapshot(
+            {
+                startNS: expect.any(Number),
+                value: expect.any(Number),
+            },
+            `
 Object {
   "frame": Object {
     "height": 100,
@@ -60,15 +63,15 @@ Object {
   "startNS": Any<Number>,
   "value": Any<Number>,
 }
-`);
+`
+        );
     });
 
     it('CpuFreqStructTest02', function () {
-        expect(CpuFreqStruct.draw(ctx, {startNS:1})).toBeUndefined()
+        expect(CpuFreqStruct.draw(ctx, { startNS: 1 })).toBeUndefined();
     });
 
     it('CpuFreqStructTest03 ', function () {
-        expect(CpuFreqStruct.draw(ctx,dataSource)).toBeUndefined()
-
+        expect(CpuFreqStruct.draw(ctx, dataSource)).toBeUndefined();
     });
-})
+});

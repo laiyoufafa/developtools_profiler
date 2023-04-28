@@ -80,7 +80,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(1);
-    auto realTimeStamp = stream_.traceDataCache_->GetConstSchedSliceData().TimeStamData()[0];
+    auto realTimeStamp = stream_.traceDataCache_->GetConstSchedSliceData().TimeStampData()[0];
     EXPECT_TRUE(TIMESTAMP == realTimeStamp);
     auto realCpu = stream_.traceDataCache_->GetConstSchedSliceData().CpusData()[0];
     EXPECT_TRUE(0 == realCpu);

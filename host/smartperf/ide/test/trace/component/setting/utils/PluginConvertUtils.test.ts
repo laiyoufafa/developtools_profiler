@@ -14,41 +14,43 @@
  */
 
 // @ts-ignore
-import {PluginConvertUtils} from "../../../../../dist/trace/component/setting/utils/PluginConvertUtils.js";
+import { PluginConvertUtils } from '../../../../../dist/trace/component/setting/utils/PluginConvertUtils.js';
 // @ts-ignore
-import {ProfilerSessionConfigMode} from "../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes";
+import { ProfilerSessionConfigMode } from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes';
 
 import {
     ProfilerSessionConfigBufferConfig,
-    ProfilerSessionConfigBufferConfigPolicy, TracePluginConfig
+    ProfilerSessionConfigBufferConfigPolicy,
+    TracePluginConfig,
     // @ts-ignore
-} from "../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js";
+} from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js';
 import {
     HilogConfig,
     levelFromJSON,
-    Type
+    Type,
     // @ts-ignore
-} from "../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js";
+} from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js';
 import {
     MemoryConfig,
-    sysMeminfoTypeFromJSON, sysVMeminfoTypeFromJSON
+    sysMeminfoTypeFromJSON,
+    sysVMeminfoTypeFromJSON,
     // @ts-ignore
-} from "../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js";
+} from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js';
 // @ts-ignore
-import {SpRecordTrace} from "../../../../../dist/trace/component/SpRecordTrace.js";
+import { SpRecordTrace } from '../../../../../dist/trace/component/SpRecordTrace.js';
 
-describe('PlugConvertUtils Test', ()=>{
+describe('PlugConvertUtils Test', () => {
     let bufferConfig: ProfilerSessionConfigBufferConfig = {
         pages: 1000,
-        policy: ProfilerSessionConfigBufferConfigPolicy.RECYCLE
-    }
+        policy: ProfilerSessionConfigBufferConfigPolicy.RECYCLE,
+    };
     let sessionConfig = {
         buffers: [bufferConfig],
         sessionMode: ProfilerSessionConfigMode.OFFLINE,
-        resultFile: "/data/local/tmp/hiprofiler_data.htrace",
+        resultFile: '/data/local/tmp/hiprofiler_data.htrace',
         resultMaxSize: 0,
         sampleDuration: 1000,
-        keepAliveTime: 0
+        keepAliveTime: 0,
     };
     let tracePluginConfig: TracePluginConfig = {
         ftraceEvents: [],
@@ -58,17 +60,17 @@ describe('PlugConvertUtils Test', ()=>{
         flushIntervalMs: 1000,
         flushThresholdKb: 4096,
         parseKsyms: true,
-        clock: "mono",
+        clock: 'mono',
         tracePeriodMs: 200,
-        rawDataPrefix: "",
+        rawDataPrefix: '',
         traceDurationMs: 0,
         debugOn: false,
-    }
+    };
     let hilogConfig: HilogConfig = {
         deviceType: Type.HI3516,
-        logLevel: levelFromJSON("Info"),
-        needClear: true
-    }
+        logLevel: levelFromJSON('Info'),
+        needClear: true,
+    };
     let memoryconfig: MemoryConfig = {
         reportProcessTree: true,
         reportSysmemMemInfo: true,
@@ -78,38 +80,39 @@ describe('PlugConvertUtils Test', ()=>{
         reportProcessMemInfo: true,
         reportAppMemInfo: false,
         reportAppMemByMemoryService: false,
-        pid: []
-    }
+        pid: [],
+    };
 
     SpRecordTrace.MEM_INFO.forEach((va: any) => {
         memoryconfig.sysMeminfoCounters.push(sysMeminfoTypeFromJSON(va));
-    })
-    SpRecordTrace.VMEM_INFO.forEach(((me: any) => {
-        memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me))
-    }))
-    SpRecordTrace.VMEM_INFO_SECOND.forEach(((me: any) => {
-        memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me))
-    }))
-    SpRecordTrace.VMEM_INFO_THIRD.forEach(((me: any) => {
-        memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me))
-    }))
+    });
+    SpRecordTrace.VMEM_INFO.forEach((me: any) => {
+        memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me));
+    });
+    SpRecordTrace.VMEM_INFO_SECOND.forEach((me: any) => {
+        memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me));
+    });
+    SpRecordTrace.VMEM_INFO_THIRD.forEach((me: any) => {
+        memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me));
+    });
 
     let request = {
         requestId: 1,
         sessionConfig: sessionConfig,
-        pluginConfigs: [tracePluginConfig, hilogConfig,memoryconfig]
+        pluginConfigs: [tracePluginConfig, hilogConfig, memoryconfig],
     };
 
     it('PlugConvertUtils01', function () {
-        expect(PluginConvertUtils.createHdcCmd("aaaa", 11)).not.toBeNull()
+        expect(PluginConvertUtils.createHdcCmd('aaaa', 11)).not.toBeNull();
     });
 
     it('PlugConvertUtils02', function () {
-        expect(PluginConvertUtils.BeanToCmdTxt(request, true)).not.toBeNull()
+        expect(PluginConvertUtils.BeanToCmdTxt(request, true)).not.toBeNull();
     });
 
     it('PlugConvertUtils03', function () {
-        expect(PluginConvertUtils.BeanToCmdTxtWithObjName(request, false,'',1)).not.toBeNull()
+        expect(
+            PluginConvertUtils.BeanToCmdTxtWithObjName(request, false, '', 1)
+        ).not.toBeNull();
     });
-
-})
+});

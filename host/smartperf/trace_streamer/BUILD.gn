@@ -32,7 +32,7 @@ group("trace_streamer") {
     deps = [ "src:trace_streamer_builtin" ]
   } else if (use_wasmpb) {
     deps = [ "src:trace_streamer_builtin" ]
-  } else if (is_pbreader) {
+  } else if (is_pbdecoder) {
     deps = [ "src:trace_streamer" ]
   } else {
     deps = [ "src:trace_streamer" ]

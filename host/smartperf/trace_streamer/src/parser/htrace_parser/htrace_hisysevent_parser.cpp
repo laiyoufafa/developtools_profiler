@@ -52,11 +52,11 @@ int32_t HtraceHisyseventParser::JGetData(json& jMessage,
             continue;
         }
         if (i.key() == "time_") {
-            jData.timestamp = i.value();
+            jData.timeStamp = i.value();
             continue;
         }
         if (i.key() == "tag_" && i.value() != "PowerStats") {
-                streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_DATA_INVALID);
+            streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_DATA_INVALID);
             return -1;
         }
         if (i.key() == "APPNAME") {
@@ -87,12 +87,12 @@ void HtraceHisyseventParser::NoArrayDataParse(JsonData jData,
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timeStamp, eventSourceIndex,
+                                                                     keyIndex, 1, 0, valueIndex);
         } else {
             double valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                     valueIndex, 0);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timeStamp, eventSourceIndex,
+                                                                     keyIndex, 0, valueIndex, 0);
         }
     }
 }
@@ -110,13 +110,13 @@ void HtraceHisyseventParser::ArrayDataParse(JsonData jData,
             streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
             if (value.is_number()) {
                 double valueIndex = value;
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                         valueIndex, 0);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timeStamp, eventSourceIndex,
+                                                                         keyIndex, 0, valueIndex, 0);
             } else if (value.is_string()) {
                 std::string strValue = value;
                 DataIndex valueIndex = traceDataCache_->GetDataIndex(strValue);
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 1,
-                                                                         0, valueIndex);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timeStamp, eventSourceIndex,
+                                                                         keyIndex, 1, 0, valueIndex);
             }
         }
     }
@@ -131,12 +131,12 @@ void HtraceHisyseventParser::CommonDataParser(JsonData jData, DataIndex eventSou
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timeStamp, eventSourceIndex,
+                                                                     keyIndex, 1, 0, valueIndex);
         } else {
             double valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                     valueIndex, 0);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timeStamp, eventSourceIndex,
+                                                                     keyIndex, 0, valueIndex, 0);
         }
     }
 }
@@ -188,10 +188,10 @@ void HtraceHisyseventParser::Parse(HisyseventInfo& tracePacket, uint64_t ts)
         }
         uint64_t serial = tracePacket.info(i).id();
         DataIndex eventSourceIndex = traceDataCache_->GetDataIndex(jData.eventSource);
-        jData.timestamp *= MSEC_TO_NS;
-        auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, jData.timestamp);
-        UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, jData.timestamp, newTimeStamp);
-        jData.timestamp = newTimeStamp;
+        jData.timeStamp *= MSEC_TO_NS;
+        auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, jData.timeStamp);
+        UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, jData.timeStamp, newTimeStamp);
+        jData.timeStamp = newTimeStamp;
         if (maxArraySize) {
             NoArrayDataParse(jData, noArrayIndex, eventSourceIndex, serial);
             ArrayDataParse(jData, arrayIndex, eventSourceIndex, maxArraySize, serial);

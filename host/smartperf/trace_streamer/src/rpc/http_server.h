@@ -39,12 +39,7 @@ private:
         std::thread thread_;
     };
 
-    enum RequstParseStat {
-        INIT = 0,
-        OK,
-        BAD,
-        RECVING
-    };
+    enum RequstParseStat { INIT = 0, OK, BAD, RECVING };
 
     struct RequestST {
         int stat = RequstParseStat::INIT;

@@ -336,7 +336,7 @@ void RepeatedJsonFinal(sqlite3_context* ctx)
     }
 
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
-    memcpy_s(data.get(), raw.size(),raw.data(), raw.size());
+    memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
 }
 void ts_create_extend_function(sqlite3* db)

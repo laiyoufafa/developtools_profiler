@@ -85,7 +85,7 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithoutCallback,
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto callChainId = stream_.traceDataCache_->GetConstPagedMemorySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT64);
+    EXPECT_EQ(callChainId, INVALID_UINT32);
     auto type = stream_.traceDataCache_->GetConstPagedMemorySampleData().Types()[0];
     EXPECT_EQ(type, 2);
 

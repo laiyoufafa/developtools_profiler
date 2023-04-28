@@ -200,9 +200,12 @@ int TableBase::Open(sqlite3_vtab_cursor** ppCursor)
 }
 
 TableBase::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table, uint32_t rowCount)
-    : context_(nullptr), table_(table), dataCache_(dataCache), rowCount_(rowCount)
+    : context_(nullptr),
+      table_(table),
+      dataCache_(dataCache),
+      indexMap_(std::make_unique<IndexMap>(0, rowCount)),
+      rowCount_(rowCount)
 {
-    indexMap_ = std::make_unique<IndexMap>(0, rowCount);
 }
 
 TableBase::Cursor::~Cursor()

@@ -124,8 +124,7 @@ std::unique_ptr<TableBase::Cursor> CpuMeasureFilterTable::CreateCursor()
 }
 
 CpuMeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table,
-        static_cast<uint32_t>(dataCache->GetConstCpuMeasureData().Size())),
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstCpuMeasureData().Size())),
       cpuMeasureObj_(dataCache->GetConstCpuMeasureData())
 {
 }
@@ -208,9 +207,7 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqli
     switch (col) {
         case ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) {
-                return row;
-            };
+            auto getValue = [](const uint32_t& row) { return row; };
             switch (op) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
                     indexMap_->IntersectabcEqual(cpuMeasureObj_.IdsData(), v, getValue);
@@ -230,7 +227,7 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqli
                 default:
                     break;
             } // end of switch (op)
-        } // end of case TS
+        }     // end of case TS
         default:
             // can't filter, all rows
             break;

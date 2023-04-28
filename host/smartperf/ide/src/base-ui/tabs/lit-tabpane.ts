@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-
-import {BaseElement, element} from "../BaseElement.js";
-import {LitTabs} from "./lit-tabs.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { LitTabs } from './lit-tabs.js';
 
 @element('lit-tabpane')
 export class LitTabpane extends BaseElement {
@@ -28,11 +27,11 @@ export class LitTabpane extends BaseElement {
     }
 
     set tab(value) {
-        this.setAttribute("tab", value || "");
+        this.setAttribute('tab', value || '');
     }
 
     get icon() {
-        return this.getAttribute("icon");
+        return this.getAttribute('icon');
     }
 
     get disabled() {
@@ -41,9 +40,9 @@ export class LitTabpane extends BaseElement {
 
     set disabled(value) {
         if (value === null || value === false) {
-            this.removeAttribute("disabled");
+            this.removeAttribute('disabled');
         } else {
-            this.setAttribute("disabled", value + '');
+            this.setAttribute('disabled', value + '');
         }
     }
 
@@ -52,7 +51,7 @@ export class LitTabpane extends BaseElement {
     }
 
     set hidden(value) {
-        this.setAttribute("hidden", `${value}`);
+        this.setAttribute('hidden', `${value}`);
     }
 
     get closeable() {
@@ -61,22 +60,21 @@ export class LitTabpane extends BaseElement {
 
     set closeable(value) {
         if (value === null || value === false) {
-            this.removeAttribute("closeable");
+            this.removeAttribute('closeable');
         } else {
-            this.setAttribute("closeable", value + '');
+            this.setAttribute('closeable', value + '');
         }
     }
 
     get key() {
-        return this.getAttribute("key") || '';
+        return this.getAttribute('key') || '';
     }
 
     set key(value) {
-        this.setAttribute("key", value);
+        this.setAttribute('key', value);
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `
@@ -92,28 +90,45 @@ export class LitTabpane extends BaseElement {
         `;
     }
 
-    connectedCallback() {
-    }
+    connectedCallback() {}
 
-    disconnectedCallback() {
-    }
+    disconnectedCallback() {}
 
-    adoptedCallback() {
-    }
+    adoptedCallback() {}
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (oldValue !== newValue && newValue !== undefined) {
-            if (name === 'tab' && this.parentNode && this.parentNode instanceof LitTabs) {
-                this.parentNode.updateLabel && this.parentNode.updateLabel(this.key, newValue);
+            if (
+                name === 'tab' &&
+                this.parentNode &&
+                this.parentNode instanceof LitTabs
+            ) {
+                this.parentNode.updateLabel &&
+                    this.parentNode.updateLabel(this.key, newValue);
             }
-            if (name === 'disabled' && this.parentNode && this.parentNode instanceof LitTabs) {
-                this.parentNode.updateDisabled && this.parentNode.updateDisabled(this.key, newValue);
+            if (
+                name === 'disabled' &&
+                this.parentNode &&
+                this.parentNode instanceof LitTabs
+            ) {
+                this.parentNode.updateDisabled &&
+                    this.parentNode.updateDisabled(this.key, newValue);
             }
-            if (name === 'closeable' && this.parentNode && this.parentNode instanceof LitTabs) {
-                this.parentNode.updateCloseable && this.parentNode.updateCloseable(this.key, newValue);
+            if (
+                name === 'closeable' &&
+                this.parentNode &&
+                this.parentNode instanceof LitTabs
+            ) {
+                this.parentNode.updateCloseable &&
+                    this.parentNode.updateCloseable(this.key, newValue);
             }
-            if (name === 'hidden' && this.parentNode && this.parentNode instanceof LitTabs) {
-                this.parentNode.updateHidden && this.parentNode.updateHidden(this.key, newValue);
+            if (
+                name === 'hidden' &&
+                this.parentNode &&
+                this.parentNode instanceof LitTabs
+            ) {
+                this.parentNode.updateHidden &&
+                    this.parentNode.updateHidden(this.key, newValue);
             }
         }
     }

@@ -37,8 +37,8 @@ public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
 };
 namespace base {
-    auto num0 = SysTuning::base::number(15, SysTuning::base::INTEGER_RADIX_TYPE_DEC);
-    auto num1 = SysTuning::base::number(15, SysTuning::base::INTEGER_RADIX_TYPE_HEX);
+auto num0 = SysTuning::base::number(15, SysTuning::base::INTEGER_RADIX_TYPE_DEC);
+auto num1 = SysTuning::base::number(15, SysTuning::base::INTEGER_RADIX_TYPE_HEX);
 } // namespace base
 /**
  * @tc.name: ParseNoArray
@@ -49,9 +49,9 @@ HWTEST_F(HtraceHisysEventParserTest, ParseNoArray, TestSize.Level1)
 {
     TS_LOGI("test9-1");
     std::string jsMessage =
-        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_BATTERY\",\"type_\":1,\"time_\":22611696002,\"tz_\":\"+"\
-        "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"\
-        "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","\
+        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_BATTERY\",\"type_\":1,\"time_\":22611696002,\"tz_\":\"+"
+        "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"
+        "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","
         "\"id_\":\"16494176919818340149\",\"info_\":\"\"}";
     HtraceHisyseventParser::json jMessage;
     HtraceHisyseventParser::JsonData jData;
@@ -60,12 +60,12 @@ HWTEST_F(HtraceHisysEventParserTest, ParseNoArray, TestSize.Level1)
     std::vector<size_t> noArrayIndex;
     std::vector<size_t> arrayIndex;
     std::stringstream ss;
-    ss<<jsMessage;
-    ss>>jMessage;
+    ss << jsMessage;
+    ss >> jMessage;
     HtraceHisyseventParser HisysEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     HisysEvent.JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex);
     EXPECT_TRUE(jData.eventSource == "POWER_IDE_BATTERY");
-    EXPECT_EQ(jData.timestamp, 22611696002);
+    EXPECT_EQ(jData.timeStamp, 22611696002);
     EXPECT_EQ(maxArraySize, 0);
     EXPECT_EQ(noArrayIndex.size(), 17);
     EXPECT_EQ(arrayIndex.size(), 0);
@@ -87,12 +87,12 @@ HWTEST_F(HtraceHisysEventParserTest, ParseHaveArrayData, TestSize.Level1)
 {
     TS_LOGI("test9-2");
     std::string jsMessage =
-        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_WIFISCAN\",\"type_\":2,\"time_\":16611696002,\"tz_\":\"+"\
-        "0000\",\"pid_\":722,\"tid_\":17827,\"uid_\":1201,\"START_TIME\":1661783047454,\"END_TIME\":1661783050455,"\
-        "\"COUNT\":1,\"APPNAME\":[\"com.ohos.settings\",\"com.ohos.settings_js\",\"com.ohos.settings_app\"],"\
-        "\"FOREGROUND_COUNT\":[43,41,65],\"FOREGROUND_ENERGY\":[120,134,532],\"BACKGROUND_COUNT\":[27,856,378],"\
-        "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"\
-        "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"\
+        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_WIFISCAN\",\"type_\":2,\"time_\":16611696002,\"tz_\":\"+"
+        "0000\",\"pid_\":722,\"tid_\":17827,\"uid_\":1201,\"START_TIME\":1661783047454,\"END_TIME\":1661783050455,"
+        "\"COUNT\":1,\"APPNAME\":[\"com.ohos.settings\",\"com.ohos.settings_js\",\"com.ohos.settings_app\"],"
+        "\"FOREGROUND_COUNT\":[43,41,65],\"FOREGROUND_ENERGY\":[120,134,532],\"BACKGROUND_COUNT\":[27,856,378],"
+        "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"
+        "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"
         "\"17560016619580787102\",\"info_\":\"\"}";
     HtraceHisyseventParser::json jMessage;
     HtraceHisyseventParser::JsonData jData;
@@ -101,12 +101,12 @@ HWTEST_F(HtraceHisysEventParserTest, ParseHaveArrayData, TestSize.Level1)
     std::vector<size_t> noArrayIndex;
     std::vector<size_t> arrayIndex;
     std::stringstream ss;
-    ss<<jsMessage;
-    ss>>jMessage;
+    ss << jsMessage;
+    ss >> jMessage;
     HtraceHisyseventParser HisysEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     HisysEvent.JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex);
     EXPECT_TRUE(jData.eventSource == "POWER_IDE_WIFISCAN");
-    EXPECT_EQ(jData.timestamp, 16611696002);
+    EXPECT_EQ(jData.timeStamp, 16611696002);
     EXPECT_EQ(maxArraySize, 3);
     EXPECT_EQ(noArrayIndex.size(), 12);
     EXPECT_EQ(arrayIndex.size(), 9);
@@ -127,17 +127,17 @@ HWTEST_F(HtraceHisysEventParserTest, MixedDataAnalysis, TestSize.Level1)
 {
     TS_LOGI("test9-3");
     std::string jsMessage1 =
-        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_BATTERY\",\"type_\":1,\"time_\":22611696002,\"tz_\":\"+"\
-        "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"\
-        "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","\
+        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_BATTERY\",\"type_\":1,\"time_\":22611696002,\"tz_\":\"+"
+        "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"
+        "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","
         "\"id_\":\"16494176919818340149\",\"info_\":\"\"}";
     std::string jsMessage2 =
-        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_WIFISCAN\",\"type_\":2,\"time_\":16611696002,\"tz_\":\"+"\
-        "0000\",\"pid_\":722,\"tid_\":17827,\"uid_\":1201,\"START_TIME\":1661783047454,\"END_TIME\":1661783050455,"\
-        "\"COUNT\":1,\"APPNAME\":[\"com.ohos.settings\",\"com.ohos.settings_js\",\"com.ohos.settings_app\"],"\
-        "\"FOREGROUND_COUNT\":[43,41,65],\"FOREGROUND_ENERGY\":[120,134,532],\"BACKGROUND_COUNT\":[27,856,378],"\
-        "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"\
-        "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"\
+        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_WIFISCAN\",\"type_\":2,\"time_\":16611696002,\"tz_\":\"+"
+        "0000\",\"pid_\":722,\"tid_\":17827,\"uid_\":1201,\"START_TIME\":1661783047454,\"END_TIME\":1661783050455,"
+        "\"COUNT\":1,\"APPNAME\":[\"com.ohos.settings\",\"com.ohos.settings_js\",\"com.ohos.settings_app\"],"
+        "\"FOREGROUND_COUNT\":[43,41,65],\"FOREGROUND_ENERGY\":[120,134,532],\"BACKGROUND_COUNT\":[27,856,378],"
+        "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"
+        "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"
         "\"17560016619580787102\",\"info_\":\"\"}";
     std::vector<std::string> jsMessage;
     jsMessage.push_back(jsMessage1);
@@ -156,13 +156,13 @@ HWTEST_F(HtraceHisysEventParserTest, MixedDataAnalysis, TestSize.Level1)
         HisysEvent.JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex);
         if (jData.eventSource == "POWER_IDE_WIFISCAN") {
             EXPECT_TRUE(jData.eventSource == "POWER_IDE_WIFISCAN");
-            EXPECT_EQ(jData.timestamp, 16611696002);
+            EXPECT_EQ(jData.timeStamp, 16611696002);
             EXPECT_EQ(maxArraySize, 3);
             EXPECT_EQ(noArrayIndex.size(), 12);
             EXPECT_EQ(arrayIndex.size(), 9);
         } else {
             EXPECT_TRUE(jData.eventSource == "POWER_IDE_BATTERY");
-            EXPECT_EQ(jData.timestamp, 22611696002);
+            EXPECT_EQ(jData.timeStamp, 22611696002);
             EXPECT_EQ(maxArraySize, 0);
             EXPECT_EQ(noArrayIndex.size(), 17);
             EXPECT_EQ(arrayIndex.size(), 0);

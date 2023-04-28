@@ -52,7 +52,7 @@ void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
     std::string path = dbPath + ".ohos.ts";
     std::ofstream out(path, std::ios_base::trunc);
     out << (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
-        .count()
+               .count()
         << ":" << status << std::endl;
     using std::chrono::system_clock;
 
@@ -275,8 +275,14 @@ int main(int argc, char** argv)
         metaData->SetParserToolVersion(TRACE_STREAM_VERSION.c_str());
         metaData->SetParserToolPublishDateTime(TRACE_STREAM_PUBLISHVERSION.c_str());
         metaData->SetTraceDataSize(g_loadSize);
-        ts.SearchData();
-        return 0;
+        while (1) {
+            auto values = ts.SearchData();
+            if (!values.empty()) {
+                ts.ReloadSymbolFiles(values);
+            } else {
+                return 0;
+            }
+        }
     }
     if (ExportDatabase(ts, tsOption.sqliteFilePath)) {
         ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());

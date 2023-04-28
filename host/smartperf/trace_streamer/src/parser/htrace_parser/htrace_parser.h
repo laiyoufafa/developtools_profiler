@@ -59,30 +59,29 @@ public:
     ~HtraceParser();
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size) override;
     void WaitForParserEnd();
+
 private:
     bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
     void ParseTraceDataItem(const std::string& buffer) override;
     void FilterData(HtraceDataSegment& seg);
     void ParserData(HtraceDataSegment& dataSeg);
+
 private:
-    void ParseMemory(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseHilog(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseFtrace(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseNativeHook(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseFPS(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseCpuUsage(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseNetwork(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseProcess(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseHisysevent(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
-    void ParseHisyseventConfig(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseMemory(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseHilog(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseFtrace(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseNativeHook(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseFPS(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseCpuUsage(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseNetwork(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseProcess(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseHisysevent(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
+    void ParseHisyseventConfig(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
     void ParseThread();
     int GetNextSegment();
     void FilterThread();
-    enum ErrorCode {
-        ERROR_CODE_EXIT = -2,
-        ERROR_CODE_NODATA = -1
-    };
+    enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
     bool InitProfilerTraceFileHeader();
     ProfilerTraceFileHeader profilerTraceFileHeader_;
     uint64_t htraceCurentLength_ = 0;

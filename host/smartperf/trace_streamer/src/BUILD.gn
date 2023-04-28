@@ -62,8 +62,9 @@ ohos_source_set("lib") {
     "${OHOS_PROTO_GEN}/types/plugins/hisysevent_data",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
+    "//third_party/hiperf/include",
   ]
-  if (is_pbreader) {
+  if (!is_pbdecoder) {
     include_dirs += [
       "parser/htrace_pbreader_parser",
       "parser/htrace_pbreader_parser/htrace_event_parser",
@@ -79,9 +80,10 @@ ohos_source_set("lib") {
   if (with_perf) {
     include_dirs += [
       "parser/hiperf_parser",
-      "parser/hiperf_parser/hiperf/include",
-      "parser/hiperf_parser/hiperf/include/linux",
-      "//third_party/perf_include",
+      "//third_party/hiperf/include",
+      "//third_party/hiperf/include/nonlinux",
+      "//third_party/hiperf/include/nonlinux/linux",
+      "//third_party/perf_include/musl",
     ]
   }
   public_deps = []
@@ -138,7 +140,7 @@ ohos_source_set("trace_streamer_source") {
   if (is_test) {
     include_dirs += [ "../prebuilts/emsdk/emsdk/emscripten/system/include" ]
   }
-  if (is_pbreader) {
+  if (!is_pbdecoder) {
     include_dirs += [
       "parser/htrace_pbreader_parser",
       "parser/htrace_pbreader_parser/htrace_event_parser",
@@ -171,10 +173,9 @@ ohos_source_set("trace_streamer_source") {
   if (with_perf) {
     include_dirs += [
       "parser/hiperf_parser",
-      "parser/hiperf_parser/hiperf/linux",
-      "parser/hiperf_parser/hiperf/kernel",
-      "parser/hiperf_parser/hiperf/include",
-      "parser/hiperf_parser/hiperf/include/linux",
+      "//third_party/hiperf/include",
+      "//third_party/hiperf/include/nonlinux",
+      "//third_party/hiperf/include/nonlinux/linux",
       "//third_party/perf_include/libbpf",
       "//third_party/perf_include/musl",
     ]

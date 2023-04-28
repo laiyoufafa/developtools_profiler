@@ -14,31 +14,31 @@
  */
 
 // @ts-ignore
-import {SpTraceCommand} from "../../../../dist/trace/component/setting/SpTraceCommand.js";
+import { SpTraceCommand } from '../../../../dist/trace/component/setting/SpTraceCommand.js';
 
-describe('SPTraceCommand Test', ()=>{
+describe('SPTraceCommand Test', () => {
     beforeAll(() => {
-        document.body.innerHTML =  `
+        document.body.innerHTML = `
             <trace-command id = "command"><trace-command>
-        `
-    })
+        `;
+    });
     it('new SPTraceCommand', function () {
         expect(new SpTraceCommand()).not.toBeNull();
     });
 
     it(' SpAllocations get Default attrValue', function () {
-        let spEle = document.querySelector("#command") as SpTraceCommand
-        expect(spEle.hdcCommon).toEqual("");
+        let spEle = document.querySelector('#command') as SpTraceCommand;
+        expect(spEle.hdcCommon).toEqual('');
     });
 
     it(' SpAllocations set  attrValue', function () {
-        let spEle = document.querySelector("#command") as SpTraceCommand
-        spEle.hdcCommon = "test"
-        expect(spEle.hdcCommon).toEqual("test");
+        let spEle = document.querySelector('#command') as SpTraceCommand;
+        spEle.hdcCommon = 'test';
+        expect(spEle.hdcCommon).toEqual('test');
     });
 
     it(' SpTraceCommand test', function () {
-        let spEle = document.querySelector("#command") as SpTraceCommand
+        let spEle = document.querySelector('#command') as SpTraceCommand;
         expect(spEle.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
@@ -77,6 +77,7 @@ describe('SPTraceCommand Test', ()=>{
             position: relative;
             top: 56px;
             right: 40px;
+            cursor:pointer;
         }
 
         #copy-button{
@@ -122,7 +123,7 @@ describe('SPTraceCommand Test', ()=>{
         }
         
         #stop-button{
-            display: none;
+           display: none;
            border-radius: 15px;
            background-color: #0A59F7;
            width: 120px;
@@ -134,6 +135,8 @@ describe('SPTraceCommand Test', ()=>{
            line-height: 20px;
            margin-left: 80%;
            border: 1px solid #FFFFFF;
+           opacity: 0.6;
+           cursor:pointer;
         }
         
         :host([show]) #stop-button {
@@ -148,20 +151,20 @@ describe('SPTraceCommand Test', ()=>{
             <button id=\\"stop-button\\">Stop Cmd</button>
         </div>
         "
-`)
+`);
     });
     it(' SpTraceCommandtest01', function () {
-        let spEle = document.querySelector("#command") as SpTraceCommand
-        spEle.show = false
-        expect(spEle.show).toBeFalsy()
-    })
+        let spEle = document.querySelector('#command') as SpTraceCommand;
+        spEle.show = false;
+        expect(spEle.show).toBeFalsy();
+    });
     it(' SpTraceCommandtest02', function () {
-        let spEle = document.querySelector("#command") as SpTraceCommand
-        spEle.show = true
-        expect(spEle.show).toBeTruthy()
-    })
+        let spEle = document.querySelector('#command') as SpTraceCommand;
+        spEle.show = true;
+        expect(spEle.show).toBeTruthy();
+    });
     it(' SpTraceCommandtest03', function () {
-        let spEle = document.querySelector("#command") as SpTraceCommand
-        expect(spEle.disconnectedCallback()).toBeUndefined()
-    })
-})
+        let spEle = document.querySelector('#command') as SpTraceCommand;
+        expect(spEle.disconnectedCallback()).toBeUndefined();
+    });
+});

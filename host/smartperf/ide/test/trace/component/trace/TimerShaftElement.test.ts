@@ -13,31 +13,91 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
+
 // @ts-ignore
-import {TimerShaftElement,ns2s,ns2x} from "../../../../dist/trace/component/trace/TimerShaftElement.js";
+import {
+    TimerShaftElement,
+    ns2s,
+    ns2x,
+} from '../../../../dist/trace/component/trace/TimerShaftElement.js';
 // @ts-ignore
-import {Rect} from "../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon";
+import { Rect } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon';
+
+// @ts-ignore
+import { EventCenter } from '../../../../dist/trace/component/trace/base/EventCenter.js';
+
+declare global {
+    interface Window {
+        SmartEvent: {
+            UI: {
+                MenuTrace: string; //selected menu trace
+                RefreshCanvas: string; //selected menu trace
+                SliceMark: string; //Set the tag scope
+                TimeRange: string; //Set the timeline range
+                TraceRowComplete: string; //Triggered after the row component has finished loading data
+            };
+        };
+
+        subscribe(evt: string, fn: (b: any) => void): void;
+
+        subscribeOnce(evt: string, fn: (b: any) => void): void;
+
+        unsubscribe(evt: string, fn: (b: any) => void): void;
+
+        publish(evt: string, data: any): void;
+
+        clearTraceRowComplete(): void;
+    }
+}
+
+window.SmartEvent = {
+    UI: {
+        MenuTrace: 'SmartEvent-UI-MenuTrace',
+        RefreshCanvas: 'SmartEvent-UI-RefreshCanvas',
+        SliceMark: 'SmartEvent-UI-SliceMark',
+        TimeRange: 'SmartEvent-UI-TimeRange',
+        TraceRowComplete: 'SmartEvent-UI-TraceRowComplete',
+    },
+};
+
+Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);
+Window.prototype.unsubscribe = (ev, fn) => EventCenter.unsubscribe(ev, fn);
+Window.prototype.publish = (ev, data) => EventCenter.publish(ev, data);
+Window.prototype.subscribeOnce = (ev, data) =>
+    EventCenter.subscribeOnce(ev, data);
+Window.prototype.clearTraceRowComplete = () =>
+    EventCenter.clearTraceRowComplete();
 
 describe('TimerShaftElement Test', () => {
-    let timerShaftElement = new TimerShaftElement();
+    document.body.innerHTML =
+        '<timer-shaft-element id="timerShaftEL"><timer-shaft-element>';
+    let timerShaftElement = document.querySelector(
+        '#timerShaftEL'
+    ) as TimerShaftElement;
+    timerShaftElement.totalNS = 1000;
+    timerShaftElement.startNS = 1000;
+    timerShaftElement.endNS = 2000;
 
-    timerShaftElement.cpuUsage = 'cpuUsage'
+    timerShaftElement.cpuUsage = 'cpuUsage';
 
     it('TimerShaftElementTest01', function () {
-        timerShaftElement.rangeRuler = jest.fn(() => true)
-        timerShaftElement.rangeRuler.cpuUsage  = jest.fn(() => true)
+        timerShaftElement.rangeRuler = jest.fn(() => true);
+        timerShaftElement.rangeRuler.cpuUsage = jest.fn(() => true);
         expect(timerShaftElement.cpuUsage).toBeUndefined();
     });
 
     it('TimerShaftElementTest03', function () {
-        timerShaftElement.timeRuler = jest.fn(() => false)
-        timerShaftElement.rangeRuler = jest.fn(() => false)
+        timerShaftElement.timeRuler = jest.fn(() => false);
+        timerShaftElement.rangeRuler = jest.fn(() => false);
         timerShaftElement.timeRuler.frame = jest.fn(() => {
-            return document.createElement('canvas') as HTMLCanvasElement
-        })
+            return document.createElement('canvas') as HTMLCanvasElement;
+        });
         timerShaftElement.rangeRuler.frame = jest.fn(() => {
-            return document.createElement('canvas') as HTMLCanvasElement
-        })
+            return document.createElement('canvas') as HTMLCanvasElement;
+        });
         expect(timerShaftElement.connectedCallback()).toBeUndefined();
     });
 
@@ -46,21 +106,21 @@ describe('TimerShaftElement Test', () => {
     });
 
     it('TimerShaftElementTest06', function () {
-        expect(timerShaftElement.totalNS).toBe(10000000000);
+        expect(timerShaftElement.totalNS).toBe(1000);
     });
 
     it('TimerShaftElementTest08', function () {
-        timerShaftElement.startNS = 'startNS'
+        timerShaftElement.startNS = 'startNS';
         expect(timerShaftElement.startNS).toBe('startNS');
     });
 
     it('TimerShaftElementTest09', function () {
-        timerShaftElement.endNS = 'endNS'
+        timerShaftElement.endNS = 'endNS';
         expect(timerShaftElement.endNS).toBe('endNS');
     });
 
     it('TimerShaftElementTest14', function () {
-        expect(ns2s(1_000_0000)).toBe("10.0 ms");
+        expect(ns2s(1_000_0000)).toBe('10.0 ms');
     });
 
     it('TimerShaftElementTest15', function () {
@@ -71,7 +131,7 @@ describe('TimerShaftElement Test', () => {
             box-sizing: border-box;
             display: flex;
             width: 100%;
-            height: 147px;
+            height: 148px;
             border-bottom: 1px solid var(--dark-background,#dadada);
             border-top: 1px solid var(--dark-background,#dadada);
         }
@@ -107,9 +167,20 @@ describe('TimerShaftElement Test', () => {
             padding: 2px 6px;
             display: flex;justify-content: space-between;
             user-select: none;
+            position: relative;
         }
         .time-total::after{
             content: \\" +\\";
+        }
+        .time-collect{
+            position:absolute;
+            right:5px;
+            bottom:5px;
+            color: #5291FF;
+            display: none;
+        }
+        .time-collect[close] > .time-collect-arrow{
+            transform: rotateZ(-180deg);
         }
 
         </style>
@@ -119,6 +190,9 @@ describe('TimerShaftElement Test', () => {
                 <div class=\\"time-div\\">
                     <span class=\\"time-total\\">10</span>
                     <span class=\\"time-offset\\">0</span>
+                    <div class=\\"time-collect\\">
+                        <lit-icon class=\\"time-collect-arrow\\" name=\\"caret-down\\" size=\\"17\\"></lit-icon>
+                    </div>
                 </div>
             </div>
             <canvas class=\\"panel\\"></canvas>
@@ -128,15 +202,15 @@ describe('TimerShaftElement Test', () => {
     });
 
     it('TimerShaftElementTest16', function () {
-        expect(ns2s(1)).toBe("1.0 ns");
+        expect(ns2s(1)).toBe('1.0 ns');
     });
 
     it('TimerShaftElementTest17', function () {
-        expect(ns2s(1_000)).toBe("1.0 μs");
+        expect(ns2s(1_000)).toBe('1.0 μs');
     });
 
     it('TimerShaftElementTest18', function () {
-        expect(ns2x(1,3,4,4,{width:1})).toBe(0);
+        expect(ns2x(1, 3, 4, 4, { width: 1 })).toBe(0);
     });
 
     it('TimerShaftElementTest19', function () {
@@ -148,98 +222,98 @@ describe('TimerShaftElement Test', () => {
     });
 
     it('TimerShaftElementTest21', function () {
-        timerShaftElement.rangeRuler = jest.fn(()=>undefined)
-        timerShaftElement.rangeRuler.setRangeNS = jest.fn(()=>true)
+        timerShaftElement.rangeRuler = jest.fn(() => undefined);
+        timerShaftElement.rangeRuler.setRangeNS = jest.fn(() => true);
         expect(timerShaftElement.setRangeNS()).toBeFalsy();
     });
 
     it('TimerShaftElementTest22', function () {
-        timerShaftElement.rangeRuler = jest.fn(()=>undefined)
-        timerShaftElement.rangeRuler.getRange = jest.fn(()=>true)
+        timerShaftElement.rangeRuler = jest.fn(() => undefined);
+        timerShaftElement.rangeRuler.getRange = jest.fn(() => true);
         expect(timerShaftElement.getRange()).toBeTruthy();
     });
 
     it('TimerShaftElementTest23', function () {
-        timerShaftElement.rangeRuler = jest.fn(()=>undefined)
-        timerShaftElement.rangeRuler.frame = jest.fn(()=>Rect)
-        timerShaftElement.rangeRuler.frame.width = jest.fn(()=>1)
-        timerShaftElement._sportRuler = jest.fn(()=>undefined)
-        timerShaftElement._sportRuler.frame = jest.fn(()=>Rect)
-        timerShaftElement._sportRuler.frame.width = jest.fn(()=>1)
-        timerShaftElement.timeRuler = jest.fn(()=>undefined)
-        timerShaftElement.timeRuler.frame = jest.fn(()=>Rect)
-        timerShaftElement.timeRuler.frame.width = jest.fn(()=>1)
-        timerShaftElement.rangeRuler.fillX = jest.fn(()=>true)
-        timerShaftElement.render = jest.fn(()=>true)
+        timerShaftElement.rangeRuler = jest.fn(() => undefined);
+        timerShaftElement.rangeRuler.frame = jest.fn(() => Rect);
+        timerShaftElement.rangeRuler.frame.width = jest.fn(() => 1);
+        timerShaftElement._sportRuler = jest.fn(() => undefined);
+        timerShaftElement._sportRuler.frame = jest.fn(() => Rect);
+        timerShaftElement._sportRuler.frame.width = jest.fn(() => 1);
+        timerShaftElement.timeRuler = jest.fn(() => undefined);
+        timerShaftElement.timeRuler.frame = jest.fn(() => Rect);
+        timerShaftElement.timeRuler.frame.width = jest.fn(() => 1);
+        timerShaftElement.rangeRuler.fillX = jest.fn(() => true);
+        timerShaftElement.render = jest.fn(() => true);
         expect(timerShaftElement.updateWidth()).toBeUndefined();
     });
 
     it('TimerShaftElementTest24', function () {
-        timerShaftElement._sportRuler = jest.fn(()=>undefined)
-        timerShaftElement._sportRuler.modifyFlagList = jest.fn(()=>true)
+        timerShaftElement._sportRuler = jest.fn(() => undefined);
+        timerShaftElement._sportRuler.modifyFlagList = jest.fn(() => true);
         expect(timerShaftElement.modifyFlagList()).toBeUndefined();
     });
 
     it('TimerShaftElementTest25', function () {
-        timerShaftElement._sportRuler = jest.fn(()=>undefined)
-        timerShaftElement._sportRuler.drawTriangle = jest.fn(()=>true)
+        timerShaftElement._sportRuler = jest.fn(() => undefined);
+        timerShaftElement._sportRuler.drawTriangle = jest.fn(() => true);
         expect(timerShaftElement.drawTriangle()).toBeTruthy();
     });
 
     it('TimerShaftElementTest26', function () {
-        timerShaftElement._sportRuler = jest.fn(()=>undefined)
-        timerShaftElement._sportRuler.removeTriangle = jest.fn(()=>true)
+        timerShaftElement._sportRuler = jest.fn(() => undefined);
+        timerShaftElement._sportRuler.removeTriangle = jest.fn(() => true);
         expect(timerShaftElement.removeTriangle()).toBeUndefined();
     });
 
     it('TimerShaftElementTest27', function () {
-        timerShaftElement._sportRuler = jest.fn(()=>undefined)
-        timerShaftElement._sportRuler.setSlicesMark = jest.fn(()=>true)
+        timerShaftElement._sportRuler = jest.fn(() => undefined);
+        timerShaftElement._sportRuler.setSlicesMark = jest.fn(() => true);
         expect(timerShaftElement.setSlicesMark()).toBeUndefined();
     });
 
-
     it('TimerShaftElementTest28', function () {
-        timerShaftElement.rangeRuler = jest.fn(()=>undefined)
-        timerShaftElement.rangeRuler.render = jest.fn(()=>true)
+        timerShaftElement.rangeRuler = jest.fn(() => undefined);
+        timerShaftElement.rangeRuler.render = jest.fn(() => true);
         expect(timerShaftElement.render()).not.toBeUndefined();
     });
 
     it('TimerShaftElementTest29', function () {
-        expect(ns2x(1,3,0,4,{width:1})).toBe(0);
+        expect(ns2x(1, 3, 0, 4, { width: 1 })).toBe(0);
     });
 
     it('TimerShaftElementTest30', function () {
         timerShaftElement.rangeRuler = jest.fn(() => true);
-        timerShaftElement.rangeRuler.cpuUsage  = jest.fn(() => true);
+        timerShaftElement.rangeRuler.cpuUsage = jest.fn(() => true);
         expect(timerShaftElement.cpuUsage).toBe(undefined);
     });
 
     it('TimerShaftElementTest31', function () {
         timerShaftElement.timeRuler = jest.fn(() => true);
-        expect(timerShaftElement.totalNS).toBe(10000000000);
+        expect(timerShaftElement.totalNS).toBe(1000);
     });
 
     it('TimerShaftElementTest32', function () {
         timerShaftElement.rangeRuler = jest.fn(() => true);
-        expect(timerShaftElement.totalNS).toBe(10000000000);
+        expect(timerShaftElement.totalNS).toBe(1000);
     });
 
     it('TimerShaftElementTest33', function () {
         timerShaftElement.timeTotalEL = jest.fn(() => true);
-        expect(timerShaftElement.totalNS).toBe(10000000000);
+        expect(timerShaftElement.totalNS).toBe(1000);
     });
 
     it('TimerShaftElementTest35', function () {
-        timerShaftElement.rangeRuler =jest.fn(()=>undefined)
-        timerShaftElement.rangeRuler.cancelPressFrame =jest.fn(()=>undefined)
+        timerShaftElement.rangeRuler = jest.fn(() => undefined);
+        timerShaftElement.rangeRuler.cancelPressFrame = jest.fn(
+            () => undefined
+        );
         expect(timerShaftElement.cancelPressFrame()).toBeUndefined();
     });
 
     it('TimerShaftElementTest36', function () {
-        timerShaftElement.rangeRuler =jest.fn(()=>undefined)
-        timerShaftElement.rangeRuler.cancelUpFrame =jest.fn(()=>undefined)
+        timerShaftElement.rangeRuler = jest.fn(() => undefined);
+        timerShaftElement.rangeRuler.cancelUpFrame = jest.fn(() => undefined);
         expect(timerShaftElement.cancelUpFrame()).toBeUndefined();
     });
-
-})
+});

@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SliceTable : public TableBase {
 public:
-    explicit SliceTable(const TraceDataCache* storage);
+    explicit SliceTable(const TraceDataCache* dataCache);
     ~SliceTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 

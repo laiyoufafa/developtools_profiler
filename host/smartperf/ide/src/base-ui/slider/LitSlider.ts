@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
+import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-slider')
 export class LitSlider extends BaseElement {
@@ -26,52 +26,77 @@ export class LitSlider extends BaseElement {
     private defaultTimeText: string | undefined | null;
 
     static get observedAttributes() {
-        return ['percent', 'disabled-X', 'custom-slider', 'custom-line', 'custom-button']
+        return [
+            'percent',
+            'disabled-X',
+            'custom-slider',
+            'custom-line',
+            'custom-button',
+        ];
     }
 
     get sliderStyle(): LitSliderStyle {
         if (this.litSliderStyle) {
-            return this.litSliderStyle
+            return this.litSliderStyle;
         } else {
             return {
                 minRange: 0,
                 maxRange: 100,
-                defaultValue: "0",
-                resultUnit: "",
+                defaultValue: '0',
+                resultUnit: '',
                 stepSize: 1,
-                lineColor: "var(--dark-color3,#46B1E3)",
-                buttonColor: "#999999"
-            }
+                lineColor: 'var(--dark-color3,#46B1E3)',
+                buttonColor: '#999999',
+            };
         }
     }
 
     set sliderStyle(value: LitSliderStyle) {
         this.litSliderStyle = value;
-        this.currentValue = Number(value.defaultValue)
-        this.litSliderStyle.defaultValue = value.defaultValue
+        this.currentValue = Number(value.defaultValue);
+        this.litSliderStyle.defaultValue = value.defaultValue;
         if (this.litSliderStyle.resultUnit === 'h:m:s') {
             let timeData = this.litSliderStyle.defaultValue.split(':');
-            let timeSize = Number(timeData[0]) * 3600 + Number(timeData[1]) * 60 + Number(timeData[2]);
-            this.defaultTimeText = timeSize.toString()
-            let defaultSize = (timeSize - this.litSliderStyle.minRange) * 100 / (this.litSliderStyle
-                .maxRange - this.litSliderStyle.minRange);
-            this.litSlider!.style.backgroundSize = defaultSize + '%'
+            let timeSize =
+                Number(timeData[0]) * 3600 +
+                Number(timeData[1]) * 60 +
+                Number(timeData[2]);
+            this.defaultTimeText = timeSize.toString();
+            let defaultSize =
+                ((timeSize - this.litSliderStyle.minRange) * 100) /
+                (this.litSliderStyle.maxRange - this.litSliderStyle.minRange);
+            this.litSlider!.style.backgroundSize = defaultSize + '%';
         } else {
-            this.defaultTimeText = this.litSliderStyle.defaultValue
-            this.litSlider!.style.backgroundSize = '0%'
+            this.defaultTimeText = this.litSliderStyle.defaultValue;
+            this.litSlider!.style.backgroundSize = '0%';
             if (Number(this.litSliderStyle.defaultValue)) {
-                let defaultSize = (Number(this.litSliderStyle.defaultValue) - this.litSliderStyle.minRange)
-                    / (this.litSliderStyle.maxRange - this.litSliderStyle.minRange) * 100;
-                this.litSlider!.style.backgroundSize = defaultSize + '%'
+                let defaultSize =
+                    ((Number(this.litSliderStyle.defaultValue) -
+                        this.litSliderStyle.minRange) /
+                        (this.litSliderStyle.maxRange -
+                            this.litSliderStyle.minRange)) *
+                    100;
+                this.litSlider!.style.backgroundSize = defaultSize + '%';
             }
         }
-        let htmlInputElement = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        let htmlInputElement = this.shadowRoot?.querySelector(
+            '#slider'
+        ) as HTMLInputElement;
         let attribute = htmlInputElement.getAttribute('type');
         if (attribute === 'range') {
-            htmlInputElement!.setAttribute('value', this.defaultTimeText!)
-            htmlInputElement!.setAttribute('min', this.litSliderStyle!.minRange.toString())
-            htmlInputElement!.setAttribute('max', this.litSliderStyle!.maxRange.toString())
-            htmlInputElement!.setAttribute('step', this.litSliderStyle!.stepSize.toString())
+            htmlInputElement!.setAttribute('value', this.defaultTimeText!);
+            htmlInputElement!.setAttribute(
+                'min',
+                this.litSliderStyle!.minRange.toString()
+            );
+            htmlInputElement!.setAttribute(
+                'max',
+                this.litSliderStyle!.maxRange.toString()
+            );
+            htmlInputElement!.setAttribute(
+                'step',
+                this.litSliderStyle!.stepSize.toString()
+            );
         }
     }
 
@@ -121,7 +146,9 @@ export class LitSlider extends BaseElement {
 
     set percent(value: string) {
         this.setAttribute('percent', value);
-        let resultNumber = (Number(value) - this.sliderStyle!.minRange) * 100 / (this.sliderStyle!.maxRange - this.sliderStyle!.minRange);
+        let resultNumber =
+            ((Number(value) - this.sliderStyle!.minRange) * 100) /
+            (this.sliderStyle!.maxRange - this.sliderStyle!.minRange);
         this.litSlider!.style.backgroundSize = resultNumber + '%';
     }
 
@@ -134,7 +161,9 @@ export class LitSlider extends BaseElement {
     }
 
     initElements(): void {
-        this.litSlider = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        this.litSlider = this.shadowRoot?.querySelector(
+            '#slider'
+        ) as HTMLInputElement;
     }
 
     initHtml(): string {
@@ -196,11 +225,15 @@ export class LitSlider extends BaseElement {
             background: rgba(0,0,0,0.1);
             height: 10px;
             border-radius:2px;
-            background: -webkit-linear-gradient(right, ${this
-            .getAttribute('defaultColor') ? this
-            .getAttribute('defaultColor') : '#46B1E3'}, ${this
-            .getAttribute('defaultColor') ? this
-            .getAttribute('defaultColor') : '#46B1E3'}) no-repeat;
+            background: -webkit-linear-gradient(right, ${
+                this.getAttribute('defaultColor')
+                    ? this.getAttribute('defaultColor')
+                    : '#46B1E3'
+            }, ${
+            this.getAttribute('defaultColor')
+                ? this.getAttribute('defaultColor')
+                : '#46B1E3'
+        }) no-repeat;
         }
         
         /*
@@ -241,7 +274,7 @@ export class LitSlider extends BaseElement {
         <div id='slider-con' dir="right">
             <input id="slider" type="range" max="10000000">
         </div>
-        `
+        `;
     }
 
     // It is called when the custom element is first inserted into the document DOM.
@@ -249,42 +282,44 @@ export class LitSlider extends BaseElement {
         this.slotEl = this.shadowRoot?.querySelector('#slot');
         this.litSliderCon = this.shadowRoot?.querySelector('#slider-con');
         // Add a slider for input event listeners
-        this.litSlider?.addEventListener('input', this.inputChangeEvent)
-        this.litSlider?.addEventListener('change', this.inputChangeEvent)
+        this.litSlider?.addEventListener('input', this.inputChangeEvent);
+        this.litSlider?.addEventListener('change', this.inputChangeEvent);
         this.litSliderStyle = this.sliderStyle;
-
     }
 
     inputChangeEvent = (event: any) => {
         if (this.litSlider) {
-            this.currentValue = parseInt(this.litSlider?.value)
-            let resultNumber = (this.currentValue - this.litSliderStyle!.minRange) * 100 / (this
-                .litSliderStyle!.maxRange - this.litSliderStyle!.minRange);
-            this.percent = Number(resultNumber) + "%";
-            this.litSliderCon?.style.setProperty('percent', this.currentValue + "%")
+            this.currentValue = parseInt(this.litSlider?.value);
+            let resultNumber =
+                ((this.currentValue - this.litSliderStyle!.minRange) * 100) /
+                (this.litSliderStyle!.maxRange - this.litSliderStyle!.minRange);
+            this.percent = Number(resultNumber) + '%';
+            this.litSliderCon?.style.setProperty(
+                'percent',
+                this.currentValue + '%'
+            );
             let parentElement = this.parentNode as Element;
-            parentElement.setAttribute('percent', this.currentValue + "");
+            parentElement.setAttribute('percent', this.currentValue + '');
             if (this.sliderStyle.resultUnit === 'h:m:s') {
                 this.litSlider!.style.backgroundSize = this.percent;
             } else {
                 this.litSlider!.style.backgroundSize = this.percent;
             }
-            this.parentElement!.setAttribute('percent', this.litSlider?.value)
+            this.parentElement!.setAttribute('percent', this.litSlider?.value);
         }
-    }
+    };
 
     disconnectedCallback() {
         this.litSlider?.removeEventListener('input', this.inputChangeEvent);
-        this.litSlider?.removeEventListener('change', this.inputChangeEvent)
+        this.litSlider?.removeEventListener('change', this.inputChangeEvent);
     }
 
-    adoptedCallback() {
-    }
+    adoptedCallback() {}
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         switch (name) {
-            case "percent":
-                if (newValue === null || newValue === "0%") {
+            case 'percent':
+                if (newValue === null || newValue === '0%') {
                     let parentElement = this.parentNode as Element;
                     parentElement?.removeAttribute('percent');
                 } else {
@@ -297,23 +332,41 @@ export class LitSlider extends BaseElement {
     }
 
     renderDefaultSlider() {
-        let htmlInputElement = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        let htmlInputElement = this.shadowRoot?.querySelector(
+            '#slider'
+        ) as HTMLInputElement;
         let attribute = htmlInputElement.getAttribute('type');
         if (attribute === 'range') {
-            htmlInputElement!.setAttribute('value', this.defaultTimeText!)
-            htmlInputElement!.setAttribute('min', this.litSliderStyle!.minRange.toString())
-            htmlInputElement!.setAttribute('max', this.litSliderStyle!.maxRange.toString())
-            htmlInputElement!.setAttribute('step', this.litSliderStyle!.stepSize.toString())
+            htmlInputElement!.setAttribute('value', this.defaultTimeText!);
+            htmlInputElement!.setAttribute(
+                'min',
+                this.litSliderStyle!.minRange.toString()
+            );
+            htmlInputElement!.setAttribute(
+                'max',
+                this.litSliderStyle!.maxRange.toString()
+            );
+            htmlInputElement!.setAttribute(
+                'step',
+                this.litSliderStyle!.stepSize.toString()
+            );
         }
     }
 
     formatSeconds(value: string) {
-        let result = parseInt(value)
-        let hours = Math.floor(result / 3600) < 10 ? '0' + Math.floor(result / 3600) : Math
-            .floor(result / 3600);
-        let minute = Math.floor((result / 60 % 60)) < 10 ? '0' + Math
-            .floor((result / 60 % 60)) : Math.floor((result / 60 % 60));
-        let second = Math.floor((result % 60)) < 10 ? '0' + Math.floor((result % 60)) : Math.floor((result % 60));
+        let result = parseInt(value);
+        let hours =
+            Math.floor(result / 3600) < 10
+                ? '0' + Math.floor(result / 3600)
+                : Math.floor(result / 3600);
+        let minute =
+            Math.floor((result / 60) % 60) < 10
+                ? '0' + Math.floor((result / 60) % 60)
+                : Math.floor((result / 60) % 60);
+        let second =
+            Math.floor(result % 60) < 10
+                ? '0' + Math.floor(result % 60)
+                : Math.floor(result % 60);
         let resultTime = '';
         if (hours === '00') {
             resultTime += `00:`;
@@ -331,27 +384,27 @@ export class LitSlider extends BaseElement {
 }
 
 export interface LitSliderStyle {
-    minRange: number
-    maxRange: number
-    defaultValue: string
-    resultUnit: string
-    stepSize: number
-    lineColor?: string
-    buttonColor?: string
+    minRange: number;
+    maxRange: number;
+    defaultValue: string;
+    resultUnit: string;
+    stepSize: number;
+    lineColor?: string;
+    buttonColor?: string;
 }
 
 export interface LitSliderLineStyle {
-    lineWith: number
-    lineHeight: number
-    border?: string
-    borderRadiusValue?: number
-    lineChangeColor?: string
+    lineWith: number;
+    lineHeight: number;
+    border?: string;
+    borderRadiusValue?: number;
+    lineChangeColor?: string;
 }
 
 export interface LitSliderButtonStyle {
-    buttonWith: number
-    buttonHeight: number
-    border?: string
-    borderRadiusValue?: number
-    buttonChangeColor?: string
+    buttonWith: number;
+    buttonHeight: number;
+    border?: string;
+    borderRadiusValue?: number;
+    buttonChangeColor?: string;
 }

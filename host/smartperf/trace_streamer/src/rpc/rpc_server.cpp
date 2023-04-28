@@ -22,12 +22,13 @@
 #include "log.h"
 #include "meta.h"
 
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 namespace SysTuning {
 namespace TraceStreamer {
+uint32_t g_fileLen = 0;
 bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
     g_loadSize += len;
@@ -190,5 +191,54 @@ int RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 {
     return ts_->ExportDatabase("default.db", resultCallBack);
 }
+
+int RpcServer::DownloadELFCallback(const std::string fileName,
+                                   size_t totalLen,
+                                   const uint8_t* data,
+                                   size_t len,
+                                   int count,
+                                   ParseELFFileCallBack parseELFFile)
+{
+    g_fileLen += len;
+    FILE* fd;
+    if (g_fileLen < totalLen) {
+        fd = fopen(fileName.c_str(), "a+");
+        if (fd == nullptr) {
+            TS_LOGE("wasm file create failed");
+            return false;
+        }
+        int writeLength = fwrite(data, len, 1, fd);
+        if (writeLength == 0) {
+            TS_LOGE("wasm write file failed");
+            return false;
+        }
+        fclose(fd);
+        return false;
+    }
+    fd = fopen(fileName.c_str(), "a+");
+    if (fd == nullptr) {
+        TS_LOGE("wasm file create failed");
+        return false;
+    }
+    int writeLength = fwrite(data, len, 1, fd);
+    if (writeLength == 0) {
+        TS_LOGE("wasm write file failed");
+        return false;
+    }
+    fclose(fd);
+
+    if (!ts_->ParserFileSO(fileName, count)) {
+        if (parseELFFile) {
+            parseELFFile("formaterror\r\n", SEND_FINISH);
+        }
+        return false;
+    }
+    if (parseELFFile) {
+        parseELFFile("ok\r\n", SEND_FINISH);
+        g_fileLen = 0;
+    }
+    return true;
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../base-ui/BaseElement.js";
-import {info} from "../../../log/Log.js";
+import { BaseElement, element } from '../../../base-ui/BaseElement.js';
+import { info } from '../../../log/Log.js';
 
 @element('trace-command')
 export class SpTraceCommand extends BaseElement {
@@ -24,48 +24,52 @@ export class SpTraceCommand extends BaseElement {
 
     set show(show: boolean) {
         if (show) {
-            this.setAttribute("show", '')
+            this.setAttribute('show', '');
         } else {
-            this.removeAttribute("show")
+            this.removeAttribute('show');
         }
     }
 
     get show() {
-        return this.hasAttribute("show")
+        return this.hasAttribute('show');
     }
 
     get hdcCommon(): string {
-        return this.codeHl!.textContent + "";
+        return this.codeHl!.textContent + '';
     }
 
     set hdcCommon(value: string) {
-        info("hdc Common is:", value)
+        info('hdc Common is:', value);
         this.codeHl!.textContent = value;
     }
 
     //当 custom element首次被插入文档DOM时，被调用。
     public connectedCallback() {
-        this.codeHl = this.shadowRoot?.querySelector('#code-text') as HTMLTextAreaElement;
-        this.copyEl = this.shadowRoot?.querySelector('#copy-image') as HTMLElement;
-        this.codeHl.textContent = ""
-        this.copyEl?.addEventListener('click', this.codeCopyEvent)
-        this.codeHl.addEventListener('selectionchange', this.textSelectEvent)
+        this.codeHl!.textContent = '';
+        this.copyEl?.addEventListener('click', this.codeCopyEvent);
+        this.codeHl?.addEventListener('selectionchange', this.textSelectEvent);
     }
 
     public disconnectedCallback() {
-        this.copyEl?.removeEventListener('click', this.codeCopyEvent)
+        this.copyEl?.removeEventListener('click', this.codeCopyEvent);
     }
 
     codeCopyEvent = (event: any) => {
         this.codeHl?.select();
         document.execCommand('copy');
-    }
+    };
 
     textSelectEvent = (event: any) => {
         this.copyEl!.style.backgroundColor = '#FFFFFF';
-    }
+    };
 
     initElements(): void {
+        this.codeHl = this.shadowRoot?.querySelector(
+            '#code-text'
+        ) as HTMLTextAreaElement;
+        this.copyEl = this.shadowRoot?.querySelector(
+            '#copy-image'
+        ) as HTMLElement;
     }
 
     initHtml(): string {

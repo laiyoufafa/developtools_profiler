@@ -29,7 +29,7 @@ export enum HdcCommand {
     CMD_KERNEL_ENABLE_KEEPALIVE = 11,
     CMD_KERNEL_WAKEUP_SLAVETASK = 12,
     // One-pass simple commands
-    CMD_UNITY_COMMAND_HEAD = 1000,  // not use
+    CMD_UNITY_COMMAND_HEAD = 1000, // not use
     CMD_UNITY_EXECUTE = 1001,
     CMD_UNITY_REMOUNT = 1002,
     CMD_UNITY_REBOOT = 1003,
@@ -39,7 +39,7 @@ export enum HdcCommand {
     CMD_UNITY_ROOTRUN = 1007,
     CMD_JDWP_LIST = 1008,
     CMD_JDWP_TRACK = 1009,
-    CMD_UNITY_COMMAND_TAIL = 1010,  // not use
+    CMD_UNITY_COMMAND_TAIL = 1010, // not use
     // It will be separated from unity in the near future
     CMD_UNITY_BUGREPORT_INIT = 1011,
     CMD_UNITY_BUGREPORT_DATA = 1012,

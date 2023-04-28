@@ -14,32 +14,35 @@
  */
 
 // @ts-ignore
-import {SpFileSystemChart} from "../../../../dist/trace/component/chart/SpFileSystemChart.js";
+import { SpFileSystemChart } from '../../../../dist/trace/component/chart/SpFileSystemChart.js';
 // @ts-ignore
-import {SpChartManager} from "../../../../dist/trace/component/chart/SpChartManager.js";
-const sqlit = require("../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../dist/trace/database/SqlLite.js");
+import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
+const sqlit = require('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
 
-describe('SpFileSystemChart Test', ()=> {
+describe('SpFileSystemChart Test', () => {
     let hasFileSysData = sqlit.hasFileSysData;
-    hasFileSysData.mockResolvedValue([{
-        fsCount: 2,
-        vmCount: 2,
-        ioCount: 0
-    }])
+    hasFileSysData.mockResolvedValue([
+        {
+            fsCount: 2,
+            vmCount: 2,
+            ioCount: 0,
+        },
+    ]);
 
     let ss = new SpChartManager();
     let spFileSystemChart = new SpFileSystemChart(ss);
-    spFileSystemChart.initFileCallchain = jest.fn(()=>true)
+    spFileSystemChart.initFileCallchain = jest.fn(() => true);
     it('SpMpsChart01', function () {
-        spFileSystemChart.init()
+        spFileSystemChart.init();
         expect(spFileSystemChart).toBeDefined();
     });
-})
+});

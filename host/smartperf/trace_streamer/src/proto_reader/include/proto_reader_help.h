@@ -41,11 +41,11 @@ public:
     {
         return std::string(reinterpret_cast<const char*>(data_), size_);
     }
-    const size_t Size()
+    size_t Size() const
     {
         return size_;
     }
-    const uint8_t* Data()
+    const uint8_t* Data() const
     {
         return data_;
     }
@@ -162,4 +162,4 @@ inline const uint8_t* VarIntDecode(const uint8_t* start, const uint8_t* end, uin
 }
 } // namespace ProtoReader
 } // namespace SysTuning
-#endif  // PROTO_READER_HELP_H
+#endif // PROTO_READER_HELP_H

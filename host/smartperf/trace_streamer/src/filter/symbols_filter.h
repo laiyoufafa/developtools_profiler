@@ -32,6 +32,7 @@ public:
 
     const DataIndex& GetFunc(uint64_t addr) const;
     void Clear();
+
 private:
     std::map<uint64_t, DataIndex> symbolsMap_ = {};
 };

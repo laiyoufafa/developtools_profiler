@@ -150,9 +150,8 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
     }
     char targetStr[MAX_TESET_BUF_SIZE] = {
         "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Type: application/json\r\nTransfer-Encoding: "
-        "chunked\r\n\r\n62\r\nok\r\n{\"columns\":[\"type\",\"ts\",\"value\",\"filter_id\"],\"values\":[[\"measure\","
-        "28462257501000,816000,0]]}"
-        "\r\n\r\n0\r\n\r\n"};
+        "chunked\r\n\r\n6d\r\nok\r\n{\"columns\":[\"type\",\"ts\",\"dur\",\"value\",\"filter_id\"],\"values\":[["
+        "\"measure\",28462257501000,null,816000,0]]}\r\n\r\n0\r\n\r\n"};
 
     EXPECT_STREQ(targetStr, g_clientRecvBuf);
 }
@@ -178,7 +177,7 @@ HWTEST_F(HttpServerTest, OthreAgreement, TestSize.Level1)
 
     sleep(1);
     std::string bufToSend =
-              "GET /sqlquery HTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
+        "GET /sqlquery HTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
                23\r\n\r\nselect * from measure\r\n";
 
     ret = HttpClient(bufToSend.c_str());
@@ -216,7 +215,7 @@ HWTEST_F(HttpServerTest, OthreProtocols, TestSize.Level1)
 
     sleep(1);
     std::string bufToSend =
-              "HEAD /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
+        "HEAD /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
                23\r\n\r\nselect * from measure\r\n";
 
     ret = HttpClient(bufToSend.c_str());
@@ -254,7 +253,7 @@ HWTEST_F(HttpServerTest, RequestLineFormatError, TestSize.Level1)
 
     sleep(1);
     std::string bufToSend =
-              "POST /sqlqueryHTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
+        "POST /sqlqueryHTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
                20\r\n\r\nselect * from meta\r\n";
 
     ret = HttpClient(bufToSend.c_str());
@@ -292,7 +291,7 @@ HWTEST_F(HttpServerTest, RequestIsNotRPC, TestSize.Level1)
 
     sleep(1);
     std::string bufToSend =
-              "POST /query HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:20\r\n\r\n\
+        "POST /query HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:20\r\n\r\n\
                select * from meta\r\n";
 
     ret = HttpClient(bufToSend.c_str());

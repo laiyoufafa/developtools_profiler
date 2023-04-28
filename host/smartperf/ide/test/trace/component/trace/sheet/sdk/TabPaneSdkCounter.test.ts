@@ -14,88 +14,101 @@
  */
 
 // @ts-ignore
-import {TabPaneSdkCounter} from '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkCounter.js'
+import { TabPaneSdkCounter } from '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkCounter.js';
 // @ts-ignore
-import '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkCounter.js'
+import '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkCounter.js';
 // @ts-ignore
-import {SpSystemTrace} from "../../../../../../dist/trace/component/SpSystemTrace.js";
+import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
 
 // @ts-ignore
-import {LitTable} from "../../../../../../dist/base-ui/table/lit-table.js";
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
 
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-}))
+window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 
-const sqlite = require("../../../../../../dist/trace/database/SqlLite.js")
-jest.mock("../../../../../../dist/trace/database/SqlLite.js");
+const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 describe('TabPaneSdkCounter Test', () => {
-    document.body.innerHTML= `<lit-table id="tb-counter"></lit-table>`
-    let litTable = document.querySelector("#tb-counter") as LitTable
+    document.body.innerHTML = `<lit-table id="tb-counter"></lit-table>`;
+    let litTable = document.querySelector('#tb-counter') as LitTable;
     it('TabPaneSdkCounterTest00', () => {
-        let tabPaneSdkCounter = new TabPaneSdkCounter()
-        tabPaneSdkCounter.tbl = jest.fn(() => litTable)
+        let tabPaneSdkCounter = new TabPaneSdkCounter();
+        tabPaneSdkCounter.tbl = jest.fn(() => litTable);
         let a = new Map();
-        let config = `{"tableConfig":{"showType":[{"tableName":"gpu_counter","inner":{"tableName":"gpu_counter_object",
-        "columns":[{"column":"counter_name","type":"STRING","displayName":"","showType":[0]},{"column":"counter_id",
-        "type":"INTEGER","displayName":"","showType":[0]}]},"columns":[{"column":"ts","type":"INTEGER","displayName":
-        "TimeStamp","showType":[1,3]},{"column":"counter_id","type":"INTEGER","displayName":"MonitorValue","showType":
-        [1,3]},{"column":"value","type":"INTEGER","displayName":"Value","showType":[1,3]}]},{"tableName":"slice_table",
-        "inner":{"tableName":"slice_object_table","columns":[{"column":"slice_name","type":"STRING","displayName":"",
-        "showType":[0]},{"column":"slice_id","type":"INTEGER","displayName":"","showType":[0]}]},"columns":[{"column":
-        "start_ts","type":"INTEGER","displayName":"startts","showType":[2,3]},{"column":"end_ts","type":"INTEGER",
-        "displayName":"endts","showType":[2,3]},{"column":"slice_id","type":"INTEGER","displayName":"slice_id",
-        "showType":[2,3]},{"column":"value","type":"INTEGER","displayName":"Value","showType":[2,3]}]}]},
-        "settingConfig":{"name":"mailG77","configuration":{"version":{"type":"number","default":"1","description":
-        "gatord version"},"counters":{"type":"string","enum":["ARM_Mali-TTRx_JS1_ACTIVE","ARM_Mali-TTRx_JS0_ACTIVE",
-        "ARM_Mali-TTRx_GPU_ACTIVE","ARM_Mali-TTRx_FRAG_ACTIVE"]},"stop_gator":{"type":"boolean","default":"true",
-        "description":"stop_gator"}}}}`
-        a.set("1", config)
-        SpSystemTrace.SDK_CONFIG_MAP = a
+        let jsonCofigStr =
+            '{"settingConfig":{"configuration":{"counters":{"enum":["ARM_Mali-TTRx_JS1_ACTIVE","ARM_Mali-TTRx_JS0_ACTIVE","ARM_Mali-TTRx_GPU_ACTIVE","ARM_Mali-TTRx_FRAG_ACTIVE"],\n' +
+            '    "type":"string"},"stop_gator":{"default":"true","description":"stop_gator","type":"boolean"},"version":{"default":"1","description":"gatordversion","type":"number"}},"name":"mailG77"},\n' +
+            '    "tableConfig":{"showType":[{"columns":[{"column":"ts","displayName":"TimeStamp","showType":[1,3],"type":"INTEGER"},{"column":"counter_id","displayName":"MonitorValue","showType":[1,3],"type":"INTEGER"},\n' +
+            '    {"column":"value","displayName":"Value","showType":[1,3],"type":"INTEGER"}],"inner":{"columns":[{"column":"counter_name","displayName":"","showType":[0],"type":"STRING"},\n' +
+            '    {"column":"counter_id","displayName":"","showType":[0],"type":"INTEGER"}],"tableName":"mock_plugin_counterobj_table"},"tableName":"mock_plugin_counter_table"},\n' +
+            '    {"columns":[{"column":"start_ts","displayName":"startts","showType":[2,3],"type":"INTEGER"},{"column":"end_ts","displayName":"endts","showType":[2,3],"type":"INTEGER"},\n' +
+            '    {"column":"slice_id","displayName":"slice_id","showType":[2,3],"type":"INTEGER"},{"column":"value","displayName":"Value","showType":[2,3],"type":"INTEGER"}],\n' +
+            '    "inner":{"columns":[{"column":"slice_name","displayName":"","showType":[0],"type":"STRING"},{"column":"slice_id","displayName":"","showType":[0],"type":"INTEGER"}],\n' +
+            '    "tableName":"mock_plugin_sliceobj_table"},"tableName":"mock_plugin_slice_table"}]}}';
+        let datamap = {
+            jsonConfig: jsonCofigStr,
+            disPlayName: 'common_mock',
+            pluginName: 'mock-plugin',
+        };
+        a.set(1, datamap);
+        SpSystemTrace.SDK_CONFIG_MAP = a;
         let startTime = sqlite.queryStartTime;
-        let dataTime: Array<any> = [{
-            start_ts: 1000
-        }]
-        startTime.mockResolvedValue(dataTime)
+        let dataTime: Array<any> = [
+            {
+                start_ts: 1000,
+            },
+        ];
+        startTime.mockResolvedValue(dataTime);
 
         let tabSdkCounterLeftData = sqlite.getTabSdkCounterLeftData;
         let data = [
             {
-                max_value: 1000
-            }, {
-                max_value: 2000
-            }, {
-                max_value: 3000
-            }
-        ]
-        tabSdkCounterLeftData.mockResolvedValue(data)
+                max_value: 1000,
+            },
+            {
+                max_value: 2000,
+            },
+            {
+                max_value: 3000,
+            },
+        ];
+        tabSdkCounterLeftData.mockResolvedValue(data);
 
         let tabSdkCounterData = sqlite.getTabSdkCounterData;
-        let counter = [{
-            ts: 1000,
-            counter_id: 0,
-            value: 100
-        }, {
-            ts: 2000,
-            counter_id: 0,
-            value: 100
-        }, {
-            ts: 3000,
-            counter_id: 0,
-            value: 100
-        }, {
-            ts: 4000,
-            counter_id: 0,
-            value: 100
-        }, {
-            ts: 5000,
-            counter_id: 0,
-            value: 100
-        }]
-        tabSdkCounterData.mockResolvedValue(counter)
+        let counter = [
+            {
+                ts: 1000,
+                counter_id: 0,
+                value: 100,
+            },
+            {
+                ts: 2000,
+                counter_id: 0,
+                value: 100,
+            },
+            {
+                ts: 3000,
+                counter_id: 0,
+                value: 100,
+            },
+            {
+                ts: 4000,
+                counter_id: 0,
+                value: 100,
+            },
+            {
+                ts: 5000,
+                counter_id: 0,
+                value: 100,
+            },
+        ];
+        tabSdkCounterData.mockResolvedValue(counter);
 
         let d = {
             cpus: [],
@@ -117,34 +130,34 @@ describe('TabPaneSdkCounter Test', () => {
             perfProcess: [],
             perfThread: [],
             perfAll: false,
-            sdkCounterIds: ["a-b","b-c","d-e"]
-        }
-        tabPaneSdkCounter.tbl.recycleDataSource = jest.fn(() => d)
-        tabPaneSdkCounter.tbl.appendChild = jest.fn(() => true)
-        tabPaneSdkCounter.data = d
+            sdkCounterIds: ['a-1', 'b-1', 'd-1'],
+        };
+        tabPaneSdkCounter.tbl.recycleDataSource = jest.fn(() => d);
+        tabPaneSdkCounter.tbl.appendChild = jest.fn(() => true);
+        tabPaneSdkCounter.data = d;
         expect(tabPaneSdkCounter.data).toBeUndefined();
     });
 
     it('TabPaneSdkCounterTest01', () => {
-        let tabPaneSdkCounter = new TabPaneSdkCounter()
-        expect(tabPaneSdkCounter.parseJson([])).toBe("");
+        let tabPaneSdkCounter = new TabPaneSdkCounter();
+        expect(tabPaneSdkCounter.parseJson(new Map())).toBe('');
     });
 
     it('TabPaneSdkCounterTest02', () => {
-        let tabPaneSdkCounter = new TabPaneSdkCounter()
+        let tabPaneSdkCounter = new TabPaneSdkCounter();
         let type = {
-            columns: [{showType: 'counter'}]
-        }
-        expect(tabPaneSdkCounter.getTableType(type)).toBe("");
+            columns: [{ showType: 'counter' }],
+        };
+        expect(tabPaneSdkCounter.getTableType(type)).toBe('');
     });
 
     it('TabPaneSdkCounterTest03', () => {
-        let tabPaneSdkCounter = new TabPaneSdkCounter()
+        let tabPaneSdkCounter = new TabPaneSdkCounter();
         expect(tabPaneSdkCounter.initDataElement()).toBeUndefined();
     });
 
     it('TabPaneSdkCounterTest05', () => {
-        let tabPaneSdkCounter = new TabPaneSdkCounter()
+        let tabPaneSdkCounter = new TabPaneSdkCounter();
         expect(tabPaneSdkCounter.initHtml()).toMatchInlineSnapshot(`
 "
 <style>
@@ -165,12 +178,14 @@ describe('TabPaneSdkCounter Test', () => {
     });
 
     it('TabPaneSdkCounterTest04', function () {
-        let tabPaneSdkCounter = new TabPaneSdkCounter()
-        tabPaneSdkCounter.tbl = jest.fn(() => true)
-        tabPaneSdkCounter.tbl!.recycleDataSource = jest.fn(() => true)
-        expect(tabPaneSdkCounter.sortByColumn({
-            key: '',
-            sort: ''
-        })).toBeUndefined();
+        let tabPaneSdkCounter = new TabPaneSdkCounter();
+        tabPaneSdkCounter.tbl = jest.fn(() => true);
+        tabPaneSdkCounter.tbl!.recycleDataSource = jest.fn(() => true);
+        expect(
+            tabPaneSdkCounter.sortByColumn({
+                key: '',
+                sort: '',
+            })
+        ).toBeUndefined();
     });
-})
+});

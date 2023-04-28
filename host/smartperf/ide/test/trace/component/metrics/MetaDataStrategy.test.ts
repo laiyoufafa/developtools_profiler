@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {initMetaDataStrategy} from "../../../../dist/trace/component/metrics/MetaDataStrategy.js";
+import { initMetaDataStrategy } from '../../../../dist/trace/component/metrics/MetaDataStrategy.js';
 
 describe('MetaDataStrategy Test', () => {
-    const metricData=[{
-        length:1,
-        name:"name",
-        valueText:"",
-    }]
+    const metricData = [
+        {
+            length: 1,
+            name: 'name',
+            valueText: '',
+        },
+    ];
 
     it('initMetaDataStrategyTest01', () => {
         expect(initMetaDataStrategy(metricData)).toBeTruthy();
-
-    })
-
-})
+    });
+});

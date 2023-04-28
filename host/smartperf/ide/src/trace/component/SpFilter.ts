@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../base-ui/BaseElement.js";
+import { BaseElement, element } from '../../base-ui/BaseElement.js';
 
 @element('sp-filter')
 export class SpFilter extends BaseElement {
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `

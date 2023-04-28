@@ -13,46 +13,49 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../BaseElement.js";
-import {LitPopContent} from "./LitPopContent.js";
-import {LitPopoverTitle} from "./LitPopoverTitle.js";
-import {LitRadioGroup} from "../radiobox/LitRadioGroup.js";
-import {LitRadioBox} from "../radiobox/LitRadioBox.js";
-import {LitCheckBox} from "../checkbox/LitCheckBox.js";
-import {LitCheckGroup} from "../checkbox/LitCheckGroup.js";
-import {LitCheckBoxWithText} from "../checkbox/LitCheckBoxWithText.js";
+import { BaseElement, element } from '../BaseElement.js';
+import { LitPopContent } from './LitPopContent.js';
+import { LitPopoverTitle } from './LitPopoverTitle.js';
+import { LitRadioGroup } from '../radiobox/LitRadioGroup.js';
+import { LitRadioBox } from '../radiobox/LitRadioBox.js';
+import { LitCheckBox } from '../checkbox/LitCheckBox.js';
+import { LitCheckGroup } from '../checkbox/LitCheckGroup.js';
+import { LitCheckBoxWithText } from '../checkbox/LitCheckBoxWithText.js';
 
-@element("lit-popover")
+@element('lit-popover')
 export class LitPopover extends BaseElement {
     private popContent: LitPopContent | null | undefined;
-    private litGroup: LitRadioGroup | LitCheckGroup | undefined
-    private _texBox: LitCheckBoxWithText | undefined
+    private litGroup: LitRadioGroup | LitCheckGroup | undefined;
+    private _texBox: LitCheckBoxWithText | undefined;
 
     static get observedAttributes() {
-        return []
+        return [];
     }
 
     get type() {
-        return this.getAttribute("type") || ''
+        return this.getAttribute('type') || '';
     }
 
     set type(type: string) {
-        this.setAttribute("type", type)
+        this.setAttribute('type', type);
     }
 
     get title() {
-        return this.getAttribute("title") || ''
+        return this.getAttribute('title') || '';
     }
 
     set title(title: string) {
-        this.setAttribute("title", title)
+        this.setAttribute('title', title);
     }
 
     get limit(): LimitText {
         if (this._texBox?.checked) {
-            return {textLowerLimit: this._texBox.lowerLimit, textUpperLimit: this._texBox.upLimit}
+            return {
+                textLowerLimit: this._texBox.lowerLimit,
+                textUpperLimit: this._texBox.upLimit,
+            };
         }
-        return {textLowerLimit: "", textUpperLimit: ""}
+        return { textLowerLimit: '', textUpperLimit: '' };
     }
 
     set dataSource(dataSource: Array<SelectBean>) {
@@ -62,60 +65,60 @@ export class LitPopover extends BaseElement {
             this.appendChild(this.popContent);
         }
         switch (this.type) {
-            case "multiple":
+            case 'multiple':
                 this.litGroup = new LitCheckGroup();
-                this.litGroup.setAttribute("layout", "dispersion")
+                this.litGroup.setAttribute('layout', 'dispersion');
                 this.popContent!.appendChild(this.litGroup);
-                dataSource.forEach(data => {
+                dataSource.forEach((data) => {
                     let litCheckBox = new LitCheckBox();
-                    this.litGroup?.appendChild(litCheckBox)
+                    this.litGroup?.appendChild(litCheckBox);
                     if (data.isSelected) {
-                        litCheckBox.setAttribute('checked', "true")
+                        litCheckBox.setAttribute('checked', 'true');
                     }
-                    litCheckBox.setAttribute("value", data.text)
-                })
+                    litCheckBox.setAttribute('value', data.text);
+                });
                 break;
-            case "radio":
+            case 'radio':
                 this.litGroup = new LitRadioGroup();
                 if (this.title !== '') {
                     let title = new LitPopoverTitle();
-                    title.setAttribute('title', this.title || "");
+                    title.setAttribute('title', this.title || '');
                     this.popContent!.appendChild(title);
-                    this.litGroup.setAttribute("layout", "compact")
+                    this.litGroup.setAttribute('layout', 'compact');
                 } else {
-                    this.litGroup.setAttribute("layout", "dispersion")
+                    this.litGroup.setAttribute('layout', 'dispersion');
                 }
                 this.popContent!.appendChild(this.litGroup);
-                dataSource.forEach(data => {
+                dataSource.forEach((data) => {
                     let litRadioBox = new LitRadioBox();
                     if (this.title == '') {
-                        litRadioBox.setAttribute('dis', 'round')
+                        litRadioBox.setAttribute('dis', 'round');
                     } else {
-                        litRadioBox.setAttribute('dis', 'check')
+                        litRadioBox.setAttribute('dis', 'check');
                     }
                     if (data.isSelected) {
-                        litRadioBox.setAttribute('checked', "true")
+                        litRadioBox.setAttribute('checked', 'true');
                     }
-                    this.litGroup?.appendChild(litRadioBox)
-                    litRadioBox.setAttribute("value", data.text)
-                })
+                    this.litGroup?.appendChild(litRadioBox);
+                    litRadioBox.setAttribute('value', data.text);
+                });
                 break;
-            case "multiple-text":
-                dataSource.forEach(data => {
+            case 'multiple-text':
+                dataSource.forEach((data) => {
                     this._texBox = new LitCheckBoxWithText();
-                    this._texBox.setAttribute("text", data.text)
-                    this._texBox.setAttribute("checked", "")
+                    this._texBox.setAttribute('text', data.text);
+                    this._texBox.setAttribute('checked', '');
                     this.popContent!.appendChild(this._texBox);
-                })
+                });
                 break;
-            case "data-ming":
+            case 'data-ming':
                 break;
         }
     }
 
     get select(): Array<string> | undefined {
         if (this._texBox?.checked) {
-            return [this._texBox!.text]
+            return [this._texBox!.text];
         }
         return this.litGroup?.value;
     }
@@ -125,7 +128,7 @@ export class LitPopover extends BaseElement {
     }
 
     get direction() {
-        return this.getAttribute('direction') || 'topright'
+        return this.getAttribute('direction') || 'topright';
     }
 
     set direction(value: string) {
@@ -144,8 +147,7 @@ export class LitPopover extends BaseElement {
         }
     }
 
-    initElements(): void {
-    }
+    initElements(): void {}
 
     initHtml(): string {
         return `
@@ -424,17 +426,21 @@ export class LitPopover extends BaseElement {
     connectedCallback() {
         if (!(this.trigger && this.trigger !== 'click')) {
             this.addEventListener('click', () => {
-                this.popContent = this.querySelector<LitPopContent>('lit-pop-content');
+                this.popContent =
+                    this.querySelector<LitPopContent>('lit-pop-content');
                 if (!this.popContent) {
                     this.popContent = new LitPopContent();
                     this.appendChild(this.popContent);
                 }
-                this.popContent?.setAttribute("open", 'true')
+                this.popContent?.setAttribute('open', 'true');
             });
         }
-        document.addEventListener('mousedown', ev => {
+        document.addEventListener('mousedown', (ev) => {
             const path = ev.composedPath && ev.composedPath();
-            if (this.popContent && !path.includes(this.popContent) && !path.includes(this.children[0]) && !path.includes(this.popContent)) {
+            if (
+				// @ts-ignore
+                this.popContent && !path.includes(this.popContent) && !path.includes(this.children[0]) && !path.includes(this.popContent)
+            ) {
                 this.popContent!.open = false;
             }
         });

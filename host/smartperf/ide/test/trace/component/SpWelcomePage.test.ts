@@ -14,14 +14,13 @@
  */
 
 // @ts-ignore
-import {SpWelcomePage} from "../../../dist/trace/component/SpWelcomePage.js"
+import { SpWelcomePage } from '../../../dist/trace/component/SpWelcomePage.js';
 
 describe('SpWelcomePage Test', () => {
-
     let spWelcomePage = new SpWelcomePage();
 
     it('SpWelcomePageTest01', function () {
-        expect(spWelcomePage.initElements()).toBeUndefined()
+        expect(spWelcomePage.initElements()).toBeUndefined();
     });
 
     it('SpWelcomePageTest01', function () {
@@ -44,6 +43,6 @@ describe('SpWelcomePage Test', () => {
             <img class=\\"lit-icon\\" >
         </div>
         "
-`)
+`);
     });
-})
+});

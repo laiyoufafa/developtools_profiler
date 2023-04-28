@@ -49,10 +49,10 @@ public:
     {
         return traceCommentLines_;
     }
-    void EnableBytrace(bool enable) {
+    void EnableBytrace(bool enable)
+    {
         isBytrace_ = enable;
     }
-
 
     void WaitForParserEnd();
 
@@ -76,26 +76,30 @@ private:
     void ParseThread();
     void ParserData(DataSegment& seg);
     bool FilterData(DataSegment& seg);
+
 private:
     using json = nlohmann::json;
     typedef struct {
         std::string eventSource;
-        uint64_t timestamp;
+        uint64_t timeStamp;
         std::vector<std::string> appName;
         std::vector<std::string> appVersions;
         std::vector<std::string> key;
         std::vector<json> value;
     } JsonData;
     void NoArrayDataParse(JsonData jData, std::vector<size_t> noArrayIndex, DataIndex eventSourceIndex);
-    void
-        ArrayDataParse(JsonData jData, std::vector<size_t> arrayIndex, DataIndex eventSourceIndex, size_t maxArraySize);
+    void ArrayDataParse(JsonData jData,
+                        std::vector<size_t> arrayIndex,
+                        DataIndex eventSourceIndex,
+                        size_t maxArraySize);
     void CommonDataParser(JsonData jData, DataIndex eventSourceIndex);
     int32_t JGetData(json& jMessage,
-                  JsonData& jData,
-                  size_t& maxArraySize,
-                  std::vector<size_t>& noArrayIndex,
-                  std::vector<size_t>& arrayIndex);
+                     JsonData& jData,
+                     size_t& maxArraySize,
+                     std::vector<size_t>& noArrayIndex,
+                     std::vector<size_t>& arrayIndex);
     void ParseJsonData(const std::string& buffer);
+
 private:
     using ArgsMap = std::unordered_map<std::string, std::string>;
     bool isParsingOver_ = false;
@@ -159,6 +163,7 @@ private:
     const int sleepDur_ = 100;
     bool supportThread_ = false;
     bool isBytrace_ = true;
+    bool traceBegan_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

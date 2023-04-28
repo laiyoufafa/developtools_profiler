@@ -13,48 +13,50 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from "../../../base-ui/BaseElement.js";
-import {LitCheckBox} from "../../../base-ui/checkbox/LitCheckBox.js";
+import { BaseElement, element } from '../../../base-ui/BaseElement.js';
+import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox.js';
 
 @element('check-des-box')
 export class SpCheckDesBox extends BaseElement {
-    private _checkBox: LitCheckBox | undefined
+    private _checkBox: LitCheckBox | undefined;
     private _des: HTMLSpanElement | undefined;
 
     static get observedAttributes() {
-        return ['checked', 'value', 'des']
+        return ['checked', 'value', 'des'];
     }
 
     set des(des: string) {
-        this.setAttribute("des", des)
+        this.setAttribute('des', des);
     }
 
     get value(): string {
-        return this.getAttribute("value") || '';
+        return this.getAttribute('value') || '';
     }
 
     set value(value: string) {
-        this.setAttribute("value", value)
-        this._checkBox!.value = value
+        this.setAttribute('value', value);
+        this._checkBox!.value = value;
     }
 
     get checked() {
-        return this.getAttribute("checked") != null
+        return this.getAttribute('checked') != null;
     }
 
     set checked(checked: boolean) {
         if (checked) {
-            this.setAttribute("checked", 'true')
-            this._checkBox!.checked = true
+            this.setAttribute('checked', 'true');
+            this._checkBox!.checked = true;
         } else {
-            this.removeAttribute("checked")
-            this._checkBox!.checked = false
+            this.removeAttribute('checked');
+            this._checkBox!.checked = false;
         }
     }
 
     initElements(): void {
-        this._checkBox = this.shadowRoot?.getElementById('checkBox') as LitCheckBox
-        this._des = this.shadowRoot?.getElementById("des") as HTMLSpanElement;
+        this._checkBox = this.shadowRoot?.getElementById(
+            'checkBox'
+        ) as LitCheckBox;
+        this._des = this.shadowRoot?.getElementById('des') as HTMLSpanElement;
     }
 
     initHtml(): string {
@@ -83,11 +85,11 @@ lit-check-box {
     }
 
     public connectedCallback() {
-        this._checkBox?.addEventListener("change", (ev: any) => {
+        this._checkBox?.addEventListener('change', (ev: any) => {
             let detail = ev.detail;
-            this.checked = detail.checked
-            this.dispatchEvent(new CustomEvent("onchange", {detail}))
-        })
+            this.checked = detail.checked;
+            this.dispatchEvent(new CustomEvent('onchange', { detail }));
+        });
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -95,10 +97,10 @@ lit-check-box {
             this._checkBox!.checked = newValue !== null;
         }
         if (name == 'value') {
-            this._checkBox!.value = newValue
+            this._checkBox!.value = newValue;
         }
         if (name == 'des') {
-            this._des!.textContent = newValue
+            this._des!.textContent = newValue;
         }
     }
 }

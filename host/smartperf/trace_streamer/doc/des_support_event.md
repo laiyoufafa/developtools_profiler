@@ -64,7 +64,7 @@ trace_block_rq_issue
 ```
 ## 其他插件数据
 以下的数据，来自于htrace（序列化后的trace）的其他插件。  
-注：如果是文本的trace的话，只支持ftrace
+注：如果是文本的trace的话，只支持ftrace。
 ```
 memory
 hilog

@@ -146,7 +146,7 @@ void HttpServer::Run(int port)
         }
     }
 
-    for (auto& it : clientThreads_) {
+    for (const auto& it : clientThreads_) {
         if (it->thread_.joinable()) {
             it->sock_.Close();
             it->thread_.join();
@@ -191,7 +191,7 @@ bool HttpServer::CreateSocket(int port)
 
 void HttpServer::ClearDeadClientThread()
 {
-    for (auto it = clientThreads_.begin(); it != clientThreads_.end();) {
+    for (const auto it = clientThreads_.begin(); it != clientThreads_.end();) {
         if (it->get()->sock_.GetFd() != -1) {
             it++;
             continue;
@@ -223,7 +223,6 @@ void HttpServer::ProcessClient(HttpSocket& client)
             break;
         } else if (index == WSA_WAIT_TIMEOUT) {
             if (reqST.stat != RequstParseStat::INIT) {
-                ProcessRequest(client, reqST);
                 reqST.stat = RequstParseStat::INIT;
                 recvPos = 0;
                 recvLen = recvBuf.size();
@@ -246,7 +245,6 @@ void HttpServer::ProcessClient(HttpSocket& client)
             if (reqST.stat == RequstParseStat::RECVING) {
                 continue;
             }
-            ProcessRequest(client, reqST);
             reqST.stat = RequstParseStat::INIT;
         } else if (event.lNetworkEvents & FD_CLOSE) {
             TS_LOGI("client close socket(%d)", client.GetFd());
@@ -274,7 +272,6 @@ void HttpServer::ProcessClient(HttpSocket& client)
         }
         if (pollRet == 0) {
             if (reqST.stat != RequstParseStat::INIT) {
-                ProcessRequest(client, reqST);
                 reqST.stat = RequstParseStat::INIT;
                 recvPos = 0;
                 recvLen = recvBuf.size();
@@ -291,7 +288,6 @@ void HttpServer::ProcessClient(HttpSocket& client)
         if (reqST.stat == RequstParseStat::RECVING) {
             continue;
         }
-        ProcessRequest(client, reqST);
         reqST.stat = RequstParseStat::INIT;
     }
     TS_LOGI("recive client thread exit. socket(%d)", client.GetFd());
@@ -300,9 +296,6 @@ void HttpServer::ProcessClient(HttpSocket& client)
     TS_LOGI("thread exit");
 }
 #endif
-
-void HttpServer::ProcessRequest(HttpSocket& client, RequestST& request)
-{}
 
 void HttpServer::ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq)
 {
@@ -362,25 +355,6 @@ void HttpServer::ParseRequest(const uint8_t* requst, size_t& len, RequestST& htt
     httpReq.stat = RequstParseStat::OK;
     len -= (bodyPos + httpReq.bodyLen);
     return;
-}
-
-void HttpServer::HttpResponse(HttpSocket& client, const std::string& status, bool hasBody)
-{
-    std::string res;
-    const size_t maxLenResponse = 1024;
-    res.reserve(maxLenResponse);
-    res += "HTTP/1.1 ";
-    res += status;
-
-    res += "Connection: Keep-Alive\r\n";
-    if (hasBody) {
-        res += "Content-Type: application/json\r\n";
-        res += "Transfer-Encoding: chunked\r\n";
-    }
-    res += "\r\n";
-    if (!client.Send(res.data(), res.size())) {
-        TS_LOGE("send client socket(%d) error", client.GetFd());
-    }
 }
 
 std::vector<std::string_view> HttpServer::StringSplit(std::string_view source, std::string_view split)

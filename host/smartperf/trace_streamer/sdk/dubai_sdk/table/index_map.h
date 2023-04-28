@@ -254,7 +254,7 @@ public:
     }
     void Remove(TableRowId row)
     {
-        std::remove(rowIndex_.begin(), rowIndex_.end(), row);
+        rowIndex_.erase(std::remove(rowIndex_.begin(), rowIndex_.end(), row), rowIndex_.end());
     }
     void Set(TableRowId start, TableRowId end)
     {
@@ -390,7 +390,7 @@ public:
         FixSize();
         return;
     }
-    bool HasData();
+    bool HasData() const;
     std::vector<TableRowId> rowIndex_;
     std::vector<TableRowId> rowIndexBak_;
 private:

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 //@ts-ignore
-import { SpFileSystem } from "../../../../dist/trace/component/setting/SpFileSystem";
+import { SpFileSystem } from '../../../../dist/trace/component/setting/SpFileSystem';
 
 describe('spFileSystem Test', () => {
     let spFileSystem = new SpFileSystem();
@@ -28,7 +28,10 @@ describe('spFileSystem Test', () => {
     });
 
     it('SpFileSystemTest03', function () {
-        expect(spFileSystem.getSystemConfig()).toStrictEqual({"process": ""})
+        expect(spFileSystem.getSystemConfig()).toStrictEqual({
+            process: '',
+            unWindLevel: 10,
+        });
     });
 
     it('SpFileSystemTest04', function () {
@@ -82,4 +85,4 @@ describe('spFileSystem Test', () => {
         spFileSystem.startIo = false;
         expect(spFileSystem.startIo).toBeFalsy();
     });
-})
+});

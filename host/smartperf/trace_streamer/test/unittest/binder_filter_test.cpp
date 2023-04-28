@@ -63,12 +63,12 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReply, TestSize.Level1)
     bool isReply = false;
     int32_t flags = 0x02; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_); 0x01
     int32_t code = 0;     // not important
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1,
-                                               destTid1, isReply, flags, code); // start binder
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags, code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
     EXPECT_TRUE(traceDataCache_.GetConstArgSetData().Size() == 7);
-    EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().TimeStamData()[0] == ts1);
+    EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().TimeStampData()[0] == ts1);
 }
 
 /**
@@ -88,8 +88,8 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceive, TestSize.Level
     bool isReply = false;
     int32_t flags = 0x02; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not importent
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1,
-                                               destTgid1, destTid1, isReply, flags, code); // start binder
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags, code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(traceDataCache_.GetConstArgSetData().Size() == 7);
     ts1 = 200;
@@ -132,8 +132,8 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, TestS
     bool isReply = false;
     int32_t flags = 0x02; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not importent
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1,
-                                               destTid1, isReply, flags,
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags,
                                                code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(traceDataCache_.GetConstArgSetData().Size() == 7);
@@ -170,8 +170,8 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, TestSi
     bool isReply = false;
     int32_t flags = 0x02; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not importent
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1,
-                                               destTgid1, destTid1, isReply, flags,
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags,
                                                code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
     ts1 = 200;
@@ -199,8 +199,8 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
     bool isReply = false;
     int32_t flags = 0x01; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not importent
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1,
-                                               destTid1, isReply, flags, code); // start binder
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags, code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
 }
 
@@ -221,8 +221,8 @@ HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilter, TestSize.Lev
     bool isReply = false;
     int32_t flags = 0x01; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not importent
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1,
-                                               destTid1, isReply, flags,
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags,
                                                code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
 
@@ -251,8 +251,8 @@ HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilterNotmatch, Test
     bool isReply = false;
     int32_t flags = 0x01; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not importent
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1,
-                                               destTid1, isReply, flags,
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags,
                                                code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 1);
 
@@ -281,8 +281,8 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterWrongReply, TestSize.Level1)
     bool isReply = true;
     int32_t flags = 0x01; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_)
     int32_t code = 0;     // not important
-    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1,
-                                               destTgid1, destTid1, isReply, flags,
+    streamFilters_.binderFilter_->SendTraction(ts1, tid1, transactionId1, destNode1, destTgid1, destTid1, isReply,
+                                               flags,
                                                code); // start binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 0);
     EXPECT_TRUE(traceDataCache_.GetConstArgSetData().Size() == 0);

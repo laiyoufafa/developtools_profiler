@@ -13,18 +13,21 @@
  * limitations under the License.
  */
 
-import {info} from "../../../log/Log.js";
+import { info } from '../../../log/Log.js';
 
-export const initSysCallsTopStrategy = (metricData: Array<any>): ProcessInfoListItem => {
-    info("System Calls Strategy data length is:", metricData.length)
-    let ProcessInfoListItems: Array<ProcessInfoItem> = []
+export const initSysCallsTopStrategy = (
+    metricData: Array<any>
+): ProcessInfoListItem => {
+    info('System Calls Strategy data length is:', metricData.length);
+    let ProcessInfoListItems: Array<ProcessInfoItem> = [];
 
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let pidList = metricData[sqlIndex].pid;
         let tidList = metricData[sqlIndex].tid;
         let functionNames = metricData[sqlIndex].funName;
         let durMaxes = metricData[sqlIndex].maxDur;
-        let durMines = metricData[sqlIndex].minDur < 0 ? 0 : metricData[sqlIndex].minDur;
+        let durMines =
+            metricData[sqlIndex].minDur < 0 ? 0 : metricData[sqlIndex].minDur;
         let durAvgs = Math.floor(metricData[sqlIndex].avgDur).toString();
 
         let processInfoItem: ProcessInfoItem = {
@@ -38,32 +41,31 @@ export const initSysCallsTopStrategy = (metricData: Array<any>): ProcessInfoList
                     durAvg: durAvgs,
                 },
             },
-        }
-        ProcessInfoListItems?.push(processInfoItem)
+        };
+        ProcessInfoListItems?.push(processInfoItem);
     }
     return {
-        processInfo: ProcessInfoListItems
-    }
-}
+        processInfo: ProcessInfoListItems,
+    };
+};
 
 export interface ProcessInfoListItem {
-    processInfo: Array<ProcessInfoItem>
+    processInfo: Array<ProcessInfoItem>;
 }
 
 export interface ProcessInfoItem {
-    pid: string
-    threads: ThreadsItem
+    pid: string;
+    threads: ThreadsItem;
 }
 
-
 export interface ThreadsItem {
-    tid: string
-    function: FunctionItem
+    tid: string;
+    function: FunctionItem;
 }
 
 export interface FunctionItem {
-    functionName: string
-    durMax: string
-    durMin: string
-    durAvg: string
+    functionName: string;
+    durMax: string;
+    durMin: string;
+    durAvg: string;
 }

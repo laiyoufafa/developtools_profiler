@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {TableRowObject} from "../../../dist/base-ui/table/TableRowObject.js";
+import { TableRowObject } from '../../../dist/base-ui/table/TableRowObject.js';
 
-describe('TableRowObject Test', ()=>{
-
-    it('TableRowObjectTest01', ()=>{
+describe('TableRowObject Test', () => {
+    it('TableRowObjectTest01', () => {
         expect(new TableRowObject().top).toBe(0);
-    })
+    });
 });

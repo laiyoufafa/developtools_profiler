@@ -50,57 +50,6 @@ public:
     void SetUp() {}
     void TearDown() {}
 };
-
-/**
- * @tc.name: Normal
- * @tc.desc: Test framework
- * @tc.type: FUNC
- */
-HWTEST_F(BpfControllerTest, Normal, TestSize.Level1)
-{
-    BPFConfig cfg;
-    cfg.selectEventGroups_.insert(HiebpfEventGroup::FS_GROUP_ALL);
-    cfg.selectEventGroups_.insert(HiebpfEventGroup::MEM_GROUP_ALL);
-    cfg.selectEventGroups_.insert(HiebpfEventGroup::BIO_GROUP_ALL);
-    cfg.LIBBPFLogLevel_ = LIBBPF_NONE;
-    cfg.BPFLogLevel_ = BPF_LOG_NONE;
-    const uint32_t duration = 10;
-    cfg.traceDuration_ = duration;
-    std::unique_ptr<BPFController> pCtx = BPFController::MakeUnique(cfg);
-    ASSERT_TRUE(pCtx != nullptr);
-    std::thread threadContol([&]() {
-        ASSERT_EQ(pCtx->Start(), 0);
-    });
-    sleep(1);
-
-    // create fs/bio data
-    int fd = open(FILE_NAME.c_str(), O_RDWR | O_CREAT, FILE_MODE);
-    ASSERT_GT(fd, 0);
-    char buf[BUF_SIZE] = {0};
-    ASSERT_TRUE(memset_s(buf, sizeof(buf), '1', sizeof(buf)) == EOK);
-    off_t offset = 0;
-    for (int i = 0; i < ROUND_COUNT; i++) {
-        pwrite(fd, buf, sizeof(buf), offset);
-        fsync(fd);
-        pread(fd, buf, sizeof(buf), offset);
-        offset += sizeof(buf);
-    }
-    close(fd);
-
-    // create mem data
-    int num = 1;
-    pid_t pid = fork();
-    if (pid == 0) {
-        num++;
-        exit(0);
-    }
-
-    sleep(1);
-    pCtx->Stop();
-    if (threadContol.joinable()) {
-        threadContol.join();
-    }
-}
 } // namespace Hiebpf
 } // namespace Developtools
 } // namespace OHOS

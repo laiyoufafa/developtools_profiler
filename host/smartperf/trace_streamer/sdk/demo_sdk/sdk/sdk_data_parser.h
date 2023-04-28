@@ -53,10 +53,10 @@ public:
     int AppendSlice(int sliceId, uint64_t ts, uint64_t endTs, int value);
 
 private:
-    int CreateCounterObjectTable(std::string& tableName);
-    int CreateCounterTable(std::string& tableName);
-    int CreateSliceObjectTable(std::string& tableName);
-    int CreateSliceTable(std::string& tableName);
+    int CreateCounterObjectTable(const std::string& tableName);
+    int CreateCounterTable(const std::string& tableName);
+    int CreateSliceObjectTable(const std::string& tableName);
+    int CreateSliceTable(const std::string& tableName);
     int ParserClock(const uint8_t* data, int len);
     int UpdateJson();
 

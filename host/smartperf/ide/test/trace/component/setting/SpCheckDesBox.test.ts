@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 //@ts-ignore
-import {SpCheckDesBox} from "../../../../dist/trace/component/setting/SpCheckDesBox.js";
+import { SpCheckDesBox } from '../../../../dist/trace/component/setting/SpCheckDesBox.js';
 
 describe('SpCheckDesBox Test', () => {
     let spCheckDesBox = new SpCheckDesBox();
@@ -23,15 +23,21 @@ describe('SpCheckDesBox Test', () => {
     });
 
     it('SpCheckDesBoxTest02', function () {
-        expect(spCheckDesBox.attributeChangedCallback('checked',"","")).toBeUndefined();
+        expect(
+            spCheckDesBox.attributeChangedCallback('checked', '', '')
+        ).toBeUndefined();
     });
 
     it('SpCheckDesBoxTest03', function () {
-        expect(spCheckDesBox.attributeChangedCallback('value',"","")).toBeUndefined();
+        expect(
+            spCheckDesBox.attributeChangedCallback('value', '', '')
+        ).toBeUndefined();
     });
 
     it('SpCheckDesBoxTest04', function () {
-        expect(spCheckDesBox.attributeChangedCallback('des',"","")).toBeUndefined();
+        expect(
+            spCheckDesBox.attributeChangedCallback('des', '', '')
+        ).toBeUndefined();
     });
 
     it('SpCheckDesBoxTest05', function () {
@@ -45,7 +51,6 @@ describe('SpCheckDesBox Test', () => {
     });
 
     it('SpCheckDesBoxTest06 ', function () {
-        expect(spCheckDesBox.connectedCallback()).toBeUndefined()
-
+        expect(spCheckDesBox.connectedCallback()).toBeUndefined();
     });
-})
+});

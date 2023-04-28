@@ -15,39 +15,36 @@
 
 // @ts-ignore
 
-import {LitPopContent} from "../../../dist/base-ui/popover/LitPopContent.js";
+import { LitPopContent } from '../../../dist/base-ui/popover/LitPopContent.js';
 
-describe("LitPopCont Test", () => {
-
+describe('LitPopCont Test', () => {
     it('LitPopCont01', () => {
         let litPopContent = new LitPopContent();
-        expect(litPopContent).not.toBeUndefined()
-        expect(litPopContent).not.toBeNull()
+        expect(litPopContent).not.toBeUndefined();
+        expect(litPopContent).not.toBeNull();
     });
 
     it('LitPopCont02', () => {
         let litPopContent = new LitPopContent();
-        expect(litPopContent.open).toBeFalsy()
+        expect(litPopContent.open).toBeFalsy();
     });
-
 
     it('LitPopCont03', () => {
         let litPopContent = new LitPopContent();
-        litPopContent.open = false
-        expect(litPopContent.open).toBeFalsy()
-    });
-
-
-    it('LitPopCont04', () => {
-        let litPopContent = new LitPopContent();
-        litPopContent.open = true
-        expect(litPopContent.open).toBeTruthy()
+        litPopContent.open = false;
+        expect(litPopContent.open).toBeFalsy();
     });
 
     it('LitPopCont04', () => {
         let litPopContent = new LitPopContent();
-        litPopContent.name = "11"
-        expect(litPopContent.name).toEqual("11")
+        litPopContent.open = true;
+        expect(litPopContent.open).toBeTruthy();
+    });
+
+    it('LitPopCont04', () => {
+        let litPopContent = new LitPopContent();
+        litPopContent.name = '11';
+        expect(litPopContent.name).toEqual('11');
     });
 
     it('LitPopCont05', () => {
@@ -89,11 +86,15 @@ describe("LitPopCont Test", () => {
 
     it('LitPopCont06', () => {
         let litPopContent = new LitPopContent();
-        expect(litPopContent.attributeChangedCallback("open","",null || "false")).toBeUndefined()
+        expect(
+            litPopContent.attributeChangedCallback('open', '', null || 'false')
+        ).toBeUndefined();
     });
 
     it('LitPopCont07', () => {
         let litPopContent = new LitPopContent();
-        expect(litPopContent.attributeChangedCallback("name","",'')).toBeUndefined();
+        expect(
+            litPopContent.attributeChangedCallback('name', '', '')
+        ).toBeUndefined();
     });
-})
+});

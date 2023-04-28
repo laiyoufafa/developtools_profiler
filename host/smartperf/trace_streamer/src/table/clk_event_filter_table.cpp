@@ -33,7 +33,6 @@ ClkEventFilterTable::ClkEventFilterTable(const TraceDataCache* dataCache) : Tabl
 
 ClkEventFilterTable::~ClkEventFilterTable() {}
 
-
 void ClkEventFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
 {
     constexpr double filterBaseCost = 1000.0; // set-up and tear-down
@@ -169,8 +168,8 @@ int ClkEventFilterTable::Cursor::Column(int col) const
 {
     switch (col) {
         case ID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->GetConstClkEventFilterData().IdsData()[CurrentRow()]));
+            sqlite3_result_int64(
+                context_, static_cast<sqlite3_int64>(dataCache_->GetConstClkEventFilterData().IdsData()[CurrentRow()]));
             break;
         case TYPE: {
             size_t typeId = static_cast<size_t>(dataCache_->GetConstClkEventFilterData().RatesData()[CurrentRow()]);
@@ -178,14 +177,13 @@ int ClkEventFilterTable::Cursor::Column(int col) const
             break;
         }
         case NAME: {
-            size_t strId =
-                static_cast<size_t>(dataCache_->GetConstClkEventFilterData().NamesData()[CurrentRow()]);
+            size_t strId = static_cast<size_t>(dataCache_->GetConstClkEventFilterData().NamesData()[CurrentRow()]);
             sqlite3_result_text(context_, dataCache_->GetDataFromDict(strId).c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
         case CPU:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->GetConstClkEventFilterData().CpusData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
+                                               dataCache_->GetConstClkEventFilterData().CpusData()[CurrentRow()]));
             break;
         default:
             TS_LOGF("Unregistered column : %d", col);
@@ -206,32 +204,27 @@ void ClkEventFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqlite
     switch (col) {
         case ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) {
-                return row;
-            };
+            auto getValue = [](const uint32_t& row) { return row; };
             switch (op) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
-                    indexMap_->IntersectabcEqual(
-                        dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
+                    indexMap_->IntersectabcEqual(dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
                     break;
                 case SQLITE_INDEX_CONSTRAINT_GT:
                     v++;
                 case SQLITE_INDEX_CONSTRAINT_GE: {
-                    indexMap_->IntersectGreaterEqual(
-                        dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
+                    indexMap_->IntersectGreaterEqual(dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
                     break;
                 }
                 case SQLITE_INDEX_CONSTRAINT_LE:
                     v++;
                 case SQLITE_INDEX_CONSTRAINT_LT: {
-                    indexMap_->IntersectLessEqual(
-                        dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
+                    indexMap_->IntersectLessEqual(dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
                     break;
                 }
                 default:
                     break;
             } // end of switch (op)
-        } // end of case TS
+        }     // end of case TS
         default:
             // can't filter, all rows
             break;

@@ -20,18 +20,20 @@ export class Cmd {
      * @param callback result callback
      */
     static execObjDump(command: string, addr: string, callback: Function) {
-        const data = {cmd: command, addr: addr};
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/exec`;
+        const data = { cmd: command, addr: addr };
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/exec`;
         fetch(uri, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-        }).then(response => {
+        }).then((response) => {
             if (response.ok) {
                 let result = response.text();
-                result.then(output => {
+                result.then((output) => {
                     callback(output);
                 });
             }
@@ -41,59 +43,74 @@ export class Cmd {
     static execHdcCmd(command: string, callback: Function) {
         const data = {
             cmd: command,
-            tag: "shell"
+            tag: 'shell',
         };
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/hdcCmd`;
         fetch(uri, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-        }).then(response => {
+        }).then((response) => {
             if (response.ok) {
                 let result = response.text();
-                result.then(output => {
+                result.then((output) => {
                     callback(output);
                 });
             }
         });
     }
 
-    static async execFileRecv(command: string, filePath: string, callback: Function) {
-        let fileName = filePath.substring(filePath.lastIndexOf("/") + 1)
+    static async execFileRecv(
+        command: string,
+        filePath: string,
+        callback: Function
+    ) {
+        let fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
         const data = {
             cmd: command,
-            tag: "file",
-            fileName: fileName
+            tag: 'file',
+            fileName: fileName,
         };
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/hdcCmd`;
         let buf = await fetch(uri, {
-            method: 'POST', headers: {
+            method: 'POST',
+            headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-        }).then(res => res.arrayBuffer());
+        }).then((res) => res.arrayBuffer());
         callback(buf);
     }
 
-    static execHdcTraceCmd(command: string, serialNumber: string, callback: Function) {
+    static execHdcTraceCmd(
+        command: string,
+        serialNumber: string,
+        callback: Function
+    ) {
         const data = {
             cmd: command,
-            tag: "hiprofiler_cmd",
-            serialNumber: serialNumber
+            tag: 'hiprofiler_cmd',
+            serialNumber: serialNumber,
         };
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/hdcCmd`;
         fetch(uri, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-        }).then(response => {
+        }).then((response) => {
             if (response.ok) {
                 let result = response.text();
-                result.then(output => {
+                result.then((output) => {
                     callback(output);
                 });
             }
@@ -105,19 +122,24 @@ export class Cmd {
             return string;
         }
         for (let i = 0; i < params.length; i++) {
-            string = string.replace(new RegExp('\\{' + i + '\\}', 'g'), params[i]);
+            string = string.replace(
+                new RegExp('\\{' + i + '\\}', 'g'),
+                params[i]
+            );
         }
         return string;
     }
 
     static showSaveFile(callback: Function) {
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/showSaveDialog`;
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/showSaveDialog`;
         fetch(uri, {
-            method: 'GET'
-        }).then(response => {
+            method: 'GET',
+        }).then((response) => {
             if (response.ok) {
                 let result = response.text();
-                result.then(output => {
+                result.then((output) => {
                     callback(output);
                 });
             }
@@ -125,11 +147,13 @@ export class Cmd {
     }
 
     static uploadFile(fd: FormData, callback: Function) {
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`;
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/upload`;
         fetch(uri, {
             method: 'POST',
             body: fd,
-        }).then(response => {
+        }).then((response) => {
             callback(response);
         });
     }
@@ -139,22 +163,26 @@ export class Cmd {
             filename: fileName,
             distfile: distFile,
         };
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/copyfile`;
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/copyfile`;
         fetch(uri, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-        }).then(response => {
+        }).then((response) => {
             callback(response);
         });
     }
 
     static async openFileDialog() {
-        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/showOpenDialog`;
-        let res = await fetch(uri, {method: 'POST'})
-        let result = res.ok ? await res.text() : "";
+        let uri = `http://${window.location.host.split(':')[0]}:${
+            window.location.port
+        }/showOpenDialog`;
+        let res = await fetch(uri, { method: 'POST' });
+        let result = res.ok ? await res.text() : '';
         return result;
     }
 }

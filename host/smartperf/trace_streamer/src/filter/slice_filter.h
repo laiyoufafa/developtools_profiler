@@ -28,7 +28,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 struct SliceData {
-    uint64_t timestamp;
+    uint64_t timeStamp;
     int32_t duration;
     InternalTid internalTid;
     DataIndex cat;
@@ -38,7 +38,7 @@ struct SliceData {
     uint32_t argSetId;
 };
 struct AsyncEvent {
-    uint64_t timestamp;
+    uint64_t timeStamp;
     size_t row;
 };
 class SliceFilter : private FilterBase {
@@ -47,44 +47,48 @@ public:
     ~SliceFilter() override;
 
     size_t BeginSlice(const std::string& comm,
-                      uint64_t timestamp,
+                      uint64_t timeStamp,
                       uint32_t pid,
                       uint32_t threadGroupId,
                       DataIndex cat,
                       DataIndex nameIndex);
-    size_t BeginBinder(uint64_t timestamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet args = ArgsSet());
-    size_t StartSlice(uint64_t timestamp,
+    size_t BeginBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet args = ArgsSet());
+    size_t StartSlice(uint64_t timeStamp,
                       uint32_t pid,
                       DataIndex cat,
                       DataIndex nameIndex,
                       ArgsSet& args,
                       SliceData sliceData = SliceData());
-    size_t AsyncBinder(uint64_t timestamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet& args);
-    size_t EndBinder(uint64_t timestamp,
+    size_t AsyncBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet& args);
+    size_t EndBinder(uint64_t timeStamp,
                      uint32_t pid,
                      DataIndex category = INVALID_UINT64,
                      DataIndex name = INVALID_UINT64,
                      ArgsSet args = {});
-    size_t CompleteSlice(uint64_t timestamp,
+    size_t CompleteSlice(uint64_t timeStamp,
                          uint32_t pid,
                          DataIndex category = INVALID_UINT64,
                          DataIndex name = INVALID_UINT64,
                          ArgsSet args = {});
-    size_t EndSlice(uint64_t timestamp,
+    size_t EndSlice(uint64_t timeStamp,
                     uint32_t pid,
                     uint32_t threadGroupId,
                     DataIndex category = INVALID_UINT64,
                     DataIndex name = INVALID_UINT64);
-    size_t StartAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
-    size_t
-        FinishAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
-    void IrqHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
+    uint64_t
+        StartAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
+    uint64_t FinishAsyncSlice(uint64_t timeStamp,
+                              uint32_t pid,
+                              uint32_t threadGroupId,
+                              uint64_t cookie,
+                              DataIndex nameIndex);
+    void IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet& args);
-    void IrqHandlerExit(uint64_t timestamp, uint32_t cpu, ArgsSet args);
-    void IpiHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
-    void IpiHandlerExit(uint64_t timestamp, uint32_t cpu);
-    void SoftIrqEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
-    void SoftIrqExit(uint64_t timestamp, uint32_t cpu, ArgsSet args);
+    void IrqHandlerExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
+    void IpiHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
+    void IpiHandlerExit(uint64_t timeStamp, uint32_t cpu);
+    void SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
+    void SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
     void Clear();
 
 private:
@@ -142,7 +146,7 @@ private:
     DataIndex asyncBeginCountId_ = traceDataCache_->GetDataIndex("legacy_unnestable_begin_count");
     DataIndex asyncBeginTsId_ = traceDataCache_->GetDataIndex("legacy_unnestable_last_begin_ts");
     DataIndex ipiId_ = traceDataCache_->GetDataIndex("IPI");
-    DoubleMap<uint32_t, DataIndex, uint32_t> irqDataLinker_;
+    std::map<uint32_t, uint32_t> irqDataLinker_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

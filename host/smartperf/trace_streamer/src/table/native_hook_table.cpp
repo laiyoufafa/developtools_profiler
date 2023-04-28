@@ -231,7 +231,7 @@ int NativeHookTable::Cursor::Column(int column) const
             break;
         }
         case START_TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.TimeStampData()[CurrentRow()]));
             break;
         case END_TS:
             if (static_cast<int64_t>(nativeHookObj_.EndTimeStamps()[CurrentRow()]) != 0) {

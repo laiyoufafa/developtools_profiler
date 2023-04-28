@@ -14,14 +14,13 @@
  */
 
 // @ts-ignore
-import {SpFilter} from "../../../dist/trace/component/SpFilter.js"
+import { SpFilter } from '../../../dist/trace/component/SpFilter.js';
 
 describe('SpFilter Test', () => {
-
     let spFilter = new SpFilter();
 
     it('SpFilterTest01', function () {
-        expect(spFilter.initElements()).toBeUndefined()
+        expect(spFilter.initElements()).toBeUndefined();
     });
 
     it('SSpFilterTest01', function () {
@@ -85,6 +84,6 @@ describe('SpFilter Test', () => {
         </div>
         </div>
         "
-`)
+`);
     });
-})
+});

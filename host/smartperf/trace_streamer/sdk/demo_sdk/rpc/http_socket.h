@@ -32,11 +32,11 @@ public:
     bool Recv(void* data, size_t& len);
     bool Send(const void* data, size_t len);
     void Close();
-    bool IsValid()
+    bool IsValid() const
     {
         return sockId_ != INVALID_SOCKET;
     }
-    int GetFd()
+    int GetFd() const
     {
         return sockId_;
     }

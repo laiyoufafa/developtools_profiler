@@ -90,11 +90,11 @@ enum EndState {
     TASK_INVALID = 9999
 };
 enum TSLogLevel {
-    TS_DEBUG = 68, // Debug
-    TS_ERROR = 69, // Error
-    TS_INFO = 73, // Info
+    TS_DEBUG = 68,   // Debug
+    TS_ERROR = 69,   // Error
+    TS_INFO = 73,    // Info
     TS_VERBOSE = 86, // Verbose
-    TS_WARN = 87 // Warn
+    TS_WARN = 87     // Warn
 };
 enum SchedWakeType {
     SCHED_WAKING = 0, // sched_waking
@@ -108,12 +108,7 @@ using InternalTime = uint64_t;
 using FilterId = uint32_t;
 using InternalCpu = uint32_t; // how many cpus? could change to int8_t?
 
-enum BaseDataType {
-    BASE_DATA_TYPE_INT,
-    BASE_DATA_TYPE_STRING,
-    BASE_DATA_TYPE_DOUBLE,
-    BASE_DATA_TYPE_BOOLEAN
-};
+enum BaseDataType { BASE_DATA_TYPE_INT, BASE_DATA_TYPE_STRING, BASE_DATA_TYPE_DOUBLE, BASE_DATA_TYPE_BOOLEAN };
 namespace SysTuning {
 namespace TraceStreamer {
 struct ArgsData {

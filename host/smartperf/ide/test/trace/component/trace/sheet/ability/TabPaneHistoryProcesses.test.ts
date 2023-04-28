@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 //@ts-ignore
-import {TabPaneHistoryProcesses} from "../../../../../../dist/trace/component/trace/sheet/ability/TabPaneHistoryProcesses.js";
-window.ResizeObserver = window.ResizeObserver ||
+import { TabPaneHistoryProcesses } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneHistoryProcesses.js';
+window.ResizeObserver =
+    window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -22,7 +23,6 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 
 describe('TabPaneHistoryProcesses Test', function () {
-
     let tabPaneHistoryProcesses = new TabPaneHistoryProcesses();
     it('TabPaneHistoryProcessesTest01 ', function () {
         tabPaneHistoryProcesses.queryResult.length = 1;
@@ -31,60 +31,69 @@ describe('TabPaneHistoryProcesses Test', function () {
 
     it('TabPaneHistoryProcessesTest02 ', function () {
         const val = {
-            processId:-1,
-            processName:"",
-            alive:"",
-            firstSeen:"",
-            lastSeen:"",
-            responsibleProcess:"",
-            userName:"",
-            cpuTime:""
-        }
-        expect(tabPaneHistoryProcesses.toProcessHistoryArray(val)).not.toBeUndefined();
+            processId: -1,
+            processName: '',
+            alive: '',
+            firstSeen: '',
+            lastSeen: '',
+            responsibleProcess: '',
+            userName: '',
+            cpuTime: '',
+        };
+        expect(
+            tabPaneHistoryProcesses.toProcessHistoryArray(val)
+        ).not.toBeUndefined();
     });
 
     it('TabPaneHistoryProcessesTest03 ', function () {
-        expect(tabPaneHistoryProcesses.sortByColumn({
-            key:'startTime',
-        })).toBeUndefined();
+        expect(
+            tabPaneHistoryProcesses.sortByColumn({
+                key: 'startTime',
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneHistoryProcessesTest04 ', function () {
-        expect(tabPaneHistoryProcesses.sortByColumn({
-            key:'alive',
-        })).toBeUndefined();
+        expect(
+            tabPaneHistoryProcesses.sortByColumn({
+                key: 'alive',
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneHistoryProcessesTest11 ', function () {
-        expect(tabPaneHistoryProcesses.sortByColumn({
-            key:!'startTime'&&!'alive',
-        })).toBeUndefined();
+        expect(
+            tabPaneHistoryProcesses.sortByColumn({
+                key: !'startTime' && !'alive',
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneHistoryProcessesTest04 ', function () {
-        expect(tabPaneHistoryProcesses.sortByColumn({
-            key:'cpuTime',
-        })).toBeUndefined();
+        expect(
+            tabPaneHistoryProcesses.sortByColumn({
+                key: 'cpuTime',
+            })
+        ).toBeUndefined();
     });
 
     it('TabPaneHistoryProcessesTest06', function () {
-        expect(tabPaneHistoryProcesses.timeFormat(3600001)).toBe("1 h 1 ms ")
+        expect(tabPaneHistoryProcesses.timeFormat(3600001)).toBe('1 h 1 ms ');
     });
 
     it('TabPaneHistoryProcessesTest07', function () {
-        expect(tabPaneHistoryProcesses.timeFormat(60001)).toBe("1 min 1 ms ")
+        expect(tabPaneHistoryProcesses.timeFormat(60001)).toBe('1 min 1 ms ');
     });
 
     it('TabPaneHistoryProcessesTest08', function () {
-        expect(tabPaneHistoryProcesses.timeFormat(1001)).toBe("1 s 1 ms ")
+        expect(tabPaneHistoryProcesses.timeFormat(1001)).toBe('1 s 1 ms ');
     });
 
     it('TabPaneHistoryProcessesTest09', function () {
-        expect(tabPaneHistoryProcesses.timeFormat(1)).toBe("1 ms ")
+        expect(tabPaneHistoryProcesses.timeFormat(1)).toBe('1 ms ');
     });
 
     it('TabPaneHistoryProcessesTest10', function () {
-        expect(tabPaneHistoryProcesses.timeFormat(0)).toBe("0 ms ")
+        expect(tabPaneHistoryProcesses.timeFormat(0)).toBe('0 ms ');
     });
-
 });
