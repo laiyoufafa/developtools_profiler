@@ -28,10 +28,13 @@ namespace SmartPerf {
 EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
 {
     if (argc >= threeParamMore) {
+        int ohType = 5;
         int type = 2;
         float time = 0.0;
-
         float noNameType = -1.0;
+        if (v[ohType] == "ohtest") {
+            isOhTest = true;
+        }
         if (v[type] == "coldStart") {
             time = SmartPerf::EditorCommand::ColdStart(v);
         } else if (v[type] == "hotStart") {
@@ -87,11 +90,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
     size_t position = cmdResult.find(":");
     std::string pathJson = cmdResult.substr(position + 1);
     std::string deviceType = sd.GetDeviceType();
-    if (deviceType == " rk3568") {
-        sd.InitXY(v[type], pathJson);
-    } else {
-        sd.InitXY2(v[type], pathJson, v[typePKG]);
-    }
+    sd.InitXY2(v[type], pathJson, v[typePKG]);
     if (sd.pointXY == "0 0") {
         return noNameType;
     } else {
@@ -108,10 +107,10 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
             return noNameType;
         }
         float time = 0.0;
-        if (deviceType == " rk3568") {
+        if (isOhTest) {
             time = parseTrace.ParseTraceCold(traceName, pid);
         } else {
-            time = parseTrace.ParseTraceNoah(traceName, pid);
+            time = parseTrace.ParseTraceNoh(traceName, pid);
         }
         return time;
     }
@@ -122,7 +121,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
     OHOS::SmartPerf::ParseTrace parseTrace;
     std::string cmdResult;
     std::string deviceType = sd.GetDeviceType();
-    if (deviceType == " rk3568") {
+    if (isOhTest) {
         SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
         std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
         std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
@@ -143,7 +142,6 @@ float EditorCommand::HotStart(std::vector<std::string> v)
             return noNameType;
         } else {
             std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
-            sleep(1);
             SPUtils::LoadCmd(cmd, cmdResult);
             sd.ChangeToBackground();
             std::string topPkgBefore = SPUtils::GetTopPkgName();
@@ -161,7 +159,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
             if (topPkg.find(v[typePKG]) == std::string::npos || pid == "") {
                 return noNameType;
             }
-            return parseTrace.ParseTraceNoah(traceName, pid);
+            return parseTrace.ParseTraceNoh(traceName, pid);
         }
     }
 }
