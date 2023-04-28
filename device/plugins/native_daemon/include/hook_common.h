@@ -112,7 +112,7 @@ struct alignas(8) ClientConfig {
 
     uint32_t filterSize = 0;
     uint32_t shareMemroySize = 0;
-    clockid_t clockId = 0;
+    clockid_t clockId = CLOCK_REALTIME;
     uint8_t maxStackDepth = 0;
     bool mallocDisable = false;
     bool mmapDisable = false;

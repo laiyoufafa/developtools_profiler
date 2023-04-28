@@ -61,6 +61,6 @@ static PluginModuleCallbacks g_callbacks = {
 EXPORT_API PluginModuleStruct g_pluginModule = {
     .callbacks = &g_callbacks,
     .name = "sample-plugin",
-    .version = "1.01",
+    .version = "1.02",
     .resultBufferSizeHint = MAX_BUFFER_SIZE,
 };

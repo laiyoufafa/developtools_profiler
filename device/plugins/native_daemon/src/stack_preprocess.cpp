@@ -787,7 +787,7 @@ void StackPreprocess::Flush(const uint8_t* src, size_t size)
     }
     ProfilerPluginData pluginData;
     pluginData.set_name("nativehook");
-    pluginData.set_version("1.01");
+    pluginData.set_version("1.02");
     pluginData.set_status(0);
     pluginData.set_data(src, size);
     struct timespec ts;

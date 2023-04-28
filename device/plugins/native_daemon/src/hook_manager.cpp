@@ -46,7 +46,7 @@ const int MOVE_BIT_16 = 16;
 const int MOVE_BIT_32 = 32;
 const int SIGNAL_START_HOOK = 36;
 const int SIGNAL_STOP_HOOK = 37;
-const std::string VERSION = "1.01";
+const std::string VERSION = "1.02";
 
 bool HookManager::CheckProcess()
 {
