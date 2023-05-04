@@ -90,6 +90,7 @@ private:
     int VerifyConfigurations();
     int SetUpBPF();
     int FilterProgByEvents();
+    void FilterFsGroup();
     int ConfigureBPF();
     int InitBPFVariables() const;
     int FillTargetPidMap() const;

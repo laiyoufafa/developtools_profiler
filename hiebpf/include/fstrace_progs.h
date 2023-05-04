@@ -336,13 +336,16 @@ int BPF_KRETPROBE(do_preadv_exit, int64_t retval)
     return emit_event(ctx, retval, FSTRACE);
 }
 
-SEC("kprobe/do_pwritev")
-int BPF_KPROBE(do_pwritev_entry,
-               unsigned long fd, const struct iovec __user* vec,
-               unsigned long vlen, loff_t pos, rwf_t flags)
+static inline loff_t pos_from_hilo(unsigned long high, unsigned long low)
+{
+#define HALF_LONG_BITS (__SIZEOF_LONG__ * 4)
+    return (((loff_t)high << HALF_LONG_BITS) << HALF_LONG_BITS) | low;
+}
+
+static __always_inline int pwritev_entry(unsigned long fd, const struct iovec __user* vec,
+    unsigned long vlen, loff_t pos, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
-        // not any one of target processes, skip it
         return 0;
     }
     struct start_event_t start_event = {};
@@ -369,14 +372,78 @@ int BPF_KPROBE(do_pwritev_entry,
     return 0;
 }
 
-SEC("kretprobe/do_pwritev")
-int BPF_KRETPROBE(do_pwritev_exit, int64_t retval)
+static __always_inline int pwritev_exit(void* ctx, int64_t retval)
 {
     if (check_current_pid(-1, -1) != 0) {
-        // not any one of target processes, skip it
         return 0;
     }
     return emit_event(ctx, retval, FSTRACE);
+}
+
+SEC("kprobe/__arm64_sys_pwritev")
+int BPF_KPROBE(__arm64_sys_pwritev_entry,
+               unsigned long fd, const struct iovec __user * vec,
+               unsigned long vlen, unsigned long pos_l, unsigned long pos_h)
+{
+    loff_t pos = pos_from_hilo(pos_h, pos_l);
+    return pwritev_entry(fd, vec, vlen, pos, 0);
+}
+
+SEC("kretprobe/__arm64_sys_pwritev")
+int BPF_KRETPROBE(__arm64_sys_pwritev_exit, int64_t retval)
+{
+    return pwritev_exit(ctx, retval);
+}
+
+SEC("kprobe/__arm64_sys_pwritev2")
+int BPF_KPROBE(__arm64_sys_pwritev2_entry,
+               unsigned long fd, const struct iovec __user * vec,
+               unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags)
+{
+    loff_t pos = pos_from_hilo(pos_h, pos_l);
+    if (pos == -1) {
+        return 0;
+    }
+    return pwritev_entry(fd, vec, vlen, pos, flags);
+}
+
+SEC("kretprobe/__arm64_sys_pwritev2")
+int BPF_KRETPROBE(__arm64_sys_pwritev2_exit, int64_t retval)
+{
+    return pwritev_exit(ctx, retval);
+}
+
+SEC("kprobe/__arm64_compat_sys_pwritev")
+int BPF_KPROBE(__arm64_compat_sys_pwritev_entry,
+               compat_ulong_t fd, const struct iovec __user* vec,
+               compat_ulong_t vlen, u32 pos_low, u32 pos_high)
+{
+    loff_t pos = ((loff_t)pos_high << 32) | pos_low;
+    return pwritev_entry(fd, vec, vlen, pos, 0);
+}
+
+SEC("kretprobe/__arm64_compat_sys_pwritev")
+int BPF_KRETPROBE(__arm64_compat_sys_pwritev_exit, int64_t retval)
+{
+    return pwritev_exit(ctx, retval);
+}
+
+SEC("kprobe/__arm64_compat_sys_pwritev2")
+int BPF_KPROBE(__arm64_compat_sys_pwritev2_entry,
+               compat_ulong_t fd, const struct iovec __user* vec,
+               compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags)
+{
+    loff_t pos = ((loff_t)pos_high << 32) | pos_low;
+    if (pos == -1) {
+        return 0;
+    }
+    return pwritev_entry(fd, vec, vlen, pos, flags);
+}
+
+SEC("kretprobe/__arm64_compat_sys_pwritev2")
+int BPF_KRETPROBE(__arm64_compat_sys_pwritev2_exit, int64_t retval)
+{
+    return pwritev_exit(ctx, retval);
 }
 
 SEC("kprobe/__close_fd")
