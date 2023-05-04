@@ -23,6 +23,7 @@
 #include "event_notifier.h"
 
 using namespace testing::ext;
+using namespace OHOS::Developtools::NativeDaemon;
 
 namespace {
 const int SLEEP_TIME = 30000;
@@ -52,7 +53,8 @@ HWTEST_F(HookServiceTest, ProtocolProc, TestSize.Level1)
     std::vector<unsigned char> buf(4096);
     struct ProtocolHead* pph = (struct ProtocolHead*)buf.data();
     uint32_t head_size = sizeof(struct ProtocolHead);
-    auto hookService = std::make_shared<HookService>(smbFd, eventFd, 0, "", 0);
+    ClientConfig clientConfig;
+    auto hookService = std::make_shared<HookService>(smbFd, eventFd, 0, "", clientConfig);
     ASSERT_TRUE(hookService != nullptr);
     ASSERT_TRUE(hookService->ProtocolProc(socketContext, 0, pph->datas, head_size));
 }

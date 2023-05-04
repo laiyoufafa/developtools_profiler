@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -413,5 +413,31 @@ std::string GetTimeStr()
         tmTime.tm_mday, tmTime.tm_hour, tmTime.tm_min, tmTime.tm_sec);
     std::string timeStr(buffer);
     return timeStr;
+}
+
+// get clockid by str, return CLOCK_REALTIME as default
+clockid_t GetClockId(const std::string& clockIdStr)
+{
+    const std::map<std::string, clockid_t> clockIdMap = {
+        {"realtime",            CLOCK_REALTIME},
+        {"mono",                CLOCK_MONOTONIC},
+        {"process_cputime_id",  CLOCK_PROCESS_CPUTIME_ID},
+        {"thread_cputime_id",   CLOCK_THREAD_CPUTIME_ID},
+        {"mono_raw",            CLOCK_MONOTONIC_RAW},
+        {"realtime_coarse",     CLOCK_REALTIME_COARSE},
+        {"mono_coarse",         CLOCK_MONOTONIC_COARSE},
+        {"boot",                CLOCK_BOOTTIME},
+        {"realtime_alarm",      CLOCK_REALTIME_ALARM},
+        {"boot_alarm",          CLOCK_BOOTTIME_ALARM},
+        {"sgi_cycle",           CLOCK_SGI_CYCLE},
+        {"tai",                 CLOCK_TAI},
+    };
+
+    clockid_t clockId = CLOCK_REALTIME;
+    auto iter = clockIdMap.find(clockIdStr);
+    if (iter != clockIdMap.end()) {
+        clockId = iter->second;
+    }
+    return clockId;
 }
 } // namespace COMMON

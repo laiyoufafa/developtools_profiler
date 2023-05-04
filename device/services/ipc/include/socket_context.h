@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,7 +58,7 @@ public:
     bool SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg);
 #endif
     bool SendFileDescriptor(int fd);
-    bool SendHookConfig(uint64_t value);
+    bool SendHookConfig(const uint8_t* config, size_t len);
     bool SendHeartBeat();
     int ReceiveFileDiscriptor();
     enum ClientState GetClientState() { return clientState_; }

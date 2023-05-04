@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,7 @@ public:
     virtual ~Writer() {}
     virtual long Write(const void* data, size_t size) = 0;
     virtual bool Flush() = 0;
-
+    virtual void SetClockId(clockid_t clockId) {}
     virtual bool Clear()
     {
         return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,16 +74,18 @@ public:
     void SetConfigData(const std::string& data);
     std::string GetConfigData() const;
 
+    void SetClockId(clockid_t clockId);
+    clockid_t GetClockId() const;
+
 private:
     void* handle_;
     bool running_;
     std::string path_;
     std::string pluginName_;
     std::string configData_;
+    clockid_t clockId_ = CLOCK_REALTIME;
     PluginModuleStruct* structPtr_;
-
     std::shared_ptr<WriterAdapter> writerAdapter_;
-
     std::chrono::steady_clock::time_point lastTime_;
     bool first_ = true;
 };

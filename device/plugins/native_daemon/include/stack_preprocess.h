@@ -42,7 +42,8 @@ public:
         uint64_t releaseSize {0};
     };
 
-    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig& hookConfig);
+    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const NativeHookConfig& hookConfig,
+        clockid_t pluginDataClockId);
     explicit StackPreprocess(bool fpUnwind);
     ~StackPreprocess();
     void SetWriter(const std::shared_ptr<BufferWriter>& writer);
@@ -153,6 +154,10 @@ private:
     std::unordered_map<uint64_t, std::pair<uint64_t, RecordStatistic*>> allocAddrMap_ {ALLOC_ADDRMAMP_SIZE};
     bool isProtobufSerialize_ = true;
     bool isDlopenRangeValid_ = false;
+    // used for plugin data
+    clockid_t pluginDataClockId_ = CLOCK_REALTIME;
+    // used for clac wait time in StackDataRepeater::TakeRawData() or statistics HookData
+    clockid_t hookDataClockId_ = CLOCK_REALTIME;
 };
 
 #endif // STACK_PREPROCESS_H

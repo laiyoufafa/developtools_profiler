@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -205,6 +205,19 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
     }
 }
 
+void GetClientConfig(const HookData& hookData, ClientConfig& clientConfig)
+{
+    clientConfig.shareMemroySize = hookData.smbSize;
+    clientConfig.filterSize = hookData.filterSize;
+    clientConfig.maxStackDepth = hookData.maxStackDepth;
+    clientConfig.mallocDisable = hookData.mallocDisable;
+    clientConfig.mmapDisable = hookData.mmapDisable;
+    clientConfig.freeStackData = hookData.freemsgstack;
+    clientConfig.munmapStackData = hookData.munmapmsgstack;
+    clientConfig.fpunwind = hookData.fpUnwind;
+    clientConfig.isBlocked = true;
+}
+
 bool StartHook(HookData& hookData)
 {
     g_runtimeInstance = std::make_shared<VirtualRuntime>();
@@ -235,8 +248,6 @@ bool StartHook(HookData& hookData)
     HILOG_INFO(LOG_CORE, "hookservice smbFd = %d, eventFd = %d\n", g_shareMemoryBlock->GetfileDescriptor(),
                g_eventNotifier->GetFd());
 
-    // hook config |F F            F F              F F F F       F F F F      F F F F|
-    //              stack depth    malloctype       filtersize    sharememory  size
 #if defined(__arm__)
     hookData.fpUnwind = false;
 #endif
@@ -244,26 +255,16 @@ bool StartHook(HookData& hookData)
         // set default max depth
         hookData.maxStackDepth = DLOPEN_MIN_UNWIND_DEPTH;
     }
-    uint64_t hookConfig = (uint8_t)hookData.maxStackDepth;
-    const int moveBit8 = 8;
-    hookConfig <<= moveBit8;
 
-    hookConfig |= hookData.mallocDisable ? MALLOCDISABLE : 0;
-    hookConfig |= hookData.mmapDisable ? MMAPDISABLE : 0;
-    hookConfig |= hookData.freemsgstack ? FREEMSGSTACK : 0;
-    hookConfig |= hookData.munmapmsgstack ? MUNMAPMSGSTACK : 0;
-    hookConfig |= hookData.fpUnwind ? FPUNWIND : 0;
+    HILOG_INFO(LOG_CORE, "hookservice smbFd = %d, eventFd = %d\n",
+        g_shareMemoryBlock->GetfileDescriptor(), g_eventNotifier->GetFd());
 
-    hookConfig <<= MOVE_BIT_16;
-    hookConfig |= hookData.filterSize;
-    hookConfig <<= MOVE_BIT_32;
-    hookConfig |= hookData.smbSize;
-
-    HILOG_INFO(LOG_CORE, "hookConfig = 0x%" PRIx64 ",  hookservice smbFd = %d, eventFd = %d\n",
-        hookConfig, g_shareMemoryBlock->GetfileDescriptor(), g_eventNotifier->GetFd());
-
+    ClientConfig clientConfig;
+    GetClientConfig(hookData, clientConfig);
+    std::string clientConfigStr = clientConfig.ToString();
+    HILOG_INFO(LOG_CORE, "send hook client config:%s\n", clientConfigStr.c_str());
     g_hookService = std::make_shared<HookService>(g_shareMemoryBlock->GetfileDescriptor(),
-        g_eventNotifier->GetFd(), hookData.pid, hookData.processName, hookConfig);
+        g_eventNotifier->GetFd(), hookData.pid, hookData.processName, clientConfig);
 
     g_maxStackDepth = hookData.maxStackDepth;
     g_fpUnwind = hookData.fpUnwind;

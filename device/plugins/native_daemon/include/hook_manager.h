@@ -46,6 +46,7 @@ struct HookContext {
     uint32_t mallocSize;
 };
 
+namespace OHOS::Developtools::NativeDaemon {
 class HookManager : public ManagerInterface {
 public:
     HookManager();
@@ -71,12 +72,12 @@ public:
 private:
     void ReadShareMemory();
     void RegisterWriter(const BufferWriterPtr& writer);
-    bool SendProtobufPackage(uint8_t *cache, size_t length);
     bool CheckProcess();
     void CheckProcessName();
     void SetHookData(HookContext& hookContext, struct timespec ts,
         std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callFrames,
         BatchNativeHookDataPtr& batchNativeHookData);
+    void GetClientConfig(const NativeHookConfig& nativeHookConfig, ClientConfig& clientConfig);
 
     std::shared_ptr<HookService> hookService_;
     std::shared_ptr<CommandPoller> commandPoller_;
@@ -93,5 +94,5 @@ private:
     int pid_;
     bool isRecordAccurately_ = false;
 };
-
+}
 #endif // AGENT_MANAGER_H

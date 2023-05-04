@@ -85,7 +85,7 @@ int HisyseventPlugin::Start(const uint8_t* configData, uint32_t configSize)
     HILOG_DEBUG(LOG_CORE, "NOTE configData ParseFromArray sucessed,sourse data:%s", protoConfig_.msg().c_str());
 
     if (!InitHisyseventCmd()) {
-        HILOG_ERROR(LOG_CORE, "TODO HisyseventPlugin: Init HisyseventCmd failed");
+        HILOG_ERROR(LOG_CORE, "HisyseventPlugin: Init HisyseventCmd failed");
         return -1;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,11 @@ public:
     bool Clear() override;
 
     bool WriteMessage(const google::protobuf::Message& pmsg, const std::string& pluginName);
+
+    void SetClockId(clockid_t clockId) override
+    {
+        clockId_ = clockId;
+    }
 private:
     void DoStats(long bytes);
     void Report() const;
@@ -53,6 +58,7 @@ private:
     std::atomic<uint64_t> writeCount_ = 0;
     std::atomic<uint32_t> flushCount_ = 0;
     uint32_t pluginId_ = 0;
+    clockid_t clockId_ = CLOCK_REALTIME;
 };
 
 using BufferWriterPtr = STD_PTR(shared, BufferWriter);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,9 +76,9 @@ long BufferWriter::Write(const void* data, size_t size)
     pluginData.set_data(data, size);
 
     struct timespec ts = { 0, 0 };
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(clockId_, &ts);
 
-    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+    pluginData.set_clock_id(static_cast<ProfilerPluginData_ClockId>(clockId_));
     pluginData.set_tv_sec(ts.tv_sec);
     pluginData.set_tv_nsec(ts.tv_nsec);
 

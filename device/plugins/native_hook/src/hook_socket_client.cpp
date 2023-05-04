@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,57 +59,25 @@ bool HookSocketClient::Connect(const std::string addrname)
         return false;
     }
 
-    unixSocketClient_->SendHookConfig(pid_);
+    unixSocketClient_->SendHookConfig(reinterpret_cast<uint8_t *>(&pid_), sizeof(pid_));
     return true;
 }
 
-// config |F F        F F               F F F F       F F F F      F F F F|
-//        malloctype  stack depth       filtersize    sharememory  size
 bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size)
 {
-    if (size != sizeof(uint64_t)) {
+    if (size != sizeof(ClientConfig)) {
         HILOG_ERROR(LOG_CORE, "HookSocketClient::config config size not match = %u\n", size);
         return true;
     }
-    uint64_t config = *(uint64_t *)buf;
-    uint32_t smbSize = (uint32_t)config;
-    config_->filterSize_ = (uint16_t)(config >> MOVE_BIT_32);
+    *config_ = *reinterpret_cast<ClientConfig *>(const_cast<int8_t*>(buf));
+    config_->maxStackDepth  = config_->maxStackDepth > MAX_UNWIND_DEPTH ? MAX_UNWIND_DEPTH : config_->maxStackDepth;
+    std::string configStr = config_->ToString();
+    HILOG_INFO(LOG_CORE, "recv hook client config:%s\n", configStr.c_str());
 
-    uint16_t mask = (uint16_t)(config >> MOVE_BIT_48);
-    config_->maxStackDepth_ = (uint8_t)(mask >> MOVE_BIT_8);
-    config_->maxStackDepth_  = config_->maxStackDepth_ > MAX_UNWIND_DEPTH ? MAX_UNWIND_DEPTH : config_->maxStackDepth_;
     smbFd_ = context.ReceiveFileDiscriptor();
     eventFd_ = context.ReceiveFileDiscriptor();
-
-    if (mask & MALLOCDISABLE) {
-        config_->mallocDisable_ = true;
-    }
-    if (mask & MMAPDISABLE) {
-        config_->mmapDisable_ = true;
-    }
-    if (mask & FREEMSGSTACK) {
-        config_->freeStackData_ = true;
-    }
-    if (mask & MUNMAPMSGSTACK) {
-        config_->munmapStackData_ = true;
-    }
-    if (mask & FPUNWIND) {
-        config_->fpunwind_ = true;
-    }
-    if ((mask & BLOCKED) != 0) {
-        config_->isBlocked = true;
-    }
-    if ((mask & MEMTRACE_ENABLE) != 0) {
-        config_->memtraceEnable = true;
-    }
-    HILOG_INFO(LOG_CORE, "%s: mallocDisable = %d mmapDisable = %d", __func__,
-        config_->mallocDisable_, config_->mmapDisable_);
-    HILOG_INFO(LOG_CORE, "%s: freeStackData = %d munmapStackData = %d", __func__,
-        config_->freeStackData_, config_->munmapStackData_);
-    HILOG_INFO(LOG_CORE, "%s: filter size = %u smb size = %u", __func__, config_->filterSize_, smbSize);
-    HILOG_INFO(LOG_CORE, "%s: maxStackDepth = %u fpunwind = %d isBlocked = %d", __func__, config_->maxStackDepth_,
-               config_->fpunwind_, config_->isBlocked);
-    stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_, config_->isBlocked);
+    stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", config_->shareMemroySize,
+        smbFd_, eventFd_, config_->isBlocked);
 
     COMMON::PrintMallinfoLog("stackWriter init(byte) => ");
     return true;
