@@ -68,7 +68,7 @@ HWTEST_F(BpfControllerTest, Normal, TestSize.Level1)
     cfg.traceDuration_ = duration;
     std::unique_ptr<BPFController> pCtx = BPFController::MakeUnique(cfg);
     ASSERT_TRUE(pCtx != nullptr);
-    std::thread threadContol([&]() {
+    std::thread threadContol([&pCtx]() {
         ASSERT_EQ(pCtx->Start(), 0);
     });
     sleep(1);
