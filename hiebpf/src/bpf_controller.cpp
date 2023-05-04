@@ -243,8 +243,14 @@ int BPFController::FilterProgByEvents()
             bpf_program__set_autoload(skel_->progs.do_writev_entry, false);
             bpf_program__set_autoload(skel_->progs.do_writev_exit, false);
 
-            bpf_program__set_autoload(skel_->progs.do_pwritev_entry, false);
-            bpf_program__set_autoload(skel_->progs.do_pwritev_exit, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev_entry, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev_exit, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev2_entry, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev2_exit, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev_entry, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev_exit, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev2_entry, false);
+            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev2_exit, false);
 
             bpf_program__set_autoload(skel_->progs.ksys_write_entry, false);
             bpf_program__set_autoload(skel_->progs.ksys_write_exit, false);
