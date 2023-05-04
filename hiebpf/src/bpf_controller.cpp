@@ -221,48 +221,7 @@ int BPFController::FilterProgByEvents()
 {
     // check each one hiebpf_bpf.progs in hiebpf.skel.h
     // hiebpf_bpf.progs is autoload by default
-    if (selectEventGroups_.find(FS_GROUP_ALL) == selectEventGroups_.end()) {
-        if (selectEventGroups_.find(FS_GROUP_OPEN) == selectEventGroups_.end()) {
-            bpf_program__set_autoload(skel_->progs.do_sys_openat2_entry, false);
-            bpf_program__set_autoload(skel_->progs.do_sys_openat2_exit, false);
-        }
-        if (selectEventGroups_.find(FS_GROUP_READ) == selectEventGroups_.end()) {
-            bpf_program__set_autoload(skel_->progs.do_readv_entry, false);
-            bpf_program__set_autoload(skel_->progs.do_readv_exit, false);
-
-            bpf_program__set_autoload(skel_->progs.do_preadv_entry, false);
-            bpf_program__set_autoload(skel_->progs.do_preadv_exit, false);
-
-            bpf_program__set_autoload(skel_->progs.ksys_read_entry, false);
-            bpf_program__set_autoload(skel_->progs.ksys_read_exit, false);
-
-            bpf_program__set_autoload(skel_->progs.ksys_pread64_entry, false);
-            bpf_program__set_autoload(skel_->progs.ksys_pread64_exit, false);
-        }
-        if (selectEventGroups_.find(FS_GROUP_WRITE) == selectEventGroups_.end()) {
-            bpf_program__set_autoload(skel_->progs.do_writev_entry, false);
-            bpf_program__set_autoload(skel_->progs.do_writev_exit, false);
-
-            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev_entry, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev_exit, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev2_entry, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev2_exit, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev_entry, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev_exit, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev2_entry, false);
-            bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev2_exit, false);
-
-            bpf_program__set_autoload(skel_->progs.ksys_write_entry, false);
-            bpf_program__set_autoload(skel_->progs.ksys_write_exit, false);
-
-            bpf_program__set_autoload(skel_->progs.ksys_pwrite64_entry, false);
-            bpf_program__set_autoload(skel_->progs.ksys_pwrite64_exit, false);
-        }
-        if (selectEventGroups_.find(FS_GROUP_CLOSE) == selectEventGroups_.end()) {
-            bpf_program__set_autoload(skel_->progs.__close_fd_entry, false);
-            bpf_program__set_autoload(skel_->progs.__close_fd_exit, false);
-        }
-    }
+    FilterFsGroup();
 
     if (selectEventGroups_.find(MEM_GROUP_ALL) == selectEventGroups_.end()) {
         bpf_program__set_autoload(skel_->progs.__do_fault_entry, false);
@@ -281,6 +240,54 @@ int BPFController::FilterProgByEvents()
         dataFile_->WriteKernelSymbol();
     }
     return 0;
+}
+
+void BPFController::FilterFsGroup()
+{
+    if (selectEventGroups_.find(FS_GROUP_ALL) != selectEventGroups_.end()) {
+        return;
+    }
+
+    if (selectEventGroups_.find(FS_GROUP_OPEN) == selectEventGroups_.end()) {
+        bpf_program__set_autoload(skel_->progs.do_sys_openat2_entry, false);
+        bpf_program__set_autoload(skel_->progs.do_sys_openat2_exit, false);
+    }
+    if (selectEventGroups_.find(FS_GROUP_READ) == selectEventGroups_.end()) {
+        bpf_program__set_autoload(skel_->progs.do_readv_entry, false);
+        bpf_program__set_autoload(skel_->progs.do_readv_exit, false);
+
+        bpf_program__set_autoload(skel_->progs.do_preadv_entry, false);
+        bpf_program__set_autoload(skel_->progs.do_preadv_exit, false);
+
+        bpf_program__set_autoload(skel_->progs.ksys_read_entry, false);
+        bpf_program__set_autoload(skel_->progs.ksys_read_exit, false);
+
+        bpf_program__set_autoload(skel_->progs.ksys_pread64_entry, false);
+        bpf_program__set_autoload(skel_->progs.ksys_pread64_exit, false);
+    }
+    if (selectEventGroups_.find(FS_GROUP_WRITE) == selectEventGroups_.end()) {
+        bpf_program__set_autoload(skel_->progs.do_writev_entry, false);
+        bpf_program__set_autoload(skel_->progs.do_writev_exit, false);
+
+        bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev_entry, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev_exit, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev2_entry, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_sys_pwritev2_exit, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev_entry, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev_exit, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev2_entry, false);
+        bpf_program__set_autoload(skel_->progs.__arm64_compat_sys_pwritev2_exit, false);
+
+        bpf_program__set_autoload(skel_->progs.ksys_write_entry, false);
+        bpf_program__set_autoload(skel_->progs.ksys_write_exit, false);
+
+        bpf_program__set_autoload(skel_->progs.ksys_pwrite64_entry, false);
+        bpf_program__set_autoload(skel_->progs.ksys_pwrite64_exit, false);
+    }
+    if (selectEventGroups_.find(FS_GROUP_CLOSE) == selectEventGroups_.end()) {
+        bpf_program__set_autoload(skel_->progs.__close_fd_entry, false);
+        bpf_program__set_autoload(skel_->progs.__close_fd_exit, false);
+    }
 }
 
 static int InitTracerPid(const int fd, bool excludeTracer)
