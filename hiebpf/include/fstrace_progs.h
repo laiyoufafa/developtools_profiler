@@ -446,49 +446,6 @@ int BPF_KRETPROBE(__arm64_compat_sys_pwritev2_exit, int64_t retval)
     return pwritev_exit(ctx, retval);
 }
 
-// SEC("kprobe/do_pwritev")
-// int BPF_KPROBE(do_pwritev_entry,
-//                unsigned long fd, const struct iovec __user* vec,
-//                unsigned long vlen, loff_t pos, rwf_t flags)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     struct start_event_t start_event = {};
-//     __builtin_memset(&start_event, 0, sizeof(start_event));
-//     struct fstrace_start_event_t *fs_se = &start_event.fs_se;
-//     u64 pid_tgid = bpf_get_current_pid_tgid();
-//     // get timestamp of the start of system call
-//     fs_se->stime = bpf_ktime_get_ns();
-//     // get argument of the system call
-//     fs_se->type = SYS_PWRITEV;
-//     struct sys_pwritev_args_t* args = &fs_se->pwritev_args;
-//     args->fd = fd;
-//     args->vec = vec;
-//     args->vlen = vlen;
-//     args->pos = pos;
-//     args->flags = flags;
-
-//     // store the start event with pid as key
-//     int err = (int) bpf_map_update_elem(&start_event_map, &pid_tgid, &start_event, BPF_ANY);
-//     if (err != 0) {
-//         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
-//         return -1;
-//     }
-//     return 0;
-// }
-
-// SEC("kretprobe/do_pwritev")
-// int BPF_KRETPROBE(do_pwritev_exit, int64_t retval)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     return emit_event(ctx, retval, FSTRACE);
-// }
-
 SEC("kprobe/__close_fd")
 int BPF_KPROBE(__close_fd_entry, struct files_struct* files, unsigned fd)
 {
