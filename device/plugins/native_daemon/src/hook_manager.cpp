@@ -255,7 +255,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     std::string clientConfigStr = clientConfig.ToString();
     HILOG_INFO(LOG_CORE, "send hook client config:%s\n", clientConfigStr.c_str());
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
-                                                eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), clientConfig);
+        eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), clientConfig);
     CHECK_NOTNULL(hookService_, false, "HookService create failed!");
 
     stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);

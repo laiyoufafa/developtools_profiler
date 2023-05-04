@@ -256,7 +256,6 @@ bool StartHook(HookData& hookData)
         hookData.maxStackDepth = DLOPEN_MIN_UNWIND_DEPTH;
     }
 
-
     HILOG_INFO(LOG_CORE, "hookservice smbFd = %d, eventFd = %d\n",
         g_shareMemoryBlock->GetfileDescriptor(), g_eventNotifier->GetFd());
 
