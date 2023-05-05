@@ -62,7 +62,7 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
         HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error");
     }
     int peerConfig = *const_cast<int *>(reinterpret_cast<const int *>(buf));
-    if (peerConfig == -1u) {
+    if (peerConfig == -1) {
         return true;
     }
     if (pid_ == 0) {

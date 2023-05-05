@@ -27,7 +27,7 @@
 namespace {
 const int PROTO_SIZE_MAX = 1024 * 1024;
 const int MEMORY_BLOCK_UNIT = 4096;
-const uint64_t HEARTBEAT_MSG = -1u;
+const int HEARTBEAT_MSG = -1;
 } // namespace
 
 SocketContext::SocketContext()
