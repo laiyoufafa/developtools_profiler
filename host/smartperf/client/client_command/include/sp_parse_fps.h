@@ -28,9 +28,9 @@ using PackageName = const SpString;
 using FileSteamPtr = std::shared_ptr<std::ifstream>;
 using Line = SpString;
 typedef enum {
-    Video,
-    Web,
-    Large
+    VIDEO,
+    WEB,
+    LARGE
 } PageType;
 #define PARAMS_EMPTY "params invalided!"
 #define FILE_OPEN_FAILED "file open failed!"
@@ -39,9 +39,9 @@ typedef enum {
 #define ROSENRENDERWEB "H:RosenRenderWeb:"
 #define ROSENRENDERTEXTURE "H:RosenRenderTexture:"
 #define FLING "fling"
-#define SP_EXIT(...) (fprintf(stderr, __VA_ARGS__), abort())
+#define SP_EXIT(...) (fprintf(stderr, __VA_ARGS__), exit(0))
 #define SP_FAILED_OPERATION(x) \
-   (void)((x) || (SP_EXIT("failed Operation\n"), 0))
+    (void)((x) || (SP_EXIT("failed Operation\n"), 0))
 class ParseFPS {
 public:
     ParseFPS();
@@ -83,7 +83,7 @@ private:
     inline  unsigned int GetTouchEventNum(Line& line1, TouchEvent& touchEvent1);
     inline  void StrSplit(const SpString &content, const SpString &sp, std::vector<SpString> &out);
     inline  void GetAndSetPageType(Line& line1, PageType& pageType1);
-    inline  const FpsResult ParseBranch(FilePath& filePath, PackageName& packageName, PageType& pageType1, TouchEvent& touchEvent1);
+    inline  const FpsResult ParseBranch(FilePath& filePath, PackageName& pN, PageType& pT, TouchEvent& tE);
     inline  FpsResult  PraseFPSTrace(FilePath& filePath, float staticTime, SpString uiPoint);
     //Gets the statistical off start time marker bits
     inline  void DecHandOffTime(Line& line1, RecordFpsVars& rfv);

@@ -40,13 +40,13 @@ void ParseFPS::GetAndSetPageType(Line& line1, PageType& pageType1)
 {
     if (line1.empty()) {
         return;
-    }  
+    }
     if (line1.find(ROSENRENDERWEB) != SpString::npos) {
-        pageType1 = Web;
+        pageType1 = WEB;
     } else if (line1.find(ROSENRENDERTEXTURE) != SpString::npos) {
-        pageType1 = Video;
+        pageType1 = VIDEO;
     } else {
-        pageType1 = Large;
+        pageType1 = LARGE;
     }
 }
 unsigned int ParseFPS::GetTouchEventNum(Line& line1, TouchEvent& touchEvent1)
@@ -59,31 +59,31 @@ unsigned int ParseFPS::GetTouchEventNum(Line& line1, TouchEvent& touchEvent1)
     }
     return touchEvent1.tEventDisNum;
 }
-const FpsResult ParseFPS::ParseBranch(FilePath& filePath, PackageName& packageName, PageType& pageType1, TouchEvent& touchEvent1)
+const FpsResult ParseFPS::ParseBranch(FilePath& filePath, PackageName& pN, PageType& pT, TouchEvent& tE)
 {
     FpsResult fps = "0";
-    if (touchEvent1.touchFlag) {
+    if (tE.touchFlag) {
         std::vector<SpString> vecPackNames;
         //Get the time period in the renderservice
         float staticTime = 2.0f;
-        this->StrSplit(packageName, ".", vecPackNames);
+        this->StrSplit(pN, ".", vecPackNames);
         SpString uiPoint = uniProcess + vecPackNames.back();
-        switch (pageType1) {
-            case PageType::Video:{
+        switch (pT) {
+            case PageType::VIDEO:{
                 if (filePath.find(FLING) != SpString::npos) {
                     staticTime = 0.5f;
-                    fps =  PraseFPSTrace(filePath, staticTime, doPoint, uiPoint);
+                    fps =  PraseFPSTrace(filePath, staticTime, uiPoint);
                 } else {
-                    fps =  PraseFPSTrace(filePath, staticTime, doPoint, videoPoint);
+                    fps =  PraseFPSTrace(filePath, staticTime, videoPoint);
                 }
                 break;
             }
-            case PageType::Web:{
-                fps =  PraseFPSTrace(filePath, staticTime, doPoint, webPoint);
+            case PageType::WEB:{
+                fps =  PraseFPSTrace(filePath, staticTime, webPoint);
                 break;
             }
             default:{
-                fps =  PraseFPSTrace(filePath, staticTime, doPoint, uiPoint);
+                fps =  PraseFPSTrace(filePath, staticTime, uiPoint);
                 break;
             }
         }
@@ -119,7 +119,7 @@ void ParseFPS::StaticHandoffStartTime(Line& line1, RecordFpsVars& rfv)
     if (line1.find(TOUCHEVENT_FLAG) != SpString::npos || line1.find(HTOUCHEVENT_FLAG) != SpString::npos) {
         ++rfV.tEventDisNum;
         std::smatch result;
-        int tNum = 4;
+        unsigned int tNum = 4;
         if (tNum == rfV.tEventDisNum) {
             if (std::regex_search(line1, result, pattern)) {
                 rfV.leaveStartTime = result[0];
@@ -138,10 +138,10 @@ void ParseFPS::DecHandOffTime(Line& line1, RecordFpsVars& rfv)
         return;
     }
     if (rfV.isStaticsLeaveTime) {
-        if (this->line1.find(doPoint) != SpString::npos) {
+        if (line1.find(doPoint) != SpString::npos) {
             std::smatch result;
             if (std::regex_search(line1, result, pattern)) {
-                if (0 == rfV.startFlag) {
+                if (rfV.startFlag == 0) {
                     rfV.leaveStartTime = rfV.leaveEndTime = result[0];
                 }
                 ++rfV.startFlag;
@@ -175,16 +175,17 @@ bool ParseFPS::CountRsEndTime(Line& line1, RecordFpsVars& rfv, float staticTime,
             rfV.isAddFrame = false;
             if (rfV.isHasUI) {
                 rfV.isHasUI = false;
-                if(std::stof(rfV.leaveEndTime) - std::stof(rfV.leaveStartTime) < staticTime) {
+                if (std::stof(rfV.leaveEndTime) - std::stof(rfV.leaveStartTime) < staticTime) {
                     std::smatch result;
                     if (std::regex_search(line1, result, pattern)) {
                         float intervalTime = 0.1;
-                        if (std::stof(result[0]) - std::stof(rfV.leaveEndTime) < intervalTime) {
+                        float intervalResult = std::stof(result[0]) - std::stof(rfV.leaveEndTime);
+                        if (intervalResult < intervalTime) {
                             ++rfV.frameNum;
                             rfV.leaveEndTime = result[0];
                         } else {
                             ++rfV.frameNum;
-                            std::cout<<"NO."<<rfV.frameNum<<"fps Time: "<< std::stof(result[0]) - std::stof(rfV.leaveEndTime) << "s" <<std::endl;
+                            std::cout<<"NO."<<rfV.frameNum<<"fps Time: "<< intervalResult << "s" <<std::endl;
                             rfV.leaveEndTime = result[0];
                         }
                     }

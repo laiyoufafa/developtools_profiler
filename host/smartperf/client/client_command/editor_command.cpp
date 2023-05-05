@@ -45,14 +45,31 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         } else if (v[type] == "completeTime") {
             time = SmartPerf::EditorCommand::CompleteTime();
         } else if (v[type] == "fps") {
-
-        }
+            std::cout << SmartPerf::EditorCommand::SlideFps(v)<< std::endl;
+            return;
+        } else if (v[type] == "FPS") {
+            std::cout << SmartPerf::EditorCommand::SlideFPS(v)<< std::endl;
+            return;
+        }      
         if (time == noNameType) {
             std::cout << "Startup error, unknown application or application not responding"<< std::endl;
         } else {
             std::cout << "time:" << time << std::endl;
         }
     }
+}
+std::string EditorCommand::SlideFps(std::vector<std::string> v)
+{
+    OHOS::SmartPerf::StartUpDelay sd;
+    ParseFPS parseFPS;
+    std::string cmdResult;
+    int typePKG = 3;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "fps" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("fps", traceName);
+    thGetTrace.join();
+    std::string fps = parseFPS.ParseTraceFile(traceName, v[typePKG]);
+    return fps;
 }
 std::string EditorCommand::SlideFPS(std::vector<std::string> v)
 {
