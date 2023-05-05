@@ -1,5 +1,18 @@
+/*
+ * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
-
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -8,37 +21,33 @@
 #include <cstdio>
 #include <string>
 #include <memory>
-
-using SpString      = std::string;
-using FpsResult     = SpString;
-using FilePath      = const SpString;
-using PackageName   = const SpString;
-using FileSteamPtr  = std::shared_ptr<std::ifstream>;
-using Line          = SpString;
-
+using SpString = std::string;
+using FpsResult = SpString;
+using FilePath = const SpString;
+using PackageName = const SpString;
+using FileSteamPtr = std::shared_ptr<std::ifstream>;
+using Line = SpString;
 typedef enum {
     Video,
     Web,
     Large
-}PageType;
-
-#define PARAMS_EMPTY        "params invalided!"
-#define FILE_OPEN_FAILED    "file open failed!"
-#define TOUCHEVENT_FLAG     "H:touchEventDispatch"
-#define HTOUCHEVENT_FLAG    "H:TouchEventDispatch"
-#define ROSENRENDERWEB      "H:RosenRenderWeb:"
-#define ROSENRENDERTEXTURE  "H:RosenRenderTexture:"
-#define FLING               "fling"
-#define SP_ABORT(...) (fprintf(stderr,__VA_ARGS__), abort())
-#define SP_ASSERT(x)\
-   (void)((x) || (SP_ABORT("failed SpASSERT(%s):%s:%d\n",#x,__FILE__,__LINE__),0))
-
-class ParseFPS{
+} PageType;
+#define PARAMS_EMPTY "params invalided!"
+#define FILE_OPEN_FAILED "file open failed!"
+#define TOUCHEVENT_FLAG "H:touchEventDispatch"
+#define HTOUCHEVENT_FLAG "H:TouchEventDispatch"
+#define ROSENRENDERWEB "H:RosenRenderWeb:"
+#define ROSENRENDERTEXTURE "H:RosenRenderTexture:"
+#define FLING "fling"
+#define SP_EXIT(...) (fprintf(stderr, __VA_ARGS__), abort())
+#define SP_FAILED_OPERATION(x) \
+   (void)((x) || (SP_EXIT("failed Operation\n"), 0))
+class ParseFPS {
 public:
     ParseFPS();
     ~ParseFPS();
 private:
-    struct RecordFpsVars{
+    struct RecordFpsVars {
         //moveResponseTime - moveStartTime
         int frameNum = 0;
         unsigned int    tEventDisNum = 0;
@@ -56,11 +65,12 @@ private:
         bool isStaticsLeaveTime = false;
         //The start time is taken once
         int startFlag = 0;
-        FpsResult ComplexFps;
+        FpsResult complexFps;
         SpString pidMatchStr;
     };
-    struct TouchEvent{
-        TouchEvent(){
+    struct TouchEvent {
+        TouchEvent()
+        {
             tEventDisNum = 0;
             touchFlag = false;
         }
@@ -68,19 +78,19 @@ private:
         bool            touchFlag;
     };
 public:
-    FpsResult  parse_tracefile(FilePath& filePath,PackageName& packageName);
+    FpsResult  ParseTraceFile(FilePath& filePath, PackageName& packageName);
 private:
-    inline  unsigned int GetTouchEventNum(Line& line,TouchEvent& touchEvent);
+    inline  unsigned int GetTouchEventNum(Line& line1, TouchEvent& touchEvent1);
     inline  void StrSplit(const SpString &content, const SpString &sp, std::vector<SpString> &out);
-    inline  void GetAndSetPageType(Line& line,PageType& pageType);
-    inline  const FpsResult ParseBranch(FilePath& filePath,PackageName& packageName,PageType& pageType,TouchEvent& touchEvent);
-    inline  FpsResult  parse_fps(FilePath& filePath,float staticTime, SpString doPoint, SpString uiPoint);
+    inline  void GetAndSetPageType(Line& line1, PageType& pageType1);
+    inline  const FpsResult ParseBranch(FilePath& filePath, PackageName& packageName, PageType& pageType1, TouchEvent& touchEvent1);
+    inline  FpsResult  PraseFPSTrace(FilePath& filePath, float staticTime, SpString uiPoint);
     //Gets the statistical off start time marker bits
-    inline  void DecHandOffTime(Line& line,RecordFpsVars& rfv);
+    inline  void DecHandOffTime(Line& line1, RecordFpsVars& rfv);
     //Statistics of the start time of the handout
-    inline  void StaticHandoffStartTime(Line& line,RecordFpsVars& rfv);
-    //Count the number of rendered frames and the end time 
-    inline  bool CountRsEndTime(Line& line,RecordFpsVars& rfv,float staticTime,SpString uiPoint);
+    inline  void StaticHandoffStartTime(Line& line1, RecordFpsVars& rfv);
+    //Count the number of rendered frames and the end time
+    inline  bool CountRsEndTime(Line& line1, RecordFpsVars& rfv, float staticTime, SpString uiPoint);
 
     const SpString videoPoint = "H:RSUniRender::Process:[RosenRenderTexture]";
     const SpString webPoint   = "H:RSUniRender::Process:[RosenRenderWeb]";
@@ -95,6 +105,6 @@ private:
     PageType            pageType;
     Line                line;
     TouchEvent          touchEvent;
-    RecordFpsVars       RFV;
+    RecordFpsVars       rfV;
     std::queue<SpString> beQueue;
 };

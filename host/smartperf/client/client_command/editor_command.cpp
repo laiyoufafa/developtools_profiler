@@ -44,7 +44,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
             time = SmartPerf::EditorCommand::ResponseTime();
         } else if (v[type] == "completeTime") {
             time = SmartPerf::EditorCommand::CompleteTime();
-        } else if (v[type] == "fps"){
+        } else if (v[type] == "fps") {
 
         }
         if (time == noNameType) {
@@ -54,7 +54,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         }
     }
 }
-std::string EditorCommand::SlideFPS (std::vector<std::string> v)
+std::string EditorCommand::SlideFPS(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     ParseFPS parseFPS;
@@ -83,7 +83,7 @@ std::string EditorCommand::SlideFPS (std::vector<std::string> v)
     cmd = "uinput -T -m 650 1500 650 500 30";
     SPUtils::LoadCmd(cmd, cmdResult);
     thGetTrace.join();
-    std::string fps = parseFPS.parse_tracefile(traceName, v[typePKG]);
+    std::string fps = parseFPS.ParseTraceFile(traceName, v[typePKG]);
     return fps;
 }
 float EditorCommand::ResponseTime()
