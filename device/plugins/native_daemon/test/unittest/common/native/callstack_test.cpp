@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "callstack_test.h"
 #include "virtual_runtime.h"
+#include "virtual_thread.h"
 #include "get_thread_id.h"
 using namespace testing::ext;
 using namespace std;
@@ -38,6 +39,13 @@ void CallStackTest::TearDownTestCase() {}
 void CallStackTest::SetUp() {}
 
 void CallStackTest::TearDown() {}
+
+static void MakeMaps(VirtualThread &thread)
+{
+    for (const mmapDumpInfo &mmap : TEST_DWARF_MMAP) {
+        thread.CreateMapItem(mmap.fileName, mmap.begin, mmap.len, mmap.pgoff);
+    }
+}
 
 /**
  * @tc.name: LibUnwindEmptyFunc

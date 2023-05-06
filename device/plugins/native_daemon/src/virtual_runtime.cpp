@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 #endif
 
+#include "logging.h"
 #include "register.h"
 #include "symbols_file.h"
 #include "utilities.h"
@@ -143,7 +144,7 @@ bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
         auto &callFrame = callFrameIt.operator*();
         if (callFrame.ip_ >= PERF_CONTEXT_MAX) {
             // dont care, this is not issue.
-            HLOGV("%s", UpdatePerfContext(callFrame.ip_, perfCallchainContext).c_str());
+            HLOGV("%s", OHOS::HiviewDFX::UpdatePerfContext(callFrame.ip_, perfCallchainContext).c_str());
             continue;
         }
         auto symbol = GetSymbol(callFrame, pid, tid,
@@ -403,7 +404,7 @@ bool VirtualRuntime::GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualTh
 }
 
 void VirtualRuntime::UpdateSymbolCache(uint64_t ip, Symbol &symbol,
-    HashList<uint64_t, Symbol> &cache)
+    OHOS::HiviewDFX::HashList<uint64_t, Symbol> &cache)
 {
     // review change to LRU for memmory
     HLOG_ASSERT_MESSAGE(cache.count(ip) == 0, "already have cached ip 0x%" PRIx64 "", ip);

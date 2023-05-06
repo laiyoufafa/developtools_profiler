@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (C) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -40,7 +40,6 @@ ohos_executable("native_daemon") {
   sources = [
     "../api/src/buffer_writer.cpp",
     "../api/src/command_poller.cpp",
-    "src/call_stack.cpp",
     "src/debug_logger.cpp",
     "src/dwarf_encoding.cpp",
     "src/elf_file.cpp",
@@ -52,7 +51,6 @@ ohos_executable("native_daemon") {
     "src/hook_standalone.cpp",
     "src/main.cpp",
     "src/program_header.cpp",
-    "src/register.cpp",
     "src/section_header.cpp",
     "src/stack_data_repeater.cpp",
     "src/stack_preprocess.cpp",
@@ -80,10 +78,10 @@ ohos_executable("native_daemon") {
     "${OHOS_PROFILER_DIR}/protos/services:plugin_service_proto",
     "${OHOS_PROFILER_DIR}/protos/services:profiler_service_all_type_source",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/native_hook:native_hook_cpp",
+    "../../../../../base/hiviewdfx/faultloggerd/interfaces/innerkits/callstack:callstack_nativedaemon",
     "../../base:hiprofiler_base",
     "//base/startup/init/interfaces/innerkits:libbegetutil",
     "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/libunwind:unwind_source_${target_cpu}",
     "//third_party/zlib:libz",
   ]
   configs = [ ":cflags_config" ]

@@ -38,7 +38,7 @@ namespace {
 static std::atomic<uint64_t> g_timeCost = 0;
 static std::atomic<uint64_t> g_mallocTimes = 0;
 static std::atomic<uint64_t> g_dataCounts = 0;
-using OHOS::Developtools::NativeDaemon::buildArchType;
+using OHOS::HiviewDFX::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};

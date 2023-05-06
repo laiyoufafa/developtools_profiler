@@ -34,10 +34,7 @@ namespace NativeDaemon {
 const int STACK_DATA_SIZE = 40000;
 const int SPEED_UP_THRESHOLD = STACK_DATA_SIZE / 2;
 const int SLOW_DOWN_THRESHOLD = STACK_DATA_SIZE / 4;
-const int32_t MIN_STACK_DEPTH = 6;
-// filter two layers of dwarf stack in libnative_hook.z.so
-const size_t FILTER_STACK_DEPTH = 2;
-const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + FILTER_STACK_DEPTH;
+const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + 2;
 // dlopen function minimum stack depth
 const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
 }
@@ -45,7 +42,7 @@ const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
 }
 
 constexpr size_t MAX_REG_SIZE = sizeof(uint64_t)
-    * OHOS::Developtools::NativeDaemon::PERF_REG_ARM64_MAX;
+    * OHOS::HiviewDFX::PERF_REG_ARM64_MAX;
 
 enum {
     MALLOCDISABLE = (1u << 0),
