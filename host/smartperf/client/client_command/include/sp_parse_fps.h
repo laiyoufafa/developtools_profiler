@@ -102,9 +102,9 @@ private:
     //filter pid
     std::regex pidPattern;
 private:
-    PageType            pageType;
+    PageType            pageTypeClient;
     Line                lineClient;
-    TouchEvent          touchEvent;
+    TouchEvent          touchEventClient;
     RecordFpsVars       rfV;
     std::queue<SpString> beQueue;
 };

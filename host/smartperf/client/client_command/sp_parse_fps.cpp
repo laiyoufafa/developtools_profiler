@@ -103,12 +103,12 @@ FpsResult  ParseFPS::ParseTraceFile(FilePath& filePath, PackageName& packageName
         return FILE_OPEN_FAILED;
     } else {
         while (std::getline(*inFile, lineClient)) {
-            if (this->GetTouchEventNum(lineClient, touchEvent) > 0) {
-                touchEvent.touchFlag = true;
+            if (this->GetTouchEventNum(lineClient, touchEventClient) > 0) {
+                touchEventClient.touchFlag = true;
             }
-            this->GetAndSetPageType(lineClient, pageType);
+            this->GetAndSetPageType(lineClient, pageTypeClient);
         }
-        fps = this->ParseBranch(filePath, packageName, pageType, touchEvent);
+        fps = this->ParseBranch(filePath, packageName, pageTypeClient, touchEventClient);
     }
     return "FPS:"+fps+"fps";
 }
@@ -126,7 +126,7 @@ void ParseFPS::StaticHandoffStartTime(Line& line, RecordFpsVars& rfv)
                 rfV.leaveStartTime = result[0];
             }
         }
-        if (rfV.tEventDisNum == touchEvent.tEventDisNum) {
+        if (rfV.tEventDisNum == touchEventClient.tEventDisNum) {
             if (std::regex_search(line, result, pattern)) {
                 rfV.isStaticsLeaveTime = true;
             }
