@@ -50,7 +50,7 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         } else if (v[type] == "FPS") {
             std::cout << SmartPerf::EditorCommand::SlideFPS(v)<< std::endl;
             return;
-        }      
+        }
         if (time == noNameType) {
             std::cout << "Startup error, unknown application or application not responding"<< std::endl;
         } else {

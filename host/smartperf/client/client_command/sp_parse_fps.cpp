@@ -36,28 +36,28 @@ void ParseFPS::StrSplit(const SpString &content, const SpString &sp, std::vector
         index = tEnd + 1;
     }
 }
-void ParseFPS::GetAndSetPageType(Line& line1, PageType& pageType1)
+void ParseFPS::GetAndSetPageType(Line& line, PageType& pageType)
 {
-    if (line1.empty()) {
+    if (line.empty()) {
         return;
     }
-    if (line1.find(ROSENRENDERWEB) != SpString::npos) {
-        pageType1 = WEB;
-    } else if (line1.find(ROSENRENDERTEXTURE) != SpString::npos) {
-        pageType1 = VIDEO;
+    if (line.find(ROSENRENDERWEB) != SpString::npos) {
+        pageType = WEB;
+    } else if (line.find(ROSENRENDERTEXTURE) != SpString::npos) {
+        pageType = VIDEO;
     } else {
-        pageType1 = LARGE;
+        pageType = LARGE;
     }
 }
-unsigned int ParseFPS::GetTouchEventNum(Line& line1, TouchEvent& touchEvent1)
+unsigned int ParseFPS::GetTouchEventNum(Line& line, TouchEvent& touchEvent)
 {
-    if (line1.empty()) {
+    if (line.empty()) {
         return 0;
     }
-    if (line1.find(TOUCHEVENT_FLAG) != SpString::npos || line1.find(HTOUCHEVENT_FLAG) != SpString::npos) {
-        ++touchEvent1.tEventDisNum;
+    if (line.find(TOUCHEVENT_FLAG) != SpString::npos || line.find(HTOUCHEVENT_FLAG) != SpString::npos) {
+        ++touchEvent.tEventDisNum;
     }
-    return touchEvent1.tEventDisNum;
+    return touchEvent.tEventDisNum;
 }
 const FpsResult ParseFPS::ParseBranch(FilePath& filePath, PackageName& pN, PageType& pT, TouchEvent& tE)
 {
@@ -102,52 +102,53 @@ FpsResult  ParseFPS::ParseTraceFile(FilePath& filePath, PackageName& packageName
         std::cout<<"File: "<<filePath<<" open failed!"<<std::endl;
         return FILE_OPEN_FAILED;
     } else {
-        while (std::getline(*inFile, line)) {
-            if (this->GetTouchEventNum(line, touchEvent) > 0) {
+        while (std::getline(*inFile, lineClient)) {
+            if (this->GetTouchEventNum(lineClient, touchEvent) > 0) {
                 touchEvent.touchFlag = true;
             }
-            this->GetAndSetPageType(line, pageType);
+            this->GetAndSetPageType(lineClient, pageType);
         }
         fps = this->ParseBranch(filePath, packageName, pageType, touchEvent);
     }
     return "FPS:"+fps+"fps";
 }
-void ParseFPS::StaticHandoffStartTime(Line& line1, RecordFpsVars& rfv)
+void ParseFPS::StaticHandoffStartTime(Line& line, RecordFpsVars& rfv)
 {
-    if (line1.empty())
+    if (line.empty()) {
         return;
-    if (line1.find(TOUCHEVENT_FLAG) != SpString::npos || line1.find(HTOUCHEVENT_FLAG) != SpString::npos) {
+    }
+    if (line.find(TOUCHEVENT_FLAG) != SpString::npos || line.find(HTOUCHEVENT_FLAG) != SpString::npos) {
         ++rfV.tEventDisNum;
         std::smatch result;
         unsigned int tNum = 4;
         if (tNum == rfV.tEventDisNum) {
-            if (std::regex_search(line1, result, pattern)) {
+            if (std::regex_search(line, result, pattern)) {
                 rfV.leaveStartTime = result[0];
             }
         }
         if (rfV.tEventDisNum == touchEvent.tEventDisNum) {
-            if (std::regex_search(line1, result, pattern)) {
+            if (std::regex_search(line, result, pattern)) {
                 rfV.isStaticsLeaveTime = true;
             }
         }
     }
 }
-void ParseFPS::DecHandOffTime(Line& line1, RecordFpsVars& rfv)
+void ParseFPS::DecHandOffTime(Line& line, RecordFpsVars& rfv)
 {
-    if (line1.empty()) {
+    if (line.empty()) {
         return;
     }
     if (rfV.isStaticsLeaveTime) {
-        if (line1.find(doPoint) != SpString::npos) {
+        if (line.find(doPoint) != SpString::npos) {
             std::smatch result;
-            if (std::regex_search(line1, result, pattern)) {
+            if (std::regex_search(line, result, pattern)) {
                 if (rfV.startFlag == 0) {
                     rfV.leaveStartTime = rfV.leaveEndTime = result[0];
                 }
                 ++rfV.startFlag;
             }
             if (rfV.pidMatchStr.empty()) {
-                if (std::regex_search(line1, result, pidPattern)) {
+                if (std::regex_search(line, result, pidPattern)) {
                     rfV.pidMatchStr = result[0];
                 }
             }
@@ -155,20 +156,20 @@ void ParseFPS::DecHandOffTime(Line& line1, RecordFpsVars& rfv)
         }
     }
 }
-bool ParseFPS::CountRsEndTime(Line& line1, RecordFpsVars& rfv, float staticTime, SpString uiPoint)
+bool ParseFPS::CountRsEndTime(Line& line, RecordFpsVars& rfv, float staticTime, SpString uiPoint)
 {
-    if (line1.empty()) {
+    if (line.empty()) {
         return false;
     }
     if (!rfV.pidMatchStr.empty() && rfV.isAddFrame) {
         SpString pid = rfV.pidMatchStr.substr(1, rfV.pidMatchStr.length() - 2);
-        if (line1.find(uiPoint) != SpString::npos) {
+        if (line.find(uiPoint) != SpString::npos) {
             rfV.isHasUI = true;
         }
-        if (line1.find("B|" + pid + "|") != SpString::npos && line1.find("-" + pid) != SpString::npos) {
-            beQueue.push(line1);
+        if (line.find("B|" + pid + "|") != SpString::npos && line.find("-" + pid) != SpString::npos) {
+            beQueue.push(line);
         }
-        if (line1.find("E|" + pid + "|") != SpString::npos && line1.find("-" + pid) != SpString::npos) {
+        if (line.find("E|" + pid + "|") != SpString::npos && line.find("-" + pid) != SpString::npos) {
             beQueue.pop();
         }
         if (beQueue.empty()) {
@@ -177,7 +178,7 @@ bool ParseFPS::CountRsEndTime(Line& line1, RecordFpsVars& rfv, float staticTime,
                 rfV.isHasUI = false;
                 if (std::stof(rfV.leaveEndTime) - std::stof(rfV.leaveStartTime) < staticTime) {
                     std::smatch result;
-                    if (std::regex_search(line1, result, pattern)) {
+                    if (std::regex_search(line, result, pattern)) {
                         float intervalTime = 0.1;
                         float intervalResult = std::stof(result[0]) - std::stof(rfV.leaveEndTime);
                         if (intervalResult < intervalTime) {
@@ -199,8 +200,8 @@ bool ParseFPS::CountRsEndTime(Line& line1, RecordFpsVars& rfv, float staticTime,
 }
 FpsResult  ParseFPS::PraseFPSTrace(FilePath& filePath, float staticTime, SpString uiPoint)
 {
-    if (!this->line.empty()) {
-        this->line.clear();
+    if (!this->lineClient.empty()) {
+        this->lineClient.clear();
     }
     FileSteamPtr inFile(new std::ifstream());
     inFile->open(filePath);
@@ -209,10 +210,10 @@ FpsResult  ParseFPS::PraseFPSTrace(FilePath& filePath, float staticTime, SpStrin
         return FILE_OPEN_FAILED;
     } else {
         // std::cout<<"File: "<<filePath<<" open success!"<<std::endl;
-        while (std::getline(*inFile, this->line)) {
-            this->StaticHandoffStartTime(line, rfV);
-            this->DecHandOffTime(line, rfV);
-            if (this->CountRsEndTime(line, rfV, staticTime, uiPoint)) {
+        while (std::getline(*inFile, this->lineClient)) {
+            this->StaticHandoffStartTime(lineClient, rfV);
+            this->DecHandOffTime(lineClient, rfV);
+            if (this->CountRsEndTime(lineClient, rfV, staticTime, uiPoint)) {
                 break;
             }
         }
