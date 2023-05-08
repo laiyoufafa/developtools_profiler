@@ -67,6 +67,11 @@ const MemMapItem *VirtualThread::FindMapByAddr2(uint64_t addr) const
     return nullptr;
 }
 
+const std::pair<MemMaps*, uint32_t> VirtualThread::FindMemMapsByAddr(uint64_t addr) const
+{
+    return virtualruntime_->FindMap(addr);
+}
+
 const MemMapItem *VirtualThread::FindMapByAddr(uint64_t addr) const
 {
     HLOGM("try found vaddr 0x%" PRIx64 " in maps %zu ", addr, memMaps_->size());
@@ -109,31 +114,12 @@ VirtualThread::VirtualThread(pid_t pid,
 {
     memMaps_ = &virtualruntime_->processMemMaps_;
     if (parseFlag) {
-        pthread_mutex_lock(&virtualruntime_->threadMemMapsLock_);
         if (virtualruntime_->processMemMaps_.size() == 0) {
             this->ParseMap(virtualruntime_->processMemMaps_);
         }
-        pthread_mutex_unlock(&virtualruntime_->threadMemMapsLock_);
     }
 
     this->name_ = ReadThreadName(pid);
-    reg_nr = OHOS::HiviewDFX::RegisterGetCount();
-    if (reg_nr <= 0) {
-        HLOGE("Getting register count failed");
-        reg_nr = 0;
-        user_regs = nullptr;
-    } else if (reg_nr != std::numeric_limits<size_t>::max()) {
-        user_regs = new (std::nothrow) u64[reg_nr];
-        if (!user_regs) {
-            HLOGM("new regs failed");
-        }
-        if (memset_s(user_regs, sizeof(u64) * reg_nr, 0, sizeof(u64) * reg_nr) != EOK) {
-            HLOGM("memset_s regs failed");
-        }
-    } else {
-        reg_nr = 0;
-        user_regs = nullptr;
-    }
     HLOGM("%d %d map from parent size is %zu", pid, tid, memMaps_->size());
 }
 
@@ -143,6 +129,24 @@ std::string VirtualThread::ReadThreadName(pid_t tid)
     comm.erase(std::remove(comm.begin(), comm.end(), '\r'), comm.end());
     comm.erase(std::remove(comm.begin(), comm.end(), '\n'), comm.end());
     return comm;
+}
+
+int32_t VirtualThread::FindMapByOffset(const MemMaps* curMemMaps, uint64_t offset) const
+{
+    for (auto curMemMapItem = curMemMaps->maps_.begin();
+        curMemMapItem != curMemMaps->maps_.end(); ++curMemMapItem) {
+        // check begin and length
+        if (offset >= curMemMapItem->pageoffset_ &&
+            (offset - curMemMapItem->pageoffset_) < (curMemMapItem->end_ - curMemMapItem->begin_)) {
+            HLOGMMM("found fileoffset 0x%" PRIx64 " in map (0x%" PRIx64 " - 0x%" PRIx64
+                    " pageoffset 0x%" PRIx64 ")  from %s",
+                    offset, curMemMapItem->begin_, curMemMapItem->end_,
+                    curMemMapItem->pageoffset_, curMemMaps->name_.c_str());
+            return curMemMapItem - curMemMaps->maps_.begin();
+        }
+    }
+
+    return -1;
 }
 
 const MemMapItem *VirtualThread::FindMapByFileInfo(const std::string name, uint64_t offset) const
@@ -184,6 +188,29 @@ SymbolsFile *VirtualThread::FindSymbolsFileByMap(const MemMapItem &inMap) const
 #endif
     return nullptr;
 }
+
+SymbolsFile *VirtualThread::FindSymbolsFileByName(const std::string &name) const
+{
+    auto search = symbolsFiles_.find(name);
+    if (search != symbolsFiles_.end()) {
+        auto& symbolsFile = search->second;
+        HLOGM("found symbol for map '%s'", name.c_str());
+        symbolsFile->LoadDebugInfo();
+        return symbolsFile.get();
+    }
+#ifdef DEBUG_MISS_SYMBOL
+    if (find(missedSymbolFile_.begin(), missedSymbolFile_.end(), name) ==
+        missedSymbolFile_.end()) {
+        missedSymbolFile_.emplace_back(name);
+        HLOGW("NOT found symbol for map '%s'", name.c_str());
+        for (auto &file : symbolsFiles_) {
+            HLOGW(" we have '%s'", file->filePath_.c_str());
+        }
+    }
+#endif
+    return nullptr;
+}
+
 void VirtualThread::ReportVaddrMapMiss(uint64_t vaddr) const
 {
 #ifdef HIPERF_DEBUG
@@ -201,21 +228,21 @@ void VirtualThread::ReportVaddrMapMiss(uint64_t vaddr) const
 
 bool VirtualThread::ReadRoMemory(uint64_t vaddr, uint8_t *data, size_t size) const
 {
-    const MemMapItem *map = FindMapByAddr(vaddr);
-    if (map != nullptr) {
+    auto [curMemMaps, itemIndex] = virtualruntime_->FindMap(vaddr);
+    if (curMemMaps != nullptr) {
         // found symbols by file name
-        SymbolsFile *symbolsFile = FindSymbolsFileByMap(*map);
+        SymbolsFile *symbolsFile = FindSymbolsFileByName(curMemMaps->name_);
         if (symbolsFile != nullptr) {
-            HLOGM("read vaddr from addr is 0x%" PRIx64 " at '%s'", vaddr - map->begin_,
-                  map->name_.c_str());
-            if (size == symbolsFile->ReadRoMemory(map->FileOffsetFromAddr(vaddr), data, size)) {
+            HLOGM("read vaddr from addr is 0x%" PRIx64 " at '%s'", vaddr - curMemMaps->maps_[itemIndex].begin_,
+                  curMemMaps->name_.c_str());
+            if (size == symbolsFile->ReadRoMemory(curMemMaps->maps_[itemIndex].FileOffsetFromAddr(vaddr), data, size)) {
                 return true;
             } else {
                 return false;
             }
         } else {
             HLOGW("found addr %" PRIx64 " in map but not loaded symbole %s", vaddr,
-                  map->name_.c_str());
+                  curMemMaps->name_.c_str());
         }
     } else {
 #ifdef HIPERF_DEBUG
@@ -371,13 +398,14 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
                 continue;
             }
 
-            memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
             if (!update) {
-                virtualruntime_->FillFilePathId(tempMapName, memMapItem);
+                memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
+                virtualruntime_->FillMapsCache(tempMapName, memMapItem);
                 memMaps.push_back(memMapItem);
                 virtualruntime_->UpdateSymbols(memMapItem.name_);
             } else if (!virtualruntime_->IsSymbolExist(memMapItem.name_)) {
-                virtualruntime_->FillFilePathId(tempMapName, memMapItem);
+                memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
+                virtualruntime_->FillMapsCache(tempMapName, memMapItem);
                 mapsAdded = true;
                 tempMap.push_back(memMapItem);
                 addSymbolFile.emplace(memMapItem.name_);
@@ -412,6 +440,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
         HLOGD("maps no change");
         return false;
     }
+    virtualruntime_->soBegin_ = 0;
     return true;
 }
 

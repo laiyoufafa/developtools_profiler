@@ -44,27 +44,21 @@ void VirtualRuntime::ClearMaps()
     processMemMaps_.clear();
 }
 
-VirtualRuntime::VirtualRuntime()
-{
-    threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
-    threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
-}
-
 VirtualRuntime::VirtualRuntime(const NativeHookConfig& hookConfig): hookConfig_(hookConfig)
 {
-    threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
-    threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
     symbolsFiles_.reserve(SYMBOL_FILES_SIZE);
     if (!hookConfig_.offline_symbolization()) {
         userSymbolCache_.reserve(USER_SYMBOL_CACHE_LIMIT);
     }
 }
+
 VirtualRuntime::~VirtualRuntime()
 {
     HILOG_INFO(LOG_CORE, "%s:%d UserSymbolCache size = %zu", __func__, __LINE__, userSymbolCache_.size());
     HILOG_INFO(LOG_CORE, "Total number of call stack errors: %" PRIu64 "", callStackErrCnt.load());
     ClearMaps();
 }
+
 std::string VirtualRuntime::ReadThreadName(pid_t tid)
 {
     std::string comm = ReadFileToString(StringPrintf("/proc/%d/comm", tid)).c_str();
@@ -100,16 +94,13 @@ VirtualThread &VirtualRuntime::CreateThread(pid_t pid, pid_t tid)
 VirtualThread &VirtualRuntime::GetThread(pid_t pid, pid_t tid)
 {
     HLOGV("find thread %u:%u", pid, tid);
-    pthread_mutex_lock(&threadMapsLock_);
     auto it = userSpaceThreadMap_.find(tid);
     if (it == userSpaceThreadMap_.end()) {
         // we also need thread
         VirtualThread& thr = CreateThread(pid, tid);
-        pthread_mutex_unlock(&threadMapsLock_);
         return thr;
     } else {
         VirtualThread& thr = it->second;
-        pthread_mutex_unlock(&threadMapsLock_);
         return thr;
     }
 }
@@ -262,16 +253,10 @@ bool VirtualRuntime::IsSymbolExist(const std::string& fileName)
     return false;
 }
 
-bool VirtualRuntime::DelSymbolFile(const std::string& fileName)
+void VirtualRuntime::DelSymbolFile(const std::string& fileName)
 {
-    auto search = symbolsFiles_.find(fileName);
-    if (search != symbolsFiles_.end()) {
-        symbolsFiles_.erase(search);
-        return true;
-    }
-    return false;
+    symbolsFiles_.erase(fileName);
 }
-
 
 void VirtualRuntime::UpdateSymbols(std::string fileName)
 {
@@ -352,16 +337,17 @@ const Symbol VirtualRuntime::GetKernelSymbol(uint64_t ip, const std::vector<MemM
 const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thread)
 {
     Symbol vaddrSymbol(ip, thread.name_);
-    const MemMapItem *mmap = thread.FindMapByAddr(ip);
-    if (mmap != nullptr) {
-        SymbolsFile *symbolsFile = thread.FindSymbolsFileByMap(*mmap);
-        if (symbolsFile != nullptr) {
+    auto [curMemMaps, itemIndex] = FindMap(ip);
+    if (curMemMaps != nullptr) {
+        auto symbolsFilesIter = symbolsFiles_.find(curMemMaps->name_);
+        if (symbolsFilesIter != symbolsFiles_.end()) {
+            auto symbolsFile = symbolsFilesIter->second.get();
+            symbolsFile->LoadDebugInfo();
             vaddrSymbol.fileVaddr_ =
-                symbolsFile->GetVaddrInSymbols(ip, mmap->begin_, mmap->pageoffset_);
-            vaddrSymbol.module_ = mmap->nameHold_;
+                symbolsFile->GetVaddrInSymbols(ip, curMemMaps->maps_[itemIndex].begin_,
+                                               curMemMaps->maps_[itemIndex].pageoffset_);
+            vaddrSymbol.module_ = curMemMaps->maps_[itemIndex].nameHold_;
             vaddrSymbol.symbolName_ = vaddrSymbol.Name();
-            HLOGV("found symbol vaddr 0x%" PRIx64 " for runtime vaddr 0x%" PRIx64 " at '%s'",
-                  vaddrSymbol.fileVaddr_, ip, mmap->name_.c_str());
             if (!symbolsFile->SymbolsLoaded()) {
                 symbolsFile->LoadSymbols();
             }
@@ -369,17 +355,15 @@ const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thr
             foundSymbols.taskVaddr_ = ip;
             foundSymbols.symbolName_ = foundSymbols.Name();
             if (!foundSymbols.isValid()) {
-                HLOGW("addr 0x%" PRIx64 " vaddr  0x%" PRIx64 " NOT found in symbol file %s", ip,
-                      vaddrSymbol.fileVaddr_, mmap->name_.c_str());
-                vaddrSymbol.filePathId_ = mmap->filePathId_;
+                vaddrSymbol.filePathId_ = curMemMaps->filePathId_;
                 return vaddrSymbol;
             } else {
-                foundSymbols.filePathId_ = mmap->filePathId_;
+                foundSymbols.filePathId_ = curMemMaps->filePathId_;
                 return foundSymbols;
             }
         } else {
             HLOGW("addr 0x%" PRIx64 " in map but NOT found the symbol file %s", ip,
-                  mmap->name_.c_str());
+                  curMemMaps->name_.c_str());
         }
     } else {
         HLOGW("ReportVaddrMapMiss");
@@ -392,9 +376,9 @@ const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thr
 
 bool VirtualRuntime::GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualThread &thread)
 {
-    const MemMapItem *mmap = thread.FindMapByAddr(ip);
-    if (mmap != nullptr) {
-        auto foundSymbolIter = userSymbolCache_.find(std::pair(ip, mmap->filePathId_));
+    auto [curMemMaps, itemIndex] = FindMap(ip);
+    if (curMemMaps != nullptr) {
+        auto foundSymbolIter = userSymbolCache_.find(std::pair(ip, curMemMaps->filePathId_));
         if (foundSymbolIter != userSymbolCache_.end()) {
             symbol = foundSymbolIter->second;
             return true;
@@ -454,29 +438,27 @@ bool VirtualRuntime::SetSymbolsPaths(const std::vector<std::string> &symbolsPath
     return accessable;
 }
 
-void VirtualRuntime::CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uint64_t& min)
-{
-    auto iter = std::find_if(processMemMaps_.begin(), processMemMaps_.end(), [&](MemMapItem& map) {
-        if (map.name_ == muslPath && (map.type_ & PROT_EXEC)) {
-            return true;
-        }
-        return false;
-    });
-    if (iter == processMemMaps_.end()) {
-        HILOG_INFO(LOG_CORE, "find musl failed!");
-        return;
-    }
-    max = max + iter->begin_ - iter->pageoffset_;
-    min = min + iter->begin_ - iter->pageoffset_;
-}
-
-void VirtualRuntime::FillFilePathId(std::string& currentFileName, MemMapItem& memMapItem)
+void VirtualRuntime::FillMapsCache(std::string& currentFileName, MemMapItem& memMapItem)
 {
     if (currentFileName.compare(memMapItem.name_) != 0) {
         currentFileName = memMapItem.name_;
-        ++memMapFilePathId_;
+        soBegin_ = memMapItem.begin_;
+        mapsCache_[memMapItem.begin_] =
+            MemMaps(memMapItem.begin_, memMapItem.end_, memMapItem.pageoffset_,
+                    memMapItem.type_, ++memMapFilePathId_, memMapItem.name_);
+    } else {
+        if (auto curMemMapsIter = mapsCache_.find(soBegin_);
+                curMemMapsIter != mapsCache_.end()) {
+            auto& curMemMaps = curMemMapsIter->second;
+            curMemMaps.soEnd_ = memMapItem.end_;
+            curMemMaps.maps_.back().end_ = memMapItem.begin_;
+            curMemMaps.maps_.emplace_back(memMapItem.begin_, memMapItem.end_, memMapItem.type_,
+                                          memMapItem.pageoffset_, curMemMaps.name_);
+            if (memMapItem.type_ & PROT_EXEC) {
+                needReportMaps_.push_back(soBegin_);
+            }
+        }
     }
-    memMapItem.filePathId_ = memMapFilePathId_;
 }
 
 inline void VirtualRuntime::FillSymbolNameId(CallFrame& callFrame, Symbol& symbol)
@@ -498,6 +480,53 @@ inline void VirtualRuntime::FillFileSet(CallFrame& callFrame, const Symbol& symb
         callFrame.needReport_ |= FILE_PATH_ID_REPORT;
         fileSet_.insert(symbol.filePathId_);
     }
+}
+
+void VirtualRuntime::HandleMapInfo(uint64_t begin, uint64_t length, uint32_t flags,
+                                   uint64_t offset, const std::string& filePath)
+{
+    if (!(flags & MAP_FIXED) || mapsCache_.empty()) {
+        if (mapsCache_.find(begin) != mapsCache_.end()) {
+            return;
+        }
+        soBegin_ = begin;
+        mapsCache_[begin] = MemMaps(begin, begin + length, offset, flags, ++memMapFilePathId_, filePath);
+        UpdateSymbols(filePath);
+    } else {
+        auto curMemMapsIter = mapsCache_.find(soBegin_);
+        if (curMemMapsIter != mapsCache_.end()) {
+            auto& curMemMaps = curMemMapsIter->second;
+            curMemMaps.soEnd_ = begin + length;
+            curMemMaps.maps_.back().end_ = begin;
+            curMemMaps.maps_.emplace_back(begin, begin + length, (uint16_t)flags, offset, curMemMaps.name_);
+            if (flags & PROT_EXEC) {
+                needReportMaps_.push_back(soBegin_);
+            }
+        }
+    }
+}
+
+void VirtualRuntime::RemoveMaps(uint64_t addr)
+{
+    mapsCache_.erase(addr);
+}
+
+std::pair<MemMaps*, uint32_t> VirtualRuntime::FindMap(uint64_t addr)
+{
+    auto iter = mapsCache_.lower_bound(addr);
+    if (iter != mapsCache_.begin()) {
+        --iter;
+        auto& curMemMaps = iter->second;
+        if (addr >= curMemMaps.soBegin_ && addr < curMemMaps.soEnd_) {
+            for (auto curMemMapItem = curMemMaps.maps_.begin();
+                curMemMapItem != curMemMaps.maps_.end(); ++curMemMapItem) {
+                if (addr >= curMemMapItem->begin_ && addr < curMemMapItem->end_) {
+                    return {&(curMemMaps), curMemMapItem - curMemMaps.maps_.begin()};
+                }
+            }
+        }
+    }
+    return {nullptr, 0};
 }
 } // namespace NativeDaemon
 } // namespace Developtools

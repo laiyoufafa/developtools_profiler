@@ -54,13 +54,7 @@ public:
                   VirtualRuntime* runtime,
                   bool parseFlag = true);
 
-    virtual ~VirtualThread()
-    {
-        if (user_regs != nullptr) {
-            delete []user_regs;
-            user_regs = nullptr;
-        }
-    }
+    virtual ~VirtualThread() {}
 
     std::string ReadThreadName(pid_t tid);
 
@@ -77,15 +71,16 @@ public:
     void CreateMapItem(const std::string filename, uint64_t begin, uint64_t len, uint64_t offset);
     const MemMapItem *FindMapByAddr(uint64_t addr) const;
     const MemMapItem *FindMapByAddr2(uint64_t addr) const;
+    const std::pair<MemMaps*, uint32_t> FindMemMapsByAddr(uint64_t addr) const;
+    int32_t FindMapByOffset(const MemMaps* curMemMaps, uint64_t offset) const;
     const MemMapItem *FindMapByFileInfo(const std::string name, uint64_t offset) const;
     SymbolsFile *FindSymbolsFileByMap(const MemMapItem &inMap) const;
+    SymbolsFile *FindSymbolsFileByName(const std::string &name) const;
     bool ReadRoMemory(uint64_t vaddr, uint8_t *data, size_t size) const;
 #ifdef HIPERF_DEBUG
     void ReportVaddrMapMiss(uint64_t vaddr) const;
 #endif
 public:
-    u64* user_regs;
-    u64 reg_nr;
     // caller want to check if new mmap is legal
     static bool IsLegalFileName(const std::string &filename);
 

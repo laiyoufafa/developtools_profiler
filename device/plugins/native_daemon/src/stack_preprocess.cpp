@@ -34,8 +34,6 @@ constexpr static uint32_t FUNCTION_MAP_LOG_PRINT = 100;
 constexpr static uint32_t FILE_MAP_LOG_PRINT = 10;
 constexpr static uint32_t MAX_BATCH_CNT = 5;
 constexpr static uint32_t LONG_TIME_THRESHOLD = 1000000;
-// dlopen function call frame index for fp mode
-constexpr static uint32_t DLOPEN_FRAME_INDEX = 4;
 
 using namespace OHOS::Developtools::NativeDaemon;
 
@@ -80,8 +78,6 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const
             HILOG_WARN(LOG_CORE, "If you need to save the file, please set the file_name");
         }
     }
-    DlopenRangePreprocess();
-    dlopenFrameIdx_ = hookConfig_.fp_unwind() ? DLOPEN_FRAME_INDEX : DLOPEN_FRAME_INDEX + FILTER_STACK_DEPTH;
 #if defined(__arm__)
     u64regs_.resize(OHOS::HiviewDFX::PERF_REG_ARM_MAX);
 #else
@@ -90,11 +86,7 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const
     callFrames_.reserve(hookConfig_.max_stack_depth());
 }
 
-StackPreprocess::StackPreprocess(bool fpUnwind): fpHookData_(nullptr, nullptr)
-{
-    DlopenRangePreprocess();
-    dlopenFrameIdx_ = fpUnwind ? DLOPEN_FRAME_INDEX : DLOPEN_FRAME_INDEX + FILTER_STACK_DEPTH;
-}
+StackPreprocess::StackPreprocess(bool fpUnwind): fpHookData_(nullptr, nullptr) {}
 
 StackPreprocess::~StackPreprocess()
 {
@@ -169,7 +161,20 @@ void StackPreprocess::TakeResults()
             if (!rawData || isStopTakeData_) {
                 break;
             }
-
+            if (rawData->stackConext->type == MMAP_LIB_TYPE) {
+                BaseStackRawData* mmapRawData = rawData->stackConext;
+                std::string filePath(reinterpret_cast<char *>(rawData->data));
+                HILOG_DEBUG(LOG_CORE,
+                    "MMAP_LIB_TYPE curMmapAddr=%p, MAP_FIXED=%d, PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
+                    mmapRawData->addr, mmapRawData->mmapArgs.flags & MAP_FIXED,
+                    mmapRawData->mmapArgs.flags & PROT_EXEC, mmapRawData->mmapArgs.offset, filePath.data());
+                runtime_instance->HandleMapInfo((uint64_t)mmapRawData->addr, mmapRawData->mallocSize,
+                    mmapRawData->mmapArgs.flags, mmapRawData->mmapArgs.offset, filePath);
+                flushBasicData_ = true;
+                continue;
+            } else if (rawData->stackConext->type == MUNMAP_MSG) {
+                runtime_instance->RemoveMaps((uint64_t)rawData->stackConext->addr);
+            }
             if (!rawData->reportFlag) {
                 ignoreCnts_++;
                 if (ignoreCnts_ % LOG_PRINT_TIMES == 0) {
@@ -217,22 +222,6 @@ void StackPreprocess::TakeResults()
             if (!ret) {
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 continue;
-            }
-            if (!isDlopenRangeValid_) {
-                runtime_instance->CalcDlopenIpRange(libcSoPath_, dlopenIpMax_, dlopenIpMin_);
-                isDlopenRangeValid_ = true;
-            }
-            if (rawData->stackConext->type == MMAP_MSG) {
-                // if mmap msg trigger by dlopen, update maps voluntarily
-                if (callFrames_.size() > dlopenFrameIdx_) {
-                    // for dlopen mmap framme
-                    if (callFrames_[dlopenFrameIdx_].ip_ >= dlopenIpMin_ &&
-                            callFrames_[dlopenFrameIdx_].ip_ < dlopenIpMax_) {
-                        HILOG_DEBUG(LOG_CORE, "mmap msg trigger by dlopen, update maps voluntarily");
-                        runtime_instance->UpdateMaps(rawData->stackConext->pid, rawData->stackConext->tid);
-                        flushBasicData_ = hookConfig_.offline_symbolization() ? true : false;
-                    }
-                }
             }
             if (hookConfig_.save_file() && hookConfig_.file_name() != "") {
                 WriteFrames(rawData, callFrames_);
@@ -399,7 +388,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
     std::vector<CallFrame>& callFrames, BatchNativeHookData& batchNativeHookData)
 {
     if (hookConfig_.offline_symbolization() && flushBasicData_) {
-        SetMapsInfo(-1, rawStack);
+        SetMapsInfo(rawStack->stackConext->pid);
         flushBasicData_ = false;
     }
 
@@ -418,6 +407,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
         !(rawStack->stackConext->type == MEMORY_TAG || rawStack->stackConext->type == PR_SET_VMA_MSG)) {
         stackMapId = GetCallStackId(rawStack, callFrames, batchNativeHookData);
     }
+
     NativeHookData* hookData = batchNativeHookData.add_events();
     hookData->set_tv_sec(rawStack->stackConext->ts.tv_sec);
     hookData->set_tv_nsec(rawStack->stackConext->ts.tv_nsec);
@@ -481,6 +471,7 @@ inline bool StackPreprocess::SetFreeStatisticsData(uint64_t addr)
     }
     return false;
 }
+
 inline void StackPreprocess::SetAllocStatisticsData(const RawStackPtr& rawStack, size_t stackId, bool isExists)
 {
     // if the record exists, it is updated.Otherwise Add
@@ -508,6 +499,7 @@ inline void StackPreprocess::SetAllocStatisticsData(const RawStackPtr& rawStack,
         statisticsPeriodData_[stackId] = &recordIter->second;
     }
 }
+
 uint32_t StackPreprocess::GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData)
 {
     auto it = threadMap_.find(threadName);
@@ -520,7 +512,7 @@ uint32_t StackPreprocess::GetThreadIdx(std::string threadName, BatchNativeHookDa
         thread->set_name(threadName);
         threadMap_[threadName] = threadMap_.size() + 1;
 
-        HILOG_INFO(LOG_CORE, "threadName = %s, functionMap_.size() = %zu\n", threadName.c_str(), threadMap_.size());
+        HILOG_INFO(LOG_CORE, "threadName = %s, threadMap_.size() = %zu\n", threadName.c_str(), threadMap_.size());
         return threadMap_.size();
     }
 }
@@ -598,9 +590,9 @@ inline void StackPreprocess::ReportFilePathMap(CallFrame& callFrame, BatchNative
 {
     if (callFrame.needReport_ & FILE_PATH_ID_REPORT) {
         auto hookData = batchNativeHookData.add_events();
-        FilePathMap* filepathMap = hookData->mutable_file_path();
-        filepathMap->set_id(callFrame.filePathId_);
-        filepathMap->set_name(std::string(callFrame.filePath_));
+        FilePathMap* filePathMap = hookData->mutable_file_path();
+        filePathMap->set_id(callFrame.filePathId_);
+        filePathMap->set_name(std::string(callFrame.filePath_));
     }
 }
 
@@ -617,129 +609,42 @@ inline void StackPreprocess::ReportFrameMap(CallFrame& callFrame, BatchNativeHoo
     }
 }
 
-const std::string StackPreprocess::SearchLibcSoPath()
+void StackPreprocess::SetMapsInfo(pid_t pid)
 {
-    std::string mapContent = ReadFileToString("/proc/self/maps");
-    std::istringstream s(mapContent);
-    std::string line;
-    if (mapContent.size() > 0) {
-        while (std::getline(s, line)) {
-            std::vector<std::string> map = StringSplit(line, " ");
-            for (const auto& item : map) {
-                if (item.find("ld-musl") != std::string::npos) {
-                    return item;
-                }
-            }
-        }
-    }
-    return "";
-}
-
-void StackPreprocess::DlopenRangePreprocess()
-{
-    libcSoPath_ = SearchLibcSoPath();
-    if (libcSoPath_.empty()) {
-        HILOG_ERROR(LOG_CORE, "DlopenRangePreprocess search libc so path failed");
-        return;
-    }
-    using OHOS::Developtools::NativeDaemon::ELF::ElfFile;
-    std::unique_ptr<ElfFile> elfPtr = ElfFile::MakeUnique(libcSoPath_);
-    if (elfPtr == nullptr) {
-        HILOG_ERROR(LOG_CORE, "DlopenRangePreprocess elfPtr is nullptr");
-        return;
-    }
-
-    std::string symSecName;
-    std::string strSecName;
-    if (elfPtr->shdrs_.find(".symtab") != elfPtr->shdrs_.end()) {
-        symSecName = ".symtab";
-        strSecName = ".strtab";
-    } else if (elfPtr->shdrs_.find(".dynsym") != elfPtr->shdrs_.end()) {
-        symSecName = ".dynsym";
-        strSecName = ".dynstr";
-    } else {
-        HILOG_ERROR(LOG_CORE, "DlopenRangePreprocess get symbol failed");
-        return;
-    }
-    const auto &sym = elfPtr->shdrs_[static_cast<const std::string>(symSecName)];
-    const uint8_t* symData = elfPtr->GetSectionData(sym->secIndex_);
-    const auto &str = elfPtr->shdrs_[static_cast<const std::string>(strSecName)];
-    const uint8_t* strData = elfPtr->GetSectionData(str->secIndex_);
-
-    std::string strTable(reinterpret_cast<char*>(const_cast<uint8_t*>(strData)), str->secSize_);
-    std::pair<uint64_t, uint64_t> symbolRange;
-    const std::string dlopenStr = "dlopen";
-    size_t pos = 0;
-    while (true) {
-        if (pos = strTable.find(dlopenStr, pos); pos != std::string::npos) {
-            std::string strTemp(strTable.c_str() + pos);
-            if (strTemp.compare(dlopenStr) != 0) {
-                pos += strTemp.size() + 1;
-                continue;
-            }
-            HILOG_INFO(LOG_CORE, "DlopenRangePreprocess st_name = %zu", pos);
-            if (sym->secEntrySize_ == sizeof(Elf32_Sym)) {
-                symbolRange = elfPtr->GetSymbolRange<Elf32_Sym>(const_cast<uint8_t*>(symData), sym->secSize_, pos);
-            } else {
-                symbolRange = elfPtr->GetSymbolRange<Elf64_Sym>(const_cast<uint8_t*>(symData), sym->secSize_, pos);
-            }
-        }
-        break;
-    }
-
-    uint64_t textVaddr = 0;
-    uint64_t textOffset = 0;
-    if (auto text = elfPtr->shdrs_.find(".text"); text != elfPtr->shdrs_.end()) {
-        textVaddr = elfPtr->shdrs_[".text"]->secVaddr_;
-        textOffset = elfPtr->shdrs_[".text"]->fileOffset_;
-    }
-
-    dlopenIpMax_ = symbolRange.first + symbolRange.second + textOffset - textVaddr;
-    dlopenIpMin_ = symbolRange.first + textOffset - textVaddr;
-    HILOG_INFO(LOG_CORE, "DlopenRangePreprocess st_value = 0x%" PRIx64 ", st_size = 0x%" PRIx64 ","
-        "textOffset = 0x%" PRIx64 ", textVaddr = 0x%" PRIx64 ", dlopenIpMax_ = 0x%" PRIx64 ","
-        "dlopenIpMin_ = 0x%" PRIx64 "", symbolRange.first, symbolRange.second, textOffset, textVaddr,
-        dlopenIpMax_, dlopenIpMin_);
-}
-
-void StackPreprocess::SetMapsInfo(pid_t pid, RawStackPtr rawStack)
-{
-    if (rawStack == nullptr) {
-        runtime_instance->UpdateMaps(pid, pid);
-    }
-
-    uint32_t tempFilePathId = 0;
-    for (auto& item : runtime_instance->GetProcessMaps()) {
-        if (item.isReported) {
+    for (auto& itemSoBegin : runtime_instance->GetNeedReportMaps()) {
+        auto& maps = runtime_instance->GetMapsCache();
+        auto mapsIter = maps.find(itemSoBegin);
+        if (mapsIter == maps.end()) {
             continue;
         }
-        item.isReported = true;
 
-        BatchNativeHookData stackData;
-        if (tempFilePathId != item.filePathId_) {
-            tempFilePathId = item.filePathId_;
-            ElfSymbolTable symbolInfo;
-            GetSymbols(item.name_, symbolInfo);
-            if (symbolInfo.symEntSize == 0) {
-                continue;
-            }
-
-            NativeHookData* hookData = stackData.add_events();
-            FilePathMap* filepathMap = hookData->mutable_file_path();
-            filepathMap->set_id(item.filePathId_);
-            filepathMap->set_name(item.name_);
-            SetSymbolInfo(item.filePathId_, symbolInfo, stackData);
+        ElfSymbolTable symbolInfo;
+        auto& curMemMaps = mapsIter->second;
+        GetSymbols(curMemMaps.name_, symbolInfo);
+        if (symbolInfo.symEntSize == 0) {
+            continue;
         }
-
+        BatchNativeHookData stackData;
         NativeHookData* hookData = stackData.add_events();
-        MapsInfo* map = hookData->mutable_maps_info();
-        map->set_pid(rawStack == nullptr ? pid : rawStack->stackConext->pid);
-        map->set_start(item.begin_);
-        map->set_end(item.end_);
-        map->set_offset(item.pageoffset_);
-        map->set_file_path_id(item.filePathId_);
+        FilePathMap* filepathMap = hookData->mutable_file_path();
+        filepathMap->set_id(curMemMaps.filePathId_);
+        filepathMap->set_name(curMemMaps.name_);
+        SetSymbolInfo(curMemMaps.filePathId_, symbolInfo, stackData);
+
+        for (auto& map : curMemMaps.maps_) {
+            if (map.type_ & PROT_EXEC) {
+                NativeHookData* hookData = stackData.add_events();
+                MapsInfo* mapSerialize = hookData->mutable_maps_info();
+                mapSerialize->set_pid(pid);
+                mapSerialize->set_start(map.begin_);
+                mapSerialize->set_end(map.end_);
+                mapSerialize->set_offset(map.pageoffset_);
+                mapSerialize->set_file_path_id(curMemMaps.filePathId_);
+            }
+        }
         FlushData(stackData);
     }
+    runtime_instance->ClearNeedReportMaps();
 }
 
 void StackPreprocess::SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,
@@ -757,13 +662,6 @@ void StackPreprocess::SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolI
     symTable->set_sym_entry_size(symbolInfo.symEntSize);
     symTable->set_sym_table(symbolInfo.symTable.data(), symbolInfo.symTable.size());
     symTable->set_str_table(symbolInfo.strTable.data(), symbolInfo.strTable.size());
-}
-
-void StackPreprocess::OfflineSymbolizationPreprocess(pid_t pid)
-{
-    SetMapsInfo(pid, nullptr);
-    flushBasicData_ = false;
-    runtime_instance->ClearMaps();
 }
 
 void StackPreprocess::FlushData(BatchNativeHookData& stackData)

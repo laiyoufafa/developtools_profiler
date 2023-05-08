@@ -23,6 +23,43 @@
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
+class MemMaps {
+public:
+    MemMaps() {}
+    MemMaps(uint64_t begin, uint64_t end, uint64_t offset, uint32_t type, uint32_t filePathId, const std::string& name)
+        : soBegin_(begin), soEnd_(end), filePathId_(filePathId), name_(name)
+    {
+        maps_.emplace_back(begin, end, (uint16_t)type, offset, name);
+    }
+    uint64_t soBegin_;
+    uint64_t soEnd_;
+    uint32_t filePathId_ {0}; // for maps item filePath id
+    std::string name_;
+    bool isReported_ {false}; // indicates whether information about item has been reported
+
+    class MemMapItem {
+        public:
+        MemMapItem() {}
+        MemMapItem(uint64_t begin, uint64_t end, uint16_t type, uint64_t offset, std::string_view nameHold)
+            : begin_(begin), end_(end), type_(type), pageoffset_(offset), nameHold_(nameHold) {}
+        uint64_t begin_ {0};
+        uint64_t end_ {0};
+        uint16_t type_ {0}; // rwx : PROT_READ | PROT_WRITE | PROT_EXEC
+        uint16_t flags_ {0}; // ps : MAP_PRIVATE | MAP_SHARED
+        uint64_t pageoffset_ {0};
+        std::string_view nameHold_;
+
+        uint64_t FileOffsetFromAddr(uint64_t addr) const
+        {
+            // real vaddr - real map begin = addr offset in section
+            // section offset + page off set = file offset
+            return addr - begin_ + pageoffset_;
+        }
+    };
+
+    std::vector<MemMapItem> maps_;
+};
+
 class MemMapItem {
 public:
     uint64_t begin_ = 0;

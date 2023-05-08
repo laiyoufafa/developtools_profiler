@@ -15,6 +15,7 @@
 #include "hook_standalone.h"
 #include <functional>
 #include <linux/types.h>
+#include <sys/mman.h>
 #include "utilities.h"
 #include "hook_common.h"
 #include "hook_service.h"
@@ -39,17 +40,10 @@ std::unique_ptr<EpollEventPoller> g_eventPoller_;
 std::shared_ptr<ShareMemoryBlock> g_shareMemoryBlock;
 std::shared_ptr<EventNotifier> g_eventNotifier;
 std::shared_ptr<HookService> g_hookService;
-std::shared_ptr<StackPreprocess> g_stackPreprocess;
 uint32_t g_maxStackDepth;
 bool g_unwindErrorFlag = false;
 bool g_fpUnwind = false;
 std::unique_ptr<FILE, decltype(&fclose)> g_fpHookFile(nullptr, nullptr);
-std::string g_libcSoPath;
-uint32_t g_dlopenFrameIdx;
-uint64_t g_dlopenIpMax;
-uint64_t g_dlopenIpMin;
-bool g_isDlopenRangeValid = false;
-
 
 void WriteFrames(BaseStackRawData *data, const std::vector<OHOS::HiviewDFX::CallFrame>& callFrames)
 {
@@ -72,7 +66,12 @@ void WriteFrames(BaseStackRawData *data, const std::vector<OHOS::HiviewDFX::Call
         return;
     }
 
-    for (size_t idx = 0; idx < callFrames.size(); ++idx) {
+    size_t idx = 0;
+    if (!g_fpUnwind) {
+        idx = FILTER_STACK_DEPTH;
+    }
+
+    for (; idx < callFrames.size(); ++idx) {
         auto item = callFrames[idx];
         (void)fprintf(g_fpHookFile.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
                       item.ip_, item.sp_, std::string(item.symbolName_).c_str(),
@@ -112,7 +111,19 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
             }
             rawData->stackConext = reinterpret_cast<BaseStackRawData *>(const_cast<int8_t *>(data));
             rawData->data = const_cast<int8_t *>(data) + sizeof(BaseStackRawData);
-
+            if (rawData->stackConext->type == MMAP_LIB_TYPE) {
+                BaseStackRawData* mmapRawData = rawData->stackConext;
+                std::string filePath(reinterpret_cast<char *>(rawData->data));
+                HILOG_DEBUG(LOG_CORE,
+                    "MMAP_LIB_TYPE curMmapAddr=%p, MAP_FIXED=%d, PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
+                    mmapRawData->addr, mmapRawData->mmapArgs.flags & MAP_FIXED,
+                    mmapRawData->mmapArgs.flags & PROT_EXEC, mmapRawData->mmapArgs.offset, filePath.data());
+                g_runtimeInstance->HandleMapInfo(reinterpret_cast<uint64_t>(mmapRawData->addr), mmapRawData->mallocSize,
+                    mmapRawData->mmapArgs.flags, mmapRawData->mmapArgs.offset, filePath);
+                return true;
+            } else if (rawData->stackConext->type == MUNMAP_MSG) {
+                g_runtimeInstance->RemoveMaps(reinterpret_cast<uint64_t>(rawData->stackConext->addr));
+            }
             callFrames.clear();
             if (g_fpUnwind) {
                 rawData->fpDepth = (size - sizeof(BaseStackRawData)) / sizeof(uint64_t);
@@ -156,22 +167,6 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 return false;
             }
-            if (!g_isDlopenRangeValid) {
-                g_runtimeInstance->CalcDlopenIpRange(g_libcSoPath, g_dlopenIpMax, g_dlopenIpMin);
-                g_isDlopenRangeValid = true;
-            }
-            if (rawData->stackConext->type == MMAP_MSG) {
-                // if mmap msg trigger by dlopen, update maps voluntarily
-                if (callFrames.size() > g_dlopenFrameIdx) {
-                    // for dlopen mmap framme
-                    if (callFrames[g_dlopenFrameIdx].ip_ >= g_dlopenIpMin &&
-                            callFrames[g_dlopenFrameIdx].ip_ < g_dlopenIpMax) {
-                        HILOG_DEBUG(LOG_CORE, "mmap msg trigger by dlopen, update maps voluntarily");
-                        g_runtimeInstance->UpdateMaps(rawData->stackConext->pid, rawData->stackConext->tid);
-                    }
-                }
-            }
-
             if (!end_flag && duration != 0) {
                 clock_gettime(CLOCK_REALTIME, &end_time);
                 total_time += (end_time.tv_sec - begin_time.tv_sec) * 1000000000LLU +
@@ -222,11 +217,6 @@ void GetClientConfig(const HookData& hookData, ClientConfig& clientConfig)
 bool StartHook(HookData& hookData)
 {
     g_runtimeInstance = std::make_shared<VirtualRuntime>();
-    g_stackPreprocess = std::make_shared<StackPreprocess>(hookData.fpUnwind);
-    g_libcSoPath = g_stackPreprocess->GetLibcSoPath();
-    g_dlopenFrameIdx = g_stackPreprocess->GetDlopenFrameIdx();
-    g_dlopenIpMax = g_stackPreprocess->GetDlopenIpMax();
-    g_dlopenIpMin = g_stackPreprocess->GetDlopenIpMin();
     FILE *fp = fopen(hookData.fileName.c_str(), "wb+");
     if (fp != nullptr) {
         g_fpHookFile.reset();

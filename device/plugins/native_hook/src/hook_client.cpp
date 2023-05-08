@@ -31,6 +31,7 @@
 #include "runtime_stack_range.h"
 #include "get_thread_id.h"
 #include "hook_client.h"
+#include <sys/mman.h>
 
 static pthread_key_t g_disableHookFlag;
 static pthread_key_t g_hookTid;
@@ -54,7 +55,6 @@ constexpr int PID_STR_SIZE = 4;
 constexpr int STATUS_LINE_SIZE = 512;
 constexpr int PID_NAMESPACE_ID = 1; // 1: pid is 1 after pid namespace used
 constexpr int FD_PATH_LENGTH = 64;
-constexpr int FILE_NAME_LENGTH = 128;
 static bool g_isPidChanged = false;
 const MallocDispatchType* GetDispatch()
 {
@@ -350,6 +350,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
+
     rawdata.type = MALLOC_MSG;
     rawdata.pid = static_cast<uint32_t>(g_hookPid);
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
@@ -438,6 +439,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
                            rawdata.regs, sizeof(rawdata.regs) / sizeof(char));
         }
     }
+
     rawdata.type = MALLOC_MSG;
     rawdata.pid = static_cast<uint32_t>(g_hookPid);
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
@@ -493,6 +495,7 @@ void hook_free(void (*free_func)(void*), void* p)
             return;
         }
     }
+
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -551,6 +554,28 @@ void hook_free(void (*free_func)(void*), void* p)
     }
 }
 
+inline void SendMmapLibRawData(int prot, int flags, off_t offset, const std::string& filePath,
+                               const StackRawData& rawdata, std::shared_ptr<HookSocketClient>& holder)
+{
+    StackRawData curRawdata = {{{0}}};
+    curRawdata.addr = rawdata.addr;
+    curRawdata.mallocSize = rawdata.mallocSize;
+    curRawdata.mmapArgs.offset = offset;
+    curRawdata.type = OHOS::Developtools::NativeDaemon::MMAP_LIB_TYPE;
+    if (prot & PROT_EXEC) {
+        curRawdata.mmapArgs.flags |= PROT_EXEC;
+    }
+    if (flags & MAP_FIXED) {
+        curRawdata.mmapArgs.flags |= MAP_FIXED;
+        curRawdata.filePath[0] = '\0';
+        holder->SendStackWithPayload(&curRawdata, sizeof(BaseStackRawData) + 1, nullptr, 0);
+    } else {
+        size_t len = strlen(filePath.c_str()) + 1;
+        (void)strncpy_s(curRawdata.filePath, PATH_MAX + 1, filePath.c_str(), len);
+        holder->SendStackWithPayload(&curRawdata, sizeof(BaseStackRawData) + len, nullptr, 0);
+    }
+}
+
 void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     void* addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
@@ -603,17 +628,29 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = length;
     rawdata.addr = ret;
+    std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
+    auto holder = weakClient.lock();
+    if (holder == nullptr) {
+        return ret;
+    }
     if (fd < 0) {
         prctl(PR_GET_NAME, rawdata.tname);
     } else {
         char path[FD_PATH_LENGTH] = {0};
-        char fileName[FILE_NAME_LENGTH] = {0};
+        char fileName[PATH_MAX + 1] = {0};
         (void)snprintf_s(path, FD_PATH_LENGTH, FD_PATH_LENGTH - 1, "/proc/self/fd/%d", fd);
         ssize_t len = readlink(path, fileName, sizeof(fileName) - 1);
         if (len != -1) {
             fileName[len] = '\0';
             char* p = strrchr(fileName, '/');
             if (p != nullptr) {
+                size_t index = p - fileName + 1; // jump '/'
+                if (index < PATH_MAX - 3) { // 3 is the last "lib"
+                    // 1,2 is the point of fileName
+                    if (fileName[index] == 'l' && fileName[index + 1] == 'i' && fileName[index  + 2] == 'b') {
+                        SendMmapLibRawData(prot, flags, offset, fileName, rawdata, holder);
+                    }
+                }
                 (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, &fileName[p - fileName], MAX_THREAD_NAME - 1);
             } else {
                 (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, fileName, MAX_THREAD_NAME - 1);
@@ -622,17 +659,13 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
             HILOG_ERROR(LOG_CORE, "Set mmap fd linked file name failed!");
         }
     }
-    std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
-    auto holder = weakClient.lock();
-    if (holder != nullptr) {
-        int realSize = 0;
-        if (g_ClientConfig.fpunwind) {
-            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
-        } else {
-            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
-        }
-        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize, true);
+    int realSize = 0;
+    if (g_ClientConfig.fpunwind) {
+        realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+    } else {
+        realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
     }
+    holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     return ret;
 }
 
@@ -690,7 +723,6 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     rawdata.mallocSize = length;
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
-
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
@@ -716,7 +748,7 @@ int hook_prctl(int(*fn)(int, ...),
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
-        BaseStackRawData rawdata = {};
+        BaseStackRawData rawdata = {{0}};
         clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = static_cast<uint32_t>(g_hookPid);
@@ -731,7 +763,7 @@ int hook_prctl(int(*fn)(int, ...),
         std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
         auto holder = weakClient.lock();
         if (holder != nullptr) {
-            holder->SendStack(&rawdata, sizeof(rawdata));
+            holder->SendStackWithPayload(&rawdata, sizeof(rawdata), nullptr, 0);
         }
     }
     return ret;

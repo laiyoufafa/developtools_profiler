@@ -49,29 +49,8 @@ public:
     void SetWriter(const std::shared_ptr<BufferWriter>& writer);
     bool StartTakeResults();
     bool StopTakeResults();
-    void OfflineSymbolizationPreprocess(pid_t pid);
     bool FlushRecordStatistics();
     void SetSerializeMode(bool protobufSerialize);
-
-    std::string GetLibcSoPath()
-    {
-        return libcSoPath_;
-    }
-
-    uint32_t GetDlopenFrameIdx()
-    {
-        return dlopenFrameIdx_;
-    }
-
-    uint64_t GetDlopenIpMax()
-    {
-        return dlopenIpMax_;
-    }
-
-    uint64_t GetDlopenIpMin()
-    {
-        return dlopenIpMin_;
-    }
 
 private:
     using CallFrame = OHOS::Developtools::NativeDaemon::CallFrame;
@@ -99,14 +78,12 @@ private:
     void ReportFilePathMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     void ReportFrameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     uint32_t GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData);
-    void SetMapsInfo(pid_t pid, RawStackPtr rawStack);
+    void SetMapsInfo(pid_t pid);
     void SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,
         BatchNativeHookData& batchNativeHookData);
     void FlushData(BatchNativeHookData& stackData);
     void Flush(const uint8_t* src, size_t size);
     void GetSymbols(const std::string& filePath, ElfSymbolTable& symbols);
-    void DlopenRangePreprocess();
-    const std::string SearchLibcSoPath();
 
     void FillOfflineCallStack(std::vector<CallFrame>& callFrames, size_t idx);
     void FillCallStack(std::vector<CallFrame>& callFrames,
@@ -135,10 +112,6 @@ private:
     uint32_t ignoreCnts_ = 0;
     uint32_t eventCnts_ = 0;
     bool flushBasicData_ {true};
-    std::string libcSoPath_;
-    uint32_t dlopenFrameIdx_ {0};
-    uint64_t dlopenIpMax_ {0};
-    uint64_t dlopenIpMin_ {0};
     std::vector<u64> u64regs_;
     std::vector<CallFrame> callFrames_;
     std::vector<uint64_t> callStack_;
@@ -153,7 +126,6 @@ private:
     // Key is alloc or mmap address, value first is mallocsize, second is recordstatistic data pointer
     std::unordered_map<uint64_t, std::pair<uint64_t, RecordStatistic*>> allocAddrMap_ {ALLOC_ADDRMAMP_SIZE};
     bool isProtobufSerialize_ = true;
-    bool isDlopenRangeValid_ = false;
     // used for plugin data
     clockid_t pluginDataClockId_ = CLOCK_REALTIME;
     // used for clac wait time in StackDataRepeater::TakeRawData() or statistics HookData

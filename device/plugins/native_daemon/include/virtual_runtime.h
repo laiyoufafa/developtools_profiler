@@ -45,7 +45,7 @@ constexpr static size_t FILTER_STACK_DEPTH = 2;
 
 class VirtualRuntime {
 public:
-    VirtualRuntime();
+    VirtualRuntime() = default;
     VirtualRuntime(const NativeHookConfig& hookConfig);
     virtual ~VirtualRuntime();
     // thread need hook the record
@@ -82,8 +82,26 @@ public:
     bool GetSymbolName(pid_t pid, pid_t tid, std::vector<OHOS::HiviewDFX::CallFrame>& callFrames, int offset,
         bool first);
     void ClearMaps();
-    void CalcDlopenIpRange(std::string& muslPath, uint64_t& max, uint64_t& min);
-    void FillFilePathId(std::string& currentFileName, MemMapItem& memMapItem);
+    void FillMapsCache(std::string& currentFileName, MemMapItem& memMapItem);
+    void HandleMapInfo(uint64_t begin, uint64_t length, uint32_t flags, uint64_t offset, const std::string& filePath);
+    void RemoveMaps(uint64_t addr);
+    std::vector<uint64_t>& GetNeedReportMaps()
+    {
+        return needReportMaps_;
+    }
+
+    void ClearNeedReportMaps()
+    {
+        needReportMaps_.clear();
+    }
+
+    std::map<uint64_t, MemMaps>& GetMapsCache()
+    {
+        return mapsCache_;
+    }
+
+    std::pair<MemMaps*, uint32_t> FindMap(uint64_t addr);
+    uint64_t soBegin_ {0};
     // debug time
 #ifdef HIPERF_DEBUG_TIME
     std::chrono::microseconds updateSymbolsTimes_ = std::chrono::microseconds::zero();
@@ -95,7 +113,7 @@ public:
     const bool loadSymboleWhenNeeded_ = true; // thie is a feature config
     void UpdateSymbols(std::string filename);
     bool IsSymbolExist(const std::string& fileName);
-    bool DelSymbolFile(const std::string& fileName);
+    void DelSymbolFile(const std::string& fileName);
     void UpdateMaps(pid_t pid, pid_t tid);
     std::vector<MemMapItem>& GetProcessMaps()
     {
@@ -137,8 +155,6 @@ private:
         }
     };
     OHOS::HiviewDFX::CallStack callstack_;
-    // pid map with user space thread
-    pthread_mutex_t threadMapsLock_;
     std::map<pid_t, VirtualThread> userSpaceThreadMap_;
     // not pid , just memmap
     std::vector<MemMapItem> kernelSpaceMemMaps_;
@@ -168,11 +184,12 @@ private:
 
     friend class VirtualRuntimeTest;
     friend class VirtualThread;
-    pthread_mutex_t threadMemMapsLock_;
     std::vector<MemMapItem> processMemMaps_;
     std::unordered_set<uint64_t> failedIPs_;
     const NativeHookConfig hookConfig_;
     uint32_t memMapFilePathId_ = 0;
+    std::map<uint64_t, MemMaps> mapsCache_; // key is memMap soBegin, value is MemMaps
+    std::vector<uint64_t> needReportMaps_; // element is memMap soBegin
 };
 } // namespace NativeDaemon
 } // namespace Developtools
