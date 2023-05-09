@@ -59,7 +59,7 @@ bool HookService::StartService(const std::string& unixSocketName)
 bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size)
 {
     if (size != sizeof(int)) {
-        HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error");
+        HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error, pid_ = %d, size = %d", pid_, size);
     }
     int peerConfig = *const_cast<int *>(reinterpret_cast<const int *>(buf));
     if (peerConfig == -1) {

@@ -86,7 +86,7 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
 bool HookSocketClient::SendStack(const void* data, size_t size)
 {
     if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
-        return true;
+        return false;
     }
 
     if (!unixSocketClient_->SendHeartBeat()) {
@@ -100,17 +100,13 @@ bool HookSocketClient::SendStack(const void* data, size_t size)
 }
 
 bool HookSocketClient::SendStackWithPayload(const void* data, size_t size, const void* payload,
-    size_t payloadSize, bool forceFlush)
+    size_t payloadSize)
 {
     if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
-        return true;
+        return false;
     }
 
     stackWriter_->WriteWithPayloadTimeout(data, size, payload, payloadSize);
-    if (forceFlush) {
-        stackWriter_->Flush();
-        return true;
-    }
     g_flushCount++;
     if (g_flushCount % FLUSH_FLAG == 0) {
         stackWriter_->Flush();

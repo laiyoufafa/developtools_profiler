@@ -264,9 +264,6 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_, pluginDataClockId);
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "Create StackPreprocess FAIL");
     stackPreprocess_->SetWriter(g_buffWriter);
-    if (hookConfig_.offline_symbolization() && pid_ != 0) {
-        stackPreprocess_->OfflineSymbolizationPreprocess(pid_);
-    }
     return true;
 }
 
@@ -291,6 +288,9 @@ void HookManager::ReadShareMemory()
 
             rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->baseStackData.get());
             rawStack->data = rawStack->baseStackData.get() + sizeof(BaseStackRawData);
+            if (rawStack->stackConext->type == MMAP_LIB_TYPE) {
+                return true;
+            }
             rawStack->reportFlag = true;
             rawStack->reduceStackFlag = false;
             if (hookConfig_.fp_unwind()) {

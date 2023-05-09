@@ -306,7 +306,7 @@ bool ElfFile::ParseSymNamesStr()
         return false;
     }
     if (memset_s(secBuf, secSize, '\0', secSize) != EOK) {
-        HLOGE("memset failed");
+        HLOGE("memset_s failed");
     }
     ret = ReadFile(secBuf, secSize);
     HLOG_ASSERT(ret == static_cast<int64_t>(secSize));
