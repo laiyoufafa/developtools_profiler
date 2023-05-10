@@ -62,6 +62,7 @@ struct RandomWriteCtx;
 
 /**
  * @brief get memory of the specified length
+ * @param ctx : writing context
  * @param size : The byte counts to be used
  * @param memory : output current target memory pointer
  * @param offset : output current offset relative to the head of writing
@@ -71,6 +72,7 @@ typedef bool (*GetMemoryFunc)(RandomWriteCtx* ctx, uint32_t size, uint8_t** memo
 
 /**
  * @brief seek to the specified offset for writing
+ * @param ctx : writing context
  * @param offset : offset relative to the head of writing
  * @return : Return true for success and false for failure
  */

@@ -55,7 +55,7 @@ public:
     }
 
     // Swap variable style. e.g: cpu_plugin_config to cpuPluginConfig
-    std::string SwapName(std::string s)
+    std::string SwapName(std::string& s)
     {
         std::string ret = "";
         bool b = true;
@@ -365,11 +365,6 @@ public:
         return "";
     }
 
-    void CollectContext()
-    {
-        return;
-    }
-
     void GenSurfix()
     {
         printer_->Print("} // namespace ProtoEncoder\n");
@@ -389,7 +384,7 @@ private:
     std::string headFileName_ = "";
     std::vector<std::string> namespaces_;
     const FileDescriptor* const fileContent_;
-    std::vector<const Descriptor*> stack;
+    std::vector<const Descriptor*> stack_;
     std::vector<const EnumDescriptor*> enums_;
     Printer* printer_;
 };
