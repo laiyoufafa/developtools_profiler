@@ -26,7 +26,7 @@ class OptGeneratorImpl {
 public:
     explicit OptGeneratorImpl(const FileDescriptor* file) : fileContent_(file), printer_(nullptr) {}
 
-    std::string GetPrefix(std::string fileName)
+    std::string GetPrefix(const std::string& fileName)
     {
         std::string prefix = "";
         for (size_t i = 0; i < fileName.length(); i++) {
@@ -38,7 +38,7 @@ public:
         return prefix;
     }
 
-    std::string SetNames(std::string fileName, std::string packageName)
+    std::string SetNames(const std::string& fileName, const std::string& packageName)
     {
         fileName_ = fileName;
         packageName_ = packageName + "::";
@@ -61,7 +61,7 @@ public:
             char c = s[i];
             if (c == '_') {
                 b = true;
-            } else if (b && c >= 'a' && c <= 'z') {
+            } else if (b && islower(c)) {
                 ret += (c + 'A' - 'a');
                 b = false;
             } else {
@@ -132,9 +132,9 @@ public:
             for (int j = 0; j < message->nested_type_count(); ++j) {
                 const Descriptor* nestmessage = message->nested_type(j);
                 printer_->Print(
-                "class @name@ : public BaseMessage {\n"
-                " public:\n",
-                "name", nestmessage->name());
+                    "class @name@ : public BaseMessage {\n"
+                    " public:\n",
+                    "name", nestmessage->name());
                 printer_->Indent();
                 printer_->Print("@name@() = default;\n", "name", nestmessage->name());
                 printer_->Print(
@@ -167,7 +167,7 @@ public:
         for (int i = 0; i < message->field_count(); ++i) {
             const FieldDescriptor* field = message->field(i);
             printer_->Print("static const uint32_t FIELDID_@name@ = @id@;\n",
-            "name", field->name(), "id", std::to_string(field->number()));
+                "name", field->name(), "id", std::to_string(field->number()));
         }
     }
 
@@ -378,7 +378,6 @@ private:
     std::string baseName_ = "";
     std::string packageName_ = "";
     std::string headFileName_ = "";
-    //std::string header_ = "";
     std::vector<std::string> namespaces_;
     const FileDescriptor* const fileContent_;
     std::vector<const Descriptor*> stack;
@@ -396,16 +395,16 @@ bool ProtoEncoderGenerator::Generate(const google::protobuf::FileDescriptor* fil
                                      std::string* error) const
 {
     auto pcsp = std::make_shared<OptGeneratorImpl>(file);
-    std::string base_name = pcsp->SetNames(file->name(), file->package());
-    std::unique_ptr<::google::protobuf::io::ZeroCopyOutputStream> header_output(context->Open(base_name +
+    std::string baseName = pcsp->SetNames(file->name(), file->package());
+    std::unique_ptr<::google::protobuf::io::ZeroCopyOutputStream> headerOutput(context->Open(baseName +
                                                                                               ".pbencoder.h"));
-    std::unique_ptr<::google::protobuf::io::ZeroCopyOutputStream> source_output(context->Open(base_name +
+    std::unique_ptr<::google::protobuf::io::ZeroCopyOutputStream> sourceOutput(context->Open(baseName +
                                                                                               ".pbencoder.cc"));
-    Printer h_printer(header_output.get(), '@');
-    pcsp->SetPrinter(&h_printer);
+    Printer hPrinter(headerOutput.get(), '@');
+    pcsp->SetPrinter(&hPrinter);
     pcsp->GenHeader();
 
-    Printer cc_printer(source_output.get(), '@');
-    cc_printer.Print("// empty\n");
+    Printer ccPrinter(sourceOutput.get(), '@');
+    ccPrinter.Print("// empty\n");
     return true;
 }

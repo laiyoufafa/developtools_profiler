@@ -58,7 +58,7 @@ typedef int (*PluginSessionStartCallback)(const uint8_t* configData, uint32_t co
  */
 typedef int (*PluginReportResultCallback)(uint8_t* bufferData, uint32_t bufferSize);
 
-typedef struct RandomWriteCtx RandomWriteCtx;
+struct RandomWriteCtx;
 
 /**
  * @brief get memory of the specified length
@@ -178,7 +178,7 @@ struct WriterStruct {
     /**
      * data encoding method, true is protobuf, false is protoencoder, default is true for UT.
      */
-    bool protobufSerialize = true;
+    bool isProtobufSerialize = true;
 };
 
 /**
