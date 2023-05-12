@@ -44,7 +44,7 @@ SliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 SliceTable::Cursor::~Cursor() {}
 
-int SliceTable::Cursor::Column(int column) const
+int32_t SliceTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case TS: {

@@ -33,32 +33,32 @@ enum Third_Party_Wasm_Id {
 class SDKDataParser : public HtracePluginTimeParser {
 public:
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
-    using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int, int)>;
+    using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int32_t, int32_t)>;
     SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~SDKDataParser(){};
 
     // third_party
-    int CreateTableByJson();
-    int SetTableName(const char* counterTableName,
-                     const char* counterObjectTableName,
-                     const char* sliceTableName,
-                     const char* sliceObjectName);
-    int GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction);
-    int GetPluginName(std::string pluginName);
-    int ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFunction);
-    int ParserData(const uint8_t* data, int len, int componentId);
-    int AppendCounterObject(int counterId, const char* columnName);
-    int AppendCounter(int counterId, uint64_t ts, int value);
-    int AppendSliceObject(int sliceId, const char* columnName);
-    int AppendSlice(int sliceId, uint64_t ts, uint64_t endTs, int value);
+    int32_t CreateTableByJson();
+    int32_t SetTableName(const char* counterTableName,
+                         const char* counterObjectTableName,
+                         const char* sliceTableName,
+                         const char* sliceObjectName);
+    int32_t GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction);
+    int32_t GetPluginName(std::string pluginName);
+    int32_t ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFunction);
+    int32_t ParserData(const uint8_t* data, int32_t len, int32_t componentId);
+    int32_t AppendCounterObject(int32_t counterId, const char* columnName);
+    int32_t AppendCounter(int32_t counterId, uint64_t ts, int32_t value);
+    int32_t AppendSliceObject(int32_t sliceId, const char* columnName);
+    int32_t AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, int32_t value);
 
 private:
-    int CreateCounterObjectTable(const std::string& tableName);
-    int CreateCounterTable(const std::string& tableName);
-    int CreateSliceObjectTable(const std::string& tableName);
-    int CreateSliceTable(const std::string& tableName);
-    int ParserClock(const uint8_t* data, int len);
-    int UpdateJson();
+    int32_t CreateCounterObjectTable(const std::string& tableName);
+    int32_t CreateCounterTable(const std::string& tableName);
+    int32_t CreateSliceObjectTable(const std::string& tableName);
+    int32_t CreateSliceTable(const std::string& tableName);
+    int32_t ParserClock(const uint8_t* data, int32_t len);
+    int32_t UpdateJson();
 
 public:
     std::string counterTableName_ = "counter_table";

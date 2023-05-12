@@ -44,7 +44,7 @@ CpuUsageInfoTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* ta
 
 CpuUsageInfoTable::Cursor::~Cursor() {}
 
-int CpuUsageInfoTable::Cursor::Column(int column) const
+int32_t CpuUsageInfoTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case TS: {
@@ -68,7 +68,7 @@ int CpuUsageInfoTable::Cursor::Column(int column) const
             break;
         }
         case THREADS: {
-            sqlite3_result_int(context_, static_cast<int>(cpuUsageInfoObj_.Threads()[CurrentRow()]));
+            sqlite3_result_int(context_, static_cast<int32_t>(cpuUsageInfoObj_.Threads()[CurrentRow()]));
             break;
         }
         default:

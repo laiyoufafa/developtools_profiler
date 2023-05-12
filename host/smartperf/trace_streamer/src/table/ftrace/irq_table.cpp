@@ -98,7 +98,7 @@ void IrqTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
 void IrqTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -154,7 +154,7 @@ IrqTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 IrqTable::Cursor::~Cursor() {}
 
-int IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -190,7 +190,7 @@ int IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
     return SQLITE_OK;
 }
 
-int IrqTable::Cursor::Column(int column) const
+int32_t IrqTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

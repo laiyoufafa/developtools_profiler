@@ -102,7 +102,7 @@ void HtraceHisyseventParser::ArrayDataParse(JsonData jData,
                                             size_t maxArraySize,
                                             uint64_t serial)
 {
-    for (int j = 0; j < maxArraySize; j++) {
+    for (int32_t j = 0; j < maxArraySize; j++) {
         for (auto itor = arrayIndex.begin(); itor != arrayIndex.end(); itor++) {
             auto value = jData.value[*itor][j];
             std::string key = jData.key[*itor];
@@ -123,7 +123,7 @@ void HtraceHisyseventParser::ArrayDataParse(JsonData jData,
 }
 void HtraceHisyseventParser::CommonDataParser(JsonData jData, DataIndex eventSourceIndex, uint64_t serial)
 {
-    for (int j = 0; j < jData.key.size(); j++) {
+    for (int32_t j = 0; j < jData.key.size(); j++) {
         std::string key = jData.key[j];
         auto value = jData.value[j];
         DataIndex keyIndex = traceDataCache_->GetDataIndex(key);
@@ -173,7 +173,7 @@ void HtraceHisyseventParser::Parse(HisyseventInfo& tracePacket, uint64_t ts)
         isDeviceState = false;
     }
     json jMessage;
-    for (int i = 0; i < tracePacket.info_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.info_size(); i++) {
         if (tracePacket.info(i).raw_content().front() != '{' || tracePacket.info(i).raw_content().back() != '}') {
             continue;
         }

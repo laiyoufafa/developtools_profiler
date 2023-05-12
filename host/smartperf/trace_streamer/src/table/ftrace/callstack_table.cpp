@@ -100,7 +100,7 @@ void CallStackTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInf
 void CallStackTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -156,7 +156,7 @@ CallStackTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table
 
 CallStackTable::Cursor::~Cursor() {}
 
-int CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -201,7 +201,7 @@ int CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** 
     return SQLITE_OK;
 }
 
-int CallStackTable::Cursor::Column(int col) const
+int32_t CallStackTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case ID:

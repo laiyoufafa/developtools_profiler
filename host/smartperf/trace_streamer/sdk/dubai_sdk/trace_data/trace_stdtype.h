@@ -70,26 +70,26 @@ class GpuCounterObject : public CacheBase {
 public:
     GpuCounterObject() = default;
     ~GpuCounterObject() = default;
-    void AppendNewData(int counterId, std::string counterName);
-    const std::deque<int>& CounterId() const;
+    void AppendNewData(int32_t counterId, std::string counterName);
+    const std::deque<int32_t>& CounterId() const;
     const std::deque<std::string>& CounterName() const;
 
 private:
-    std::deque<int> counterId_ = {};
+    std::deque<int32_t> counterId_ = {};
     std::deque<std::string> counterName_ = {};
 };
 class GpuCounter : public CacheBase {
 public:
     GpuCounter() = default;
     ~GpuCounter() = default;
-    void AppendNewData(uint64_t ts, int counterId, double value);
+    void AppendNewData(uint64_t ts, int32_t counterId, double value);
     const std::deque<uint64_t>& TimeStamp() const;
-    const std::deque<int>& CounterId() const;
+    const std::deque<int32_t>& CounterId() const;
     const std::deque<double>& Value() const;
 
 private:
     std::deque<uint64_t> ts_ = {};
-    std::deque<int> counterId_ = {};
+    std::deque<int32_t> counterId_ = {};
     std::deque<double> value_ = {};
 };
 
@@ -97,20 +97,20 @@ class SliceObject : public CacheBase {
 public:
     SliceObject() = default;
     ~SliceObject() = default;
-    void AppendNewData(int sliceId, std::string sliceName);
-    const std::deque<int>& SliceId() const;
+    void AppendNewData(int32_t sliceId, std::string sliceName);
+    const std::deque<int32_t>& SliceId() const;
     const std::deque<std::string>& SliceName() const;
 
 private:
-    std::deque<int> sliceId_ = {};
+    std::deque<int32_t> sliceId_ = {};
     std::deque<std::string> sliceName_ = {};
 };
 class SliceData : public CacheBase {
 public:
     SliceData() = default;
     ~SliceData() = default;
-    void AppendNewData(int sliceId, uint64_t startTs, uint64_t endTs, std::string start_time, std::string end_time, double value);
-    const std::deque<int>& SliceId() const;
+    void AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs, std::string start_time, std::string end_time, double value);
+    const std::deque<int32_t>& SliceId() const;
     const std::deque<uint64_t>& TimeStamp() const;
     const std::deque<uint64_t>& EndTs() const;
     const std::deque<double>& Value() const;
@@ -119,7 +119,7 @@ public:
 
 private:
     std::deque<uint64_t> startTs_ = {};
-    std::deque<int> sliceId_ = {};
+    std::deque<int32_t> sliceId_ = {};
     std::deque<uint64_t> endTs_ = {};
     std::deque<double> value_ = {};
     std::deque<std::string> starttime_ = {};

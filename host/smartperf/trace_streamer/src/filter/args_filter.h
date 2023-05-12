@@ -36,7 +36,7 @@ public:
     ~ArgsFilter() override;
     uint32_t NewArgs(const ArgsSet& args);
     uint32_t AppendArgs(const ArgsSet& args, const size_t argSetId);
-    int count_ = 0;
+    int32_t count_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

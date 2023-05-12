@@ -12,21 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <dirent.h>
 #include <memory>
 #include "htrace_js_memory_parser.h"
 #include "clock_filter.h"
+#include "fcntl.h"
+#include "file.h"
 #include "htrace_event_parser.h"
 #include "process_filter.h"
 #include "stat_filter.h"
+#include "unistd.h"
 namespace SysTuning {
 namespace TraceStreamer {
 namespace jsonns {
-const int OFFSET_FIRST = 1;
-const int OFFSET_SECOND = 2;
-const int OFFSET_THIRD = 3;
-const int OFFSET_FOURTH = 4;
-const int OFFSET_FIFTH = 5;
-const int OFFSET_SIXTH = 6;
+const int32_t OFFSET_FIRST = 1;
+const int32_t OFFSET_SECOND = 2;
+const int32_t OFFSET_THIRD = 3;
+const int32_t OFFSET_FOURTH = 4;
+const int32_t OFFSET_FIFTH = 5;
+const int32_t OFFSET_SIXTH = 6;
 struct Meta {
     std::vector<std::string> nodeFields;
     std::vector<std::vector<std::string>> nodeTypes;
@@ -39,19 +43,19 @@ struct Meta {
 };
 struct Snapshot {
     Meta meta;
-    int nodeCount;
-    int edgeCount;
-    int traceFunctionCount;
+    int32_t nodeCount;
+    int32_t edgeCount;
+    int32_t traceFunctionCount;
 };
 void from_json(const json& j, Meta& v)
 {
-    for (int i = 0; i < j["node_fields"].size(); i++) {
+    for (int32_t i = 0; i < j["node_fields"].size(); i++) {
         v.nodeFields.emplace_back(j["node_fields"][i]);
     }
-    for (int i = 0; i < j["node_types"].size(); i++) {
+    for (int32_t i = 0; i < j["node_types"].size(); i++) {
         std::vector<std::string> nodeTypes;
         if (j["node_types"][i].is_array()) {
-            for (int m = 0; m < j["node_types"][i].size(); m++) {
+            for (int32_t m = 0; m < j["node_types"][i].size(); m++) {
                 nodeTypes.emplace_back(j["node_types"][i][m]);
             }
             v.nodeTypes.emplace_back(nodeTypes);
@@ -60,13 +64,13 @@ void from_json(const json& j, Meta& v)
             v.nodeTypes.emplace_back(nodeTypes);
         }
     }
-    for (int i = 0; i < j["edge_fields"].size(); i++) {
+    for (int32_t i = 0; i < j["edge_fields"].size(); i++) {
         v.edgeFields.emplace_back(j["edge_fields"][i]);
     }
-    for (int i = 0; i < j["edge_types"].size(); i++) {
+    for (int32_t i = 0; i < j["edge_types"].size(); i++) {
         std::vector<std::string> edgeTypes;
         if (j["edge_types"][i].is_array()) {
-            for (int m = 0; m < j["edge_types"][i].size(); m++) {
+            for (int32_t m = 0; m < j["edge_types"][i].size(); m++) {
                 edgeTypes.emplace_back(j["edge_types"][i][m]);
             }
             v.edgeTypes.emplace_back(edgeTypes);
@@ -75,16 +79,16 @@ void from_json(const json& j, Meta& v)
             v.edgeTypes.emplace_back(edgeTypes);
         }
     }
-    for (int i = 0; i < j["trace_function_info_fields"].size(); i++) {
+    for (int32_t i = 0; i < j["trace_function_info_fields"].size(); i++) {
         v.traceFunctionInfoFields.emplace_back(j["trace_function_info_fields"][i]);
     }
-    for (int i = 0; i < j["trace_node_fields"].size(); i++) {
+    for (int32_t i = 0; i < j["trace_node_fields"].size(); i++) {
         v.traceNodeFields.emplace_back(j["trace_node_fields"][i]);
     }
-    for (int i = 0; i < j["sample_fields"].size(); i++) {
+    for (int32_t i = 0; i < j["sample_fields"].size(); i++) {
         v.sampleFields.emplace_back(j["sample_fields"][i]);
     }
-    for (int i = 0; i < j["location_fields"].size(); i++) {
+    for (int32_t i = 0; i < j["location_fields"].size(); i++) {
         v.locationFields.emplace_back(j["location_fields"][i]);
     }
     return;
@@ -108,26 +112,28 @@ struct Nodes {
     std::vector<uint32_t> traceNodeIds;
     std::vector<uint32_t> detachedness;
 };
-const int NODES_SINGLE_LENGTH = 7;
+const int32_t NODES_SINGLE_LENGTH = 7;
 std::vector<uint32_t> g_fromNodeIds;
 std::vector<uint32_t> g_ids;
 void from_json(const json& j, Nodes& v)
 {
-    int edgeIndex = 0;
-    for (int i = 0; i < j.size() / NODES_SINGLE_LENGTH; i++) {
+    int32_t edgeIndex = 0;
+    for (int32_t i = 0; i < j.size() / NODES_SINGLE_LENGTH; i++) {
         v.types.emplace_back(j[i * NODES_SINGLE_LENGTH]);
         v.names.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FIRST]);
         v.ids.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SECOND]);
         v.selfSizes.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_THIRD]);
         v.edgeCounts.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FOURTH]);
-        for (int m = edgeIndex; m < edgeIndex + v.edgeCounts.at(i); m++) {
+        for (int32_t m = edgeIndex; m < edgeIndex + v.edgeCounts.at(i); m++) {
             g_fromNodeIds.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SECOND]);
         }
         edgeIndex += v.edgeCounts.at(i);
         v.traceNodeIds.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FIFTH]);
         v.detachedness.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SIXTH]);
     }
-    g_ids = v.ids;
+    for (int32_t m = 0; m < j.size(); m++) {
+        g_ids.emplace_back(j[m]);
+    }
 }
 
 struct Edges {
@@ -137,11 +143,11 @@ struct Edges {
     std::vector<uint32_t> fromNodeIds;
     std::vector<uint32_t> toNodeIds;
 };
-const int EDGES_SINGLE_LENGTH = 3;
+const int32_t EDGES_SINGLE_LENGTH = 3;
 void from_json(const json& j, Edges& v)
 {
     v.fromNodeIds = g_fromNodeIds;
-    for (int i = 0; i < j.size() / EDGES_SINGLE_LENGTH; i++) {
+    for (int32_t i = 0; i < j.size() / EDGES_SINGLE_LENGTH; i++) {
         v.types.emplace_back(j[i * EDGES_SINGLE_LENGTH]);
         v.nameOrIndexes.emplace_back(j[i * EDGES_SINGLE_LENGTH + OFFSET_FIRST]);
         v.toNodes.emplace_back(j[i * EDGES_SINGLE_LENGTH + OFFSET_SECOND]);
@@ -156,10 +162,10 @@ struct Location {
     std::vector<uint32_t> lines;
     std::vector<uint32_t> columns;
 };
-const int LOCATION_SINGLE_LENGTH = 4;
+const int32_t LOCATION_SINGLE_LENGTH = 4;
 void from_json(const json& j, Location& v)
 {
-    for (int i = 0; i < j.size() / LOCATION_SINGLE_LENGTH; i++) {
+    for (int32_t i = 0; i < j.size() / LOCATION_SINGLE_LENGTH; i++) {
         v.objectIndexes.emplace_back(j[i * LOCATION_SINGLE_LENGTH]);
         v.scriptIds.emplace_back(j[i * LOCATION_SINGLE_LENGTH + OFFSET_FIRST]);
         v.lines.emplace_back(j[i * LOCATION_SINGLE_LENGTH + OFFSET_SECOND]);
@@ -171,12 +177,12 @@ struct Sample {
     std::vector<uint32_t> timestampUs;
     std::vector<uint32_t> lastAssignedIds;
 };
-const int SAMPLE_SINGLE_LENGTH = 2;
+const int32_t SAMPLE_SINGLE_LENGTH = 2;
 void from_json(const json& j, Sample& v)
 {
-    v.lastAssignedIds = g_ids;
-    for (int i = 0; i < j.size() / SAMPLE_SINGLE_LENGTH; i++) {
+    for (int32_t i = 0; i < j.size() / SAMPLE_SINGLE_LENGTH; i++) {
         v.timestampUs.emplace_back(j[i * SAMPLE_SINGLE_LENGTH]);
+        v.lastAssignedIds.emplace_back(j[i * SAMPLE_SINGLE_LENGTH + OFFSET_FIRST]);
     }
 }
 
@@ -185,7 +191,7 @@ struct Strings {
 };
 void from_json(const json& j, Strings& v)
 {
-    for (int i = 0; i < j.size(); i++) {
+    for (int32_t i = 0; i < j.size(); i++) {
         v.strings.emplace_back(j[i]);
     }
 }
@@ -198,10 +204,10 @@ struct TraceFuncInfo {
     std::vector<uint32_t> lines;
     std::vector<uint32_t> columns;
 };
-const int TRACE_FUNC_INFO_SINGLE_LENGTH = 6;
+const int32_t TRACE_FUNC_INFO_SINGLE_LENGTH = 6;
 void from_json(const json& j, TraceFuncInfo& v)
 {
-    for (int i = 0; i < j.size() / TRACE_FUNC_INFO_SINGLE_LENGTH; i++) {
+    for (int32_t i = 0; i < j.size() / TRACE_FUNC_INFO_SINGLE_LENGTH; i++) {
         v.functionIds.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH]);
         v.names.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_FIRST]);
         v.scriptNames.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_SECOND]);
@@ -220,52 +226,57 @@ struct TraceTree {
 };
 
 struct ParentFunc {
-public:
     uint32_t id;
     uint32_t functionInfoIndex;
     uint32_t count;
     uint32_t size;
-    std::vector<ParentFunc> children;
+    std::vector<std::unique_ptr<ParentFunc>> children;
     ParentFunc* parent = nullptr;
+    ParentFunc()
+    {
+        id = 0;
+        functionInfoIndex = 0;
+        count = 0;
+        size = 0;
+    }
 };
 
 class TraceParser {
 public:
-    void parse_trace_node(const json& array, std::vector<ParentFunc>& funcList, ParentFunc* parent = nullptr)
+    void parse_trace_node(const json& array,
+                          std::vector<std::unique_ptr<ParentFunc>>& funcList,
+                          ParentFunc* parent = nullptr)
     {
-        int singleLength = 5;
-        int functionCount = array.size() / singleLength;
-        for (int i = 0; i < functionCount; ++i) {
-            ParentFunc item;
+        int32_t singleLength = 5;
+        int32_t functionCount = array.size() / singleLength;
+        for (int32_t i = 0; i < functionCount; ++i) {
+            auto item = std::make_unique<ParentFunc>();
             if (parent != nullptr) {
-                item.parent = parent;
-                parent->children.push_back(std::move(funcList.back()));
+                item->parent = parent;
             }
-            item.id = array[i * singleLength];
-            item.functionInfoIndex = array[i * singleLength + OFFSET_FIRST];
-            item.count = array[i * singleLength + OFFSET_SECOND];
-            item.size = array[i * singleLength + OFFSET_THIRD];
-            json childrenArray;
-            childrenArray.emplace_back(array.begin() + i * singleLength + OFFSET_FOURTH,
-                                       array.begin() + (i + OFFSET_FIRST) * singleLength);
-            funcList.emplace_back(item);
+            item->id = array[i * singleLength];
+            item->functionInfoIndex = array[i * singleLength + OFFSET_FIRST];
+            item->count = array[i * singleLength + OFFSET_SECOND];
+            item->size = array[i * singleLength + OFFSET_THIRD];
+            auto childrenArray = array[i * singleLength + OFFSET_FOURTH];
+            funcList.push_back(std::move(item));
             if (!childrenArray.empty()) {
-                parse_trace_node(childrenArray, funcList, &(funcList.back()));
+                parse_trace_node(childrenArray, funcList, funcList.back().get());
             }
         }
     }
 };
 void from_json(const json& j, TraceTree& v)
 {
-    std::vector<ParentFunc> funcList;
+    std::vector<std::unique_ptr<ParentFunc>> funcList;
     TraceParser parser;
     parser.parse_trace_node(j, funcList);
     for (auto& func : funcList) {
-        v.ids.emplace_back(func.id);
-        v.functionInfoIndexes.emplace_back(func.functionInfoIndex);
-        v.counts.emplace_back(func.count);
-        v.sizes.emplace_back(func.size);
-        v.parentIds.emplace_back(func.parent ? func.parent->id : std::numeric_limits<uint32_t>::max());
+        v.ids.emplace_back(func->id);
+        v.functionInfoIndexes.emplace_back(func->functionInfoIndex);
+        v.counts.emplace_back(func->count);
+        v.sizes.emplace_back(func->size);
+        v.parentIds.emplace_back(func->parent ? func->parent->id : std::numeric_limits<uint32_t>::max());
     }
 }
 } // namespace jsonns
@@ -273,6 +284,17 @@ void from_json(const json& j, TraceTree& v)
 HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : HtracePluginTimeParser(dataCache, ctx)
 {
+    DIR* dir = opendir(".");
+    if (dir != nullptr) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            std::string filename(entry->d_name);
+            if (filename.find(tmpJsMemorySnapshotData_) != string::npos) {
+                (void)std::remove(filename.c_str());
+            }
+        }
+        closedir(dir);
+    }
 }
 
 HtraceJSMemoryParser::~HtraceJSMemoryParser()
@@ -334,8 +356,11 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
     }
 }
 
-void HtraceJSMemoryParser::ParseTimeLine(int fileId, const std::string& jsonString)
+void HtraceJSMemoryParser::ParseTimeLine(int32_t fileId, const std::string& jsonString)
 {
+    if (enableFileSave_) {
+        (void)write(jsFileId_, jsonString.data(), jsonString.size());
+    }
     json jMessage = json::parse(jsonString);
     ParserJSSnapInfo(fileId, jMessage);
     ParseNodes(fileId, jMessage);
@@ -348,15 +373,15 @@ void HtraceJSMemoryParser::ParseTimeLine(int fileId, const std::string& jsonStri
     streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_RECEIVED);
     return;
 }
-void HtraceJSMemoryParser::ParserSnapInfo(int fileId,
+void HtraceJSMemoryParser::ParserSnapInfo(int32_t fileId,
                                           const std::string& key,
                                           const std::vector<std::vector<std::string>>& types)
 {
-    for (int m = 0; m < types[0].size(); ++m) {
+    for (int32_t m = 0; m < types[0].size(); ++m) {
         (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, key, 0, std::numeric_limits<uint32_t>::max(),
                                                                   types[0][m]);
     }
-    for (int i = 1; i < types.size(); ++i) {
+    for (int32_t i = 1; i < types.size(); ++i) {
         (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, key, 1, std::numeric_limits<uint32_t>::max(),
                                                                   types[i][0]);
     }
@@ -365,7 +390,7 @@ void HtraceJSMemoryParser::ParserSnapInfo(int fileId,
 
 const std::string NODE_TYPES = "node_types";
 const std::string EDGE_TYPES = "edge_types";
-void HtraceJSMemoryParser::ParserJSSnapInfo(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParserJSSnapInfo(int32_t fileId, const json& jMessage)
 {
     jsonns::Snapshot snapshot = jMessage.at("snapshot");
     ParserSnapInfo(fileId, NODE_TYPES, snapshot.meta.nodeTypes);
@@ -379,10 +404,10 @@ void HtraceJSMemoryParser::ParserJSSnapInfo(int fileId, const json& jMessage)
     return;
 }
 
-void HtraceJSMemoryParser::ParseNodes(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseNodes(int32_t fileId, const json& jMessage)
 {
     jsonns::Nodes node = jMessage.at("nodes");
-    for (int i = 0; i < node.names.size(); ++i) {
+    for (int32_t i = 0; i < node.names.size(); ++i) {
         auto type = node.types[i];
         auto name = node.names[i];
         auto id = node.ids[i];
@@ -396,10 +421,10 @@ void HtraceJSMemoryParser::ParseNodes(int fileId, const json& jMessage)
     return;
 }
 
-void HtraceJSMemoryParser::ParseEdges(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseEdges(int32_t fileId, const json& jMessage)
 {
     jsonns::Edges edge = jMessage.at("edges");
-    for (int i = 0; i < edge.types.size(); ++i) {
+    for (int32_t i = 0; i < edge.types.size(); ++i) {
         auto type = edge.types[i];
         auto nameOrIndex = edge.nameOrIndexes[i];
         auto toNode = edge.toNodes[i];
@@ -411,10 +436,10 @@ void HtraceJSMemoryParser::ParseEdges(int fileId, const json& jMessage)
     return;
 }
 
-void HtraceJSMemoryParser::ParseLocation(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseLocation(int32_t fileId, const json& jMessage)
 {
     jsonns::Location location = jMessage.at("locations");
-    for (int i = 0; i < location.columns.size(); ++i) {
+    for (int32_t i = 0; i < location.columns.size(); ++i) {
         auto objectIndex = location.objectIndexes[i];
         auto scriptId = location.scriptIds[i];
         auto line = location.lines[i];
@@ -423,28 +448,28 @@ void HtraceJSMemoryParser::ParseLocation(int fileId, const json& jMessage)
     }
     return;
 }
-void HtraceJSMemoryParser::ParseSample(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseSample(int32_t fileId, const json& jMessage)
 {
     jsonns::Sample sample = jMessage.at("samples");
-    for (int i = 0; i < sample.timestampUs.size(); ++i) {
+    for (int32_t i = 0; i < sample.timestampUs.size(); ++i) {
         auto timestampUs = sample.timestampUs[i];
         auto lastAssignedId = sample.lastAssignedIds[i];
         (void)traceDataCache_->GetJsHeapSampleData()->AppendNewData(fileId, timestampUs, lastAssignedId);
     }
     return;
 }
-void HtraceJSMemoryParser::ParseString(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseString(int32_t fileId, const json& jMessage)
 {
     jsonns::Strings string = jMessage.at("strings");
-    for (int i = 0; i < string.strings.size(); ++i) {
+    for (int32_t i = 0; i < string.strings.size(); ++i) {
         (void)traceDataCache_->GetJsHeapStringData()->AppendNewData(fileId, i, string.strings[i]);
     }
     return;
 }
-void HtraceJSMemoryParser::ParseTraceFuncInfo(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseTraceFuncInfo(int32_t fileId, const json& jMessage)
 {
     jsonns::TraceFuncInfo traceFuncInfo = jMessage.at("trace_function_infos");
-    for (int i = 0; i < traceFuncInfo.functionIds.size(); ++i) {
+    for (int32_t i = 0; i < traceFuncInfo.functionIds.size(); ++i) {
         auto functionId = traceFuncInfo.functionIds[i];
         auto name = traceFuncInfo.names[i];
         auto scriptName = traceFuncInfo.scriptNames[i];
@@ -456,10 +481,10 @@ void HtraceJSMemoryParser::ParseTraceFuncInfo(int fileId, const json& jMessage)
     }
     return;
 }
-void HtraceJSMemoryParser::ParseTraceNode(int fileId, const json& jMessage)
+void HtraceJSMemoryParser::ParseTraceNode(int32_t fileId, const json& jMessage)
 {
     jsonns::TraceTree traceTree = jMessage.at("trace_tree");
-    for (int i = 0; i < traceTree.ids.size(); ++i) {
+    for (int32_t i = 0; i < traceTree.ids.size(); ++i) {
         auto id = traceTree.ids[i];
         auto funcInfoIndex = traceTree.functionInfoIndexes[i];
         auto count = traceTree.counts[i];
@@ -470,8 +495,27 @@ void HtraceJSMemoryParser::ParseTraceNode(int fileId, const json& jMessage)
     }
     return;
 }
-void HtraceJSMemoryParser::ParseSnapshot(int fileId, const std::string& jsonString)
+void HtraceJSMemoryParser::ParseSnapshot(int32_t fileId, const std::string& jsonString)
 {
+    if (enableFileSave_) {
+        if (jsFileId_) {
+            close(jsFileId_);
+            jsFileId_ = 0;
+            if (access(tmpJsMemoryTimelineData_.c_str(), F_OK) == 0) {
+                (void)remove(tmpJsMemoryTimelineData_.c_str());
+            }
+        }
+        jsFileId_ = base::OpenFile(tmpJsMemorySnapshotData_ + "_" + base::number(fileId) + jsSnapshotFileTail,
+                                   O_CREAT | O_RDWR, TS_PERMISSION_RW);
+        if (!jsFileId_) {
+            fprintf(stdout, "Failed to create file: %s", jsSnapshotFileTail.c_str());
+            exit(-1);
+        }
+        (void)ftruncate(jsFileId_, 0);
+        (void)write(jsFileId_, jsonString.data(), jsonString.size());
+        close(jsFileId_);
+        jsFileId_ = 0;
+    }
     json jMessage = json::parse(jsonString);
     ParserJSSnapInfo(fileId, jMessage);
     ParseNodes(fileId, jMessage);
@@ -483,6 +527,26 @@ void HtraceJSMemoryParser::ParseSnapshot(int fileId, const std::string& jsonStri
     ParseTraceNode(fileId, jMessage);
     streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_RECEIVED);
     return;
+}
+void HtraceJSMemoryParser::EnableSaveFile(bool enable)
+{
+    enableFileSave_ = enable;
+    if (enable) {
+        jsFileId_ = base::OpenFile(tmpJsMemoryTimelineData_, O_CREAT | O_RDWR, TS_PERMISSION_RW);
+        if (!jsFileId_) {
+            fprintf(stdout, "Failed to create file: %s", tmpJsMemoryTimelineData_.c_str());
+            exit(-1);
+        }
+        (void)ftruncate(jsFileId_, 0);
+    } else {
+        if (jsFileId_) {
+            close(jsFileId_);
+            jsFileId_ = 0;
+        }
+        if (access(tmpJsMemoryTimelineData_.c_str(), F_OK) == 0) {
+            (void)remove(tmpJsMemoryTimelineData_.c_str());
+        }
+    }
 }
 void HtraceJSMemoryParser::Finish()
 {

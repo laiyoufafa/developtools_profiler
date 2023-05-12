@@ -71,7 +71,7 @@ void ClkEventFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedInd
 void ClkEventFilterTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -126,7 +126,7 @@ ClkEventFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* 
 
 ClkEventFilterTable::Cursor::~Cursor() {}
 
-int ClkEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ClkEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -162,7 +162,7 @@ int ClkEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     return SQLITE_OK;
 }
 
-int ClkEventFilterTable::Cursor::Column(int col) const
+int32_t ClkEventFilterTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case ID:
@@ -190,7 +190,7 @@ int ClkEventFilterTable::Cursor::Column(int col) const
     return SQLITE_OK;
 }
 
-void ClkEventFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqlite3_value* argv)
+void ClkEventFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, sqlite3_value* argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {

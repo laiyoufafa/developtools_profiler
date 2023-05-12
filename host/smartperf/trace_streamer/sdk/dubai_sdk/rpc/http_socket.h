@@ -22,12 +22,12 @@ namespace TraceStreamer {
 class HttpSocket {
 public:
     HttpSocket() {}
-    HttpSocket(int sockId, int domain) : sockId_(sockId), domain_(domain) {}
+    HttpSocket(int32_t sockId, int32_t domain) : sockId_(sockId), domain_(domain) {}
     ~HttpSocket();
 
-    bool CreateSocket(int domain);
-    bool Bind(int port);
-    bool Listen(int maxConn);
+    bool CreateSocket(int32_t domain);
+    bool Bind(int32_t port);
+    bool Listen(int32_t maxConn);
     bool Accept(HttpSocket& client);
     bool Recv(void* data, size_t& len);
     bool Send(const void* data, size_t len);
@@ -36,16 +36,16 @@ public:
     {
         return sockId_ != INVALID_SOCKET;
     }
-    int GetFd() const
+    int32_t GetFd() const
     {
         return sockId_;
     }
 
 private:
-    int sockId_ = -1;
-    int domain_ = 0;
-    using SOCKET = int;
-    const int SOCKET_ERROR = -1;
+    int32_t sockId_ = -1;
+    int32_t domain_ = 0;
+    using SOCKET = int32_t;
+    const int32_t SOCKET_ERROR = -1;
     const SOCKET INVALID_SOCKET = -1;
 };
 } // namespace TraceStreamer

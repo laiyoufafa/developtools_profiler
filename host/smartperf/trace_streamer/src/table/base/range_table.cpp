@@ -38,7 +38,7 @@ RangeTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table) : 
 
 RangeTable::Cursor::~Cursor() {}
 
-int RangeTable::Cursor::Column(int column) const
+int32_t RangeTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case START_TS:

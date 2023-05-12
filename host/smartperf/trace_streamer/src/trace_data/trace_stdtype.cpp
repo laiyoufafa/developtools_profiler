@@ -652,6 +652,21 @@ void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t 
 {
     symbolIdToSymbolName_.insert(std::make_pair(originSymbolId, symbolId));
 }
+void NativeHookFrame::UpdateFrameInfo(size_t row,
+                                      DataIndex symbolIndex,
+                                      DataIndex filePathIndex,
+                                      uint64_t offset,
+                                      uint64_t symbolOffset)
+{
+    if (row >= Size()) {
+        TS_LOGE("The updated row does not exist!");
+        return;
+    }
+    symbolNames_[row] = symbolIndex;
+    filePaths_[row] = filePathIndex;
+    offsets_[row] = offset;
+    symbolOffsets_[row] = symbolOffset;
+}
 
 void NativeHookFrame::UpdateSymbolId()
 {
@@ -1011,28 +1026,28 @@ size_t SysCall::AppendSysCallData(int64_t sysCallNum, DataIndex type, uint32_t i
 StatAndInfo::StatAndInfo()
 {
     // sched_switch_received | sched_switch_not_match | sched_switch_not_not_supported etc.
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
         event_[i] = config_.eventNameMap_.at(static_cast<SupportedTraceEventType>(i));
     }
-    for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
         stat_[j] = config_.eventErrorDescMap_.at(static_cast<StatType>(j));
     }
 
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
-        for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
             statSeverity_[i][j] = config_.eventParserStatSeverityDescMap_.at(static_cast<SupportedTraceEventType>(i))
                                       .at(static_cast<StatType>(j));
         }
     }
 
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
-        for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
             statSeverityDesc_[i][j] = config_.serverityLevelDescMap_.at(statSeverity_[i][j]);
         }
     }
 
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
-        for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
             statCount_[i][j] = 0;
         }
     }
@@ -2198,7 +2213,7 @@ void FrameSlice::SetDst(uint64_t row, uint64_t dst)
     dsts_[row] = dst;
 }
 
-void FrameSlice::SetSrcs(uint64_t row, std::vector<uint64_t>& fromSlices)
+void FrameSlice::SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices)
 {
     std::string s = "";
     for (auto&& i : fromSlices) {

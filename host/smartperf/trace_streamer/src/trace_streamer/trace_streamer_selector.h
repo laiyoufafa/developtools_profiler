@@ -17,13 +17,11 @@
 #define TRACE_STREAMER_SELECTOR_H
 #include <functional>
 #include <memory>
-#include "elf_parser.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-using namespace OHOS::Developtools::HiPerf::ELF;
 class BytraceParser;
 class HtraceParser;
 class TraceStreamerSelector {
@@ -32,17 +30,15 @@ public:
     ~TraceStreamerSelector();
     bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
     void EnableMetaTable(bool enabled);
+    void EnableFileSave(bool enabled);
     static void SetCleanMode(bool cleanMode);
-    int ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    bool ReloadSymbolFiles(std::vector<std::string>& symbolsPaths);
+    int32_t ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    bool ReloadSymbolFiles(std::string& symbolsPath, std::vector<std::string>& symbolsPaths);
     std::vector<std::string> SearchData();
-    int OperateDatabase(const std::string& sql);
-    int SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
-    int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
-    int UpdateTraceRangeTime(uint8_t* data, int len);
-    void GetSymbols(std::unique_ptr<ElfFile> elfPtr, ElfSymbolTable& symbols, const std::string& filename);
-    void UpdateELFData();
-    bool ParserFileSO(const std::string& filename, int count);
+    int32_t OperateDatabase(const std::string& sql);
+    int32_t SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
+    int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
+    int32_t UpdateTraceRangeTime(uint8_t* data, int32_t len);
     void WaitForParserEnd();
     void Clear();
     MetaData* GetMetaData();
@@ -55,14 +51,14 @@ public:
 
 private:
     void InitFilter();
+    void Remove_Folders(const char* dir);
     TraceFileType fileType_;
     std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};
 
     std::unique_ptr<BytraceParser> bytraceParser_;
     std::unique_ptr<HtraceParser> htraceParser_;
-    std::vector<ElfSymbolTable> elfSymbolTable_;
-    std::vector<std::string> symbolsPaths_;
+    bool enableFileSeparate_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

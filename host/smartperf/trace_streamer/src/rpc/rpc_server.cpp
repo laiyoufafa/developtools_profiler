@@ -18,9 +18,12 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
-
+#if IS_WASM
+#include <filesystem>
+#endif
 #include "log.h"
 #include "meta.h"
+#include "string_help.h"
 
 #define UNUSED(expr)             \
     do {                         \
@@ -28,6 +31,7 @@
     } while (0)
 namespace SysTuning {
 namespace TraceStreamer {
+const int32_t MAX_LEN_STR = 100;
 uint32_t g_fileLen = 0;
 bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
@@ -53,7 +57,7 @@ bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack result
     return true;
 }
 
-int RpcServer::UpdateTraceTime(const uint8_t* data, int len)
+int32_t RpcServer::UpdateTraceTime(const uint8_t* data, int32_t len)
 {
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
     std::copy(data, data + len, buf.get());
@@ -61,14 +65,14 @@ int RpcServer::UpdateTraceTime(const uint8_t* data, int len)
     return 0;
 }
 
-int RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len)
+int32_t RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len)
 {
     TS_LOGE("TraceStreamer_Init_ThirdParty_Config is comming!");
     std::string thirdPartyConfig = reinterpret_cast<const char*>(data);
     TS_LOGE("thirdPartyConfig = %s", thirdPartyConfig.c_str());
-    int size = thirdPartyConfig.size();
+    int32_t size = thirdPartyConfig.size();
     std::vector<std::string> comPonentStr;
-    for (int i = 0, pos = 0; i < size; i++) {
+    for (int32_t i = 0, pos = 0; i < size; i++) {
         pos = thirdPartyConfig.find(";", i);
         if (pos == std::string::npos) {
             break;
@@ -79,16 +83,16 @@ int RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len
             i = pos;
         }
     }
-    const int EVENT_COUNT_PAIR = 2;
+    const int32_t EVENT_COUNT_PAIR = 2;
     if (comPonentStr.size() % EVENT_COUNT_PAIR != 0) {
         TS_LOGE("thirdPartyConfig is wrong!");
         return -1;
     }
-    for (int m = 0; m < comPonentStr.size(); m += EVENT_COUNT_PAIR) {
-        int componentId = std::stoi(comPonentStr.at(m));
+    for (int32_t m = 0; m < comPonentStr.size(); m += EVENT_COUNT_PAIR) {
+        int32_t componentId = std::stoi(comPonentStr.at(m));
         std::string componentName = comPonentStr.at(m + 1);
         TS_LOGE("comPonentStr[m] = %d, comPonentStr[m + 1] = %s", componentId, componentName.c_str());
-        g_thirdPartyConfig.insert((std::map<int, std::string>::value_type(componentId, componentName)));
+        g_thirdPartyConfig.insert((std::map<int32_t, std::string>::value_type(componentId, componentName)));
     }
     return 0;
 }
@@ -124,7 +128,7 @@ bool RpcServer::SqlOperate(const uint8_t* data, size_t len, ResultCallBack resul
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC SqlOperate(%s, %zu)", sql.c_str(), len);
 
-    int ret = ts_->OperateDatabase(sql);
+    int32_t ret = ts_->OperateDatabase(sql);
     if (resultCallBack) {
         std::string response = "ok\r\n";
         if (ret != 0) {
@@ -141,7 +145,7 @@ bool RpcServer::SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultC
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC SqlQuery %zu:%s", len, sql.c_str());
 
-    int ret = ts_->SearchDatabase(sql, resultCallBack);
+    int32_t ret = ts_->SearchDatabase(sql, resultCallBack);
     if (resultCallBack && ret != 0) {
         resultCallBack("dberror\r\n", SEND_FINISH);
     }
@@ -168,77 +172,97 @@ bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCall
     return true;
 }
 
-int RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int outLen)
+int32_t RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen)
 {
     ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("WASM RPC SqlQuery outlen(%d) sql(%zu:%s)", outLen, len, sql.c_str());
 
-    int ret = ts_->SearchDatabase(sql, out, outLen);
+    int32_t ret = ts_->SearchDatabase(sql, out, outLen);
     return ret;
 }
-int RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
+int32_t RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
 {
     ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("WASM RPC SqlQuery sql(%zu:%s)", len, sql.c_str());
 
-    int ret = ts_->SearchDatabase(sql, callback);
+    int32_t ret = ts_->SearchDatabase(sql, callback);
     return ret;
 }
 
-int RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
+int32_t RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 {
     return ts_->ExportDatabase("default.db", resultCallBack);
 }
 
-int RpcServer::DownloadELFCallback(const std::string fileName,
-                                   size_t totalLen,
-                                   const uint8_t* data,
-                                   size_t len,
-                                   int count,
-                                   ParseELFFileCallBack parseELFFile)
+#if IS_WASM
+int32_t RpcServer::DownloadELFCallback(const std::string fileName,
+                                       size_t totalLen,
+                                       const uint8_t* data,
+                                       size_t len,
+                                       int32_t count,
+                                       int32_t finish,
+                                       ParseELFFileCallBack parseELFFile)
 {
     g_fileLen += len;
     FILE* fd;
+    std::string filePath = "";
+    TS_LOGI("fileName = %s", fileName.c_str());
+    std::string symbolsPath = fileName.substr(0, fileName.find("/"));
+    TS_LOGI("symbolsPath = %s", symbolsPath.c_str());
+    filePath = fileName.substr(0, fileName.find_last_of("/"));
+    TS_LOGI("filePath = %s", filePath.c_str());
+    if (std::filesystem::create_directories(filePath)) {
+        TS_LOGI("create_directories success");
+    }
     if (g_fileLen < totalLen) {
         fd = fopen(fileName.c_str(), "a+");
         if (fd == nullptr) {
             TS_LOGE("wasm file create failed");
             return false;
         }
-        int writeLength = fwrite(data, len, 1, fd);
-        if (writeLength == 0) {
+        int32_t writeLength = fwrite(data, len, 1, fd);
+        if (!writeLength) {
+            fclose(fd);
             TS_LOGE("wasm write file failed");
             return false;
         }
         fclose(fd);
         return false;
     }
+    g_fileLen = 0;
     fd = fopen(fileName.c_str(), "a+");
     if (fd == nullptr) {
-        TS_LOGE("wasm file create failed");
+        TS_LOGE("wasm file open failed");
         return false;
     }
-    int writeLength = fwrite(data, len, 1, fd);
-    if (writeLength == 0) {
+
+    int32_t writeLength = fwrite(data, len, 1, fd);
+    if (!writeLength) {
         TS_LOGE("wasm write file failed");
         return false;
     }
     (void)fclose(fd);
+    TS_LOGI("symbolsPath = %s, fileName = %s", symbolsPath.c_str(), fileName.c_str());
+    symbolsPathFiles_.emplace_back(fileName);
+    parseELFFile("file send over\r\n", SEND_FINISH);
 
-    if (!ts_->ParserFileSO(fileName, count)) {
-        if (parseELFFile) {
-            parseELFFile("formaterror\r\n", SEND_FINISH);
+    if (finish) {
+        if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
+            if (parseELFFile) {
+                parseELFFile("formaterror\r\n", SEND_FINISH);
+            }
+            return false;
         }
-        return false;
-    }
-    if (parseELFFile) {
-        parseELFFile("ok\r\n", SEND_FINISH);
-        g_fileLen = 0;
+        if (parseELFFile) {
+            parseELFFile("ok\r\n", SEND_FINISH);
+        }
+        std::filesystem::remove_all(filePath);
     }
     return true;
 }
+#endif
 
 } // namespace TraceStreamer
 } // namespace SysTuning

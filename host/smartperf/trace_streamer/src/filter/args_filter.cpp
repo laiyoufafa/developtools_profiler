@@ -23,7 +23,7 @@ namespace TraceStreamer {
 ArgsFilter::ArgsFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
 {
     (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_INT,
-                                                                traceDataCache_->GetDataIndex("int"));
+                                                                traceDataCache_->GetDataIndex("int32_t"));
     (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_STRING,
                                                                 traceDataCache_->GetDataIndex("string"));
     (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_DOUBLE,

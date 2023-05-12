@@ -31,7 +31,7 @@ const uint64_t INVALID_DATAINDEX = std::numeric_limits<uint64_t>::max();
 const size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
-const int STR_DEFAULT_LEN = -1;
+const int32_t STR_DEFAULT_LEN = -1;
 const auto INVALID_CPU = INVALID_UINT32;
 const auto INVALID_TIME = INVALID_UINT64;
 enum BuiltinClocks {

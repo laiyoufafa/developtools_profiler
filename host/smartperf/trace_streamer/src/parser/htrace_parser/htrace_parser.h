@@ -79,7 +79,7 @@ private:
     void ParseHisysevent(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
     void ParseHisyseventConfig(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg);
     void ParseThread();
-    int GetNextSegment();
+    int32_t GetNextSegment();
     void FilterThread();
     enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
     bool InitProfilerTraceFileHeader();
@@ -108,19 +108,19 @@ private:
 #endif
     std::unique_ptr<EbpfDataParser> ebpfDataParser_;
     std::atomic<bool> filterThreadStarted_{false};
-    const int MAX_SEG_ARRAY_SIZE = 10000;
+    const int32_t MAX_SEG_ARRAY_SIZE = 10000;
     std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
-    int rawDataHead_ = 0;
+    int32_t rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
-    int filterHead_ = 0;
-    int parseHead_ = 0;
+    int32_t filterHead_ = 0;
+    int32_t parseHead_ = 0;
     size_t sizeAll_ = 0;
     size_t htraceLength_ = 1024;
-    const int sleepDur_ = 100;
+    const int32_t sleepDur_ = 100;
     bool parseThreadStarted_ = false;
-    const int maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
-    int parserThreadCount_ = 0;
+    const int32_t maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
+    int32_t parserThreadCount_ = 0;
     std::mutex dataSegMux_ = {};
     bool supportThread_ = false;
     ClockId dataSourceTypeTraceClockid_ = TS_CLOCK_UNKNOW;

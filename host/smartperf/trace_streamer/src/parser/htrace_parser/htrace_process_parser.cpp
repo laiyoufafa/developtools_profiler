@@ -33,7 +33,7 @@ HtraceProcessParser::~HtraceProcessParser()
 }
 void HtraceProcessParser::Parse(ProcessData& tracePacket, uint64_t ts)
 {
-    for (int i = 0; i < tracePacket.processesinfo_size(); ++i) {
+    for (int32_t i = 0; i < tracePacket.processesinfo_size(); ++i) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_PROCESS, STAT_EVENT_START);
         auto processesInfo = tracePacket.processesinfo(i);
         auto pssInfo = processesInfo.pssinfo();

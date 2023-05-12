@@ -18,6 +18,7 @@
 #include "numerical_to_string.h"
 #include "offline_symbolization_filter.h"
 #include "stat_filter.h"
+#include "string_help.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -73,6 +74,11 @@ public:
     void ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
     void ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
     void FinishParseNativeHookData();
+    bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables);
+    bool SupportImportSymbolTable()
+    {
+        return isOfflineSymbolizationMode_;
+    }
 
 private:
     void FilterNativeHookMainEvent(size_t num);
@@ -92,6 +98,8 @@ private:
     void ParseFramesInCallStackCompressedMode();
     void ParseFramesWithOutCallStackCompressedMode();
     void ParseSymbolizedNativeHookFrame();
+    template <class T>
+    void AddSymbolsToTable(T* firstSymbolAddr, const int size, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     void ReparseStacksWithDifferentMeans();
     void CompressStackAndFrames(ProtoReader::RepeatedDataAreaIterator<ProtoReader::BytesView> frames);
     std::tuple<uint64_t, uint64_t> GetNeedUpdateProcessMapsAddrRange(uint64_t startAddr, uint64_t endAddr);
@@ -113,6 +121,7 @@ private:
     std::unordered_map<uint64_t, uint32_t> stackHashValueToCallChainIdMap_ = {};
     std::unordered_map<uint32_t, uint32_t> itidToThreadNameId_ = {};
     std::unordered_map<uint32_t, uint64_t> filePathIdToFileIndex_ = {};
+    std::unordered_map<uint64_t, uint32_t> fileIndexToFilePathId_ = {};
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_;
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_;

@@ -44,7 +44,7 @@ JsHeapTraceNodeTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase*
 
 JsHeapTraceNodeTable::Cursor::~Cursor() {}
 
-int JsHeapTraceNodeTable::Cursor::Column(int col) const
+int32_t JsHeapTraceNodeTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case FILE_ID:

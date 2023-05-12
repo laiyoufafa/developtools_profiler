@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-void FilterConstraints::AddConstraint(int idx, int col, unsigned char op, bool isSupport)
+void FilterConstraints::AddConstraint(int32_t idx, int32_t col, unsigned char op, bool isSupport)
 {
     Constraint& c = constraints_.emplace_back();
     c.idxInaConstraint = idx;
@@ -28,14 +28,14 @@ void FilterConstraints::AddConstraint(int idx, int col, unsigned char op, bool i
     c.isSupport = isSupport;
 }
 
-void FilterConstraints::UpdateConstraint(int idx, bool isSupport)
+void FilterConstraints::UpdateConstraint(int32_t idx, bool isSupport)
 {
     if (idx >= 0 && static_cast<size_t>(idx) < constraints_.size()) {
         constraints_[idx].isSupport = isSupport;
     }
 }
 
-void FilterConstraints::AddOrderBy(int col, unsigned char desc)
+void FilterConstraints::AddOrderBy(int32_t col, unsigned char desc)
 {
     OrderBy& o = orderBys_.emplace_back();
     o.iColumn = col;
@@ -70,16 +70,16 @@ void FilterConstraints::FromString(const std::string& idxStr)
     char* pNext = nullptr;
     TS_ASSERT(*p == 'C');
     errno = 0;
-    int constraintCount = static_cast<int>(strtol(p + 1, &pNext, 10));
+    int32_t constraintCount = static_cast<int32_t>(strtol(p + 1, &pNext, 10));
     if (errno != 0) {
         TS_LOGW("strtol failed!");
         return;
     }
     TS_ASSERT(p != pNext);
-    for (int i = 0; i < constraintCount; i++) {
+    for (int32_t i = 0; i < constraintCount; i++) {
         p = pNext;
         errno = 0;
-        int col = static_cast<int>(strtol(p, &pNext, 10));
+        int32_t col = static_cast<int32_t>(strtol(p, &pNext, 10));
         if (errno != 0) {
             TS_LOGW("strtol failed!");
             return;
@@ -101,16 +101,16 @@ void FilterConstraints::FromString(const std::string& idxStr)
     p = pNext;
     TS_ASSERT(*p == 'O');
     errno = 0;
-    int orderbyCount = static_cast<int>(strtol(p + 1, &pNext, 10));
+    int32_t orderbyCount = static_cast<int32_t>(strtol(p + 1, &pNext, 10));
     if (errno != 0) {
         TS_LOGW("strtol failed!");
         return;
     }
     TS_ASSERT(p != pNext);
-    for (int i = 0; i < orderbyCount; i++) {
+    for (int32_t i = 0; i < orderbyCount; i++) {
         p = pNext;
         errno = 0;
-        int col = static_cast<int>(strtol(p, &pNext, 10));
+        int32_t col = static_cast<int32_t>(strtol(p, &pNext, 10));
         if (errno != 0) {
             TS_LOGW("strtol failed!");
             return;

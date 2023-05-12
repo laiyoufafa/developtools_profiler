@@ -199,7 +199,7 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteC, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -224,8 +224,8 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteBE, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
-    EXPECT_EQ(bytraceParser.ParsedTraceInvalidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceInvalidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -252,8 +252,8 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteSF, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
-    EXPECT_EQ(bytraceParser.ParsedTraceInvalidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceInvalidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -279,8 +279,8 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteErrorPoint, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
-    EXPECT_EQ(bytraceParser.ParsedTraceInvalidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceInvalidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -303,7 +303,7 @@ HWTEST_F(EventParserTest, ParseCpuIdle, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -327,7 +327,7 @@ HWTEST_F(EventParserTest, ParseIrqHandlerEntry, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -350,7 +350,7 @@ HWTEST_F(EventParserTest, ParseIrqHandlerExit, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -374,7 +374,7 @@ HWTEST_F(EventParserTest, ParseSchedWaking, TestSize.Level1)
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -399,7 +399,7 @@ HWTEST_F(EventParserTest, ParseSchedWakeup, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -424,7 +424,7 @@ HWTEST_F(EventParserTest, ParseTraceEventClockSync, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -449,7 +449,7 @@ HWTEST_F(EventParserTest, ParseSchedSwitch, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -474,7 +474,7 @@ HWTEST_F(EventParserTest, ParseTaskRename, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -499,7 +499,7 @@ HWTEST_F(EventParserTest, ParseTaskNewtask, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_EQ(access(dbPath_.c_str(), F_OK), 0);
 }
@@ -524,7 +524,7 @@ HWTEST_F(EventParserTest, ParseWorkqueueExecuteStart, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -548,7 +548,7 @@ HWTEST_F(EventParserTest, ParseWorkqueueExecuteEnd, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
 }
@@ -574,7 +574,7 @@ HWTEST_F(EventParserTest, ParsDistribute, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
@@ -608,7 +608,7 @@ HWTEST_F(EventParserTest, ParsPairsOfDistributeEvent, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(2));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(2));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 2);
@@ -643,7 +643,7 @@ HWTEST_F(EventParserTest, ParsDistributeWithNoFlag, TestSize.Level1)
     bytraceParser.ParseTraceDataSegment(std::move(buf), G_BUF_SIZE);
     bytraceParser.WaitForParserEnd();
 
-    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const unsigned int>(1));
+    EXPECT_EQ(bytraceParser.ParsedTraceValidLines(), static_cast<const uint32_t>(1));
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
@@ -667,7 +667,7 @@ HWTEST_F(EventParserTest, ParseSchedSwitchByInitParam, TestSize.Level1)
                                                              {"prev_pid", "2716"},   {"next_pid", "2532"},
                                                              {"prev_state", "S"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.SchedSwitchEvent(args, bytraceLine);
+    int32_t result = eventParser.SchedSwitchEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -686,7 +686,7 @@ HWTEST_F(EventParserTest, ParseSchedSwitchByAbnormalInitParam, TestSize.Level1)
                                                              {"prev_pid", ""},       {"next_pid", ""},
                                                              {"prev_state", "S"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.SchedSwitchEvent(args, bytraceLine);
+    int32_t result = eventParser.SchedSwitchEvent(args, bytraceLine);
 
     EXPECT_EQ(result, false);
 }
@@ -702,7 +702,7 @@ HWTEST_F(EventParserTest, ParseTaskRenameEventByInitParam, TestSize.Level1)
     BytraceLine bytraceLine;
     static std::unordered_map<std::string, std::string> args{{"newcomm", "POSIX"}, {"pid", "8542"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.TaskRenameEvent(args, bytraceLine);
+    int32_t result = eventParser.TaskRenameEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -719,7 +719,7 @@ HWTEST_F(EventParserTest, ParseTaskNewtaskByInitParam, TestSize.Level1)
     bytraceLine.tGidStr = "12";
     static std::unordered_map<std::string, std::string> args{{"comm", "POSIX"}, {"pid", "8542"}, {"clone_flags", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.TaskNewtaskEvent(args, bytraceLine);
+    int32_t result = eventParser.TaskNewtaskEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -738,7 +738,7 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteByInitParam, TestSize.Level1)
     bytraceLine.argsStr = "B|924|FullSuspendCheck";
     static std::unordered_map<std::string, std::string> args{};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.TracingMarkWriteOrPrintEvent(args, bytraceLine);
+    int32_t result = eventParser.TracingMarkWriteOrPrintEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -756,7 +756,7 @@ HWTEST_F(EventParserTest, ParseSchedWakeupByInitParam, TestSize.Level1)
     bytraceLine.pid = 1;
     static std::unordered_map<std::string, std::string> args{{"pid", "1200"}, {"target_cpu", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.SchedWakeupEvent(args, bytraceLine);
+    int32_t result = eventParser.SchedWakeupEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -774,7 +774,7 @@ HWTEST_F(EventParserTest, ParseSchedWakeupByAbromalInitParam, TestSize.Level1)
     bytraceLine.pid = 1;
     static std::unordered_map<std::string, std::string> args{{"pid", ""}, {"target_cpu", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.SchedWakeupEvent(args, bytraceLine);
+    int32_t result = eventParser.SchedWakeupEvent(args, bytraceLine);
 
     EXPECT_EQ(result, false);
 }
@@ -793,7 +793,7 @@ HWTEST_F(EventParserTest, ParseSchedWakingByInitParam, TestSize.Level1)
     static std::unordered_map<std::string, std::string> args{
         {"prio", "120"}, {"comm", "thread1"}, {"pid", "1200"}, {"target_cpu", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.SchedWakingEvent(args, bytraceLine);
+    int32_t result = eventParser.SchedWakingEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -812,7 +812,7 @@ HWTEST_F(EventParserTest, ParseSchedWakingByAbnormalInitParam, TestSize.Level1)
     static std::unordered_map<std::string, std::string> args{
         {"prio", "120"}, {"comm", "thread1"}, {"pid", ""}, {"target_cpu", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.SchedWakingEvent(args, bytraceLine);
+    int32_t result = eventParser.SchedWakingEvent(args, bytraceLine);
 
     EXPECT_EQ(result, false);
 }
@@ -830,7 +830,7 @@ HWTEST_F(EventParserTest, ParseCpuIdleByInitParam, TestSize.Level1)
     bytraceLine.eventName = "POSIX";
     static std::unordered_map<std::string, std::string> args{{"cpu_id", "3"}, {"state", "4294967295"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.CpuIdleEvent(args, bytraceLine);
+    int32_t result = eventParser.CpuIdleEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -848,7 +848,7 @@ HWTEST_F(EventParserTest, ParseCpuIdleByAbnormalInitParam, TestSize.Level1)
     bytraceLine.eventName = "POSIX";
     static std::unordered_map<std::string, std::string> args{{"cpu_id", ""}, {"state", "4294967295"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.CpuIdleEvent(args, bytraceLine);
+    int32_t result = eventParser.CpuIdleEvent(args, bytraceLine);
 
     EXPECT_EQ(result, false);
 }
@@ -866,7 +866,7 @@ HWTEST_F(EventParserTest, ParseCpuFrequencyNormal, TestSize.Level1)
     bytraceLine.eventName = "POSIX";
     static std::unordered_map<std::string, std::string> args{{"cpu_id", "3"}, {"state", "4294967295"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.CpuFrequencyEvent(args, bytraceLine);
+    int32_t result = eventParser.CpuFrequencyEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -884,7 +884,7 @@ HWTEST_F(EventParserTest, ParseCpuFrequencyByAbnormalInitEmptyCpuId, TestSize.Le
     bytraceLine.eventName = "POSIX";
     static std::unordered_map<std::string, std::string> args{{"cpu_id", ""}, {"state", "4294967295"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.CpuFrequencyEvent(args, bytraceLine);
+    int32_t result = eventParser.CpuFrequencyEvent(args, bytraceLine);
 
     EXPECT_EQ(result, false);
 }
@@ -902,7 +902,7 @@ HWTEST_F(EventParserTest, ParseCpuFrequencyByAbnormalInitEmptyStateValue, TestSi
     bytraceLine.eventName = "POSIX";
     static std::unordered_map<std::string, std::string> args{{"cpu_id", "3"}, {"state", ""}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.CpuFrequencyEvent(args, bytraceLine);
+    int32_t result = eventParser.CpuFrequencyEvent(args, bytraceLine);
 
     EXPECT_EQ(result, false);
 }
@@ -921,7 +921,7 @@ HWTEST_F(EventParserTest, ParseWorkqueueExecuteStartByInitParam, TestSize.Level1
     bytraceLine.argsStr = "vec=9 [action=RCU]";
     static std::unordered_map<std::string, std::string> args{};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.WorkqueueExecuteStartEvent(args, bytraceLine);
+    int32_t result = eventParser.WorkqueueExecuteStartEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -939,7 +939,7 @@ HWTEST_F(EventParserTest, ParseWorkqueueExecuteEndByInitParam, TestSize.Level1)
     bytraceLine.pid = 1355;
     static std::unordered_map<std::string, std::string> args{};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.WorkqueueExecuteEndEvent(args, bytraceLine);
+    int32_t result = eventParser.WorkqueueExecuteEndEvent(args, bytraceLine);
 
     EXPECT_EQ(result, true);
 }
@@ -955,7 +955,7 @@ HWTEST_F(EventParserTest, CheckTracePoint, TestSize.Level1)
     TS_LOGI("test5-40");
     std::string str("B|924|FullSuspendCheck");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.CheckTracePoint(str);
+    int32_t result = eventParser.printEventParser_.CheckTracePoint(str);
 
     EXPECT_TRUE(result == PARSE_SUCCESS);
 }
@@ -970,7 +970,7 @@ HWTEST_F(EventParserTest, CheckTracePointEmptyString, TestSize.Level1)
     TS_LOGI("test5-41");
     std::string str("");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.CheckTracePoint(str);
+    int32_t result = eventParser.printEventParser_.CheckTracePoint(str);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -985,7 +985,7 @@ HWTEST_F(EventParserTest, CheckTracePointNoSplit, TestSize.Level1)
     TS_LOGI("test5-42");
     std::string str("trace_event_clock_sync");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.CheckTracePoint(str);
+    int32_t result = eventParser.printEventParser_.CheckTracePoint(str);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1000,7 +1000,7 @@ HWTEST_F(EventParserTest, CheckTracePointMultiType, TestSize.Level1)
     TS_LOGI("test5-43");
     std::string str("BECSF|924|FullSuspendCheck");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.CheckTracePoint(str);
+    int32_t result = eventParser.printEventParser_.CheckTracePoint(str);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1015,7 +1015,7 @@ HWTEST_F(EventParserTest, CheckTracePointCheckSingleCharacter, TestSize.Level1)
     TS_LOGI("test5-44");
     std::string str("X");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.CheckTracePoint(str);
+    int32_t result = eventParser.printEventParser_.CheckTracePoint(str);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1030,7 +1030,7 @@ HWTEST_F(EventParserTest, CheckTracePointCheckErrorSplit, TestSize.Level1)
     TS_LOGI("test5-45");
     std::string str("B&924|FullSuspendCheck");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.CheckTracePoint(str);
+    int32_t result = eventParser.printEventParser_.CheckTracePoint(str);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1046,7 +1046,7 @@ HWTEST_F(EventParserTest, GetTracePoint, TestSize.Level1)
     TracePoint point;
     std::string str("B|924|SuspendThreadByThreadId suspended Binder:924_8 id=39");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.GetTracePoint(str, point);
+    int32_t result = eventParser.printEventParser_.GetTracePoint(str, point);
 
     EXPECT_TRUE(result == PARSE_SUCCESS);
 }
@@ -1062,7 +1062,7 @@ HWTEST_F(EventParserTest, GetTracePointParseEmptyString, TestSize.Level1)
     TracePoint point;
     std::string str("");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.GetTracePoint(str, point);
+    int32_t result = eventParser.printEventParser_.GetTracePoint(str, point);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1078,7 +1078,7 @@ HWTEST_F(EventParserTest, GetTracePointParseErrorSubEventType, TestSize.Level1)
     TracePoint point;
     std::string str("X|924|SuspendThreadByThreadId suspended Binder:924_8 id=39");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.GetTracePoint(str, point);
+    int32_t result = eventParser.printEventParser_.GetTracePoint(str, point);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1094,7 +1094,7 @@ HWTEST_F(EventParserTest, GetThreadGroupId, TestSize.Level1)
     size_t length{0};
     std::string str("E|924");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.GetThreadGroupId(str, length);
+    int32_t result = eventParser.printEventParser_.GetThreadGroupId(str, length);
 
     EXPECT_TRUE(result == 924);
 }
@@ -1110,7 +1110,7 @@ HWTEST_F(EventParserTest, GetThreadGroupIdParseErrorPid, TestSize.Level1)
     size_t length{0};
     std::string str("E|abc");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.GetThreadGroupId(str, length);
+    int32_t result = eventParser.printEventParser_.GetThreadGroupId(str, length);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1127,7 +1127,7 @@ HWTEST_F(EventParserTest, HandlerB, TestSize.Level1)
     TracePoint outPoint;
     std::string str("B|924|HID::ISensors::batch::client");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
+    int32_t result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
 
     EXPECT_TRUE(result == PARSE_SUCCESS);
 }
@@ -1144,7 +1144,7 @@ HWTEST_F(EventParserTest, HandlerBAbnormal, TestSize.Level1)
     TracePoint outPoint;
     std::string str("B|924|");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
+    int32_t result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1161,7 +1161,7 @@ HWTEST_F(EventParserTest, HandlerCsf, TestSize.Level1)
     TracePoint outPoint;
     std::string str("C|2519|Heap size (KB)|2363");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
+    int32_t result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
     EXPECT_TRUE(result == PARSE_SUCCESS);
 }
@@ -1178,7 +1178,7 @@ HWTEST_F(EventParserTest, HandlerCsfParseEmptyString, TestSize.Level1)
     TracePoint outPoint;
     std::string str("");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
+    int32_t result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }
@@ -1195,7 +1195,7 @@ HWTEST_F(EventParserTest, HandlerCsfParseErrorFormate, TestSize.Level1)
     TracePoint outPoint;
     std::string str("C|2519|Heap size (KB)|");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    int result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
+    int32_t result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
     EXPECT_TRUE(result == PARSE_ERROR);
 }

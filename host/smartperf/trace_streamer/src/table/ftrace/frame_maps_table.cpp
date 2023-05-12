@@ -68,7 +68,7 @@ void FrameMapsTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInf
 void FrameMapsTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -124,7 +124,7 @@ FrameMapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table
 
 FrameMapsTable::Cursor::~Cursor() {}
 
-int FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -167,7 +167,7 @@ int FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** 
     return SQLITE_OK;
 }
 
-int FrameMapsTable::Cursor::Column(int column) const
+int32_t FrameMapsTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

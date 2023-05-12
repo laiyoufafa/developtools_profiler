@@ -31,17 +31,17 @@ private:
     void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
     // filter out by operator[=, >, <...] from column(ID)
     bool CanFilterId(const char op, size_t& rowCount);
-    int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid) override;
+    int32_t Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid) override;
     void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
-        int Column(int col) const override;
+        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Column(int32_t col) const override;
         void FilterPid(unsigned char op, uint64_t value);
-        void FilterIndex(int col, unsigned char op, sqlite3_value* argv);
+        void FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv);
         void FilterId(unsigned char op, sqlite3_value* argv) override;
     };
 };

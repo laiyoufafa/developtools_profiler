@@ -26,7 +26,6 @@
 using namespace testing::ext;
 namespace SysTuning {
 namespace TraceStreamer {
-using namespace SysTuning::base;
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
@@ -48,7 +47,7 @@ public:
     TraceStreamerSelector stream_ = {};
 };
 
-void ResultCallbackFunc(const std::string result, int num)
+void ResultCallbackFunc(const std::string result, int32_t num)
 {
     // unused
     UNUSED(result);
@@ -62,7 +61,7 @@ void* HttpServerThread(void* arg)
     pthread_exit(nullptr);
 }
 
-int HttpClient(const char* buf)
+int32_t HttpClient(const char* buf)
 {
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -71,13 +70,13 @@ int HttpClient(const char* buf)
     addr.sin_port = htons(listenPort);
     struct timeval recvTimeout = {1, 100000};
 
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int32_t sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         TS_LOGI("CreateSocket socket error");
         return -1;
     }
 
-    int ret = connect(sockfd, (struct sockaddr*)(&addr), sizeof(struct sockaddr));
+    int32_t ret = connect(sockfd, (struct sockaddr*)(&addr), sizeof(struct sockaddr));
     if (ret < 0) {
         TS_LOGE("Connect error");
         return -1;
@@ -93,7 +92,7 @@ int HttpClient(const char* buf)
         TS_LOGE("memset_s error");
         return -1;
     }
-    int index = 0;
+    int32_t index = 0;
     ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)(&recvTimeout), sizeof(recvTimeout));
     if (ret != 0) {
         TS_LOGE("set recv time out error");
@@ -121,7 +120,7 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
     HttpServer httpServer;
     RpcServer rpcServer;
     pthread_t pthreadId = 0;
-    int ret = 0;
+    int32_t ret = 0;
 
     ret = rpcServer.ParseData((const uint8_t*)g_parserData.c_str(), g_parserData.length(), ResultCallbackFunc);
     ret = rpcServer.ParseDataOver(nullptr, 0, ResultCallbackFunc);
@@ -166,7 +165,7 @@ HWTEST_F(HttpServerTest, OthreAgreement, TestSize.Level1)
     HttpServer httpServer;
     RpcServer rpcServer;
     pthread_t pthreadId = 0;
-    int ret = 0;
+    int32_t ret = 0;
 
     httpServer.RegisterRpcFunction(&rpcServer);
     ret = pthread_create(&pthreadId, nullptr, HttpServerThread, &httpServer);
@@ -204,7 +203,7 @@ HWTEST_F(HttpServerTest, OthreProtocols, TestSize.Level1)
     HttpServer httpServer;
     RpcServer rpcServer;
     pthread_t pthreadId = 0;
-    int ret = 0;
+    int32_t ret = 0;
 
     httpServer.RegisterRpcFunction(&rpcServer);
     ret = pthread_create(&pthreadId, nullptr, HttpServerThread, &httpServer);
@@ -242,7 +241,7 @@ HWTEST_F(HttpServerTest, RequestLineFormatError, TestSize.Level1)
     HttpServer httpServer;
     RpcServer rpcServer;
     pthread_t pthreadId = 0;
-    int ret = 0;
+    int32_t ret = 0;
 
     httpServer.RegisterRpcFunction(&rpcServer);
     ret = pthread_create(&pthreadId, nullptr, HttpServerThread, &httpServer);
@@ -280,7 +279,7 @@ HWTEST_F(HttpServerTest, RequestIsNotRPC, TestSize.Level1)
     HttpServer httpServer;
     RpcServer rpcServer;
     pthread_t pthreadId = 0;
-    int ret = 0;
+    int32_t ret = 0;
 
     httpServer.RegisterRpcFunction(&rpcServer);
     ret = pthread_create(&pthreadId, nullptr, HttpServerThread, &httpServer);
@@ -317,7 +316,7 @@ HWTEST_F(HttpServerTest, RequestTimeout, TestSize.Level1)
     HttpServer httpServer;
     RpcServer rpcServer;
     pthread_t pthreadId = 0;
-    int ret = 0;
+    int32_t ret = 0;
 
     httpServer.RegisterRpcFunction(&rpcServer);
     ret = pthread_create(&pthreadId, nullptr, HttpServerThread, &httpServer);

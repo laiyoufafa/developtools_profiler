@@ -34,7 +34,7 @@ void HtraceHidumpParser::Parse(HidumpInfo& tracePacket)
     if (!tracePacket.fps_event_size()) {
         return;
     }
-    for (int i = 0; i < tracePacket.fps_event_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.fps_event_size(); i++) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_HIDUMP_FPS, STAT_EVENT_RECEIVED);
         auto hidumpData = tracePacket.mutable_fps_event(i);
         auto timeStamp = hidumpData->time().tv_nsec() + hidumpData->time().tv_sec() * SEC_TO_NS;

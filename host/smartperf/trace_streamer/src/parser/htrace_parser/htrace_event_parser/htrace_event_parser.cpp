@@ -116,8 +116,8 @@ HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStrea
 
 HtraceEventParser::~HtraceEventParser()
 {
-    TS_LOGI("thread count:%u", static_cast<unsigned int>(tids_.size()));
-    TS_LOGI("process count:%u", static_cast<unsigned int>(pids_.size()));
+    TS_LOGI("thread count:%u", static_cast<uint32_t>(tids_.size()));
+    TS_LOGI("process count:%u", static_cast<uint32_t>(pids_.size()));
     TS_LOGI("ftrace ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceStartTime_),
             static_cast<unsigned long long>(ftraceEndTime_));
     TS_LOGI("ftrace origin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceOriginStartTime_),
@@ -781,7 +781,7 @@ void HtraceEventParser::FilterAllEvents()
     size_t maxBuffSize = 1000 * 1000;
 
     while (eventList_.size()) {
-        int size = std::min(maxBuffSize, eventList_.size());
+        int32_t size = std::min(maxBuffSize, eventList_.size());
         auto endOfList = eventList_.begin() + size;
         for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
             EventInfo* event = itor->get();

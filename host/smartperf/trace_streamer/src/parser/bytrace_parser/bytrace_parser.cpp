@@ -169,7 +169,7 @@ void BytraceParser::ArrayDataParse(JsonData jData,
                                    DataIndex eventSourceIndex,
                                    size_t maxArraySize)
 {
-    for (int j = 0; j < maxArraySize; j++) {
+    for (int32_t j = 0; j < maxArraySize; j++) {
         for (auto itor = arrayIndex.begin(); itor != arrayIndex.end(); itor++) {
             auto value = jData.value[*itor][j];
             std::string key = jData.key[*itor];
@@ -190,7 +190,7 @@ void BytraceParser::ArrayDataParse(JsonData jData,
 }
 void BytraceParser::CommonDataParser(JsonData jData, DataIndex eventSourceIndex)
 {
-    for (int j = 0; j < jData.key.size(); j++) {
+    for (int32_t j = 0; j < jData.key.size(); j++) {
         std::string key = jData.key[j];
         auto value = jData.value[j];
         DataIndex keyIndex = eventParser_->traceDataCache_->GetDataIndex(key);
@@ -236,7 +236,7 @@ void BytraceParser::ParseTraceDataItem(const std::string& buffer)
         ParserData(dataSegArray_[rawDataHead_]);
         return;
     }
-    int head = rawDataHead_;
+    int32_t head = rawDataHead_;
     while (!toExit_) {
         if (dataSegArray_[head].status.load() != TS_PARSE_STATUS_INIT) {
             TS_LOGD("rawDataHead_:\t%d, parseHead_:\t%d, filterHead_:\t%d status:\t%d\n", rawDataHead_, parseHead_,
@@ -251,7 +251,7 @@ void BytraceParser::ParseTraceDataItem(const std::string& buffer)
     }
     if (!parseThreadStarted_) {
         parseThreadStarted_ = true;
-        int tmp = maxThread_;
+        int32_t tmp = maxThread_;
         while (tmp--) {
             parserThreadCount_++;
             std::thread MatchLineThread(&BytraceParser::ParseThread, this);
@@ -261,9 +261,9 @@ void BytraceParser::ParseTraceDataItem(const std::string& buffer)
     }
     return;
 }
-int BytraceParser::GetNextSegment()
+int32_t BytraceParser::GetNextSegment()
 {
-    int head;
+    int32_t head;
     dataSegMux_.lock();
     head = parseHead_;
     DataSegment& seg = dataSegArray_[head];
@@ -338,7 +338,7 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
 void BytraceParser::ParseThread()
 {
     while (1) {
-        int head = GetNextSegment();
+        int32_t head = GetNextSegment();
         if (head < 0) {
             if (head == ERROR_CODE_NODATA) {
                 continue;

@@ -79,7 +79,7 @@ void EbpfProcessMapsTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIn
 void EbpfProcessMapsTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -135,7 +135,7 @@ EbpfProcessMapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase*
 
 EbpfProcessMapsTable::Cursor::~Cursor() {}
 
-int EbpfProcessMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t EbpfProcessMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -171,7 +171,7 @@ int EbpfProcessMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
     return SQLITE_OK;
 }
 
-int EbpfProcessMapsTable::Cursor::Column(int column) const
+int32_t EbpfProcessMapsTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

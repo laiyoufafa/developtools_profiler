@@ -59,7 +59,7 @@ DiskIOTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 DiskIOTable::Cursor::~Cursor() {}
 
-int DiskIOTable::Cursor::Column(int column) const
+int32_t DiskIOTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case TS: {

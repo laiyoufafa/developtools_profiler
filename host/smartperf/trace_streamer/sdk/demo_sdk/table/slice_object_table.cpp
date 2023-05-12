@@ -41,7 +41,7 @@ SliceObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 SliceObjectTable::Cursor::~Cursor() {}
 
-int SliceObjectTable::Cursor::Column(int column) const
+int32_t SliceObjectTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case SLICE_ID: {

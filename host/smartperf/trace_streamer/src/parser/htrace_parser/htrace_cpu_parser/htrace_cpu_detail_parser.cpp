@@ -29,7 +29,7 @@ void HtraceCpuDetailParser::Parse(TracePluginResult* tracePacket, BuiltinClocks 
         return;
     }
 
-    for (int i = 0; i < tracePacket->ftrace_cpu_detail_size(); i++) {
+    for (int32_t i = 0; i < tracePacket->ftrace_cpu_detail_size(); i++) {
         FtraceCpuDetailMsg* cpuDetail = tracePacket->mutable_ftrace_cpu_detail(i);
         eventParser_->ParseDataItem(cpuDetail, clock);
     }

@@ -43,7 +43,7 @@ StatTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 StatTable::Cursor::~Cursor() {}
 
-int StatTable::Cursor::Column(int column) const
+int32_t StatTable::Cursor::Column(int32_t column) const
 {
     const StatAndInfo stat = dataCache_->GetConstStatAndInfo();
     SupportedTraceEventType eventType = static_cast<SupportedTraceEventType>(CurrentRow() / STAT_EVENT_MAX);

@@ -45,7 +45,7 @@ PerfReportTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 PerfReportTable::Cursor::~Cursor() {}
 
-int PerfReportTable::Cursor::Column(int column) const
+int32_t PerfReportTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

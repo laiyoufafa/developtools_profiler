@@ -22,7 +22,7 @@
         static_cast<void>(expr); \
     } while (0)
 #if !is_mingw
-int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
+int32_t memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
 {
     if (srcSize > destSize || src == nullptr || dest == nullptr) {
         return -1;
@@ -34,32 +34,32 @@ int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
     }
     return 0;
 }
-int sscanf_s(const char* buffer, const char* format, ...)
+int32_t sscanf_s(const char* buffer, const char* format, ...)
 {
     va_list ap;
     __builtin_va_start(ap, format);
-    int ret = scanf(buffer, format, ap);
+    int32_t ret = scanf(buffer, format, ap);
     __builtin_va_end(ap);
     return ret;
 }
 
-int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count)
+int32_t strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count)
 {
     (void*)strncpy(strDest, strSrc, destMax);
     return destMax;
 }
 #endif
-void* memset_s(void* dest, size_t destSize, int ch, size_t n)
+void* memset_s(void* dest, size_t destSize, int32_t ch, size_t n)
 {
     UNUSED(destSize);
     UNUSED(ch);
     return memset(dest, 0, n);
 }
 
-int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...)
+int32_t snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...)
 {
     UNUSED(count);
-    int ret;
+    int32_t ret;
     va_list ap;
     __builtin_va_start(ap, format);
     ret = vsnprintf(strDest, destMax, format, ap);
@@ -67,12 +67,11 @@ int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, 
     return ret;
 }
 
-int sprintf_s(char* strDest, size_t destMax, const char* format, ...)
+int32_t sprintf_s(char* strDest, size_t destMax, const char* format, ...)
 {
-    UNUSED(destMax);
     va_list ap;
     __builtin_va_start(ap, format);
-    int ret = sprintf(strDest, format, ap);
+    int32_t ret = vsnprintf(strDest, destMax, format, ap);
     __builtin_va_end(ap);
     return ret;
 }

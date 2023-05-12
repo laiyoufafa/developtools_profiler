@@ -46,7 +46,7 @@ LogTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 LogTable::Cursor::~Cursor() {}
 
-int LogTable::Cursor::Column(int column) const
+int32_t LogTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case SEQ:

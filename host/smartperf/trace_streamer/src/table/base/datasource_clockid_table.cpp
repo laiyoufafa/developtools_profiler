@@ -42,7 +42,7 @@ DataSourceClockIdTableTable::Cursor::Cursor(const TraceDataCache* dataCache, Tab
 
 DataSourceClockIdTableTable::Cursor::~Cursor() {}
 
-int DataSourceClockIdTableTable::Cursor::Column(int column) const
+int32_t DataSourceClockIdTableTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

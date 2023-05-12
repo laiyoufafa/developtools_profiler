@@ -51,7 +51,7 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
     sqlite3_module& module = context->module;
     module = {0};
 
-    auto createFn = [](sqlite3* xdb, void* pAux, int argc, const char* const* argv, sqlite3_vtab** ppVTab,
+    auto createFn = [](sqlite3* xdb, void* pAux, int32_t argc, const char* const* argv, sqlite3_vtab** ppVTab,
                        char** pzErr) {
         UNUSED(argc);
         UNUSED(argv);
@@ -66,7 +66,7 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
         table->Init(argc, argv);
         std::string createStmt = table->CreateTableSql();
         TS_LOGD("xCreate table %s, statement: %s", table->name_.c_str(), createStmt.c_str());
-        int ret = sqlite3_declare_vtab(xdb, createStmt.c_str());
+        int32_t ret = sqlite3_declare_vtab(xdb, createStmt.c_str());
         if (ret != SQLITE_OK) {
             if ((table->name_ == "span_join") || (table->name_ == "_span_join")) {
                 return ret;
@@ -104,7 +104,8 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
         return static_cast<TableBase*>(pVTab)->BestIndex(idxInfo);
     };
 
-    module.xFilter = [](sqlite3_vtab_cursor* vc, int idxNum, const char* idxStr, int argc, sqlite3_value** argv) {
+    module.xFilter = [](sqlite3_vtab_cursor* vc, int32_t idxNum, const char* idxStr, int32_t argc,
+                        sqlite3_value** argv) {
         auto* c = static_cast<Cursor*>(vc);
         c->Reset();
         TS_LOGD("xFilter %s: [%d]%s", static_cast<Cursor*>(vc)->table_->name_.c_str(), idxNum, idxStr);
@@ -118,12 +119,12 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
 
     module.xNext = [](sqlite3_vtab_cursor* vc) { return static_cast<TableBase::Cursor*>(vc)->Next(); };
     module.xEof = [](sqlite3_vtab_cursor* vc) { return static_cast<TableBase::Cursor*>(vc)->Eof(); };
-    module.xColumn = [](sqlite3_vtab_cursor* vc, sqlite3_context* ctx, int col) {
+    module.xColumn = [](sqlite3_vtab_cursor* vc, sqlite3_context* ctx, int32_t col) {
         static_cast<TableBase::Cursor*>(vc)->context_ = ctx;
         return static_cast<TableBase::Cursor*>(vc)->Column(col);
     };
     if (tableName == "process" || tableName == "thread") {
-        module.xUpdate = [](sqlite3_vtab* pVTab, int argc, sqlite3_value** argv, sqlite3_int64* pRowid) {
+        module.xUpdate = [](sqlite3_vtab* pVTab, int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid) {
             TS_LOGD("xUpdate: %s", static_cast<TableBase*>(pVTab)->name_.c_str());
             return static_cast<TableBase*>(pVTab)->Update(argc, argv, pRowid);
         };
@@ -149,13 +150,13 @@ std::string TableBase::CreateTableSql() const
     stmt += ")) WITHOUT ROWID;";
     return stmt;
 }
-int TableBase::Cursor::Next()
+int32_t TableBase::Cursor::Next()
 {
     indexMap_->Next();
     return SQLITE_OK;
 }
 
-int TableBase::Cursor::Eof()
+int32_t TableBase::Cursor::Eof()
 {
     return dataCache_->Cancel() || indexMap_->Eof();
 }
@@ -167,16 +168,16 @@ void TableBase::Cursor::FilterEnd()
 {
     indexMap_->Sort();
 }
-int TableBase::BestIndex(sqlite3_index_info* idxInfo)
+int32_t TableBase::BestIndex(sqlite3_index_info* idxInfo)
 {
     FilterConstraints filterConstraints;
-    for (int i = 0; i < idxInfo->nConstraint; i++) {
+    for (int32_t i = 0; i < idxInfo->nConstraint; i++) {
         const auto& constraint = idxInfo->aConstraint[i];
         if (constraint.usable) {
             filterConstraints.AddConstraint(i, constraint.iColumn, constraint.op);
         }
     }
-    for (int i = 0; i < idxInfo->nOrderBy; i++) {
+    for (int32_t i = 0; i < idxInfo->nOrderBy; i++) {
         filterConstraints.AddOrderBy(idxInfo->aOrderBy[i].iColumn, idxInfo->aOrderBy[i].desc);
     }
 
@@ -189,7 +190,7 @@ int TableBase::BestIndex(sqlite3_index_info* idxInfo)
     auto cs = filterConstraints.GetConstraints();
     for (size_t i = 0; i < cs.size(); i++) {
         auto& c = cs[i];
-        idxInfo->aConstraintUsage[c.idxInaConstraint].argvIndex = static_cast<int>(i + 1);
+        idxInfo->aConstraintUsage[c.idxInaConstraint].argvIndex = static_cast<int32_t>(i + 1);
         idxInfo->aConstraintUsage[c.idxInaConstraint].omit = c.isSupport;
     }
 
@@ -204,7 +205,7 @@ int TableBase::BestIndex(sqlite3_index_info* idxInfo)
 
     TS_LOGD("%s BestIndex return: %d: %s", name_.c_str(), idxInfo->idxNum, str.c_str());
     TS_LOGD("%s, aConstraintUsage[%d]", idxInfo->idxStr, idxInfo->nConstraint);
-    for (int i = 0; i < idxInfo->nConstraint; i++) {
+    for (int32_t i = 0; i < idxInfo->nConstraint; i++) {
         TS_LOGD("col: %d op: %d, argvindex: %d omit: %d", idxInfo->aConstraint[i].iColumn, idxInfo->aConstraint[i].op,
                 idxInfo->aConstraintUsage[i].argvIndex, idxInfo->aConstraintUsage[i].omit);
     }
@@ -213,7 +214,7 @@ int TableBase::BestIndex(sqlite3_index_info* idxInfo)
     return SQLITE_OK;
 }
 
-int TableBase::Open(sqlite3_vtab_cursor** ppCursor)
+int32_t TableBase::Open(sqlite3_vtab_cursor** ppCursor)
 {
     *ppCursor = static_cast<sqlite3_vtab_cursor*>(CreateCursor().release());
     return SQLITE_OK;
@@ -262,7 +263,7 @@ void TableBase::Cursor::FilterTS(unsigned char op, sqlite3_value* argv, const st
     }
 }
 
-int TableBase::Cursor::RowId(sqlite3_int64* id)
+int32_t TableBase::Cursor::RowId(sqlite3_int64* id)
 {
     if (dataCache_->Cancel() || indexMap_->Eof()) {
         return SQLITE_ERROR;

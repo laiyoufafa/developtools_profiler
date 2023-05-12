@@ -45,7 +45,7 @@ bool BytraceParserFuzzTest(const uint8_t* data, size_t size)
 } // namespace SysTuning
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int32_t LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     SysTuning::TraceStreamer::BytraceParserFuzzTest(data, size);

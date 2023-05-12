@@ -37,13 +37,13 @@ private:
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
+        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override
         {
             UNUSED(fc);
             UNUSED(argv);
             return 0;
         }
-        int Column(int col) const override;
+        int32_t Column(int32_t col) const override;
 
     private:
         const JsHeapTraceNode& jsHeapTraceNode_;

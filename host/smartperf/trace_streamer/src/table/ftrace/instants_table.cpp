@@ -92,7 +92,7 @@ void InstantsTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo
 void InstantsTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -135,7 +135,7 @@ bool InstantsTable::CanFilterSorted(const char op, size_t& rowCount) const
     return true;
 }
 
-int InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -192,7 +192,7 @@ int InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
     return SQLITE_OK;
 }
 
-int InstantsTable::Cursor::Column(int column) const
+int32_t InstantsTable::Cursor::Column(int32_t column) const
 {
     size_t stringIdentity = static_cast<size_t>(InstantsObj_.NameIndexsData()[CurrentRow()]);
     switch (column) {

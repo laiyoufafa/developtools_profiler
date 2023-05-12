@@ -32,20 +32,21 @@ public:
     ~HtraceJSMemoryParser();
     void ParseJSMemoryConfig(ProtoReader::BytesView tracePacket);
     void Parse(ProtoReader::BytesView tracePacket, uint64_t ts);
+    void EnableSaveFile(bool enable);
     void Finish();
 
 private:
-    void ParseTimeLine(int fileId, const std::string& jsonString);
-    void ParseSnapshot(int fileId, const std::string& jsonString);
-    void ParserJSSnapInfo(int fileId, const json& jMessage);
-    void ParseNodes(int fileId, const json& jMessage);
-    void ParseEdges(int fileId, const json& jMessage);
-    void ParseLocation(int fileId, const json& jMessage);
-    void ParseSample(int fileId, const json& jMessage);
-    void ParseString(int fileId, const json& jMessage);
-    void ParseTraceFuncInfo(int fileId, const json& jMessage);
-    void ParseTraceNode(int fileId, const json& jMessage);
-    void ParserSnapInfo(int fileId, const std::string& key, const std::vector<std::vector<std::string>>& types);
+    void ParseTimeLine(int32_t fileId, const std::string& jsonString);
+    void ParseSnapshot(int32_t fileId, const std::string& jsonString);
+    void ParserJSSnapInfo(int32_t fileId, const json& jMessage);
+    void ParseNodes(int32_t fileId, const json& jMessage);
+    void ParseEdges(int32_t fileId, const json& jMessage);
+    void ParseLocation(int32_t fileId, const json& jMessage);
+    void ParseSample(int32_t fileId, const json& jMessage);
+    void ParseString(int32_t fileId, const json& jMessage);
+    void ParseTraceFuncInfo(int32_t fileId, const json& jMessage);
+    void ParseTraceNode(int32_t fileId, const json& jMessage);
+    void ParserSnapInfo(int32_t fileId, const std::string& key, const std::vector<std::vector<std::string>>& types);
     int32_t type_ = 0;
     int32_t pid_ = 0;
     const std::string snapshotEnd_ = "{\"id\":1,\"result\":{}}";
@@ -53,7 +54,13 @@ private:
     uint64_t startTime_ = std::numeric_limits<uint64_t>::max();
     bool isFirst_ = true;
     std::string jsMemoryString_ = "";
-    int fileId_ = 0;
+    int32_t fileId_ = 0;
+    int32_t jsFileId_ = 0;
+    std::list<int32_t> fileIds_ = {};
+    bool enableFileSave_ = false;
+    const std::string tmpJsMemoryTimelineData_ = "ts_tmp.jsmemory_timeline.heapsnapshot";
+    const std::string tmpJsMemorySnapshotData_ = "ts_tmp.jsmemory_snapshot";
+    const std::string jsSnapshotFileTail = ".heapsnapshot";
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

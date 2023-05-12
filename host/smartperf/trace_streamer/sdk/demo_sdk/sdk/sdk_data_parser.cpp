@@ -38,7 +38,7 @@ SDKDataParser::SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilte
 {
 }
 
-int SDKDataParser::GetPluginName(std::string pluginName)
+int32_t SDKDataParser::GetPluginName(std::string pluginName)
 {
     pluginName.replace(pluginName.find("-"), 1, "_");
     counterTableName_ = pluginName + "_" + "counter_table";
@@ -47,7 +47,7 @@ int SDKDataParser::GetPluginName(std::string pluginName)
     sliceObjectName_ = pluginName + "_" + "sliceobj_table";
     return 0;
 }
-int SDKDataParser::ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFunction)
+int32_t SDKDataParser::ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFunction)
 {
     traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
     std::string traceRangeStr =
@@ -56,13 +56,13 @@ int SDKDataParser::ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFu
     return 0;
 }
 
-int SDKDataParser::GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction)
+int32_t SDKDataParser::GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction)
 {
     queryResultCallbackFunction(jsonConfig_, 1, 1);
     return 0;
 }
 
-int SDKDataParser::ParserData(const uint8_t* data, int len, int componentId)
+int32_t SDKDataParser::ParserData(const uint8_t* data, int32_t len, int32_t componentId)
 {
     if (componentId == DATA_TYPE_CLOCK) {
         ParserClock(data, len);
@@ -72,15 +72,15 @@ int SDKDataParser::ParserData(const uint8_t* data, int len, int componentId)
     return 0;
 }
 
-int SDKDataParser::ParserClock(const uint8_t* data, int len)
+int32_t SDKDataParser::ParserClock(const uint8_t* data, int32_t len)
 {
     return streamFilters_->clockFilter_->InitSnapShotTimeRange(data, len);
 }
 
-int SDKDataParser::SetTableName(const char* counterTableName,
-                                const char* counterObjectTableName,
-                                const char* sliceTableName,
-                                const char* sliceObjectName)
+int32_t SDKDataParser::SetTableName(const char* counterTableName,
+                                    const char* counterObjectTableName,
+                                    const char* sliceTableName,
+                                    const char* sliceObjectName)
 {
     if (!g_isUseExternalModify) {
         counterTableName_ = counterTableName;
@@ -92,7 +92,7 @@ int SDKDataParser::SetTableName(const char* counterTableName,
     return 0;
 }
 
-int SDKDataParser::UpdateJson()
+int32_t SDKDataParser::UpdateJson()
 {
     using json = nlohmann::json;
     json jMessage = json::parse(jsonConfig_);
@@ -110,7 +110,7 @@ int SDKDataParser::UpdateJson()
 }
 
 // 创建对应的表
-int SDKDataParser::CreateTableByJson()
+int32_t SDKDataParser::CreateTableByJson()
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "meta");
@@ -126,7 +126,7 @@ int SDKDataParser::CreateTableByJson()
 }
 
 // 根据Json配置创建couter object表
-int SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
+int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -137,7 +137,7 @@ int SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 }
 
 // 根据Json配置创建couter表
-int SDKDataParser::CreateCounterTable(const std::string& tableName)
+int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -148,7 +148,7 @@ int SDKDataParser::CreateCounterTable(const std::string& tableName)
 }
 
 // 根据Json配置创建slice object表
-int SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
+int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -159,7 +159,7 @@ int SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 }
 
 // 根据Json配置创建slice表
-int SDKDataParser::CreateSliceTable(const std::string& tableName)
+int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
     TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
@@ -170,13 +170,13 @@ int SDKDataParser::CreateSliceTable(const std::string& tableName)
 }
 
 // Counter业务
-int SDKDataParser::AppendCounterObject(int counterId, const char* columnName)
+int32_t SDKDataParser::AppendCounterObject(int32_t counterId, const char* columnName)
 {
     traceDataCache_->GetGpuCounterObjectData()->AppendNewData(counterId, columnName);
     return 0;
 }
 
-int SDKDataParser::AppendCounter(int counterId, uint64_t ts, int value)
+int32_t SDKDataParser::AppendCounter(int32_t counterId, uint64_t ts, int32_t value)
 {
     auto newTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, ts, newTs);
@@ -185,13 +185,13 @@ int SDKDataParser::AppendCounter(int counterId, uint64_t ts, int value)
 }
 
 // Slice业务
-int SDKDataParser::AppendSliceObject(int sliceId, const char* columnName)
+int32_t SDKDataParser::AppendSliceObject(int32_t sliceId, const char* columnName)
 {
     traceDataCache_->GetSliceObjectData()->AppendNewData(sliceId, columnName);
     return 0;
 }
 
-int SDKDataParser::AppendSlice(int sliceId, uint64_t ts, uint64_t endTs, int value)
+int32_t SDKDataParser::AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, int32_t value)
 {
     auto newTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     auto newEndTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, endTs);

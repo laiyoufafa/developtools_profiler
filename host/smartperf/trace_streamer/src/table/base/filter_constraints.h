@@ -26,18 +26,18 @@ namespace TraceStreamer {
 class FilterConstraints {
 public:
     struct Constraint {
-        int idxInaConstraint; // index in sqlite3_index_info.aConstraint[]
-        int col;              // Column this constraint refers to
-        unsigned char op;     // SQLite op for the constraint
+        int32_t idxInaConstraint; // index in sqlite3_index_info.aConstraint[]
+        int32_t col;              // Column this constraint refers to
+        unsigned char op;         // SQLite op for the constraint
         bool isSupport = false;
     };
     using OrderBy = sqlite3_index_info::sqlite3_index_orderby;
 
     FilterConstraints() {}
     ~FilterConstraints() {}
-    void AddConstraint(int idx, int col, unsigned char op, bool isSupport = false);
-    void UpdateConstraint(int idx, bool isSupport);
-    void AddOrderBy(int col, unsigned char desc);
+    void AddConstraint(int32_t idx, int32_t col, unsigned char op, bool isSupport = false);
+    void UpdateConstraint(int32_t idx, bool isSupport);
+    void AddOrderBy(int32_t col, unsigned char desc);
     void Clear();
 
     const std::vector<OrderBy>& GetOrderBys() const

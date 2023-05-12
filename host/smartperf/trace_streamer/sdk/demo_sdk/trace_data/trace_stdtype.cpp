@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStdtype {
 
-void GpuCounter::AppendNewData(uint64_t ts, int counterId, int value)
+void GpuCounter::AppendNewData(uint64_t ts, int32_t counterId, int32_t value)
 {
     ts_.emplace_back(ts);
     counterId_.emplace_back(counterId);
@@ -30,22 +30,22 @@ const std::deque<uint64_t>& GpuCounter::TimeStamp() const
 {
     return ts_;
 }
-const std::deque<int>& GpuCounter::CounterId() const
+const std::deque<int32_t>& GpuCounter::CounterId() const
 {
     return counterId_;
 }
-const std::deque<int>& GpuCounter::Value() const
+const std::deque<int32_t>& GpuCounter::Value() const
 {
     return value_;
 }
 
-void GpuCounterObject::AppendNewData(int counterId, const std::string counterName)
+void GpuCounterObject::AppendNewData(int32_t counterId, const std::string counterName)
 {
     counterId_.emplace_back(counterId);
     counterName_.emplace_back(counterName);
     ids_.push_back(counterId_.size() - 1);
 }
-const std::deque<int>& GpuCounterObject::CounterId() const
+const std::deque<int32_t>& GpuCounterObject::CounterId() const
 {
     return counterId_;
 }
@@ -53,13 +53,13 @@ const std::deque<std::string>& GpuCounterObject::CounterName() const
 {
     return counterName_;
 }
-void SliceObject::AppendNewData(int sliceId, std::string sliceName)
+void SliceObject::AppendNewData(int32_t sliceId, std::string sliceName)
 {
     sliceId_.emplace_back(sliceId);
     sliceName_.emplace_back(sliceName);
     ids_.push_back(sliceId_.size() - 1);
 }
-const std::deque<int>& SliceObject::SliceId() const
+const std::deque<int32_t>& SliceObject::SliceId() const
 {
     return sliceId_;
 }
@@ -67,7 +67,7 @@ const std::deque<std::string>& SliceObject::SliceName() const
 {
     return sliceName_;
 }
-void SliceData::AppendNewData(int sliceId, uint64_t startTs, uint64_t endTs, int value)
+void SliceData::AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs, int32_t value)
 {
     startTs_.emplace_back(startTs);
     endTs_.emplace_back(endTs);
@@ -75,7 +75,7 @@ void SliceData::AppendNewData(int sliceId, uint64_t startTs, uint64_t endTs, int
     value_.emplace_back(value);
     ids_.push_back(sliceId_.size() - 1);
 }
-const std::deque<int>& SliceData::SliceId() const
+const std::deque<int32_t>& SliceData::SliceId() const
 {
     return sliceId_;
 }
@@ -87,7 +87,7 @@ const std::deque<uint64_t>& SliceData::EndTs() const
 {
     return endTs_;
 }
-const std::deque<int>& SliceData::Value() const
+const std::deque<int32_t>& SliceData::Value() const
 {
     return value_;
 }

@@ -79,7 +79,7 @@ void ThreadStateTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexI
 void ThreadStateTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -163,7 +163,7 @@ ThreadStateTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 ThreadStateTable::Cursor::~Cursor() {}
 
-int ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset
     if (rowCount_ <= 0) {
@@ -237,7 +237,7 @@ int ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
     return SQLITE_OK;
 }
 
-int ThreadStateTable::Cursor::Column(int col) const
+int32_t ThreadStateTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case ID:

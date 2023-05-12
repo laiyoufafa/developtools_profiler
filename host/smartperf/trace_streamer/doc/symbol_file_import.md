@@ -14,3 +14,6 @@ folder_to_import/system/lib64/libace.z.so
 ```
 请注意，在folder_to_import文件夹之下，其文件的路径和其在设备（开发板）上的路径是一致的。  
 此规则对hiperf, ebpf, nativehook通用。
+
+其他需要注意的:  
+关于perf文件的so导入操作，原始trace中的文件符号表（perf_files）只会包含调用栈中使用的符号，而导入so后，符号表中包含的是该文件全量的符号信息，会比原有的表更大，而且符号的serial_id也对应会发生变化，但这不影响最终调用栈的显示。

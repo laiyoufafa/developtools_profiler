@@ -38,7 +38,7 @@ public:
     ~PerfDataParser();
     void InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, uint64_t size);
     void Finish();
-    bool ReloadSymbolFiles(std::vector<std::string>& symbolsPaths);
+    bool PerfReloadSymbolFiles(std::vector<std::string>& symbolsPaths);
 
 private:
     bool Reload();

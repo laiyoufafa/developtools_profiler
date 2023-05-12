@@ -55,14 +55,19 @@ class OfflineSymbolizationFilter : public FilterBase {
 public:
     OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~OfflineSymbolizationFilter();
+    template <class T>
+    void UpdateSymbol(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr, uint64_t ip, FrameInfo* frameInfo);
     std::shared_ptr<FrameInfo> OfflineSymbolization(uint64_t ip);
     std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolization(
         const std::shared_ptr<std::vector<uint64_t>> ips);
+    void OfflineSymbolization(const std::set<uint64_t>& ips);
 
 protected:
     enum SYSTEM_ENTRY_VALUE { ELF32_SYM = 16, ELF64_SYM = 24 };
     std::map<uint64_t, std::shared_ptr<ProtoReader::MapsInfo_Reader>> startAddrToMapsInfoMap_ = {};
     std::unordered_map<uint32_t, std::shared_ptr<ProtoReader::SymbolTable_Reader>> filePathIdToSymbolTableMap_ = {};
+    std::unordered_map<uint32_t, ElfSymbolTable> filePathIdToImportSymbolTableMap_ = {};
+    DoubleMap<uint32_t, uint64_t, const uint8_t*> filePathIdAndStValueToSymAddr_;
     DoubleMap<std::shared_ptr<ProtoReader::SymbolTable_Reader>, uint64_t, const uint8_t*>
         symbolTablePtrAndStValueToSymAddr_;
     std::map<uint64_t, std::shared_ptr<FrameInfo>> ipToFrameInfo_ = {};

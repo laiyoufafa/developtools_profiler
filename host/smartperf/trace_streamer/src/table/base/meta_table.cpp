@@ -39,7 +39,7 @@ MetaTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 MetaTable::Cursor::~Cursor() {}
 
-int MetaTable::Cursor::Column(int column) const
+int32_t MetaTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case NAMEINDEX:

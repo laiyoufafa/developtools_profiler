@@ -59,7 +59,7 @@ TraceStreamerConfig::TraceStreamerConfig()
     if (memNameMap_.size() != MEM_MAX) {
         TS_LOGF("memNameMap_.size() max be %d, logic error", MEM_MAX);
     }
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
         if (eventParserStatSeverityDescMap_.at(static_cast<SupportedTraceEventType>(i)).size() != STAT_EVENT_MAX) {
             TS_LOGF("every item in eventParserStatSeverityDescMap_ max be %d, logic error", STAT_EVENT_MAX);
         }

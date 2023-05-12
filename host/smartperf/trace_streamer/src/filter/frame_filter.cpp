@@ -67,7 +67,7 @@ bool FrameFilter::MarkRSOnvsyncEvent(uint64_t ts, uint32_t itid)
         pos++;
     }
     pos->get()->isRsMainThread_ = true;
-    return false;
+    return true;
 }
 bool FrameFilter::EndOnVsyncEvent(uint64_t ts, uint32_t itid)
 {
@@ -178,10 +178,6 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
 }
 bool FrameFilter::EndVsyncEvent(uint64_t ts, uint32_t itid)
 {
-    if (ts >= 12286384073630) {
-        // ts = 12286789073630;
-        printf("xx");
-    }
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
         TS_LOGW("EndVsyncEvent find for itid:%u ts:%llu failed", itid, ts);

@@ -50,7 +50,7 @@ SmapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 SmapsTable::Cursor::~Cursor() {}
 
-int SmapsTable::Cursor::Column(int col) const
+int32_t SmapsTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case ID:

@@ -24,14 +24,14 @@ using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
 namespace SysTuning {
 namespace TraceStreamer {
-constexpr int CPU_ID_0 = 0;
-constexpr int CPU_ID_1 = 1;
+constexpr int32_t CPU_ID_0 = 0;
+constexpr int32_t CPU_ID_1 = 1;
 constexpr std::string_view CPU_TYPE_0 = "cpu_idle";
 constexpr std::string_view CPU_TYPE_1 = "cpu_frequency";
-constexpr int INTERNAL_THREAD_ID_0 = 1;
-constexpr int INTERNAL_THREAD_ID_1 = 2;
-constexpr int INTERNAL_PROCESS_ID_0 = 1;
-constexpr int INTERNAL_PROCESS_ID_1 = 2;
+constexpr int32_t INTERNAL_THREAD_ID_0 = 1;
+constexpr int32_t INTERNAL_THREAD_ID_1 = 2;
+constexpr int32_t INTERNAL_PROCESS_ID_0 = 1;
+constexpr int32_t INTERNAL_PROCESS_ID_1 = 2;
 constexpr std::string_view TASK_NAME_0 = "softbus_server";
 constexpr std::string_view TASK_NAME_1 = "hiprofilerd";
 

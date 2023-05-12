@@ -58,16 +58,16 @@ public:
             indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
         }
 
-        virtual int Next();
+        virtual int32_t Next();
 
-        virtual int Eof();
+        virtual int32_t Eof();
 
         virtual uint32_t CurrentRow() const;
         virtual void FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<InternalTime>& times);
 
-        virtual int RowId(sqlite3_int64* id);
-        virtual int Filter(const FilterConstraints& fc, sqlite3_value** argv) = 0;
-        virtual int Column(int n) const = 0;
+        virtual int32_t RowId(sqlite3_int64* id);
+        virtual int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) = 0;
+        virtual int32_t Column(int32_t n) const = 0;
         virtual void FilterId(unsigned char op, sqlite3_value* argv);
         virtual void FilterEnd();
 
@@ -97,16 +97,16 @@ protected:
     };
 
     static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& tableName, TabTemplate tmplate);
-    virtual int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
+    virtual int32_t Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     {
         return SQLITE_READONLY;
     }
-    int BestIndex(sqlite3_index_info* idxInfo);
+    int32_t BestIndex(sqlite3_index_info* idxInfo);
     // needs to correspond to Cursor::Filter()
     virtual void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) = 0;
     virtual std::unique_ptr<Cursor> CreateCursor() = 0;
-    int Open(sqlite3_vtab_cursor** ppCursor);
-    virtual void Init(int, const char* const*)
+    int32_t Open(sqlite3_vtab_cursor** ppCursor);
+    virtual void Init(int32_t, const char* const*)
     {
         return;
     };
@@ -123,7 +123,7 @@ protected:
 
 private:
     uint16_t bestIndexNum_ = 0;
-    int cacheIdxNum_ = 0;
+    int32_t cacheIdxNum_ = 0;
     FilterConstraints cacheConstraint_;
 };
 } // namespace TraceStreamer

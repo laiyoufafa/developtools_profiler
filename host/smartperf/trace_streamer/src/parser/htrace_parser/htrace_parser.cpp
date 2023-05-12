@@ -108,7 +108,7 @@ void HtraceParser::WaitForParserEnd()
 
 void HtraceParser::ParseTraceDataItem(const std::string& buffer)
 {
-    int head = rawDataHead_;
+    int32_t head = rawDataHead_;
     if (!supportThread_) {
         dataSegArray_[head].seg = std::move(buffer);
         dataSegArray_[head].status = TS_PARSE_STATUS_SEPRATED;
@@ -127,7 +127,7 @@ void HtraceParser::ParseTraceDataItem(const std::string& buffer)
     }
     if (!parseThreadStarted_) {
         parseThreadStarted_ = true;
-        int tmp = maxThread_;
+        int32_t tmp = maxThread_;
         while (tmp--) {
             parserThreadCount_++;
             std::thread ParseTypeThread(&HtraceParser::ParseThread, this);
@@ -208,7 +208,7 @@ void HtraceParser::FilterThread()
 void HtraceParser::ParserData(HtraceDataSegment& dataSeg)
 {
     ProfilerPluginData pluginData;
-    if (!pluginData.ParseFromArray(dataSeg.seg.data(), static_cast<int>(dataSeg.seg.length()))) {
+    if (!pluginData.ParseFromArray(dataSeg.seg.data(), static_cast<int32_t>(dataSeg.seg.length()))) {
         TS_LOGW("ProfilerPluginData ParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         return;
@@ -262,7 +262,7 @@ void HtraceParser::ParseThread()
             TS_LOGD("FilterThread start working ...\n");
             ParserThread.detach();
         }
-        int head = GetNextSegment();
+        int32_t head = GetNextSegment();
         if (head < 0) {
             if (head == ERROR_CODE_EXIT) {
                 TS_LOGI("parse thread exit\n");
@@ -286,7 +286,7 @@ void HtraceParser::ParseMemory(const ProfilerPluginData& pluginData, HtraceDataS
     }
     dataSourceTypeMemClockid_ = clockId;
     dataSeg.memData.Clear();
-    if (!dataSeg.memData.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.memData.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         return;
@@ -311,7 +311,7 @@ void HtraceParser::ParseHilog(const ProfilerPluginData& pluginData, HtraceDataSe
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_HILOG;
     dataSourceTypeHilogClockid_ = TS_CLOCK_REALTIME;
-    if (!dataSeg.logData.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.logData.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_PARSED;
         return;
@@ -326,7 +326,7 @@ void HtraceParser::ParseFtrace(const ProfilerPluginData& pluginData, HtraceDataS
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_TRACE;
     dataSeg.traceData = std::make_unique<TracePluginResult>();
-    if (!dataSeg.traceData->ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.traceData->ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         return;
@@ -365,7 +365,7 @@ void HtraceParser::ParseNativeHook(const ProfilerPluginData& pluginData, HtraceD
     dataSourceTypeAllocationClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_ALLOCATION;
     if (!dataSeg.batchNativeHookData.ParseFromArray(pluginData.data().data(),
-                                                    static_cast<int>(pluginData.data().size()))) {
+                                                    static_cast<int32_t>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         return;
@@ -380,7 +380,7 @@ void HtraceParser::ParseNativeHook(const ProfilerPluginData& pluginData, HtraceD
 void HtraceParser::ParseFPS(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_FPS;
-    if (!dataSeg.hidumpInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.hidumpInfo.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         return;
@@ -396,7 +396,7 @@ void HtraceParser::ParseCpuUsage(const ProfilerPluginData& pluginData, HtraceDat
 {
     dataSourceTypeProcessClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_CPU;
-    if (!dataSeg.cpuInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.cpuInfo.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_CPU_USAGE, STAT_EVENT_DATA_INVALID);
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -412,7 +412,7 @@ void HtraceParser::ParseNetwork(const ProfilerPluginData& pluginData, HtraceData
 {
     dataSourceTypeProcessClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_NETWORK;
-    if (!dataSeg.networkInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.networkInfo.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_NETWORK, STAT_EVENT_DATA_INVALID);
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -424,7 +424,7 @@ void HtraceParser::ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataS
 {
     dataSourceTypeProcessClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_DISKIO;
-    if (!dataSeg.diskIOInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.diskIOInfo.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_DISKIO, STAT_EVENT_DATA_INVALID);
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -437,7 +437,7 @@ void HtraceParser::ParseProcess(const ProfilerPluginData& pluginData, HtraceData
 {
     dataSourceTypeProcessClockid_ = TS_CLOCK_BOOTTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_PROCESS;
-    if (!dataSeg.processInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.processInfo.ParseFromArray(pluginData.data().data(), static_cast<int32_t>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_PROCESS, STAT_EVENT_DATA_INVALID);
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -451,7 +451,8 @@ void HtraceParser::ParseHisysevent(const ProfilerPluginData& pluginData, HtraceD
 {
     dataSourceTypeHisyseventClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_HISYSEVENT;
-    if (!dataSeg.hisyseventInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+    if (!dataSeg.hisyseventInfo.ParseFromArray(pluginData.data().data(),
+                                               static_cast<int32_t>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_DATA_INVALID);
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -464,7 +465,7 @@ void HtraceParser::ParseHisyseventConfig(const ProfilerPluginData& pluginData, H
     dataSourceTypeHisyseventClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_HISYSEVENT_CONFIG;
     if (!dataSeg.hisyseventConfig.ParseFromArray(pluginData.data().data(),
-                                                 static_cast<int>(pluginData.data().size()))) {
+                                                 static_cast<int32_t>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_DATA_INVALID);
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -473,9 +474,9 @@ void HtraceParser::ParseHisyseventConfig(const ProfilerPluginData& pluginData, H
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
 
-int HtraceParser::GetNextSegment()
+int32_t HtraceParser::GetNextSegment()
 {
-    int head;
+    int32_t head;
     dataSegMux_.lock();
     head = parseHead_;
     HtraceDataSegment& seg = dataSegArray_[head];
@@ -616,7 +617,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
     }
     uint8_t buffer[PACKET_HEADER_LENGTH];
     (void)memset_s(buffer, PACKET_HEADER_LENGTH, 0, PACKET_HEADER_LENGTH);
-    int i = 0;
+    int32_t i = 0;
     for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + PACKET_HEADER_LENGTH; ++it, ++i) {
         buffer[i] = *it;
     }
@@ -634,7 +635,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
             profilerTraceFileHeader_.data.length, profilerTraceFileHeader_.data.dataType,
             profilerTraceFileHeader_.data.boottime);
 #if IS_WASM
-    const int DATA_TYPE_CLOCK = 100;
+    const int32_t DATA_TYPE_CLOCK = 100;
     TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(&profilerTraceFileHeader_),
                                       sizeof(profilerTraceFileHeader_), DATA_TYPE_CLOCK);
 #endif

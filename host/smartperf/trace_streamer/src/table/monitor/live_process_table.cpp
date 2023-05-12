@@ -65,7 +65,7 @@ LiveProcessTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 LiveProcessTable::Cursor::~Cursor() {}
 
-int LiveProcessTable::Cursor::Column(int column) const
+int32_t LiveProcessTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case TS: {

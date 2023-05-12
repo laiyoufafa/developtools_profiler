@@ -75,7 +75,7 @@ void EbpfElfSymbolTable::EstimateFilterCost(FilterConstraints& fc, EstimatedInde
 void EbpfElfSymbolTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -131,7 +131,7 @@ EbpfElfSymbolTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* t
 
 EbpfElfSymbolTable::Cursor::~Cursor() {}
 
-int EbpfElfSymbolTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t EbpfElfSymbolTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -167,7 +167,7 @@ int EbpfElfSymbolTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
     return SQLITE_OK;
 }
 
-int EbpfElfSymbolTable::Cursor::Column(int column) const
+int32_t EbpfElfSymbolTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

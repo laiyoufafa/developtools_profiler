@@ -45,7 +45,7 @@ GpuCounterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 GpuCounterTable::Cursor::~Cursor() {}
 
-int GpuCounterTable::Cursor::Column(int column) const
+int32_t GpuCounterTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case TS: {

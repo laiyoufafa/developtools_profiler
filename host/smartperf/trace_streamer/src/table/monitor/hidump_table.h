@@ -37,8 +37,8 @@ private:
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
-        int Column(int column) const override;
+        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Column(int32_t column) const override;
 
     private:
         const Hidump& hidumpObj_;

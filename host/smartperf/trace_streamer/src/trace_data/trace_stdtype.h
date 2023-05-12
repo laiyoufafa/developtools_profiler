@@ -824,6 +824,11 @@ public:
                                     uint64_t offset,
                                     uint64_t symbolOffset,
                                     const std::string& vaddr);
+    void UpdateFrameInfo(size_t row,
+                         DataIndex symbolIndex,
+                         DataIndex filePathIndex,
+                         uint64_t offset,
+                         uint64_t symbolOffset);
     void UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId);
     void UpdateSymbolId();
     void UpdateSymbolId(size_t index, DataIndex symbolId);
@@ -1884,7 +1889,7 @@ public:
     void SetEndTime(uint64_t row, uint64_t end);
     void SetType(uint64_t row, uint8_t type);
     void SetDst(uint64_t row, uint64_t dst);
-    void SetSrcs(uint64_t row, std::vector<uint64_t>& fromSlices);
+    void SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices);
     const std::deque<uint32_t> Ipids() const;
     const std::deque<uint32_t> VsyncIds() const;
     const std::deque<uint64_t> CallStackIds() const;

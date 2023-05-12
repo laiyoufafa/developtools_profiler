@@ -25,7 +25,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {
-int TraceStreamerSqlOperate(const uint8_t* sql, int sqlLen);
+int32_t TraceStreamerSqlOperate(const uint8_t* sql, int32_t sqlLen);
 }
 
 } // namespace TraceStreamer

@@ -33,7 +33,7 @@ void HtraceSymbolsDetailParser::Parse(const TracePluginResult* tracePacket)
     if (!tracePacket->symbols_detail_size()) {
         return;
     }
-    for (int i = 0; i < tracePacket->symbols_detail_size(); i++) {
+    for (int32_t i = 0; i < tracePacket->symbols_detail_size(); i++) {
         auto symbol = const_cast<TracePluginResult*>(tracePacket)->mutable_symbols_detail(i);
         // symbol
         streamFilters_->symbolsFilter_->RegisterFunc(symbol->symbol_addr(),

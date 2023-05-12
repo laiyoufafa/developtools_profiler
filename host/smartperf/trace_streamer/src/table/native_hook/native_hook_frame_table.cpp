@@ -74,7 +74,7 @@ void NativeHookFrameTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIn
 void NativeHookFrameTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -130,7 +130,7 @@ NativeHookFrameTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase*
 
 NativeHookFrameTable::Cursor::~Cursor() {}
 
-int NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -178,7 +178,7 @@ int NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
     return SQLITE_OK;
 }
 
-int NativeHookFrameTable::Cursor::Column(int column) const
+int32_t NativeHookFrameTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

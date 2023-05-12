@@ -155,7 +155,7 @@ ParseDataAreaResult ProtoReaderBase::ParseOneDataArea(const uint8_t* const start
     }
     result.dataArea.SetDataAreaId(dataAreaId);
 
-    auto dataAreaType = static_cast<uint8_t>(dataAreaTag) & DATA_AREA_TYPE_BITS;
+    auto dataAreaType = static_cast<uint8_t>(dataAreaTag) & DATA_AREA_TYPE_VALUE;
     result.dataArea.SetDataAreaType(dataAreaType);
 
     auto itor = dataAreaTypeToParseFuncMap_.find(static_cast<ProtoWireType>(dataAreaType));

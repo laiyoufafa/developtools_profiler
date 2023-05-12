@@ -34,7 +34,7 @@ void HtraceHiLogParser::Parse(HilogInfo& tracePacket)
     if (!tracePacket.info_size()) {
         return;
     }
-    for (int i = 0; i < tracePacket.info_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.info_size(); i++) {
         auto hilogLine = tracePacket.mutable_info(i);
         uint64_t curLineSeq = hilogLine->id();
         streamFilters_->statFilter_->IncreaseStat(TRACE_HILOG, STAT_EVENT_RECEIVED);

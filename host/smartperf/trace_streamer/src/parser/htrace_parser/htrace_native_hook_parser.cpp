@@ -181,8 +181,8 @@ void HtraceNativeHookParser::ParseFreeEvent(uint64_t newTimeStamp, const NativeH
     }
     int64_t freeHeapSize = 0;
     uint64_t row = INVALID_UINT64;
-    if (addrToAllocEventRow_.count(freeEventReader.addr()) {
-        row = addrToAllocEventRow_.at(freeEventReader.addr());
+    if (addrToAllocEventRow_.count(freeEvent.addr())) {
+        row = addrToAllocEventRow_.at(freeEvent.addr());
     }
     if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
         addrToAllocEventRow_.erase(freeEvent.addr());

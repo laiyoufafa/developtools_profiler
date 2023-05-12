@@ -28,14 +28,14 @@ struct TableDesc {
     std::string name;
     std::string partition;
     std::vector<TableBase::ColumnInfo> cols;
-    int tsIdx;
-    int durIdx;
-    int partitionIdx;
+    int32_t tsIdx;
+    int32_t durIdx;
+    int32_t partitionIdx;
 };
 
 struct TableColumnInfo {
     TableDesc* tableDesc;
-    int colIdx;
+    int32_t colIdx;
 };
 
 enum PartitionState {
@@ -59,7 +59,7 @@ public:
     bool IsTsOrDurCol(const std::string& name);
     bool DeduplicationForColumn(const std::string& name, std::vector<ColumnInfo>& cols);
     void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override{};
-    void Init(int argc, const char* const* argv) override;
+    void Init(int32_t argc, const char* const* argv) override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
     class CaclSpan {
@@ -67,7 +67,7 @@ public:
         CaclSpan(TableBase* tableBase, const TableDesc* tableDesc, sqlite3* db);
         virtual ~CaclSpan();
         static std::string GetMergeColumns(std::vector<std::string>& columns);
-        int InitQuerySql(sqlite3_value** argv);
+        int32_t InitQuerySql(sqlite3_value** argv);
         bool IsQueryNext();
         bool GetCursorNext();
         bool GetNextState();
@@ -82,9 +82,9 @@ public:
         int64_t ts_ = 0;
         int64_t endTs_ = 0;
         PartitionState partitionState_ = PartitionState::TS_MISSING;
-        int partition_ = 0;
-        int missPartitionStart_ = 0;
-        int missPartitionEnd_ = 0;
+        int32_t partition_ = 0;
+        int32_t missPartitionStart_ = 0;
+        int32_t missPartitionEnd_ = 0;
         std::string sqlQuery_;
         sqlite3_stmt* stmt_;
         const TableDesc* desc_ = nullptr;
@@ -95,9 +95,9 @@ public:
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, SpanJoin* table);
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
-        int Column(int column) const override;
-        int Next() override
+        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Column(int32_t column) const override;
+        int32_t Next() override
         {
             queryNext_->Next();
             auto status = IsFindSpan();
@@ -106,7 +106,7 @@ public:
             }
             return SQLITE_OK;
         }
-        int Eof() override
+        int32_t Eof() override
         {
             return tableFirst_.isEof_ || tableSecond_.isEof_;
         }
@@ -127,7 +127,7 @@ public:
 private:
     TableDesc tableFirstDesc_;
     TableDesc tableSecondDesc_;
-    std::unordered_map<int, TableColumnInfo> mTableColumnInfo_;
+    std::unordered_map<int32_t, TableColumnInfo> mTableColumnInfo_;
 };
 
 } // namespace TraceStreamer

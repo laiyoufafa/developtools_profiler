@@ -42,9 +42,9 @@
 #include "workqueue.pbreader.h"
 namespace SysTuning {
 namespace TraceStreamer {
-const int MIN_DATA_AREA = 10;
-const int DATA_AREA_START = 1;
-const int DATA_AREA_END = 11;
+const int32_t MIN_DATA_AREA = 10;
+const int32_t DATA_AREA_START = 1;
+const int32_t DATA_AREA_END = 11;
 
 HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
     : EventParserBase(dataCache, filter),
@@ -131,8 +131,8 @@ HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStrea
 
 HtraceEventParser::~HtraceEventParser()
 {
-    TS_LOGI("thread count:%u", static_cast<unsigned int>(tids_.size()));
-    TS_LOGI("process count:%u", static_cast<unsigned int>(pids_.size()));
+    TS_LOGI("thread count:%u", static_cast<uint32_t>(tids_.size()));
+    TS_LOGI("process count:%u", static_cast<uint32_t>(pids_.size()));
     TS_LOGI("ftrace ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceStartTime_),
             static_cast<unsigned long long>(ftraceEndTime_));
     TS_LOGI("ftrace origin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceOriginStartTime_),
@@ -453,8 +453,9 @@ bool HtraceEventParser::TaskRenameEvent(const ProtoReader::DataArea& event) cons
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_RENAME, STAT_EVENT_RECEIVED);
     ProtoReader::TaskRenameFormat_Reader msg(event.Data(), event.Size());
-    auto prevCommStr = msg.newcomm();
+    auto commStr = msg.newcomm();
     auto pidValue = msg.pid();
+    streamFilters_->processFilter_->UpdateOrCreateThreadWithName(eventTimeStamp_, pidValue, commStr.ToStdString());
     return true;
 }
 bool HtraceEventParser::TaskNewtaskEvent(const ProtoReader::DataArea& event) const
@@ -847,7 +848,7 @@ void HtraceEventParser::FilterAllEvents()
     size_t maxBuffSize = 1000 * 1000;
 
     while (eventList_.size()) {
-        int size = std::min(maxBuffSize, eventList_.size());
+        int32_t size = std::min(maxBuffSize, eventList_.size());
         auto endOfList = eventList_.begin() + size;
         for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
             EventInfo* event = itor->get();

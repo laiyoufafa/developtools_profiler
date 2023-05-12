@@ -34,7 +34,7 @@ static void sqliteExtStdevFinalize(sqlite3_context* context)
 /*
 ** called each value received during a calculation of stdev or variance
 */
-static void sqliteExtStdevNextStep(sqlite3_context* context, int argc, sqlite3_value** argv)
+static void sqliteExtStdevNextStep(sqlite3_context* context, int32_t argc, sqlite3_value** argv)
 {
     TS_ASSERT(argc == 1);
     StdevCtx* ptr = static_cast<StdevCtx*>(sqlite3_aggregate_context(context, sizeof(StdevCtx)));
@@ -200,9 +200,9 @@ public:
     }
 };
 
-void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
+void BuildJson(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
 {
-    const int PAIR_ARGS_SIZE = 2;
+    const int32_t PAIR_ARGS_SIZE = 2;
     if (argc % PAIR_ARGS_SIZE != 0) {
         TS_LOGI("BuildJson arg number error");
         sqlite3_result_error(ctx, "BuildJson arg number error", -1);
@@ -211,7 +211,7 @@ void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
 
     JsonBuild builder;
     builder.AppendHead();
-    for (int i = 0; i < argc; i += PAIR_ARGS_SIZE) {
+    for (int32_t i = 0; i < argc; i += PAIR_ARGS_SIZE) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
             TS_LOGI("BuildJson: Invalid args argc:%d, %d", argc, sqlite3_value_type(argv[i]));
             sqlite3_result_error(ctx, "BuildJson: Invalid args", -1);
@@ -236,12 +236,12 @@ void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
     }
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
     memcpy(data.get(), raw.data(), raw.size());
-    sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
+    sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 
-void RepeatedJsonStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
+void RepeatedJsonStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
 {
-    const int PAIR_ARGS_SIZE = 2;
+    const int32_t PAIR_ARGS_SIZE = 2;
     auto** jsonBuild = static_cast<JsonBuild**>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild*)));
 
     if (*jsonBuild == nullptr) {
@@ -249,7 +249,7 @@ void RepeatedJsonStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
     }
     JsonBuild* builder = *jsonBuild;
     builder->AppendHead();
-    for (int i = 0; i < argc; i += PAIR_ARGS_SIZE) {
+    for (int32_t i = 0; i < argc; i += PAIR_ARGS_SIZE) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
             TS_LOGI("BuildJson: Invalid args argc:%d, %d", argc, sqlite3_value_type(argv[i]));
             sqlite3_result_error(ctx, "BuildJson: Invalid args", -1);
@@ -269,7 +269,7 @@ void RepeatedJsonStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
     builder->AppendTail();
     builder->AppendCommon();
 }
-void RepeatedFieldStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
+void RepeatedFieldStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
 {
     if (argc != 1) {
         TS_LOGE(
@@ -282,7 +282,7 @@ void RepeatedFieldStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
         *jsonBuild = new JsonBuild();
     }
     JsonBuild* builder = *jsonBuild;
-    for (int i = 0; i < argc; i++) {
+    for (int32_t i = 0; i < argc; i++) {
         auto value = SqliteValueToTSSqlValue(argv[i]);
         auto status = builder->AppendSqlValue(value);
         if (!status) {
@@ -310,7 +310,7 @@ void RepeatedFieldFinal(sqlite3_context* ctx)
 
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
     memcpy(data.get(), raw.data(), raw.size());
-    sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
+    sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 
 void RepeatedJsonFinal(sqlite3_context* ctx)
@@ -332,7 +332,7 @@ void RepeatedJsonFinal(sqlite3_context* ctx)
 
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
     memcpy(data.get(), raw.data(), raw.size());
-    sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
+    sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 void ts_create_extend_function(sqlite3* db)
 {

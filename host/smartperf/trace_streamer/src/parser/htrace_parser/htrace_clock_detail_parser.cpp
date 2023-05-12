@@ -44,7 +44,7 @@ void HtraceClockDetailParser::Parse(TracePluginResult* tracePacket) const
     }
     std::vector<SnapShot> snapShot;
     TS_LOGI("got clock snapshot");
-    for (int i = 0; i < tracePacket->clocks_detail_size(); i++) {
+    for (int32_t i = 0; i < tracePacket->clocks_detail_size(); i++) {
         auto clockInfo = tracePacket->mutable_clocks_detail(i);
         TS_LOGI("clockid:%d, ts:%llu", clockInfo->id(),
                 static_cast<unsigned long long>(clockInfo->time().tv_nsec() + clockInfo->time().tv_sec() * SEC_TO_NS));

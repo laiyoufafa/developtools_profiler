@@ -65,7 +65,7 @@ void TraceStreamerSelector::EnableMetaTable(bool enabled)
 }
 
 void TraceStreamerSelector::SetCleanMode(bool cleanMode) {}
-int TraceStreamerSelector::ExportDatabase(const std::string& outputName) const
+int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName) const
 {
     return traceDataCache_->ExportDatabase(outputName);
 }
@@ -74,19 +74,19 @@ void TraceStreamerSelector::Clear()
     traceDataCache_->Prepare();
     traceDataCache_->Clear();
 }
-int TraceStreamerSelector::SearchData()
+int32_t TraceStreamerSelector::SearchData()
 {
     return traceDataCache_->SearchData();
 }
-int TraceStreamerSelector::OperateDatabase(const std::string& sql)
+int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
 {
     return traceDataCache_->OperateDatabase(sql);
 }
-int TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }
-int TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int outLen)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
 }

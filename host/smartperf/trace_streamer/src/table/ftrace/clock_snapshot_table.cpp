@@ -44,7 +44,7 @@ ClockSnapShotTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* t
 
 ClockSnapShotTable::Cursor::~Cursor() {}
 
-int ClockSnapShotTable::Cursor::Column(int column) const
+int32_t ClockSnapShotTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

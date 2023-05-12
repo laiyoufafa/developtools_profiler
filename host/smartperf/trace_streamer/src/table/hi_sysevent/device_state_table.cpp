@@ -82,7 +82,7 @@ DeviceStateTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 DeviceStateTable::Cursor::~Cursor() {}
 
-int DeviceStateTable::Cursor::Column(int column) const
+int32_t DeviceStateTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

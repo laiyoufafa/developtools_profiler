@@ -61,7 +61,7 @@ NetworkTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 NetworkTable::Cursor::~Cursor() {}
 
-int NetworkTable::Cursor::Column(int column) const
+int32_t NetworkTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case TS: {

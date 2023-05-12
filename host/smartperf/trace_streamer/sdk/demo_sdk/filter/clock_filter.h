@@ -66,7 +66,7 @@ public:
     uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
     void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp);
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
-    int InitSnapShotTimeRange(const uint8_t* data, int len);
+    int32_t InitSnapShotTimeRange(const uint8_t* data, int32_t len);
     bool HasInitSnapShot() const
     {
         return hasInitSnapShot_;

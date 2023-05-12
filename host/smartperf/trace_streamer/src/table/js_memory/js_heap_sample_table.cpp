@@ -41,7 +41,7 @@ JsHeapSampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* ta
 
 JsHeapSampleTable::Cursor::~Cursor() {}
 
-int JsHeapSampleTable::Cursor::Column(int col) const
+int32_t JsHeapSampleTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case FILE_ID:

@@ -37,9 +37,16 @@ public:
     void Parse(HtraceDataSegment& dataSeg);
     void FinishParseNativeHookData();
     void Finish();
+    bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables)
+    {
+        return nativeHookFilter_->NativeHookReloadElfSymbolTable(elfSymbolTables);
+    }
+    bool SupportImportSymbolTable()
+    {
+        return nativeHookFilter_->SupportImportSymbolTable();
+    }
 
 private:
-    void MaybeParseNativeHookMainEvent();
     void ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
     void ParseTagEvent(const ProtoReader::BytesView& bytesView);
     void ParseFileEvent(const ProtoReader::BytesView& bytesView);

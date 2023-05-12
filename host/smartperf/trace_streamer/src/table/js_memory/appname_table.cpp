@@ -42,7 +42,7 @@ AppnameTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 AppnameTable::Cursor::~Cursor() {}
 
-int AppnameTable::Cursor::Column(int column) const
+int32_t AppnameTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

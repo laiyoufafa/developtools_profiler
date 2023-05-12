@@ -42,7 +42,7 @@ TraceConfigTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 TraceConfigTable::Cursor::~Cursor() {}
 
-int TraceConfigTable::Cursor::Column(int column) const
+int32_t TraceConfigTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

@@ -67,7 +67,7 @@ void HtraceMemParser::ParseProcessInfo(const MemoryData& tracePacket, uint64_t t
     if (tracePacket.processesinfo_size()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_MEMORY, STAT_EVENT_RECEIVED);
     }
-    for (int i = 0; i < tracePacket.processesinfo_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.processesinfo_size(); i++) {
         auto memInfo = tracePacket.processesinfo(i);
         auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(memInfo.pid(), memInfo.name());
         uint32_t hasValue = 0;
@@ -122,7 +122,7 @@ void HtraceMemParser::ParseMemInfoEasy(const MemoryData& tracePacket, uint64_t t
     if (tracePacket.meminfo_size()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
     }
-    for (int i = 0; i < tracePacket.meminfo_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.meminfo_size(); i++) {
         auto memInfo = tracePacket.meminfo(i);
         if (config_.sysMemNameMap_.find(memInfo.key()) != config_.sysMemNameMap_.end()) {
             streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(sysMemNameDictMap_.at(memInfo.key()),
@@ -139,7 +139,7 @@ void HtraceMemParser::ParseVMemInfoEasy(const MemoryData& tracePacket, uint64_t 
     if (tracePacket.vmeminfo_size()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_RECEIVED);
     }
-    for (int i = 0; i < tracePacket.vmeminfo_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.vmeminfo_size(); i++) {
         auto memInfo = tracePacket.vmeminfo(i);
         if (config_.sysVirtualMemNameMap_.find(memInfo.key()) != config_.sysVirtualMemNameMap_.end()) {
             streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(sysVMemNameDictMap_.at(memInfo.key()),
@@ -153,7 +153,7 @@ void HtraceMemParser::ParseVMemInfoEasy(const MemoryData& tracePacket, uint64_t 
 void HtraceMemParser::ParseMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
-    for (int i = 0; i < tracePacket.meminfo_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.meminfo_size(); i++) {
         auto vMemInfo = tracePacket.meminfo(i);
         switch (static_cast<int32_t>(vMemInfo.key())) {
             case SysMeminfoType::PMEM_UNSPECIFIED:
@@ -308,7 +308,7 @@ void HtraceMemParser::ParseMemInfo(const MemoryData& tracePacket, uint64_t timeS
 void HtraceMemParser::ParseVMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_RECEIVED);
-    for (int i = 0; i < tracePacket.vmeminfo_size(); i++) {
+    for (int32_t i = 0; i < tracePacket.vmeminfo_size(); i++) {
         auto vMemInfo = tracePacket.vmeminfo(i);
         switch (static_cast<int32_t>(vMemInfo.key())) {
             case SysVMeminfoType::VMEMINFO_UNSPECIFIED:

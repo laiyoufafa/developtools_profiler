@@ -90,7 +90,7 @@ void ProcessTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo&
 void ProcessTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
-    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
         if (rowCount <= 1) {
             // only one row or nothing, needn't filter by constraint
             filterCost += rowCount;
@@ -134,7 +134,7 @@ bool ProcessTable::CanFilterId(const char op, size_t& rowCount)
     return true;
 }
 
-int ProcessTable::Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
+int32_t ProcessTable::Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid)
 {
     if (argc <= 1) {
         return SQLITE_READONLY;
@@ -144,7 +144,7 @@ int ProcessTable::Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     }
     auto id = sqlite3_value_int64(argv[0]);
     auto process = wdataCache_->GetProcessData(static_cast<InternalPid>(id));
-    constexpr int colOffset = 2;
+    constexpr int32_t colOffset = 2;
     for (auto i = colOffset; i < argc; i++) {
         auto col = i - colOffset;
         if (col != NAME) {
@@ -173,7 +173,7 @@ ProcessTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 ProcessTable::Cursor::~Cursor() {}
 
-int ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -214,7 +214,7 @@ int ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
     return SQLITE_OK;
 }
 
-int ProcessTable::Cursor::Column(int col) const
+int32_t ProcessTable::Cursor::Column(int32_t col) const
 {
     const auto& process = dataCache_->GetConstProcessData(CurrentRow());
     switch (col) {
@@ -230,7 +230,7 @@ int ProcessTable::Cursor::Column(int col) const
             break;
         case NAME:
             if (process.cmdLine_.size()) {
-                sqlite3_result_text(context_, process.cmdLine_.c_str(), static_cast<int>(process.cmdLine_.length()),
+                sqlite3_result_text(context_, process.cmdLine_.c_str(), static_cast<int32_t>(process.cmdLine_.length()),
                                     nullptr);
             }
             break;
@@ -311,7 +311,7 @@ void ProcessTable::Cursor::FilterPid(unsigned char op, uint64_t value)
             break;
     } // end of switch (op)
 }
-void ProcessTable::Cursor::FilterIndex(int col, unsigned char op, sqlite3_value* argv)
+void ProcessTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv)
 {
     auto type = sqlite3_value_type(argv);
     switch (col) {

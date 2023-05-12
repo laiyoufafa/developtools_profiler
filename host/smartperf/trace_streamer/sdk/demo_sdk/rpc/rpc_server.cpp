@@ -35,7 +35,7 @@ bool RpcServer::SqlOperate(const uint8_t* data, size_t len, ResultCallBack resul
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC SqlOperate(%s, %zu)", sql.c_str(), len);
 
-    int ret = ts_->OperateDatabase(sql);
+    int32_t ret = ts_->OperateDatabase(sql);
     if (resultCallBack) {
         std::string response = "ok\r\n";
         if (ret != 0) {
@@ -52,7 +52,7 @@ bool RpcServer::SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultC
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC SqlQuery %zu:%s", len, sql.c_str());
 
-    int ret = ts_->SearchDatabase(sql, resultCallBack);
+    int32_t ret = ts_->SearchDatabase(sql, resultCallBack);
     if (resultCallBack && ret != 0) {
         resultCallBack("dberror\r\n", SEND_FINISH, 0);
     }
@@ -78,31 +78,31 @@ bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCall
     return true;
 }
 
-int RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int outLen)
+int32_t RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen)
 {
     ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("WASM RPC SqlQuery outlen(%d) sql(%zu:%s)", outLen, len, sql.c_str());
-    int ret = ts_->SearchDatabase(sql, out, outLen);
+    int32_t ret = ts_->SearchDatabase(sql, out, outLen);
     return ret;
 }
 
-int RpcServer::WasmGetPluginNameWithCallback(const uint8_t* data, size_t len) const
+int32_t RpcServer::WasmGetPluginNameWithCallback(const uint8_t* data, size_t len) const
 {
     std::string pluginName(reinterpret_cast<const char*>(data), len);
     TS_LOGI("WASM pluginName(%zu:%s)", len, pluginName.c_str());
 
-    int ret = ts_->sdkDataParser_->GetPluginName(pluginName);
+    int32_t ret = ts_->sdkDataParser_->GetPluginName(pluginName);
     return ret;
 }
 
-int RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
+int32_t RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
 {
     ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("WASM RPC SqlQuery sql(%zu:%s)", len, sql.c_str());
 
-    int ret = ts_->SearchDatabase(sql, callback);
+    int32_t ret = ts_->SearchDatabase(sql, callback);
     return ret;
 }
 

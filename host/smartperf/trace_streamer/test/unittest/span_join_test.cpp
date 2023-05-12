@@ -33,7 +33,7 @@ public:
 public:
     void Prepare(const std::string& sql)
     {
-        int size = static_cast<int>(sql.size());
+        int32_t size = static_cast<int32_t>(sql.size());
         sqlite3_prepare_v2(stream_.traceDataCache_->db_, sql.c_str(), size, &stmt_, nullptr);
     }
 
@@ -47,7 +47,7 @@ public:
     {
         sqlite3_step(stmt_);
         for (size_t i = 0; i < column.size(); ++i) {
-            sqlite3_column_int64(stmt_, static_cast<int>(i));
+            sqlite3_column_int64(stmt_, static_cast<int32_t>(i));
         }
     }
     sqlite3_stmt* stmt_;

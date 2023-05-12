@@ -242,7 +242,7 @@ void SliceFilter::CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTi
 {
     auto slices = traceDataCache_->GetInternalSlicesData();
     bool incomplete = false;
-    for (int i = stack.size() - 1; i >= 0; i--) {
+    for (int32_t i = stack.size() - 1; i >= 0; i--) {
         uint32_t sliceIdx = stack[i].index;
         int64_t startTs = slices->TimeStampData()[sliceIdx];
         int64_t dur = slices->DursData()[sliceIdx];
@@ -255,7 +255,7 @@ void SliceFilter::CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTi
             if (ts <= endTs) {
                 continue;
             }
-            for (int j = stack.size() - 1; j > i; --j) {
+            for (int32_t j = stack.size() - 1; j > i; --j) {
                 uint32_t childIdx = stack[i].index;
                 slices->SetDur(childIdx, endTs - slices->TimeStampData()[childIdx]);
                 stack.pop_back();
@@ -273,7 +273,7 @@ void SliceFilter::CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTi
 int32_t SliceFilter::MatchingIncompleteSliceIndex(const SlicesStack& stack, DataIndex category, DataIndex name)
 {
     auto slices = traceDataCache_->GetInternalSlicesData();
-    for (int i = stack.size() - 1; i >= 0; i--) {
+    for (int32_t i = stack.size() - 1; i >= 0; i--) {
         uint32_t sliceIdx = stack[i].index;
         if (slices->DursData()[sliceIdx] != -1) {
             continue;

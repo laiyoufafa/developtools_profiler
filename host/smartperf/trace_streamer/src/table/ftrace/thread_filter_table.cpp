@@ -41,7 +41,7 @@ ThreadFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* ta
 
 ThreadFilterTable::Cursor::~Cursor() {}
 
-int ThreadFilterTable::Cursor::Column(int column) const
+int32_t ThreadFilterTable::Cursor::Column(int32_t column) const
 {
     switch (column) {
         case ID:

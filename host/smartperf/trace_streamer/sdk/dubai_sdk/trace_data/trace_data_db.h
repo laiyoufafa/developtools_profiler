@@ -26,8 +26,8 @@ extern "C" {
 
 namespace SysTuning {
 namespace TraceStreamer {
-const int SEND_CONTINUE = 0;
-const int SEND_FINISH = 1;
+const int32_t SEND_CONTINUE = 0;
+const int32_t SEND_FINISH = 1;
 class TraceDataDB {
 public:
     TraceDataDB();
@@ -38,12 +38,12 @@ public:
     void Prepare();
 
 public:
-    int ExportDatabase(const std::string& outputName);
-    int SearchData();
-    int OperateDatabase(const std::string& sql);
-    using ResultCallBack = std::function<void(const std::string /* json result */, int, int)>;
-    int SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
-    int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
+    int32_t ExportDatabase(const std::string& outputName);
+    int32_t SearchData();
+    int32_t OperateDatabase(const std::string& sql);
+    using ResultCallBack = std::function<void(const std::string /* json result */, int32_t, int32_t)>;
+    int32_t SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
+    int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);
@@ -57,8 +57,8 @@ public:
 
 private:
     void ExecuteSql(const std::string_view& sql);
-    static void GetRowString(sqlite3_stmt* stmt, int colCount, std::string& rowStr);
-    int SearchDatabase(const std::string& sql, bool print);
+    static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
+    int32_t SearchDatabase(const std::string& sql, bool print);
     std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = true;
     bool pared_ = false;

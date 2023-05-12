@@ -45,7 +45,7 @@ JsHeapEdgesTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 JsHeapEdgesTable::Cursor::~Cursor() {}
 
-int JsHeapEdgesTable::Cursor::Column(int col) const
+int32_t JsHeapEdgesTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case FILE_ID:

@@ -94,7 +94,7 @@ void FileSystemDataParser::ParseFileSystemEvent()
             returnValue = ConvertToHexTextIndex(fsFixedHeadrAddr->ret);
         }
 
-        int i = 0;
+        int32_t i = 0;
         auto firstArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i++]);
         auto secondArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i++]);
         auto thirdArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i++]);

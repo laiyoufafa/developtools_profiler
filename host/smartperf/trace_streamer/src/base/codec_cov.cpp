@@ -22,11 +22,11 @@
 
 namespace SysTuning {
 namespace base {
-int PreNum(unsigned char byte)
+int32_t PreNum(unsigned char byte)
 {
     constexpr uint32_t BITS = 8;
     unsigned char mask = 0x80;
-    int num = 0;
+    int32_t num = 0;
     for (uint32_t i = 0; i < BITS; i++) {
         if ((byte & mask) == mask) {
             mask = mask >> 1;
@@ -38,13 +38,13 @@ int PreNum(unsigned char byte)
     return num;
 }
 
-bool IsUTF8(const uint8_t* data, int len)
+bool IsUTF8(const uint8_t* data, int32_t len)
 {
     constexpr uint8_t MASK = 0x80;
     constexpr uint8_t FIRST_BYTE = 0xc0;
-    constexpr int TARGET = 2;
-    int num = 0;
-    int i = 0;
+    constexpr int32_t TARGET = 2;
+    int32_t num = 0;
+    int32_t i = 0;
     while (i < len) {
         if ((data[i] & MASK) == 0x00) {
             i++;
@@ -54,7 +54,7 @@ bool IsUTF8(const uint8_t* data, int len)
             return false;
         }
         i++;
-        for (int j = 0; j < num - 1; j++) {
+        for (int32_t j = 0; j < num - 1; j++) {
             if ((data[i] & FIRST_BYTE) != MASK) {
                 return false;
             }
@@ -64,16 +64,16 @@ bool IsUTF8(const uint8_t* data, int len)
     return true;
 }
 
-bool IsGBK(const uint8_t* data, int len)
+bool IsGBK(const uint8_t* data, int32_t len)
 {
-    constexpr int STEP = 2;
+    constexpr int32_t STEP = 2;
     constexpr uint8_t ASCII_END = 0x7f;
     constexpr uint8_t FIRST_BYTE = 0x81;
     constexpr uint8_t FIRST_BYTE_END = 0xfe;
     constexpr uint8_t SECOND_BYTE_ONE = 0x40;
     constexpr uint8_t SECOND_BYTE_TWO_END = 0xfe;
     constexpr uint8_t GBK_MASK = 0xf7;
-    int i = 0;
+    int32_t i = 0;
     while (i < len) {
         if (data[i] <= ASCII_END) {
             i++;
@@ -91,7 +91,7 @@ bool IsGBK(const uint8_t* data, int len)
     return true;
 }
 
-CODING GetCoding(const uint8_t* data, int len)
+CODING GetCoding(const uint8_t* data, int32_t len)
 {
     CODING coding;
     if (IsUTF8(data, len)) {
@@ -107,7 +107,7 @@ CODING GetCoding(const uint8_t* data, int len)
 #ifdef _WIN32
 std::string GbkToUtf8(const char* srcStr)
 {
-    int len = MultiByteToWideChar(CP_ACP, 0, srcStr, -1, NULL, 0);
+    int32_t len = MultiByteToWideChar(CP_ACP, 0, srcStr, -1, NULL, 0);
     std::unique_ptr<wchar_t[]> wstr = std::make_unique<wchar_t[]>(len + 1);
     MultiByteToWideChar(CP_ACP, 0, srcStr, -1, wstr.get(), len);
     len = WideCharToMultiByte(CP_UTF8, 0, wstr.get(), -1, NULL, 0, NULL, NULL);

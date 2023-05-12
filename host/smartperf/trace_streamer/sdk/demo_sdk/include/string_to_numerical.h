@@ -26,14 +26,14 @@ enum IntegerRadixType { INTEGER_RADIX_TYPE_DEC = 10, INTEGER_RADIX_TYPE_HEX = 16
 inline uint16_t GetNameASCIISumNoNum(const std::string& str)
 {
     uint32_t sum = 0;
-    int len = str.length() - 1;
+    int32_t len = str.length() - 1;
     while (len >= 0) {
         sum += std::isdigit(str.at(len)) ? 0 : str.at(len);
         len--;
     }
     return sum % INTEGER_RADIX_TYPE_HEX;
 }
-inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
+inline std::optional<uint32_t> StrToUInt32(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         char* endPtr = nullptr;
@@ -46,7 +46,7 @@ inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = IN
     return std::nullopt;
 }
 
-inline std::string number(uint64_t value, int base = INTEGER_RADIX_TYPE_DEC)
+inline std::string number(uint64_t value, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     std::stringstream ss;
     if (base == INTEGER_RADIX_TYPE_DEC) {
@@ -57,7 +57,7 @@ inline std::string number(uint64_t value, int base = INTEGER_RADIX_TYPE_DEC)
     return ss.str();
 }
 
-inline std::optional<int32_t> StrToInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
+inline std::optional<int32_t> StrToInt32(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         char* endPtr = nullptr;
@@ -70,7 +70,7 @@ inline std::optional<int32_t> StrToInt32(const std::string& str, int base = INTE
     return std::nullopt;
 }
 
-inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
+inline std::optional<uint64_t> StrToUInt64(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         char* endPtr = nullptr;
@@ -83,7 +83,7 @@ inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = IN
     return std::nullopt;
 }
 
-inline std::optional<int64_t> StrToInt64(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
+inline std::optional<int64_t> StrToInt64(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         char* endPtr = nullptr;

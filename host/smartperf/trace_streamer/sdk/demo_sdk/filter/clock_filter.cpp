@@ -91,7 +91,7 @@ void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
     hasInitSnapShot_ = true;
 }
 
-int ClockFilter::InitSnapShotTimeRange(const uint8_t* data, int len)
+int32_t ClockFilter::InitSnapShotTimeRange(const uint8_t* data, int32_t len)
 {
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
     std::copy(data, data + len, buf.get());

@@ -42,7 +42,7 @@ ProcessFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* t
 
 ProcessFilterTable::Cursor::~Cursor() {}
 
-int ProcessFilterTable::Cursor::Column(int col) const
+int32_t ProcessFilterTable::Cursor::Column(int32_t col) const
 {
     switch (col) {
         case ID:
