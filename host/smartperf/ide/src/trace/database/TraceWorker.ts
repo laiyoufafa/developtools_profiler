@@ -14,7 +14,7 @@
  */
 
 importScripts('trace_streamer_builtin.js', 'TempSql.js');
-self.onerror = function (error: any) {};
+
 let Module: any = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
@@ -28,6 +28,18 @@ let json: string;
 let headUnitArray: Uint8Array;
 let thirdWasmMap = new Map();
 let thirdJsonResult = new Map();
+
+let currentAction: string = '';
+let currentActionId: string = '';
+self.addEventListener('unhandledrejection',(err)=>{
+    self.postMessage({
+        id: currentActionId,
+        action: currentAction,
+        init: false,
+        status:false,
+        msg: err.reason.message,
+    });
+});
 
 function initWASM() {
     return new Promise((resolve, reject) => {
@@ -98,6 +110,8 @@ let convertJSON = () => {
     return jsonArray;
 };
 self.onmessage = async (e: MessageEvent) => {
+    currentAction = e.data.action;
+    currentActionId = e.data.id;
     if (e.data.action === 'open') {
         await initWASM();
         // @ts-ignore
@@ -360,8 +374,69 @@ self.onmessage = async (e: MessageEvent) => {
         };
         let fn1 = Module.addFunction(getDownloadDb, 'viii');
         Module._WasmExportDatabase(fn1);
+    } else if (e.data.action === 'upload-so') {
+        let fileList = e.data.params as Array<File>;
+        if (fileList) {
+            uploadSoFile(fileList,() => {
+                self.postMessage({
+                    id: e.data.id,
+                    action: e.data.action,
+                    results: 'ok',
+                });
+            });
+        }
     }
 };
+
+let uploadFileIndex: number = 0
+
+function uploadSoFile(files: Array<File>, callback:() => void) {
+    let uploadFile = (file: File) => {
+        let reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onloadend = function (ev) {
+            if (this.result) {
+                let fileNameBuffer = enc.encode(file.webkitRelativePath);
+                let addr = Module._InitFileName(fn,fileNameBuffer.length);
+                Module.HEAPU8.set(fileNameBuffer, addr);
+                let data = new Uint8Array(this.result as ArrayBuffer);
+                let writeSize = 0;
+                let upRes = -1;
+                while (writeSize < data.length) {
+                    const sliceLen = Math.min(data.length - writeSize, REQ_BUF_SIZE);
+                    const dataSlice = data.subarray(writeSize, writeSize + sliceLen);
+                    Module.HEAPU8.set(dataSlice, reqBufferAddr);
+                    writeSize += sliceLen;
+                    upRes = Module._TraceStreamerDownloadELFEx(
+                        data.length,
+                        fileNameBuffer.length,
+                        sliceLen,
+                        files.length,
+                        uploadFileIndex === files.length - 1 ? 1 : 0
+                    );
+                }
+            }
+        }
+    }
+    let uploadSoCallBack = (heapPtr: number, size: number,isFinish: number) => {
+        let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+        let res = dec.decode(out);
+        if (res.includes('file send over')) {
+            if (uploadFileIndex < files.length - 1) {
+                uploadFileIndex = uploadFileIndex + 1;
+                uploadFile(files[uploadFileIndex]);
+            }
+        }
+        if (res.includes('ok')) {
+            callback();
+        }
+    };
+    let fn = Module.addFunction(uploadSoCallBack, 'viii');
+    uploadFileIndex = 0;
+    if (files.length > 0) {
+        uploadFile(files[uploadFileIndex]);
+    }
+}
 
 function createView(sql: string) {
     let array = enc.encode(sql);

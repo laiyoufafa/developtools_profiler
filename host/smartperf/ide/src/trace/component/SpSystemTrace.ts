@@ -13,32 +13,24 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import {BaseElement, element} from '../../base-ui/BaseElement.js';
 import './trace/TimerShaftElement.js';
 import './trace/base/TraceRow.js';
-import {
-    queryEbpfSamplesCount,
-    querySceneSearchFunc,
-    querySearchFunc,
-    threadPool,
-} from '../database/SqlLite.js';
-import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow.js';
-import { TimerShaftElement } from './trace/TimerShaftElement.js';
+import {queryEbpfSamplesCount, querySceneSearchFunc, querySearchFunc, threadPool,} from '../database/SqlLite.js';
+import {RangeSelectStruct, TraceRow} from './trace/base/TraceRow.js';
+import {TimerShaftElement} from './trace/TimerShaftElement.js';
 import './trace/base/TraceSheet.js';
-import { TraceSheet } from './trace/base/TraceSheet.js';
-import { RangeSelect } from './trace/base/RangeSelect.js';
-import { SelectionParam } from '../bean/BoxSelection.js';
-import { procedurePool } from '../database/Procedure.js';
-import { SpApplication } from '../SpApplication.js';
-import { SPT } from '../bean/StateProcessThread.js';
-import { Flag } from './trace/timer-shaft/Flag.js';
-import { SportRuler } from './trace/timer-shaft/SportRuler.js';
-import { SpHiPerf } from './chart/SpHiPerf.js';
-import {
-    SearchSdkBean,
-    SearchThreadProcessBean,
-} from '../bean/SearchFuncBean.js';
-import { error, info } from '../../log/Log.js';
+import {TraceSheet} from './trace/base/TraceSheet.js';
+import {RangeSelect} from './trace/base/RangeSelect.js';
+import {SelectionParam} from '../bean/BoxSelection.js';
+import {procedurePool} from '../database/Procedure.js';
+import {SpApplication} from '../SpApplication.js';
+import {SPT} from '../bean/StateProcessThread.js';
+import {Flag} from './trace/timer-shaft/Flag.js';
+import {SportRuler} from './trace/timer-shaft/SportRuler.js';
+import {SpHiPerf} from './chart/SpHiPerf.js';
+import {SearchSdkBean, SearchThreadProcessBean,} from '../bean/SearchFuncBean.js';
+import {error, info} from '../../log/Log.js';
 import {
     drawFlagLineSegment,
     drawLines,
@@ -50,30 +42,36 @@ import {
     PairPoint,
     Rect,
 } from '../database/ui-worker/ProcedureWorkerCommon.js';
-import { SpChartManager } from './chart/SpChartManager.js';
-import { CpuStruct } from '../database/ui-worker/ProcedureWorkerCPU.js';
-import { ProcessStruct } from '../database/ui-worker/ProcedureWorkerProcess.js';
-import { CpuFreqStruct } from '../database/ui-worker/ProcedureWorkerFreq.js';
-import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread.js';
-import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc.js';
-import { CpuStateStruct } from '../database/ui-worker/ProcedureWorkerCpuState.js';
-import { HiPerfCpuStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCPU.js';
-import { HiPerfProcessStruct } from '../database/ui-worker/ProcedureWorkerHiPerfProcess.js';
-import { HiPerfThreadStruct } from '../database/ui-worker/ProcedureWorkerHiPerfThread.js';
-import { HiPerfEventStruct } from '../database/ui-worker/ProcedureWorkerHiPerfEvent.js';
-import { HiPerfReportStruct } from '../database/ui-worker/ProcedureWorkerHiPerfReport.js';
-import { FpsStruct } from '../database/ui-worker/ProcedureWorkerFPS.js';
-import { CpuAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerCpuAbility.js';
-import { DiskAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerDiskIoAbility.js';
-import { MemoryAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerMemoryAbility.js';
-import { NetworkAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerNetworkAbility.js';
-import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock.js';
-import { Utils } from './trace/base/Utils.js';
-import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq.js';
-import { JanksStruct } from '../bean/JanksStruct.js';
-import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank.js';
-import { HeapStruct } from '../database/ui-worker/ProcedureWorkerHeap.js';
+import {SpChartManager} from './chart/SpChartManager.js';
+import {CpuStruct} from '../database/ui-worker/ProcedureWorkerCPU.js';
+import {ProcessStruct} from '../database/ui-worker/ProcedureWorkerProcess.js';
+import {CpuFreqStruct} from '../database/ui-worker/ProcedureWorkerFreq.js';
+import {CpuFreqLimitsStruct} from '../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
+import {ThreadStruct} from '../database/ui-worker/ProcedureWorkerThread.js';
+import {func, FuncStruct} from '../database/ui-worker/ProcedureWorkerFunc.js';
+import {CpuStateStruct} from '../database/ui-worker/ProcedureWorkerCpuState.js';
+import {HiPerfCpuStruct} from '../database/ui-worker/ProcedureWorkerHiPerfCPU.js';
+import {HiPerfProcessStruct} from '../database/ui-worker/ProcedureWorkerHiPerfProcess.js';
+import {HiPerfThreadStruct} from '../database/ui-worker/ProcedureWorkerHiPerfThread.js';
+import {HiPerfEventStruct} from '../database/ui-worker/ProcedureWorkerHiPerfEvent.js';
+import {HiPerfReportStruct} from '../database/ui-worker/ProcedureWorkerHiPerfReport.js';
+import {FpsStruct} from '../database/ui-worker/ProcedureWorkerFPS.js';
+import {CpuAbilityMonitorStruct} from '../database/ui-worker/ProcedureWorkerCpuAbility.js';
+import {DiskAbilityMonitorStruct} from '../database/ui-worker/ProcedureWorkerDiskIoAbility.js';
+import {MemoryAbilityMonitorStruct} from '../database/ui-worker/ProcedureWorkerMemoryAbility.js';
+import {NetworkAbilityMonitorStruct} from '../database/ui-worker/ProcedureWorkerNetworkAbility.js';
+import {ClockStruct} from '../database/ui-worker/ProcedureWorkerClock.js';
+import {Utils} from './trace/base/Utils.js';
+import {IrqStruct} from '../database/ui-worker/ProcedureWorkerIrq.js';
+import {JanksStruct} from '../bean/JanksStruct.js';
+import {JankStruct} from '../database/ui-worker/ProcedureWorkerJank.js';
+import {HeapStruct} from '../database/ui-worker/ProcedureWorkerHeap.js';
+import {SpStatisticsHttpUtil} from "../../statistics/util/SpStatisticsHttpUtil.js";
+import {HeapSnapshotStruct} from '../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
+import {HeapDataInterface} from '../../js-heap/HeapDataInterface.js';
+import {TabPaneSummary} from './trace/sheet/snapshot/TabPaneSummary.js';
+import {LitTabs} from '../../base-ui/tabs/lit-tabs.js';
+import {SpJsMemoryChart} from './chart/SpJsMemoryChart.js';
 
 function dpr() {
     return window.devicePixelRatio || 1;
@@ -119,12 +117,16 @@ export class SpSystemTrace extends BaseElement {
     private rangeSelect!: RangeSelect;
     private chartManager: SpChartManager | undefined | null;
     private loadTraceCompleted: boolean = false;
+    private rangeTraceRow: Array<TraceRow<any>> | undefined = [];
     canvasFavoritePanel: HTMLCanvasElement | null | undefined; //绘制收藏泳道图
     canvasFavoritePanelCtx: CanvasRenderingContext2D | null | undefined;
     canvasPanel: HTMLCanvasElement | null | undefined; //绘制取消收藏后泳道图
     canvasPanelCtx: CanvasRenderingContext2D | undefined | null;
     linkNodes: PairPoint[][] = [];
     public currentClickRow: HTMLDivElement | undefined | null;
+    eventMap: any = {};
+    private isSelectClick: boolean = false;
+    private selectionParam: SelectionParam | undefined;
 
     addPointPair(a: PairPoint, b: PairPoint) {
         if (a.rowEL.collect) {
@@ -336,6 +338,10 @@ export class SpSystemTrace extends BaseElement {
         });
         SpSystemTrace.scrollViewWidth = this.getScrollWidth();
         this.rangeSelect.selectHandler = (rows, refreshCheckBox) => {
+            rows.forEach(item => {
+                this.setAttribute('clickRow', item.rowType!);
+                this.setAttribute('rowName', item.name);
+            })
             if (rows.length == 0) {
                 this.shadowRoot!.querySelectorAll<TraceRow<any>>(
                     'trace-row'
@@ -358,6 +364,9 @@ export class SpSystemTrace extends BaseElement {
                         .forEach((row) => (row.checkType = '-1'));
                     return;
                 }
+            }
+            if (!this.isSelectClick) {
+                this.rangeTraceRow = [];
             }
             let selection = new SelectionParam();
             selection.leftNs = 0;
@@ -626,8 +635,52 @@ export class SpSystemTrace extends BaseElement {
                         );
                     });
                     selection.jankFramesData.push(jankDatas);
+                } else if (it.rowType == TraceRow.ROW_TYPE_HEAP_TIMELINE) {
+                    let endNS = TraceRow.rangeSelectObject?.endNS
+                        ? TraceRow.rangeSelectObject?.endNS
+                        : TraceRow.range?.endNS;
+                    let startNS = TraceRow.rangeSelectObject?.startNS
+                        ? TraceRow.rangeSelectObject?.startNS
+                        : TraceRow.range?.startNS;
+                    let minNodeId, maxNodeId;
+                    for (let sample of it.dataList) {
+                        if (sample.timestamp_us * 1000 <= startNS!) {
+                            minNodeId = sample.last_assigned_id;
+                        }
+                        if (sample.timestamp_us * 1000 >= endNS!) {
+                            if (maxNodeId == undefined) {
+                                maxNodeId = sample.last_assigned_id;
+                            }
+                        }
+                    }
+                    // If the start time range of the selected box is greater than the end time of the sampled data
+                    if (startNS! >= it.dataList[it.dataList.length - 1].timestamp_us * 1000) {
+                        minNodeId = it.dataList[it.dataList.length - 1].last_assigned_id;
+                    }
+                    // If you select the box from the beginning
+                    if (startNS === TraceRow.range?.startNS) {
+                        minNodeId = HeapDataInterface.getInstance().getMinNodeId(SpJsMemoryChart.file.id);
+                    }
+                    //If you select the box from the ending
+                    if (endNS === TraceRow.range?.endNS) {
+                        maxNodeId = HeapDataInterface.getInstance().getMaxNodeId(SpJsMemoryChart.file.id);
+                    }
+                    let summary = (this.traceSheetEL?.shadowRoot?.querySelector('#tabs') as LitTabs)
+                        ?.querySelector('#box-heap-summary')
+                        ?.querySelector('tabpane-summary') as TabPaneSummary;
+                    summary.initSummaryData(SpJsMemoryChart.file.id, maxNodeId, minNodeId);
+                    selection.jsMemory.push(1);
+                }
+                if (this.rangeTraceRow!.length !== rows.length) {
+                    let event = this.createPointEvent(it);
+                    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                        action: 'trace_row',
+                        event: event,
+                    });
                 }
             });
+            this.rangeTraceRow = rows;
+            this.isSelectClick = false;
             if (selection.diskIOipids.length > 0 && !selection.diskIOLatency) {
                 selection.promiseList.push(
                     queryEbpfSamplesCount(
@@ -655,6 +708,7 @@ export class SpSystemTrace extends BaseElement {
             } else {
                 this.traceSheetEL?.rangeSelect(selection);
             }
+            this.selectionParam = selection;
         };
         // @ts-ignore
         new ResizeObserver((entries) => {
@@ -764,6 +818,57 @@ export class SpSystemTrace extends BaseElement {
                 this.stopWASD();
             }
         });
+    }
+
+    private createPointEvent(it: TraceRow<any>){
+        let event = this.eventMap[it.rowType + ''];
+        if (event) {
+            return event;
+        } else {
+            if (it.rowType === TraceRow.ROW_TYPE_HEAP) {
+                event = it.name;
+            } else if (it.rowType === TraceRow.ROW_TYPE_HIPERF_CPU) {
+                event = 'HiPerf Cpu';
+                if (it.rowId === 'HiPerf-cpu-merge') {
+                    event = 'HiPerf';
+                }
+            } else if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
+                if (it.rowId === 'FileSystemLogicalWrite') {
+                    event = 'FileSystem Logical Write';
+                } else if (it.rowId === 'FileSystemLogicalRead') {
+                    event = 'FileSystem Logical Read';
+                } else if (it.rowId === 'FileSystemVirtualMemory') {
+                    event = 'Page Fault Trace';
+                } else if (it.rowId!.startsWith('FileSystemDiskIOLatency')) {
+                    event = 'Disk I/O Latency';
+                    if(it.rowId!.startsWith('FileSystemDiskIOLatency-')){
+                        event = 'Bio Process';
+                    }
+                }
+            } else if (it.rowType === TraceRow.ROW_TYPE_STATE_ENERGY) {
+                event = it.name;
+            } else if (it.rowType === TraceRow.ROW_TYPE_SMAPS) {
+                if (it.rowParentId === '') {
+                    event = 'VM Tracker';
+                } else {
+                    event = it.name;
+                }
+            } else if (it.rowType === TraceRow.ROW_TYPE_JANK) {
+                if(it.rowId === 'frameTime' || it.rowParentId === 'frameTime'){
+                    event = 'FrameTimeLine'
+                } else if(it.hasAttribute('frame_type')){
+                    event = it.getAttribute('frame_type') + ''
+                }
+            } else if (it.rowType === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
+                event = "DeliverInputEvent"
+                if (it.rowParentId === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
+                    event = "DeliverInputEvent Func"
+                }
+            } else {
+                event = it.name
+            }
+            return event;
+        }
     }
 
     refreshFavoriteCanvas() {
@@ -1117,6 +1222,7 @@ export class SpSystemTrace extends BaseElement {
         }
         TraceRow.isUserInteraction = false;
         this.rangeSelect.isMouseDown = false;
+        if ((window as any).isSheetMove) return;
         if (this.isMouseInSheet(ev)) return;
         let x = ev.offsetX - this.timerShaftEL!.canvas!.offsetLeft;
         let y = ev.offsetY;
@@ -1279,7 +1385,28 @@ export class SpSystemTrace extends BaseElement {
     };
 
     selectChangeHandler = (rows: Array<TraceRow<any>>) => {
+        this.isSelectClick = true;
         this.rangeSelect.rangeTraceRow = rows;
+        let changeTraceRows: Array<TraceRow<any>> = [];
+        if (this.rangeTraceRow!.length < rows.length) {
+            rows!.forEach((currentTraceRow: TraceRow<any>) => {
+                let changeFilter = this.rangeTraceRow!.
+                filter((prevTraceRow: TraceRow<any>)=> prevTraceRow === currentTraceRow);
+                if (changeFilter.length < 1) {
+                    changeTraceRows.push(currentTraceRow);
+                }
+            });
+            if (changeTraceRows.length > 0) {
+                changeTraceRows!.forEach((changeTraceRow: TraceRow<any>)=> {
+                    let pointEvent = this.createPointEvent(changeTraceRow);
+                    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                        action: 'trace_row',
+                        event: pointEvent,
+                    });
+                });
+            }
+        }
+        this.rangeTraceRow = rows;
         this.rangeSelect.selectHandler?.(this.rangeSelect.rangeTraceRow, false);
     };
     inFavoriteArea: boolean | undefined;
@@ -1383,6 +1510,7 @@ export class SpSystemTrace extends BaseElement {
         IrqStruct.hoverIrqStruct = undefined;
         HeapStruct.hoverHeapStruct = undefined;
         JankStruct.hoverJankStruct = undefined;
+        HeapSnapshotStruct.hoverSnapshotStruct = undefined;
     }
 
     selectStructNull() {
@@ -1398,6 +1526,7 @@ export class SpSystemTrace extends BaseElement {
         IrqStruct.selectIrqStruct = undefined;
         JankStruct.selectJankStruct = undefined;
         HeapStruct.selectHeapStruct = undefined;
+        HeapSnapshotStruct.selectSnapshotStruct = undefined;
     }
 
     isWASDKeyPress() {
@@ -1415,6 +1544,7 @@ export class SpSystemTrace extends BaseElement {
             ev.stopPropagation();
             return;
         }
+        if ((window as any).isSheetMove) return;
         if (this.isMouseInSheet(ev)) return;
         if ((window as any).isPackUpTable) {
             (window as any).isPackUpTable = false;
@@ -1534,9 +1664,19 @@ export class SpSystemTrace extends BaseElement {
                     HeapStruct.hoverHeapStruct !== null &&
                     HeapStruct.hoverHeapStruct !== undefined,
             ],
+            [
+                TraceRow.ROW_TYPE_HEAP_SNAPSHOT,
+                () =>
+                    HeapSnapshotStruct.hoverSnapshotStruct !== null &&
+                    HeapSnapshotStruct.hoverSnapshotStruct !== undefined,
+            ],
         ]);
 
     onClickHandler(clickRowType: string,row?: TraceRow<any>) {
+        if (row) {
+            this.setAttribute('clickRow', clickRowType);
+            this.setAttribute('rowName', row!.name);
+        }
         if (!this.loadTraceCompleted) return;
         this.shadowRoot
             ?.querySelectorAll<TraceRow<any>>('trace-row')
@@ -1545,6 +1685,7 @@ export class SpSystemTrace extends BaseElement {
         let threadClickHandler: any;
         let cpuClickHandler: any;
         let jankClickHandler: any;
+        let snapshotClickHandler: any;
         threadClickHandler = (d: ThreadStruct) => {
             this.observerScrollHeightEnable = false;
             this.scrollToProcess(`${d.cpu}`, '', 'cpu-data', true);
@@ -1736,6 +1877,28 @@ export class SpSystemTrace extends BaseElement {
             }
         };
 
+        snapshotClickHandler = (d: HeapSnapshotStruct) => {
+            this.observerScrollHeightEnable = true;
+            let snapshotRow = this.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(
+                `trace-row[row-id='heap_snapshot']`
+            );
+            let task = () => {
+                if (snapshotRow) {
+                    let findEntry = snapshotRow!.dataList!.find((dat) => dat.start_time === d.start_time);
+                    this.hoverStructNull();
+                    this.selectStructNull();
+                    HeapSnapshotStruct.hoverSnapshotStruct = findEntry;
+                    HeapSnapshotStruct.selectSnapshotStruct = findEntry;
+                }
+            };
+            if (snapshotRow) {
+                if (snapshotRow!.isComplete) {
+                    task();
+                } else {
+                    snapshotRow!.onComplete = task;
+                }
+            }
+        };
         if (
             clickRowType === TraceRow.ROW_TYPE_CPU &&
             CpuStruct.hoverCpuStruct
@@ -1874,6 +2037,16 @@ export class SpSystemTrace extends BaseElement {
                 },
                 jankClickHandler
             );
+        } else if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT && HeapSnapshotStruct.hoverSnapshotStruct) {
+            let snapshotRow = this.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(
+                `trace-row[row-id='heap_snapshot']`
+            );
+            HeapSnapshotStruct.selectSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct;
+            this.traceSheetEL?.displaySnapshotData(
+                HeapSnapshotStruct.selectSnapshotStruct!,
+                snapshotRow!.dataList,
+                snapshotClickHandler
+            );
         } else {
             if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
                 this.clearPointPair();
@@ -1888,6 +2061,13 @@ export class SpSystemTrace extends BaseElement {
         }
         if (!JankStruct.selectJankStruct) {
             this.clearPointPair();
+        }
+        if(row){
+            let pointEvent = this.createPointEvent(row);
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                action: 'trace_row',
+                event: pointEvent,
+            });
         }
     }
 
@@ -2073,6 +2253,7 @@ export class SpSystemTrace extends BaseElement {
     }
 
     connectedCallback() {
+        this.initPointToEvent();
         /**
          * 监听时间轴区间变化
          */
@@ -2245,6 +2426,19 @@ export class SpSystemTrace extends BaseElement {
         SpApplication.skinChange2 = (val: boolean) => {
             this.timerShaftEL?.render();
         };
+        window.subscribe(window.SmartEvent.UI.UploadSOFile,(data) => {
+            this.chartManager?.importSoFileUpdate().then(() => {
+                if (this.selectionParam && (
+                    this.selectionParam.nativeMemory.length > 0 ||
+                    this.selectionParam.nativeMemoryStatistic.length > 0 ||
+                    this.selectionParam.perfSampleIds.length > 0
+                )) {
+                    let param: SelectionParam = new SelectionParam();
+                    Object.assign(param,this.selectionParam);
+                    this.traceSheetEL?.rangeSelect(param);
+                }
+            });
+        });
     }
 
     scrollToProcess(
@@ -3059,6 +3253,45 @@ export class SpSystemTrace extends BaseElement {
                 this.tipEL.style.transform = `translateX(${x}px) translateY(${y}px)`;
             }
         }
+    }
+
+    initPointToEvent(){
+        this.eventMap = {
+            'cpu-data': 'Cpu',
+            'cpu-state': 'Cpu State',
+            'cpu-freq': 'Cpu Frequency',
+            'cpu-limit-freq': 'Cpu Freq Limit',
+            'process': 'Process',
+            'native-memory': 'Native Memory',
+            'thread': 'Thread',
+            'func': 'Func',
+            'mem': 'Memory',
+            'virtual-memory-cell': 'Virtual Memory',
+            'virtual-memory-group': 'Virtual Memory',
+            'fps': 'FPS',
+            'ability-monitor': 'Ability Monitor',
+            'cpu-ability': 'Cpu Ability',
+            'memory-ability': 'Memory Ability',
+            'disk-ability': 'DiskIO Ability',
+            'network-ability': 'Network Ability',
+            'sdk': 'Sdk',
+            'sdk-counter': 'SDK Counter',
+            'sdk-slice': 'Sdk Slice',
+            'energy': 'Energy',
+            'power-energy': 'Power Event',
+            'system-energy': 'System Event',
+            'anomaly-energy': 'Anomaly Event',
+            'clock-group': 'Clocks',
+            'clock': 'clock',
+            'irq-group': 'Irqs',
+            'irq': 'irq',
+            'hiperf': 'HiPerf (All)',
+            'hiperf-event': 'HiPerf Event',
+            'hiperf-report': 'HiPerf Report',
+            'hiperf-process': 'HiPerf Process',
+            'hiperf-thread': 'HiPerf Thread',
+            'js-memory': 'Js Memory',
+        };
     }
 
     initHtml(): string {

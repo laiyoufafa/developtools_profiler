@@ -820,34 +820,24 @@ export const getTabCpuByProcess = (
     leftNS: number,
     rightNS: number
 ) =>
-    query<SelectionData>(
+    query<any>(
         'getTabCpuByProcess',
         `
     select
-      IP.name as process,
-      IP.pid as pid,
+      B.pid as pid,
       sum(B.dur) as wallDuration,
       avg(B.dur) as avgDuration,
-      count(A.tid) as occurrences
+      count(B.tid) as occurrences
     from
       thread_state AS B
     left join
-      thread as A
-    on
-      B.itid = A.id
-    left join
       trace_range AS TR
-    left join
-      process AS IP
-    on
-      A.ipid = IP.id
     where
       B.cpu in (${cpus.join(',')})
     and
       not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
     group by
-      IP.name,
-      IP.pid
+      B.pid
     order by
       wallDuration desc;`,
         { $rightNS: rightNS, $leftNS: leftNS }
@@ -858,39 +848,27 @@ export const getTabCpuByThread = (
     leftNS: number,
     rightNS: number
 ) =>
-    query<SelectionData>(
+    query<any>(
         'getTabCpuByThread',
         `
     select
-      IP.name as process,
-      IP.pid as pid,
-      A.name as thread,
-      A.tid as tid,
+      B.pid as pid,
+      B.tid as tid,
       B.cpu,
       sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration,
-      count(A.tid) as occurrences
+      count(B.tid) as occurrences
     from
       thread_state AS B
     left join
-      thread as A
-    on
-      B.itid = A.id
-    left join
       trace_range AS TR
-    left join
-      process AS IP
-    on
-      A.ipid = IP.id
     where
       B.cpu in (${cpus.join(',')})
     and
       not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS))
     group by
       B.cpu,
-      IP.name,
-      IP.pid,
-      A.name,
-      A.tid
+      B.pid,
+      B.tid
     order by
       wallDuration desc;`,
         { $rightNS: rightNS, $leftNS: leftNS }
@@ -985,32 +963,22 @@ export const getTabThreadStates = (
         'getTabThreadStates',
         `
     select
-      IP.name as process,
-      IP.pid,
-      A.name as thread,
-      A.tid,
+      B.pid,
+      B.tid,
       B.state,
       sum(B.dur) as wallDuration,
       avg(ifnull(B.dur,0)) as avgDuration,
-      count(A.tid) as occurrences
+      count(B.tid) as occurrences
     from
       thread_state AS B
     left join
-      thread as A
-    on
-      A.id = B.itid
-    left join
       trace_range AS TR
-    left join
-      process AS IP
-    on
-      IP.id=A.ipid
     where
-      A.tid in (${tIds.join(',')})
+      B.tid in (${tIds.join(',')})
     and
       not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))
     group by
-      IP.name, IP.pid, A.name, A.tid, B.state
+      B.pid, B.tid, B.state
     order by
       wallDuration desc;`,
         { $leftNS: leftNS, $rightNS: rightNS }
@@ -1022,20 +990,17 @@ export const getTabThreadStatesCpu = (
     rightNS: number
 ): Promise<Array<any>> => {
     let sql = `
-select ifnull(IP.name,'null')                                         as process,
+select 
        B.pid,
-       ifnull(A.name,'null')                                          as thread,
        B.tid,
        B.cpu,
        sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration
 from thread_state as B
 left join trace_range as TR
-left join thread as A on A.tid = B.tid
-left join process AS IP on IP.pid = B.pid
 where cpu notnull
     and B.tid in (${tIds.join(',')})
     and not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
-group by B.tid, B.pid, B.cpu,process,thread;`;
+group by B.tid, B.pid, B.cpu;`;
     return query<SelectionData>('getTabThreadStatesCpu', sql, {
         $leftNS: leftNS,
         $rightNS: rightNS,
@@ -1066,25 +1031,16 @@ export const queryCpuData = (
         'queryCpuData',
         `
     SELECT
-    IP.name as processName,
-    IP.name processCmdLine,
-    IP.pid as processId,
+    B.pid as processId,
     B.cpu,
-    A.name,
-    C.id as schedId,
-    A.tid,
-    A.id,
-    A.type,
+    B.tid,
+    B.itid as id,
     B.dur,
     B.ts - TR.start_ts AS startTime,
-    C.priority,
-    C.end_state
+    B.arg_setid as argSetID
 from thread_state AS B
-    left join  thread as A on B.itid = A.id
-    left join sched_slice AS C on B.itid = C.itid and B.ts = C.ts
     left join trace_range AS TR
-    left join process AS IP on A.ipid = IP.id
-where C.itid is not null 
+where B.itid is not null
     and
       B.cpu = $cpu
     and
@@ -1160,6 +1116,16 @@ export const queryCpuCount = (): Promise<Array<any>> =>
  select ifnull((max(callid)+1),0) cpuCount from irq
 ) A;`
     );
+
+export const queryCpuSchedSlice = (): Promise<Array<any>> =>
+    query(
+        'queryCpuSchedSlice',
+        `
+   select (ts - start_ts) as ts,
+       itid,
+       end_state as endState,
+       priority
+   from sched_slice,trace_range;`);
 
 export const queryCpuStateFilter = (): Promise<Array<any>> =>
     query(
@@ -1355,20 +1321,16 @@ export const queryThreadData = (tid: number): Promise<Array<ThreadStruct>> =>
         'queryThreadData',
         `
     select 
-      A.id
+      B.itid as id
      , B.tid
-     , A.name
      , B.cpu
      , B.ts - TR.start_ts AS startTime
      , B.dur
      , B.state
      , B.pid
-     , IP.name as processName
      , B.arg_setid as argSetID
 from thread_state AS B
-         left join thread as A on A.id = B.itid
-         left join trace_range AS TR
-         left join process AS IP on IP.id = A.ipid
+    left join trace_range AS TR
 where B.tid = $tid;`,
         { $tid: tid }
     );
@@ -1439,7 +1401,12 @@ export const queryThreadWakeUpFrom = (
     startTime: number
 ): Promise<Array<WakeupBean>> => {
     let sql = `
-select (A.ts - B.start_ts) as ts,A.tid,A.pid,A.cpu,A.dur from thread_state A,trace_range B
+select (A.ts - B.start_ts) as ts,
+       A.tid,
+       A.pid,
+       A.cpu,
+       A.dur
+from thread_state A,trace_range B
 where A.state = 'Running'
 and A.itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
 and (A.ts - B.start_ts) < (${startTime} - B.start_ts)
@@ -4247,3 +4214,128 @@ export const queryGpuDur = (id: number): Promise<any> =>
         WHERE frame_row = $id;`,
         { $id: id }
     );
+
+export const queryHeapFile = (): Promise<Array<any>> =>
+    query('queryHeapFile', `SELECT id,file_name,start_time,end_time,pid FROM js_heap_files`);
+
+export const queryHeapInfo = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapInfo',
+        `SELECT file_id,key,type,int_value,str_value
+      FROM js_heap_info WHERE file_id = ${fileId}`
+    );
+
+export const queryHeapNode = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapNode',
+        `SELECT node_index,type,name,id,self_size,edge_count,trace_node_id,detachedness 
+      FROM js_heap_nodes WHERE file_id = ${fileId}`
+    );
+
+export const queryHeapEdge = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapEdge',
+        `SELECT edge_index,type,name_or_index,to_node,from_node_id,to_node_id
+      FROM js_heap_edges WHERE file_id = ${fileId}`
+    );
+
+export const queryHeapFunction = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapFunction',
+        `SELECT function_index,function_id,name,script_name,script_id,line,column
+      FROM js_heap_trace_function_info WHERE file_id = ${fileId}`
+    );
+
+export const queryHeapTraceNode = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapTraceNode',
+        `SELECT F.name,
+        F.script_name,
+        F.script_id,
+        F.column,
+        F.line,
+        N.id,
+        N.function_info_index,
+        N.parent_id,
+        N.count,
+        N.size,
+        IFNULL( S.live_count, 0 ) AS live_count,
+        IFNULL( S.live_size, 0 ) AS live_size
+    FROM
+        js_heap_trace_node N
+        LEFT JOIN (
+            SELECT
+                trace_node_id,
+                SUM( self_size ) AS live_size,
+                count( * ) AS live_count
+            FROM
+                js_heap_nodes
+            WHERE
+                file_id = ${fileId}
+                AND trace_node_id != 0
+            GROUP BY
+                trace_node_id
+        ) S ON N.id = S.trace_node_id
+    LEFT JOIN js_heap_trace_function_info F ON (F.file_id = N.file_id
+                AND F.function_index = N.function_info_index)
+    WHERE
+        N.file_id = ${fileId}
+    ORDER BY
+        N.id`
+    );
+
+export const queryHeapSample = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapSample',
+        `SELECT timestamp_us,last_assigned_id
+      FROM js_heap_sample WHERE file_id = ${fileId}`
+    );
+
+export const queryHeapLocation = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapLocation',
+        `SELECT object_index,script_id,column
+      FROM js_heap_location WHERE file_id = ${fileId}`
+    );
+
+export const queryHeapString = (fileId: number): Promise<Array<any>> =>
+    query(
+        'queryHeapString',
+        `SELECT string
+      FROM js_heap_string WHERE file_id = ${fileId}`
+    );
+export const queryTraceRange = (): Promise<Array<any>> =>
+    query(
+        'queryTraceRange',
+        `SELECT
+      t.start_ts, t.end_ts FROM trace_range t`
+    );
+
+export const queryHiPerfProcessCount = (leftNs: number, rightNs: number,cpus: Array<number>,threads:Array<number>,processes:Array<number>): Promise<Array<any>> =>{
+    let str = "";
+    if (cpus.length > 0) {
+        str = ` and A.cpu_id in (${cpus.join(",")})`;
+    }
+    if(processes.length>0){
+        str = ` and C.process_id in (${processes.join(",")})`;
+    }
+    if(threads.length>0){
+        str = ` and A.thread_id in (${threads.join(",")}) `;
+    }
+    if(processes.length>0 && threads.length>0){
+        str = ` and (C.process_id in (${processes.join(",")}) or A.thread_id in (${threads.join(",")}))`;
+    }
+    return query("queryHiPerfProcessCount", `
+    select     C.process_id as pid,
+               (A.timestamp_trace - R.start_ts) as time,
+               C.thread_name as threadName,
+               A.thread_id as tid,
+               A.id,
+               A.callchain_id
+        from perf_sample A,trace_range R
+             left join perf_thread C on A.thread_id = C.thread_id  and  A.thread_id != 0
+        where time >= $leftNs and time <= $rightNs and A.callchain_id > 0
+        ${str} 
+    `, {$leftNs: leftNs, $rightNs: rightNs});
+};
+

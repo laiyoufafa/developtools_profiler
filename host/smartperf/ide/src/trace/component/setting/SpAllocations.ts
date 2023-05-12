@@ -321,6 +321,36 @@ export class SpAllocations extends BaseElement {
                 parentElement.setAttribute('percentValue', intervalResultInput.value);
             }
         });
+
+        intervalResultInput.addEventListener('focusout', (ev) => {
+            if (intervalResultInput.value.trim() == '') {
+                parentElement.setAttribute('percent', '3600');
+                intervalResultInput.value = '3600';
+                intervalResultInput.style.color = 'var(--dark-color,#6a6f77)';
+                parentElement.setAttribute('percent', intervalResultInput.value);
+                parentElement.setAttribute('percentValue', intervalResultInput.value);
+                statisticsSlider!.percent = intervalResultInput.value;
+                let htmlInputElement = statisticsSlider!.shadowRoot?.querySelector(
+                    '#slider'
+                ) as HTMLInputElement;
+                htmlInputElement.value = intervalResultInput.value;
+            }
+        });
+        statisticsSlider.shadowRoot
+            ?.querySelector<HTMLElement>('#slider')!
+            .addEventListener('mouseup', (ev) => {
+                setTimeout(() => {
+                    let percentValue =
+                        this.recordStatisticsResult!.getAttribute('percent');
+                    let index = Number(percentValue) / 450;
+                    index = index < 1 ? 0 : index;
+                    intervalResultInput.value = stepValue[index] + '';
+                    this.recordStatisticsResult!.setAttribute(
+                        'percentValue',
+                        stepValue[index] + ''
+                    );
+                });
+            });
     }
 
     initHtml(): string {

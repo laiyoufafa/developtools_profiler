@@ -119,7 +119,6 @@ export class TabPaneCurrentSelection extends BaseElement {
         } else {
             state = 'Unknown State';
         }
-
         list.push({
             name: 'Process',
             value: `${process || 'Process'} [${processId}]`,
@@ -156,9 +155,19 @@ export class TabPaneCurrentSelection extends BaseElement {
         list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
         list.push({ name: 'Prio', value: data.priority || 0 });
         list.push({ name: 'End State', value: state });
-        this.queryCPUWakeUpFromData(data).then((bean) => {
+        Promise.all([
+            this.queryThreadStateDArgs(data.argSetID),
+            this.queryCPUWakeUpFromData(data),
+        ]).then((resArr) => {
+            let args = resArr[0];
+            let bean = resArr[1];
             if (callback) {
                 callback(bean);
+            }
+            if (args.length > 0) {
+                args.forEach((arg) => {
+                    list.push({ name: arg.keyName, value: arg.strValue });
+                });
             }
             this.tbl!.dataSource = list;
             let rightArea: HTMLElement | null | undefined =
@@ -469,13 +478,17 @@ export class TabPaneCurrentSelection extends BaseElement {
             </div>`,
             });
         }
-        let processName = data.processName;
+        let slice = Utils.SCHED_SLICE_MAP.get(`${data.id}-${data.startTime}`);
+        if (slice) {
+            list.push({ name: 'Prio', value: `${slice.priority}` });
+        }
+        let processName = Utils.PROCESS_MAP.get(data.pid!);
         if (
             processName == null ||
             processName == '' ||
             processName.toLowerCase() == 'null'
         ) {
-            processName = data.name;
+            processName = Utils.THREAD_MAP.get(data.tid!) || 'null';
         }
         list.push({
             name: 'Process',
@@ -492,7 +505,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 data.dur!
             ),
             this.queryThreadWakeUpData(data.id!, data.startTime!, data.dur!),
-            this.queryThreadStateDArgs(data),
+            this.queryThreadStateDArgs(data.argSetID),
         ]).then((result) => {
             let fromBean = result[0];
             let wakeUps = result[1];
@@ -879,10 +892,10 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
     }
 
-    async queryThreadStateDArgs(data: ThreadStruct) {
+    async queryThreadStateDArgs(argSetID: number | undefined) {
         let list: Array<BinderArgBean> = [];
-        if (data.argSetID) {
-            list = await queryThreadStateArgs(data.argSetID);
+        if (argSetID !== undefined) {
+            list = await queryThreadStateArgs(argSetID);
         }
         return list;
     }
@@ -942,6 +955,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             return wakeUps[0];
         }
     }
+
     /**
      * 查询出 线程唤醒了哪些线程信息
      * @param data

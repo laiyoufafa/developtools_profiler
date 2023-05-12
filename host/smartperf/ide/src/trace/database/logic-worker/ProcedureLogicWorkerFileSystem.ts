@@ -51,6 +51,10 @@ export let VM_TYPE_MAP = {
     '7': 'Copy On Write',
 };
 
+const FS_TYPE = 0;
+const PF_TYPE = 1;
+const BIO_TYPE = 2;
+
 export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     static data_dict: Map<number, string> = new Map<number, string>();
     static callChainsMap: Map<number, FileCallChain[]> = new Map<
@@ -60,6 +64,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     handlerMap: Map<string, any> = new Map<string, any>();
     currentEventId: string = '';
     tab: string = '';
+    isAnalysis = false;
 
     handle(data: any): void {
         if (data.id) {
@@ -85,48 +90,78 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
                 case 'fileSystem-queryFileSamples':
                     this.handlerMap.get('fileSystem').samplesList =
                         convertJSON(data.params.list) || [];
-                    self.postMessage({
-                        id: this.currentEventId,
-                        action: data.action,
-                        results: this.handlerMap
-                            .get('fileSystem')
-                            .resolvingAction([
-                                {
-                                    funcName: 'getCallChainsBySampleIds',
-                                    funcArgs: [true],
-                                },
-                            ]),
-                    });
+                    if (this.isAnalysis){
+                        this.isAnalysis = false;
+                        self.postMessage({
+                            id: this.currentEventId,
+                            action: data.action,
+                            results: this.fileSystemAnalysis(FS_TYPE,this.handlerMap.get('fileSystem').samplesList),
+                        });
+                        
+                    } else {
+                        self.postMessage({
+                            id: this.currentEventId,
+                            action: data.action,
+                            results: this.handlerMap
+                                .get('fileSystem')
+                                .resolvingAction([
+                                    {
+                                        funcName: 'getCallChainsBySampleIds',
+                                        funcArgs: [true],
+                                    },
+                                ]),
+                        });
+                    }
+                   
                     break;
                 case 'fileSystem-queryIoSamples':
                     this.handlerMap.get('io').samplesList =
                         convertJSON(data.params.list) || [];
-                    self.postMessage({
-                        id: this.currentEventId,
-                        action: data.action,
-                        results: this.handlerMap.get('io').resolvingAction([
-                            {
-                                funcName: 'getCallChainsBySampleIds',
-                                funcArgs: [true],
-                            },
-                        ]),
-                    });
-                    break;
-                case 'fileSystem-queryVirtualMemorySamples':
-                    this.handlerMap.get('virtualMemory').samplesList =
-                        convertJSON(data.params.list) || [];
-                    self.postMessage({
-                        id: this.currentEventId,
-                        action: data.action,
-                        results: this.handlerMap
-                            .get('virtualMemory')
-                            .resolvingAction([
+                    if (this.isAnalysis){
+                        this.isAnalysis = false;
+                        self.postMessage({
+                            id: this.currentEventId,
+                            action: data.action,
+                            results: this.fileSystemAnalysis(BIO_TYPE,this.handlerMap.get('io').samplesList),
+                        });
+                    } else {
+                        self.postMessage({
+                            id: this.currentEventId,
+                            action: data.action,
+                            results: this.handlerMap.get('io').resolvingAction([
                                 {
                                     funcName: 'getCallChainsBySampleIds',
                                     funcArgs: [true],
                                 },
                             ]),
-                    });
+                        });
+                    }
+                    
+                    break;
+                case 'fileSystem-queryVirtualMemorySamples':
+                    this.handlerMap.get('virtualMemory').samplesList =
+                        convertJSON(data.params.list) || [];
+                        if (this.isAnalysis){
+                            this.isAnalysis = false;
+                            self.postMessage({
+                                id: this.currentEventId,
+                                action: data.action,
+                                results: this.fileSystemAnalysis(PF_TYPE,this.handlerMap.get('virtualMemory').samplesList),
+                            });
+                        } else {
+                            self.postMessage({
+                                id: this.currentEventId,
+                                action: data.action,
+                                results: this.handlerMap
+                                    .get('virtualMemory')
+                                    .resolvingAction([
+                                        {
+                                            funcName: 'getCallChainsBySampleIds',
+                                            funcArgs: [true],
+                                        },
+                                    ]),
+                            });
+                        }
                     break;
                 case 'fileSystem-action':
                     if (data.params) {
@@ -144,6 +179,9 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
                                     .resolvingAction(data.params.args),
                             });
                         } else {
+                            if (data.params.isAnalysis){
+                                this.isAnalysis = true;
+                            }
                             this.handlerMap
                                 .get(data.params.callType)
                                 .resolvingAction(data.params.args);
@@ -529,6 +567,57 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             sql: sql,
         });
     }
+
+    fileSystemAnalysis(type: number, samplesList: Array<FileSample>): Array<FileAnalysisSample>{
+        let analysisSampleList = new Array<FileAnalysisSample>();
+        for(let sample of samplesList){
+            let analysisSample = new FileAnalysisSample(sample);
+            let callChainList = ProcedureLogicWorkerFileSystem.callChainsMap.get(sample.callChainId);
+            if (!callChainList || callChainList.length === 0){
+                continue;
+            }
+            let depth = callChainList.length - 1;
+            let lastCallChain : FileCallChain | undefined | null;
+            //let lastFilter
+            while(true){
+                if (depth < 0){
+                    lastCallChain = callChainList[depth]
+                    break;
+                }
+                lastCallChain = callChainList[depth];
+                if (type === BIO_TYPE){
+                    let symbolName = ProcedureLogicWorkerFileSystem.data_dict.get(lastCallChain.symbolsId)
+                    if (symbolName?.includes('submit_bio')){
+                        depth--;
+                    } else{
+                        break;
+                    }
+                } else {
+                    let libPath = ProcedureLogicWorkerFileSystem.data_dict.get(lastCallChain.pathId);
+                    if (libPath?.includes('musl') || libPath?.includes('libc++')){
+                        depth--;
+                    } else{
+                        break;
+                    }
+                }
+            }
+            if (!lastCallChain){
+                continue;
+            }
+            analysisSample.libId = lastCallChain.pathId
+            analysisSample.symbolId = lastCallChain.symbolsId;
+            let libPath = ProcedureLogicWorkerFileSystem.data_dict.get(analysisSample.libId) || '';
+            let pathArray = libPath.split('/');
+            analysisSample.libName = pathArray[pathArray.length - 1];
+            let symbolName = ProcedureLogicWorkerFileSystem.data_dict.get(analysisSample.symbolId);
+            if (!symbolName){
+                symbolName = lastCallChain.ip + ' (' + analysisSample.libName +  ')';
+            }
+            analysisSample.symbolName = symbolName;
+            analysisSampleList.push(analysisSample);
+        }
+        return analysisSampleList;
+    }
 }
 
 class FileSystemCallTreeHandler {
@@ -839,7 +928,6 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
             currentNode.symbolName = `${currentNode.symbol} (${currentNode.libName})`;
         }
     }
-
     resolvingAction(params: any[]) {
         if (params.length > 0) {
             params.forEach((item) => {
@@ -948,6 +1036,23 @@ class FileSample {
     tid: number = 0;
     threadName: string = '';
     processName: string = '';
+}
+
+class FileAnalysisSample extends FileSample{
+    libId = 0;
+    symbolId = 0;
+    libName = '';
+    symbolName = '';
+    constructor(fileSample: FileSample){
+        super();
+        this.type = fileSample.type;
+        this.callChainId = fileSample.callChainId;
+        this.dur = fileSample.dur;
+        this.pid = fileSample.pid;
+        this.tid = fileSample.tid;
+        this.threadName = fileSample.threadName;
+        this.processName = fileSample.processName;
+    }
 }
 
 export class FileMerageBean extends MerageBean {

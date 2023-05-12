@@ -18,6 +18,13 @@ export class Utils {
     private static instance: Utils | null = null;
     static THREAD_MAP: Map<number, string> = new Map<number, string>();
     static PROCESS_MAP: Map<number, string> = new Map<number, string>();
+    static SCHED_SLICE_MAP: Map<string, {
+        endState: string,
+        priority: number
+    }> = new Map<string, {
+        endState: string;
+        priority: number
+    }>();
 
     constructor() {
         Utils.statusMap.set('D', 'Uninterruptible Sleep');
@@ -238,15 +245,15 @@ export class Utils {
         let second1 = 1_000; // 1 second
         let res = '';
         if (currentNs >= hour1) {
-            res += Math.floor(currentNs / hour1).toFixed(2) + 'h';
+            res += Math.round(currentNs / hour1).toFixed(2) + 'h';
             return res;
         }
         if (currentNs >= minute1) {
-            res += Math.floor(currentNs / minute1).toFixed(2) + 'min';
+            res += Math.round(currentNs / minute1).toFixed(2) + 'min';
             return res;
         }
         if (currentNs >= second1) {
-            res += Math.floor(currentNs / second1).toFixed(2) + 's';
+            res += Math.round(currentNs / second1).toFixed(2) + 's';
             return res;
         }
         if (currentNs > 0) {
@@ -282,7 +289,7 @@ export class Utils {
         } else if (currentBytes >= mib1) {
             res += (currentBytes / mib1).toFixed(2) + 'MB';
         } else {
-            res += currentBytes.toFixed(2) + 'Kib';
+            res += currentBytes.toFixed(2) + 'KB';
         }
         return res;
     }

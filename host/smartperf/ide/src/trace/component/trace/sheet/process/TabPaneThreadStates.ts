@@ -48,14 +48,16 @@ export class TabPaneThreadStates extends BaseElement {
                     let sumWall = 0.0;
                     let sumOcc = 0;
                     for (let e of result) {
+                        let process = Utils.PROCESS_MAP.get(e.pid);
+                        let thread = Utils.THREAD_MAP.get(e.tid);
                         e.process =
-                            e.process == null || e.process.length == 0
+                            process == null || process.length == 0
                                 ? '[NULL]'
-                                : e.process;
+                                : process;
                         e.thread =
-                            e.thread == null || e.thread.length == 0
+                            thread == null || thread.length == 0
                                 ? '[NULL]'
-                                : e.thread;
+                                : thread;
                         sumWall += e.wallDuration;
                         sumOcc += e.occurrences;
                         e.stateJX = e.state;
@@ -67,7 +69,7 @@ export class TabPaneThreadStates extends BaseElement {
                             (e.avgDuration / 1000000.0).toFixed(5)
                         );
                     }
-                    let count = new SelectionData();
+                    let count: any = {};
                     count.process = ' ';
                     count.state = ' ';
                     count.wallDuration = parseFloat(

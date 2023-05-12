@@ -323,9 +323,9 @@ export class CpuStruct extends BaseStruct {
     displayThread:string|undefined;
     measurePWidth:number = 0;
     measureTWidth:number = 0;
-    schedId: number | undefined;
     startTime: number | undefined;
     tid: number | undefined;
+    argSetID: number | undefined;
     type: string | undefined;
     v: boolean = false;
     nofinish: boolean = false;

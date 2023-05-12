@@ -23,6 +23,9 @@ import '../../base-ui/table/lit-table.js';
 import { LitTableColumn } from '../../base-ui/table/lit-table-column.js';
 import { info } from '../../log/Log.js';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
+import { PageNation } from '../../base-ui/chart/pagenation/PageNation.js';
+import { PaginationBox } from '../../base-ui/chart/pagenation/pagination-box.js';
+import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('sp-query-sql')
 export class SpQuerySQL extends BaseElement {
@@ -37,8 +40,12 @@ export class SpQuerySQL extends BaseElement {
     private querySelectTables: string = '';
     private response: HTMLDivElement | undefined;
     private statDataArray: any = [];
+    private sliceData: any = [];
     private querySqlErrorText: string = '';
     private progressLoad: LitProgressBar | undefined;
+    private pagination: PaginationBox | undefined;
+    private pageSize: number = 200000;
+    private maxPageSize: number = 500000;
 
     initElements(): void {
         this.progressLoad = this.shadowRoot?.querySelector(
@@ -54,6 +61,9 @@ export class SpQuerySQL extends BaseElement {
         this.response = this.shadowRoot?.querySelector(
             '#dataResult'
         ) as HTMLDivElement;
+        this.pagination = this.shadowRoot?.querySelector(
+            '.pagination-box'
+        ) as PaginationBox;
         this.notSupportList?.push(
             'insert',
             'delete',
@@ -115,7 +125,13 @@ export class SpQuerySQL extends BaseElement {
             copyResult += keyListKey + '\t';
         }
         copyResult += '\n';
-        for (const value of this.statDataArray) {
+        let copyData: any = [];
+        if (this.statDataArray.length > this.maxPageSize) {
+            copyData = this.sliceData;
+        } else {
+            copyData = this.statDataArray;
+        }
+        for (const value of copyData) {
             this.keyList?.forEach((key) => {
                 copyResult += value[key] + '\t';
             });
@@ -125,7 +141,12 @@ export class SpQuerySQL extends BaseElement {
     }
 
     selectEventListener = (event: any) => {
+        let that = this;
         if (event.ctrlKey && event.keyCode == 13) {
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'query',
+                action: 'query',
+            });
             if (!this.isSupportSql) {
                 this.querySize!.textContent = this.querySqlErrorText;
                 this.queryTableEl!.dataSource = [];
@@ -141,7 +162,7 @@ export class SpQuerySQL extends BaseElement {
                 for (let index = 0; index < resultList.length; index++) {
                     const dataResult = resultList[index];
                     let keys = Object.keys(dataResult);
-					 // @ts-ignore
+                    // @ts-ignore
                     let values = Object.values(dataResult);
                     let jsonText = '{';
                     for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
@@ -169,9 +190,29 @@ export class SpQuerySQL extends BaseElement {
                 this.queryText = this.selector!.value;
                 this.initDataElement();
                 this.response!.appendChild(this.queryTableEl!);
-
                 setTimeout(() => {
-                    this.queryTableEl!.recycleDataSource = this.statDataArray;
+                    let total = this.statDataArray.length;
+                    if (total > this.maxPageSize) {
+                        that.pagination!.style.opacity = '1';
+                        new PageNation(this.pagination, {
+                            current: 1,
+                            total: total,
+                            pageSize: this.pageSize,
+                            change(num: number) {
+                                that.sliceData = that.statDataArray!.slice(
+                                    (num - 1) * that.pageSize,
+                                    num * that.pageSize
+                                );
+                                that.queryTableEl!.recycleDataSource =
+                                    that.sliceData;
+                            },
+                        });
+                    } else {
+                        that.pagination!.style.opacity = '0';
+                        this.queryTableEl!.recycleDataSource =
+                            this.statDataArray;
+                    }
+
                     this.freshTableHeadResizeStyle();
                     new ResizeObserver(() => {
                         if (this.parentElement?.clientHeight != 0) {
@@ -191,6 +232,7 @@ export class SpQuerySQL extends BaseElement {
     };
 
     reset() {
+        this.pagination!.style.opacity = '0';
         this.response!.innerHTML = '';
         this.keyList = [];
         this.statDataArray = [];
@@ -523,7 +565,6 @@ export class SpQuerySQL extends BaseElement {
         p{
             display: table-cell;
             padding: 7px 10px;
-            color: #999999;
             font-size:0.875em;
             line-height: 20px;
             font-weight: 400;
@@ -585,23 +626,27 @@ export class SpQuerySQL extends BaseElement {
            font-weight: 400;
            border:0 solid;
         }
+        .pagination-box {
+            opacity: 0;
+        }
 
         </style>
         <div class="query">
             <div class="query-message request">
-                <p class="query_select">Enter query and press cmd/ctrl + Enter</p>
+                <p class="query_select" style="color: #999999">Enter query and press cmd/ctrl + Enter</p>
                 <textarea class="sql-select"></textarea>
                 <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
             <div class="query-message response">
                    <div style="display: flex;justify-content: space-between">
-                       <p class="query_size">Query result - 0 counts</p>
+                       <p class="query_size" style="color: #999999">Query result - 0 counts</p>
                        <div style="display: flex; align-items: center">
                            <button id="copy-button" class="button-option">Copy as.tsv</button>
                            <button id="close-button" class="button-option">Close</button>
                         </div>
                     </div>
                    <div id="dataResult"></div>
+                   <pagination-box class="pagination-box"></pagination-box>
             </div>
         </div>
         `;

@@ -46,6 +46,8 @@ import { CpuFreqLimitRender } from './ProcedureWorkerCpuFreqLimits.js';
 import { ClockRender } from './ProcedureWorkerClock.js';
 import { IrqRender } from './ProcedureWorkerIrq.js';
 import { JankRender } from './ProcedureWorkerJank.js';
+import { HeapTimelineRender } from './ProcedureWorkerHeapTimeline.js';
+import { HeapSnapshotRender } from './ProcedureWorkerHeapSnapshot.js';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -65,6 +67,8 @@ export let renders: any = {
     'file-system-cell': new FileSystemRender(),
     process: new ProcessRender(),
     heap: new HeapRender(),
+    heapTimeline: new HeapTimelineRender(),
+    heapSnapshot: new HeapSnapshotRender(),
     mem: new MemRender(),
     thread: new ThreadRender(),
     func: new FuncRender(),

@@ -22,7 +22,7 @@ import {
 import { getTabCpuByThread } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
+import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {
@@ -74,17 +74,19 @@ export class TabPaneCpuByThread extends BaseElement {
                             (val.rightNs - val.leftNs)
                         ).toFixed(2);
                     } else {
+                        let process = Utils.PROCESS_MAP.get(e.pid);
+                        let thread = Utils.THREAD_MAP.get(e.tid);
                         let obj: any = {
                             tid: e.tid,
                             pid: e.pid,
                             thread:
-                                e.thread == null || e.thread.length == 0
+                                thread == null || thread.length == 0
                                     ? '[NULL]'
-                                    : e.thread,
+                                    : thread,
                             process:
-                                e.process == null || e.process.length == 0
+                                process == null || process.length == 0
                                     ? '[NULL]'
-                                    : e.process,
+                                    : process,
                             wallDuration: e.wallDuration || 0,
                             occurrences: e.occurrences || 0,
                             avgDuration: 0,

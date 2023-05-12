@@ -24,6 +24,7 @@ import { Top20ThreadRunTime } from './Top20ThreadRunTime.js';
 import { Top20ProcessThreadCount } from './Top20ProcessThreadCount.js';
 import { Top20ProcessSwitchCount } from './Top20ProcessSwitchCount.js';
 import { Top20FrequencyThread } from './Top20FrequencyThread.js';
+import { SpStatisticsHttpUtil } from "../../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('tab-thread-analysis')
 export class TabThreadAnalysis extends BaseElement {
@@ -95,7 +96,7 @@ export class TabThreadAnalysis extends BaseElement {
         this.top20ProcessThreadCount!.clearData();
         this.hideCurrentTab();
         this.currentTabID = undefined;
-        this.setClickTab(this.tab1!, this.top20ThreadCpuUsage!);
+        this.setClickTab(this.tab1!, this.top20ThreadCpuUsage!, true);
     }
 
     hideCurrentTab() {
@@ -119,8 +120,17 @@ export class TabThreadAnalysis extends BaseElement {
             | Top20ThreadRunTime
             | Top20ProcessSwitchCount
             | Top20ProcessThreadCount
-            | Top20FrequencyThread
+            | Top20FrequencyThread,
+        isInit: boolean = false
     ) {
+        if (!isInit) {
+            let event = showContent.id
+                .replace(/_/g, ' ').toLowerCase().replace(/( |^)[a-z]/g, (L) => L.toUpperCase());
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: event,
+                action: 'scheduling_analysis',
+            });
+        }
         if (this.currentTabID) {
             let clickTab = this.shadowRoot!.querySelector<HTMLDivElement>(
                 `#${this.currentTabID}`

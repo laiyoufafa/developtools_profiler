@@ -15,6 +15,8 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement.js';
 import { info } from '../../../log/Log.js';
+import { SpStatisticsHttpUtil } from "../../../statistics/util/SpStatisticsHttpUtil.js";
+import { PluginConvertUtils } from "./utils/PluginConvertUtils.js";
 
 @element('trace-command')
 export class SpTraceCommand extends BaseElement {
@@ -57,6 +59,17 @@ export class SpTraceCommand extends BaseElement {
     codeCopyEvent = (event: any) => {
         this.codeHl?.select();
         document.execCommand('copy');
+        let allPlugin: Array<string> = [];
+        PluginConvertUtils.pluginConfig.forEach(plugin => {
+            allPlugin.push(plugin.pluginName);
+        });
+        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            action: 'config_page',
+            event: 'offline_record',
+            eventData: {
+                plugin: allPlugin,
+            }
+        });
     };
 
     textSelectEvent = (event: any) => {

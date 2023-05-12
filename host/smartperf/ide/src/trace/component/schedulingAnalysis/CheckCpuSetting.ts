@@ -17,6 +17,7 @@ import { BaseElement, element } from '../../../base-ui/BaseElement.js';
 import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox.js';
 import '../../../base-ui/checkbox/LitCheckBox.js';
 import { SpSchedulingAnalysis } from './SpSchedulingAnalysis.js';
+import {SpStatisticsHttpUtil} from "../../../statistics/util/SpStatisticsHttpUtil.js";
 
 export class CpuSetting {
     cpu: number = 0;
@@ -42,6 +43,10 @@ export class CheckCpuSetting extends BaseElement {
         this.setUpload =
             this.shadowRoot!.querySelector<HTMLDivElement>('#set_upload');
         this.setUpload!.addEventListener('click', (e) => {
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'Analysis Upload',
+                action: 'scheduling_analysis',
+            });
             CheckCpuSetting.init_setting = true;
             this.listener?.();
         });

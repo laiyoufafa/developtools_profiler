@@ -26,6 +26,7 @@ import { LitSelect } from '../../../base-ui/select/LitSelect';
 import '../../../base-ui/progress-bar/LitProgressBar.js';
 import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
 import { pieChartColors } from '../../../base-ui/chart/pie/LitChartPieData.js';
+import { SpStatisticsHttpUtil } from "../../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('tab-cpu-analysis')
 export class TabCpuAnalysis extends BaseElement {
@@ -109,9 +110,17 @@ export class TabCpuAnalysis extends BaseElement {
             }
         );
         this.queryPieChartDataByType('CPU Idle');
+        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'CPU Data',
+            action: 'trace_tab',
+        });
     }
 
     queryPieChartDataByType(type: string) {
+        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'Analysis ' + type,
+            action: 'scheduling_analysis',
+        });
         let tip = '';
         if (type === 'CPU Frequency') {
             tip = 'freq:';

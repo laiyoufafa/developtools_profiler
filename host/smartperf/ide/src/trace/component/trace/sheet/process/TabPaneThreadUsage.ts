@@ -24,6 +24,8 @@ import { getTabThreadStatesCpu } from '../../../../database/SqlLite.js';
 import { StackBar } from '../../../StackBar.js';
 import { log } from '../../../../../log/Log.js';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
+import { Utils } from '../../base/Utils.js';
+import { CpuStruct } from '../../../../database/ui-worker/ProcedureWorkerCPU.js';
 
 @element('tabpane-thread-usage')
 export class TabPaneThreadUsage extends BaseElement {
@@ -46,8 +48,8 @@ export class TabPaneThreadUsage extends BaseElement {
     `;
 
     set data(val: SelectionParam | any) {
-        if (this.cpuCount !== (window as any).cpuCount) {
-            this.cpuCount = (window as any).cpuCount;
+        if (this.cpuCount !== CpuStruct.cpuCount) {
+            this.cpuCount = CpuStruct.cpuCount;
             this.tbl!.innerHTML = this.getTableColumns();
         }
         //@ts-ignore
@@ -78,11 +80,13 @@ export class TabPaneThreadUsage extends BaseElement {
                             map.get(e.tid)[`wallDurationTimeStr`] =
                                 getProbablyTime(map.get(e.tid)[`wallDuration`]);
                         } else {
+                            let process = Utils.PROCESS_MAP.get(e.pid);
+                            let thread = Utils.THREAD_MAP.get(e.tid);
                             let obj: any = {
                                 tid: e.tid,
                                 pid: e.pid,
-                                thread: e.thread,
-                                process: e.process,
+                                thread: thread || 'null',
+                                process: process || 'null',
                                 wallDuration: e.wallDuration || 0,
                                 wallDurationTimeStr: getProbablyTime(
                                     e.wallDuration || 0
@@ -116,7 +120,7 @@ export class TabPaneThreadUsage extends BaseElement {
 
     getTableColumns() {
         let col = `${this.pubColumns}`;
-        let cpuCount = (window as any).cpuCount;
+        let cpuCount = CpuStruct.cpuCount;
         for (let i = 0; i < cpuCount; i++) {
             col = `${col}
             <lit-table-column width="100px" title="cpu${i}" data-index="cpu${i}TimeStr" key="cpu${i}TimeStr"  align="flex-start" order>

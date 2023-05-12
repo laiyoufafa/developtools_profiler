@@ -41,6 +41,7 @@ import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
 import { SpFrameTimeChart } from './SpFrameTimeChart.js';
 import { Utils } from '../trace/base/Utils.js';
+import { SpJsMemoryChart } from './SpJsMemoryChart.js';
 
 export class SpChartManager {
     private trace: SpSystemTrace;
@@ -59,6 +60,7 @@ export class SpChartManager {
     private clockChart: SpClockChart;
     private irqChart: SpIrqChart;
     private frameTimeChart: SpFrameTimeChart;
+    private jsMemory: SpJsMemoryChart;
 
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
@@ -77,6 +79,7 @@ export class SpChartManager {
         this.clockChart = new SpClockChart(trace);
         this.irqChart = new SpIrqChart(trace);
         this.frameTimeChart = new SpFrameTimeChart(trace);
+        this.jsMemory = new SpJsMemoryChart(trace);
     }
 
     async init(progress: Function) {
@@ -117,6 +120,9 @@ export class SpChartManager {
         progress('native memory', 87);
         await this.nativeMemory.initChart();
         info('Native Memory Data initialized');
+        progress('js memory', 87.5);
+        await this.jsMemory.initChart();
+        info('js Memory Data initialized');
         progress('ability monitor', 88);
         await this.abilityMonitor.init();
         progress('hiSysevent', 88.2);
@@ -140,6 +146,11 @@ export class SpChartManager {
         await this.process.init();
         info('Process Data initialized');
         progress('display', 95);
+    }
+
+    async importSoFileUpdate() {
+        await perfDataQuery.initPerfCache();
+        await this.nativeMemory.initNativeMemory();
     }
 
     handleProcessThread(arr: { id: number; name: string; type: string }[]) {

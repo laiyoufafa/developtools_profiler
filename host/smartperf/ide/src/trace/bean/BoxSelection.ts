@@ -71,6 +71,7 @@ export class SelectionParam {
     smapsType: Array<string> = [];
     promiseList: Array<Promise<any>> = [];
     jankFramesData: Array<any> = [];
+  jsMemory: Array<any> = [];
 }
 
 export class BoxJumpParam {

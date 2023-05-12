@@ -48,6 +48,7 @@ import { SpSchedulingAnalysis } from './component/schedulingAnalysis/SpSchedulin
 import './component/trace/base/TraceRowConfig.js';
 import { TraceRowConfig } from './component/trace/base/TraceRowConfig.js';
 import { ColorUtils } from './component/trace/base/ColorUtils.js';
+import {SpStatisticsHttpUtil} from "../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -333,7 +334,7 @@ export class SpApplication extends BaseElement {
             fill: currentColor;
             overflow: hidden;
             font-size: 20px;
-            color: var(--dark-color1,#4D4D4D);
+            color: var(--dark-color1,#47A7E0);
          }
          .chart-filter {
             display: block;
@@ -397,6 +398,8 @@ export class SpApplication extends BaseElement {
     }
 
     initElements() {
+        SpStatisticsHttpUtil.initStatisticsServerConfig();
+        SpStatisticsHttpUtil.addUserVisitAction('visit');
         let that = this;
         this.querySql = true;
         this.rootEL = this.shadowRoot!.querySelector<HTMLDivElement>('.root');
@@ -712,6 +715,10 @@ export class SpApplication extends BaseElement {
                     title: 'Scheduling Analysis',
                     icon: 'piechart-circle-fil',
                     clickHandler: function () {
+                        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                            event: 'Scheduling Analysis',
+                            action: 'scheduling_analysis',
+                        });
                         showContent(spSchedulingAnalysis!);
                         spSchedulingAnalysis.init();
                     },
@@ -729,6 +736,10 @@ export class SpApplication extends BaseElement {
                             );
                         } else {
                             that.download(mainMenu, fileName, isServer, dbName);
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'download',
+                                action: 'download',
+                            });
                         }
                     },
                 },
@@ -740,6 +751,10 @@ export class SpApplication extends BaseElement {
                             that.vsDownloadDB(mainMenu, fileName);
                         } else {
                             that.downloadDB(mainMenu, fileName);
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'download_db',
+                                action: 'download',
+                            });
                         }
                     },
                 },
@@ -772,6 +787,10 @@ export class SpApplication extends BaseElement {
                         title: 'Info and stats',
                         icon: 'info',
                         clickHandler: () => {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'info',
+                                action: 'info_stats',
+                            });
                             showContent(spInfoAndStats);
                         },
                     });
@@ -944,6 +963,22 @@ export class SpApplication extends BaseElement {
                             setProgress(command);
                         },
                         (res) => {
+                            mainMenu.menus!.splice(2, 1, {
+                                collapsed: false,
+                                title: 'Support',
+                                describe: 'Support',
+                                children: [
+                                    {
+                                        title: "Help Documents",
+                                        icon: "smart-help",
+                                        clickHandler: function (item: MenuItem) {
+                                            that.search = false
+                                            that.spHelp!.dark = that.dark
+                                            showContent(that.spHelp!)
+                                        }
+                                    },
+                                ]
+                            })
                             if (res.status) {
                                 info('loadDatabaseArrayBuffer success');
                                 mainMenu.menus!.splice(
@@ -969,7 +1004,7 @@ export class SpApplication extends BaseElement {
                             } else {
                                 info('loadDatabaseArrayBuffer failed');
                                 litSearch.setPercent(
-                                    'This File is not supported!',
+                                    res.msg || 'This File is not supported!',
                                     -1
                                 );
                                 progressEL.loading = false;
@@ -984,7 +1019,11 @@ export class SpApplication extends BaseElement {
             });
         }
 
-        function openTraceFile(ev: any, isClickHandle?: boolean) {
+        let openFileInit = () => {
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'open_trace',
+                action: 'open_trace',
+            });
             info('openTraceFile');
             spSystemTrace!.clearPointPair();
             window.clearTraceRowComplete();
@@ -994,6 +1033,10 @@ export class SpApplication extends BaseElement {
                 mainMenu.menus!.splice(1, 1);
                 mainMenu.menus = mainMenu.menus!;
             }
+        };
+
+        function openTraceFile(ev: any, isClickHandle?: boolean) {
+            openFileInit();
             if (that.vs && isClickHandle) {
                 Cmd.openFileDialog().then((res: string) => {
                     if (res != '') {
@@ -1188,6 +1231,10 @@ export class SpApplication extends BaseElement {
                         title: 'Help Documents',
                         icon: 'smart-help',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'help_page',
+                                action: 'help_doc',
+                            });
                             that.search = false;
                             that.spHelp!.dark = that.dark;
                             showContent(that.spHelp!);
@@ -1282,32 +1329,59 @@ export class SpApplication extends BaseElement {
 
         let urlParams = this.getUrlParams(window.location.href);
         if (urlParams && urlParams.trace && urlParams.link) {
+            openFileInit();
             litSearch.clear();
             showContent(spSystemTrace!);
             that.search = true;
             progressEL.loading = true;
-            let path = urlParams.trace as string;
-            let fileName = path.split('/').reverse()[0];
-            let showFileName =
-                fileName.lastIndexOf('.') == -1
-                    ? fileName
-                    : fileName.substring(0, fileName.lastIndexOf('.'));
-            TraceRow.rangeSelectObject = undefined;
-            fetch(urlParams.trace).then((res) => {
-                res.arrayBuffer().then((arrayBuf) => {
-                    let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
-                    postLog(fileName, fileSize);
-                    document.title = `${showFileName} (${fileSize}M)`;
-                    info('Parse trace using wasm mode ');
-                    handleWasmMode(
-                        new File([arrayBuf], fileName),
-                        showFileName,
-                        fileSize,
-                        fileName
-                    );
+            setProgress('download trace file');
+            this.downloadOnLineFile(urlParams.trace, (localPath) => {
+                let path = urlParams.trace as string;
+                let fileName = path.split('/').reverse()[0];
+                let showFileName =
+                    fileName.lastIndexOf('.') == -1
+                        ? fileName
+                        : fileName.substring(0, fileName.lastIndexOf('.'));
+                TraceRow.rangeSelectObject = undefined;
+                let localUrl = `${window.location.origin}${localPath}`
+                fetch(localUrl).then((res) => {
+                    res.arrayBuffer().then((arrayBuf) => {
+                        let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
+                        postLog(fileName, fileSize);
+                        document.title = `${showFileName} (${fileSize}M)`;
+                        info('Parse trace using wasm mode ');
+                        handleWasmMode(
+                            new File([arrayBuf], fileName),
+                            showFileName,
+                            fileSize,
+                            fileName
+                        );
+                    });
                 });
             });
         }
+    }
+
+    private downloadOnLineFile(url: string, openFileHandler: (path: string) => void){
+        let api = `${window.location.origin}/download-file`;
+        fetch(api,{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                url:url
+            })
+        })
+            .then(response => response.json())
+            .then(res => {
+                if (res.code === 0 && res.success) {
+                    let resultUrl = res.data.url;
+                    if (resultUrl) {
+                        openFileHandler(resultUrl.toString().replace(/\\/g,'/'))
+                    }
+                }
+            });
     }
 
     private getUrlParams(url: string) {
@@ -1433,7 +1507,7 @@ export class SpApplication extends BaseElement {
                         'lit-main-menu-item'
                     );
                 querySelectors.forEach((item) => {
-                    if (item.getAttribute('title') == 'DownLoad') {
+                    if (item.getAttribute('title') == 'Download File') {
                         item!.setAttribute('icon', 'convert-loading');
                         let querySelector1 = item!.shadowRoot?.querySelector(
                             '.icon'
@@ -1457,7 +1531,7 @@ export class SpApplication extends BaseElement {
                             'lit-main-menu-item'
                         );
                     querySelectors.forEach((item) => {
-                        if (item.getAttribute('title') == 'DownLoad') {
+                        if (item.getAttribute('title') == 'Download File') {
                             item!.setAttribute('icon', 'download');
                             let querySelector1 =
                                 item!.shadowRoot?.querySelector(

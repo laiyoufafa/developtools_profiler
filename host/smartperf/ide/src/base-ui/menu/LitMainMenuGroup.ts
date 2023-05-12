@@ -21,6 +21,7 @@ export class LitMainMenuGroup extends BaseElement {
     protected _collapsed: boolean | undefined;
     private groupNameEl: HTMLElement | null | undefined;
     private groupDescEl: HTMLElement | null | undefined;
+    private group: HTMLElement | null | undefined;
 
     static get observedAttributes() {
         return ['title', 'describe', 'collapsed', 'nocollapse', 'radius'];
@@ -57,7 +58,8 @@ export class LitMainMenuGroup extends BaseElement {
     initElements(): void {
         this.groupNameEl = this.shadowRoot?.querySelector('.group-name');
         this.groupDescEl = this.shadowRoot?.querySelector('.group-describe');
-        this.addEventListener('click', (e) => {
+        this.group = this.shadowRoot?.querySelector('#group');
+        this.group!.addEventListener('click', (e) => {
             if (this.nocollapsed) {
                 return;
             }
@@ -66,8 +68,12 @@ export class LitMainMenuGroup extends BaseElement {
         let backgroundColor = sessionStorage.getItem('backgroundColor');
         if (backgroundColor == 'rgb(38, 47, 60)') {
             textColor = 'white';
+            this.groupNameEl!.style.color = 'white';
+            this.groupDescEl!.style.color = 'white';
         } else {
             textColor = 'black';
+            this.groupNameEl!.style.color = 'black';
+            this.groupDescEl!.style.color = 'black';
         }
     }
 
@@ -128,8 +134,10 @@ export class LitMainMenuGroup extends BaseElement {
         }
        
         </style>
-        <div class="group-name"></div>
-        <div class="group-describe"></div>
+       <div id="group">
+         <div class="group-name"></div>
+         <div class="group-describe"></div>
+       </div>
         <slot></slot>
         `;
     }

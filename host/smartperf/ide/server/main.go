@@ -47,6 +47,7 @@ import (
 const HttpPort = 9000
 
 var exPath string
+var serveInfo string
 
 // CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
 // CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
@@ -121,6 +122,7 @@ func main() {
         } else {
             version = string(readVersion)
         }
+        readReqServerConfig()
         mux := http.NewServeMux()
         mime.TypeByExtension(".js")
         mime.AddExtensionType(".js", "application/javascript")
@@ -128,6 +130,7 @@ func main() {
         mux.HandleFunc("/logger", consoleHandler)
         mux.Handle("/upload/", http.StripPrefix("/upload/", http.FileServer(http.Dir(filepath.FromSlash(exPath+"/upload")))))
         mux.HandleFunc("/download-file", downloadHandler)
+        mux.HandleFunc("/application/serverInfo", serverInfo)
         fs := http.FileServer(http.Dir(exPath + "/"))
         mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
         go func() {
@@ -194,6 +197,22 @@ func consoleHandler(w http.ResponseWriter, r *http.Request) {
             fmt.Fprintf(w, fmt.Sprintf("日志写入成功%s", exPath))
         }
     }
+}
+
+func serverInfo(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Access-Control-Allow-Origin", "*")
+  w.Header().Set("request_info", serveInfo)
+  w.WriteHeader(200)
+}
+
+func readReqServerConfig() string {
+  readServerConfig, serverConfigErr := os.ReadFile(exPath + "/server-config.txt")
+  if serverConfigErr != nil {
+      serveInfo = ""
+  } else {
+      serveInfo = string(readServerConfig)
+  }
+  return serveInfo
 }
 
 func mapToJson(m map[string]interface{}) (string, error) {

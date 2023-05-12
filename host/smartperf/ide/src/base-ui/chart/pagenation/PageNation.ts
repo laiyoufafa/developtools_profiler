@@ -24,9 +24,10 @@ export class PageNation {
     btn: any;
     list: any;
     origin: HTMLElement | undefined;
-    static BtnBackColor = '#6c9bfa';
+    static BtnBackColor = '#6C9BFA';
     static BtnColor = '#fff';
     constructor(selector: any, options = {}) {
+        selector!.innerHTML = '';
         //最大容器
         this.element = selector;
         // 默认值
@@ -73,7 +74,7 @@ export class PageNation {
                 this.pageInfo.totalpage = 9;
             }
         }
-        this.pageInfo.first = options.first || 'Home';
+        this.pageInfo.first = options.first || '<<';
         this.pageInfo.change = options.change || function () {};
     }
 
@@ -85,7 +86,7 @@ export class PageNation {
 
     setItemStyles() {
         this.setElementStyles(this.element, {
-            margin: '50px auto',
+            margin: '18px auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -97,11 +98,11 @@ export class PageNation {
         //首页
         this.origin = document.createElement('p');
         this.setElementStyles(this.origin, {
-            'border-radius': '5px',
+            'border-radius': '4px',
             padding: '5px',
-            border: '1px solid #333',
+            border: '1px solid rgba(0,0,0,0.6)',
             cursor: 'pointer',
-            margin: '0 10px',
+            margin: '0 5px',
         });
 
         this.first = this.origin.cloneNode(true);
@@ -110,8 +111,9 @@ export class PageNation {
         this.element.appendChild(this.first);
 
         this.prev = this.origin.cloneNode(true);
-        this.prev.innerText = 'Previous';
+        this.prev.innerText = '<';
         this.prev.name = 'prev';
+        this.prev.style.padding = '5px 10px';
         this.element.appendChild(this.prev);
 
         // 创建ul
@@ -122,44 +124,68 @@ export class PageNation {
         });
         this.element.appendChild(this.list);
         this.next = this.origin.cloneNode(true);
-        this.next.innerText = 'Next';
+        this.next.innerText = '>';
         this.next.name = 'next';
+        this.next.style.padding = '5px 10px';
+        this.next.style.margin = '0px 5px';
         this.element.appendChild(this.next);
         this.last = this.origin.cloneNode(true);
-        this.last.innerText = 'Last';
+        this.last.innerText = '>>';
         this.last.name = 'last';
+        this.last.style.padding = '5px';
+        this.last.style.margin = '0px 5px';
         this.element.appendChild(this.last);
+        let jumpDiv = document.createElement('div');
+        jumpDiv.style.display = 'flex';
+        jumpDiv.style.border = '1px solid rgba(0,0,0,0.6)';
+        jumpDiv.style.borderRadius = '4px';
+        jumpDiv.style.width = '70px';
+        jumpDiv.style.height = '32px';
+        jumpDiv.style.marginLeft = '10px';
+
         // 创建输入框
         this.inputBox = document.createElement('input');
         this.inputBox.value = this.pageInfo.current;
         this.setElementStyles(this.inputBox, {
-            width: '50px',
+            width: '35px',
             height: '30px',
             textAlign: 'center',
             outline: 'none',
-            margin: '0 10px',
+            padding: '0',
+            border: '0',
             'border-radius': '5px',
         });
-        this.element.appendChild(this.inputBox);
+        jumpDiv.appendChild(this.inputBox);
+        let span = document.createElement('span');
+        span.style.width = '1px';
+        span.style.height = '24px';
+        span.style.alignSelf = 'center';
+        span.style.backgroundColor = '#999999';
+        jumpDiv.appendChild(span);
         // 创建按钮
         this.btn = document.createElement('button');
-        this.btn.innerText = 'Jump';
+        this.btn.innerText = '';
         this.btn.name = 'goto';
         this.setElementStyles(this.btn, {
-            height: '34px',
-            width: '50px',
+            height: '32px',
+            width: '30px',
             cursor: 'pointer',
+            backgroundColor: '#FFF',
+            border: '0',
             'border-radius': '5px',
         });
-        this.element.appendChild(this.btn);
+        this.btn.style.background = `url('img/arrowright.png') no-repeat 98% center var(--dark-background3,#FFFFFF)`;
+        this.btn.style.backgroundPosition = 'center';
+        jumpDiv.appendChild(this.btn);
+        this.element.appendChild(jumpDiv);
     }
 
     // 判断首页 上一页 下一页 尾页 是否可以点击
     bindPageHtml() {
         const { current, totalpage } = this.pageInfo;
-        const disable = { backgroundColor: '#ccc', cursor: 'not-allowed' };
+        const disable = { color: '#999999', cursor: 'not-allowed' };
         const enable = {
-            backgroundColor: PageNation.BtnColor,
+            color: '#000',
             cursor: 'pointer',
         };
         // 判断当前页是否是第一页  如果是第一页  那么首页和上一页就不能点击
@@ -193,8 +219,8 @@ export class PageNation {
         origin.dataset.name = 'item';
         this.setElementStyles(origin, {
             listStyle: 'none',
-            'border-radius': '5px',
-            border: '1px solid #333',
+            'border-radius': '4px',
+            border: '1px solid rgba(0,0,0,0.6)',
             padding: '5px 10px',
             margin: '0 5px',
             cursor: 'pointer',

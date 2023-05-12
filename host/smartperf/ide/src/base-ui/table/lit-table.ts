@@ -20,6 +20,7 @@ import '../utils/Template.js';
 import { TableRowObject } from './TableRowObject.js';
 import { ExcelFormater } from '../utils/ExcelFormater.js';
 import { JSonToCSV } from '../utils/CSVFormater.js';
+import { LitIcon } from '../icon/LitIcon.js';
 
 @element('lit-table')
 export class LitTable extends HTMLElement {
@@ -329,6 +330,19 @@ export class LitTable extends HTMLElement {
         } else {
             this.tableElement!.scrollTop = 0;
         }
+        if (this.hasAttribute('tree')) {
+            this.recycleDs = this.meauseTreeRowElement(value);
+        } else {
+            this.recycleDs = this.meauseAllRowHeight(value);
+        }
+    }
+
+    get snapshotDataSource() {
+        return this.ds || [];
+    }
+
+    set snapshotDataSource(value) {
+        this.ds = value;
         if (this.hasAttribute('tree')) {
             this.recycleDs = this.meauseTreeRowElement(value);
         } else {
@@ -647,6 +661,7 @@ export class LitTable extends HTMLElement {
                                     }
                                     switch (h.sortType) {
                                         case 1:
+                                            this.theadElement!.setAttribute('sort', '');
                                             upSvg.setAttribute(
                                                 'fill',
                                                 'let(--dark-color1,#212121)'
@@ -681,6 +696,7 @@ export class LitTable extends HTMLElement {
                                             );
                                             upSvg.style.display = 'none';
                                             downSvg.style.display = 'none';
+                                            this.theadElement!.removeAttribute('sort');
                                             break;
                                     }
                                     this.dispatchEvent(
@@ -1224,9 +1240,17 @@ export class LitTable extends HTMLElement {
                 }
                 totalHeight += tableRowObject.height;
                 visibleObjects.push(tableRowObject);
-                if (item.children != undefined && item.children.length > 0) {
-                    resetAllHeight(item.children, depth + 1, tableRowObject);
-                }
+                if (item.hasNext) {
+                    if (item.parents != undefined && item.parents.length > 0 && item.status) {
+                      resetAllHeight(item.parents, depth + 1, tableRowObject);
+                    } else if (item.children != undefined && item.children.length > 0 && item.status) {
+                      resetAllHeight(item.children, depth + 1, tableRowObject);
+                    }
+                  } else {
+                    if (item.children != undefined && item.children.length > 0) {
+                      resetAllHeight(item.children, depth + 1, tableRowObject);
+                    }
+                  }
             });
         };
         resetAllHeight(list, 0);
@@ -1311,11 +1335,23 @@ export class LitTable extends HTMLElement {
                     td.dataIndex = dataIndex;
                 }
                 if (rowData.data.children && rowData.data.children.length > 0) {
-                    let btn = this.createExpandBtn(rowData);
-                    td.insertBefore(btn, td.firstChild);
-                    td.style.paddingLeft = rowData.depth * 15 + 'px';
+                  let btn = this.createExpandBtn(rowData);
+                  td.title = rowData.data.nodeName;
+                  td.insertBefore(btn, td.firstChild);
+                  td.style.paddingLeft = rowData.depth * 15 + 'px';
+                } else if (rowData.data.hasNext) {
+                  td.title = rowData.data.nodeName;
+                  let btn = this.createBtn(rowData);
+                  td.insertBefore(btn, td.firstChild);
+                  td.style.paddingLeft = 15 * rowData.depth + 'px';
+                  btn.onclick = () => {
+                    let indexOf = this.currentTreeDivList.indexOf(td);
+                    this.dispatchRowClickEventIcon(rowData, [
+                      this.treeElement?.children[indexOf].children[indexOf] as LitIcon,
+                    ]);
+                  };
                 } else {
-                    td.style.paddingLeft = rowData.depth * 15 + 20 + 'px';
+                  td.style.paddingLeft = rowData.depth * 15 + 20 + 'px';
                 }
                 (td as any).data = rowData.data;
                 td.classList.add('tree-first-body');
@@ -1421,6 +1457,57 @@ export class LitTable extends HTMLElement {
         return newTableElement;
     }
 
+    createBtn(rowData: any) {
+        let btn: any = document.createElement('lit-icon');
+        btn.classList.add('tree-icon');
+        // @ts-ignore
+        if (rowData.expanded) {
+            btn.name = 'plus-square';
+        } else {
+            btn.name = 'minus-square';
+        }
+        if (!rowData.data.status && rowData.data.children.length > 0 && rowData.data.hasNext) {
+            btn.name = 'plus-square';
+        }
+        btn.onclick = (e: Event) => {
+            rowData.data.status = false;
+            const resetNodeHidden = (hidden: boolean, rowData: any) => {
+                if (rowData.data.hasNext || rowData.data.children.length > 0) {
+                    if (hidden) {
+                        rowData.children.forEach((child: any) => {
+                            child.rowHidden = true;
+                            resetNodeHidden(hidden, child);
+                        });
+                    } else {
+                        rowData.data.status = rowData.expanded;
+                        rowData.children.forEach((child: any) => {
+                            child.rowHidden = !rowData.expanded;
+                            if (rowData.expanded) {
+                                resetNodeHidden(hidden, child);
+                            }
+                        });
+                    }
+                }
+            };
+            const foldNode = () => {
+                rowData.expanded = false;
+                resetNodeHidden(true, rowData);
+            };
+            const expendNode = () => {
+                rowData.expanded = true;
+                resetNodeHidden(false, rowData);
+            };
+            if (rowData.expanded) {
+                foldNode();
+            } else {
+                expendNode();
+            }
+            this.reMeauseHeight();
+            e.stopPropagation();
+        };
+        return btn;
+    }
+
     createExpandBtn(rowData: any) {
         let btn: any = document.createElement('lit-icon');
         btn.classList.add('tree-icon');
@@ -1430,7 +1517,11 @@ export class LitTable extends HTMLElement {
         } else {
             btn.name = 'plus-square';
         }
+        if (!rowData.data.status && rowData.data.children.length > 0 && rowData.data.hasNext) {
+            btn.name = 'plus-square';
+        }
         btn.onclick = (e: Event) => {
+            rowData.data.status = false;
             const resetNodeHidden = (hidden: boolean, rowData: any) => {
                 if (rowData.children.length > 0) {
                     if (hidden) {
@@ -1439,8 +1530,10 @@ export class LitTable extends HTMLElement {
                             resetNodeHidden(hidden, child);
                         });
                     } else {
+                        rowData.data.status = rowData.expanded;
                         rowData.children.forEach((child: any) => {
                             child.rowHidden = !rowData.expanded;
+                            rowData.data.status = true;
                             if (rowData.expanded) {
                                 resetNodeHidden(hidden, child);
                             }
@@ -1624,8 +1717,19 @@ export class LitTable extends HTMLElement {
                 if (rowObject.children && rowObject.children.length > 0) {
                     let btn = this.createExpandBtn(rowObject);
                     firstElement.insertBefore(btn, firstElement.firstChild);
-                    firstElement.style.paddingLeft =
-                        15 * rowObject.depth + 'px';
+                    firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
+                } else if (rowObject.data.hasNext) {
+                    let btn = this.createBtn(rowObject);
+                    firstElement.title = rowObject.data.nodeName;
+                    firstElement.insertBefore(btn, firstElement.firstChild);
+                    firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
+                    btn.onclick = () => {
+                        // @ts-ignore
+                        let indexOf = this.currentTreeDivList.indexOf(firstElement);
+                        this.dispatchRowClickEventIcon(rowObject, [
+                            this.treeElement?.children[indexOf].children[indexOf] as LitIcon,
+                        ]);
+                    };
                 } else {
                     firstElement.style.paddingLeft =
                         20 + 15 * rowObject.depth + 'px';
@@ -1864,6 +1968,18 @@ export class LitTable extends HTMLElement {
                 });
             }
         }
+    }
+
+    dispatchRowClickEventIcon(rowObject: any, elements: any[]) {
+        this.dispatchEvent(
+            new CustomEvent('icon-click', {
+                detail: {
+                    ...rowObject.data,
+                    data: rowObject.data,
+                },
+                composed: true,
+            })
+        );
     }
 
     dispatchRowClickEvent(rowObject: any, elements: any[]) {

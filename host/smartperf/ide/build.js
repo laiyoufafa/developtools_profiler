@@ -36,6 +36,7 @@ const staticFiles = [
     '/src/index.html',
     '/src/base-ui/icon.svg',
     '/server/wasm.json',
+    '/server/server-config.txt',
 ];
 
 const thirdParty = [

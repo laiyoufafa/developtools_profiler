@@ -17,6 +17,7 @@ import { BaseElement, element } from '../../base-ui/BaseElement.js';
 import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup.js';
 import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu.js';
 import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
+import {SpStatisticsHttpUtil} from "../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('sp-help')
 export class SpHelp extends BaseElement {
@@ -71,6 +72,10 @@ export class SpHelp extends BaseElement {
                         title: '设备端抓取trace说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'record',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_device_record.html?' +
@@ -82,6 +87,10 @@ export class SpHelp extends BaseElement {
                         title: 'web端抓取trace说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'online_record',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_web_record.html?' +
@@ -93,6 +102,10 @@ export class SpHelp extends BaseElement {
                         title: 'web端加载trace说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'load',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_systemtrace.html?' +
@@ -104,6 +117,10 @@ export class SpHelp extends BaseElement {
                         title: 'Native Memory抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'native',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_native_memory.html?' +
@@ -115,6 +132,10 @@ export class SpHelp extends BaseElement {
                         title: 'Ability Monitor抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'ability',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_ability_monitor.html?' +
@@ -126,6 +147,10 @@ export class SpHelp extends BaseElement {
                         title: 'HiPerf的抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'perf',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_hiperf.html?' +
@@ -137,6 +162,10 @@ export class SpHelp extends BaseElement {
                         title: 'Sql分析和Metrics说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'sql',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_sql_metrics.html?' +
@@ -148,6 +177,10 @@ export class SpHelp extends BaseElement {
                         title: 'FileSystem抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'file_system',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_filesystem.html?' +
@@ -159,6 +192,10 @@ export class SpHelp extends BaseElement {
                         title: '页内存抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'virtual_memory',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_page_fault.html?' +
@@ -170,6 +207,10 @@ export class SpHelp extends BaseElement {
                         title: 'Bio抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'bio',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_bio.html?' +
@@ -181,6 +222,10 @@ export class SpHelp extends BaseElement {
                         title: '进程smaps抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'smaps',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_smaps.html?' +
@@ -192,6 +237,10 @@ export class SpHelp extends BaseElement {
                         title: 'HiSystemEvent抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'hisys',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_hisystemevent.html?' +
@@ -203,6 +252,10 @@ export class SpHelp extends BaseElement {
                         title: 'sdk抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'sdk_record',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_sdk.html?' +
@@ -214,6 +267,10 @@ export class SpHelp extends BaseElement {
                         title: 'Frame timeline抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'frame_record',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_Frametimeline.html?' +
@@ -225,6 +282,10 @@ export class SpHelp extends BaseElement {
                         title: 'Scheduling analysis抓取和展示说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'scheduling_record',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/quickstart_schedulinganalysis.html?' +
@@ -243,6 +304,10 @@ export class SpHelp extends BaseElement {
                         title: 'TraceStreamer数据库说明',
                         icon: '',
                         clickHandler: function (item: MenuItem) {
+                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                                event: 'trace_streamer_explain',
+                                action: 'help_doc',
+                            });
                             that.appContent!.innerHTML =
                                 '<object type="text/html" data=' +
                                 '/application/doc/des_tables.html?' +

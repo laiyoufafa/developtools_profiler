@@ -42,6 +42,7 @@ import { initMetaDataStrategy } from './metrics/MetaDataStrategy.js';
 import { PluginConvertUtils } from './setting/utils/PluginConvertUtils.js';
 import { info } from '../../log/Log.js';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
+import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('sp-metrics')
 export class SpMetrics extends BaseElement {
@@ -136,6 +137,10 @@ export class SpMetrics extends BaseElement {
     }
 
     runClickListener = (event: any) => {
+        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'metrics',
+            action: 'metrics',
+        });
         this.progressLoad!.loading = true;
         let selectedIndex = this.selectMetricEl!.selectedIndex;
         let value = this.selectMetricEl!.options[selectedIndex].value;

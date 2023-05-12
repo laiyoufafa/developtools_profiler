@@ -69,8 +69,10 @@ export class LitMainMenuItem extends BaseElement {
         let backgroundColor = sessionStorage.getItem('backgroundColor');
         if (backgroundColor == 'rgb(38, 47, 60)') {
             textColor = 'white';
+            this.style.color = 'white';
         } else {
             textColor = 'black';
+            this.style.color = 'black';
         }
     }
 
@@ -150,6 +152,7 @@ export class LitMainMenuItem extends BaseElement {
             .name{
                 padding-left: 10px;
                 cursor: pointer;
+                overflow-wrap: anywhere;
             }
             .icon{
                 pointer-events: none;

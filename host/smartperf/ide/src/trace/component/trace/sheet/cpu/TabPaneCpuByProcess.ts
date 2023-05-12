@@ -21,6 +21,7 @@ import {
 } from '../../../../bean/BoxSelection.js';
 import { getTabCpuByProcess } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
+import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-cpu-process')
 export class TabPaneCpuByProcess extends BaseElement {
@@ -43,10 +44,11 @@ export class TabPaneCpuByProcess extends BaseElement {
                 let sumWall = 0.0;
                 let sumOcc = 0;
                 for (let e of result) {
+                    let process = Utils.PROCESS_MAP.get(e.pid);
                     e.process =
-                        e.process == null || e.process.length == 0
+                        process == null || process.length == 0
                             ? '[NULL]'
-                            : e.process;
+                            : process;
                     sumWall += e.wallDuration;
                     sumOcc += e.occurrences;
                     e.wallDuration = parseFloat(

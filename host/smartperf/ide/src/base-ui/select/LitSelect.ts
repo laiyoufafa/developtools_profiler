@@ -141,8 +141,10 @@ export class LitSelect extends BaseElement {
     set dataSource(value: any) {
         value.forEach((a: any) => {
             let option = document.createElement('lit-select-option');
-            option.setAttribute('value', a.key);
-            option.textContent = a.val;
+            if (a.file_name) {
+                option.textContent = a.file_name;
+                option.setAttribute('value', a.file_name);
+            }
             this.append(option);
         });
         this.initOptions();

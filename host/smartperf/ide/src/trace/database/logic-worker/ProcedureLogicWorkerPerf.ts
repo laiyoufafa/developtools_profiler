@@ -113,6 +113,14 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
                         }
                     }
                     break;
+                case 'perf-queryPerfAnalysisCallChain':
+                    // @ts-ignore
+                    self.postMessage({
+                        id: data.id,
+                        action: data.action,
+                        results: this.perfAnalysisCallChain(),
+                    });
+                    break;
             }
         }
     }
@@ -372,7 +380,7 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`,
             }
         });
         let rootMerageMap: any = {};
-		 // @ts-ignore
+        // @ts-ignore
         Object.values(this.currentTreeMapData).forEach((merageData: any) => {
             if (rootMerageMap[merageData.pid] == undefined) {
                 let processMerageData = new PerfCallChainMerageData(); //新增进程的节点数据
@@ -412,7 +420,7 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`,
                 node.parentId = node.parentNode.id;
             }
         });
-		 // @ts-ignore
+        // @ts-ignore
         this.allProcess = Object.values(rootMerageMap);
     }
 
@@ -495,7 +503,7 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`,
             }
         }
         let rootMerageMap: any = {};
-		 // @ts-ignore
+        // @ts-ignore
         Object.values(this.currentTreeMapData).forEach((merageData: any) => {
             if (rootMerageMap[merageData.pid] == undefined) {
                 let processMerageData = new PerfCallChainMerageData(); //新增进程的节点数据
@@ -535,7 +543,7 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`,
                 node.parentId = node.parentNode.id;
             }
         });
-		 // @ts-ignore
+        // @ts-ignore
         return Object.values(rootMerageMap);
     }
 
@@ -895,6 +903,17 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`,
             });
         }
         return this.dataSource;
+    }
+
+    perfAnalysisCallChain(){
+        let sampleCallChainMap = new Map<number,any>();
+        for (const [sampleIdStr,callChains] of Object.entries(this.callChainData)){
+            const sampleId = parseInt(sampleIdStr);
+            // @ts-ignore
+            const lastCallChain = callChains[callChains.length - 1];
+            sampleCallChainMap.set(sampleId,lastCallChain);
+        }
+        return sampleCallChainMap;
     }
 }
 

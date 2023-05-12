@@ -904,3 +904,11 @@ export interface HiSystemEventConfig {
     msg: string;
     processName: string;
 }
+
+export interface JsHeapConfig {
+    pid: number;
+    type: number;
+    interval: number;
+    capture_numeric_value: boolean;
+    track_allocations: boolean;
+}

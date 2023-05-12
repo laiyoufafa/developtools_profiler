@@ -15,6 +15,7 @@
 
 import { element } from '../BaseElement.js';
 import { LitTabpane } from './lit-tabpane.js';
+import {SpStatisticsHttpUtil} from "../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
@@ -694,11 +695,32 @@ export class LitTabs extends HTMLElement {
         }).observe(this.shadowRoot!.querySelector('#tab-filling')!);
     }
 
-    activeByKey(key: string) {
+    activeByKey(key: string, isValid: boolean = true) {
         if (key === null || key === undefined) return; //如果没有key 不做相应
         this.nav!.querySelectorAll('.nav-item').forEach((a) => {
             if (a.getAttribute('data-key') === key) {
                 a.setAttribute('data-selected', 'true');
+                if (isValid) {
+                    let span = a.querySelector('span') as HTMLSpanElement;
+                    let title = span.innerText;
+                    if(title === 'Counters' || title === 'Thread States') {
+                        let rowType = document.querySelector<HTMLElement>('sp-application')!.shadowRoot?.querySelector<HTMLElement>('sp-system-trace')!.getAttribute('clickRow');
+                        title += `(${rowType})`;
+                    }
+                    if(title === 'Slices' || title === 'Current Selection'){
+                        let rowName =  document.querySelector<HTMLElement>('sp-application')!.shadowRoot?.querySelector<HTMLElement>('sp-system-trace')!.getAttribute('rowName');
+                        if(rowName && rowName!.indexOf('deliverInputEvent') > -1){
+                            title += '(deliverInputEvent)';
+                        } else {
+                            let rowType = document.querySelector<HTMLElement>('sp-application')!.shadowRoot?.querySelector<HTMLElement>('sp-system-trace')!.getAttribute('clickRow');
+                            title += `(${rowType})`;
+                        }
+                    }
+                    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                        event: title,
+                        action: 'trace_tab',
+                    });
+                }
             } else {
                 a.removeAttribute('data-selected');
             }
@@ -738,7 +760,7 @@ export class LitTabs extends HTMLElement {
             oldValue !== newValue &&
             newValue != ''
         ) {
-            this.activeByKey(newValue);
+            this.activeByKey(newValue, false);
         }
     }
 }

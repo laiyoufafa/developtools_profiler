@@ -17,7 +17,7 @@ import { SpSystemTrace } from '../SpSystemTrace.js';
 import {
     queryCpuCount,
     queryCpuData,
-    queryCpuMax,
+    queryCpuMax, queryCpuSchedSlice,
 } from '../../database/SqlLite.js';
 import { info } from '../../../log/Log.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
@@ -27,6 +27,7 @@ import {
     CpuStruct,
 } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
+import { Utils } from '../trace/base/Utils.js';
 
 export class SpCpuChart {
     private trace: SpSystemTrace;
@@ -44,6 +45,8 @@ export class SpCpuChart {
         } else {
             (window as any).cpuCount = 0;
         }
+        let cpuSchedSlice = await queryCpuSchedSlice();
+        this.initSchedSliceData(cpuSchedSlice);
         info('Cpu trace row data size is: ', array.length);
         if (array && array.length > 0 && array[0]) {
             let cpuMax = array[0].cpu;
@@ -66,6 +69,17 @@ export class SpCpuChart {
                         TraceRow.range?.endNS || 0
                     ).then((res) => {
                         res.forEach((it, i, arr) => {
+                            let p = Utils.PROCESS_MAP.get(it.processId!);
+                            let t = Utils.THREAD_MAP.get(it.tid!);
+                            let slice = Utils.SCHED_SLICE_MAP.get(`${it.id}-${it.startTime}`);
+                            if (slice) {
+                                it.end_state = slice.endState;
+                                it.priority = slice.priority;
+                            }
+                            it.processName = p;
+                            it.processCmdLine = p;
+                            it.name = t;
+                            it.type = 'thread';
                             if (i !== arr.length - 1) {
                                 if (
                                     it.startTime! + it.dur! >
@@ -163,6 +177,13 @@ export class SpCpuChart {
         let durTime = new Date().getTime() - time;
         info('The time to load the first CPU Idle0 data is: ', durTime);
     };
+
+    initSchedSliceData(arr: any[]) {
+        Utils.SCHED_SLICE_MAP.clear();
+        arr.forEach((value) => {
+            Utils.SCHED_SLICE_MAP.set(`${value.itid}-${value.ts}`,{ endState: value.endState, priority: value.priority });
+        });
+    }
 
     initSchedulingPTData = async (progress: Function) => {
         let time = new Date().getTime();

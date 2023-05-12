@@ -17,6 +17,7 @@ export class PluginConvertUtils {
     private static crlf: string = '\n';
     private static leftBrace: string = '{';
     private static rightBrace: string = '}';
+    static pluginConfig: any[] = [];
 
     public static createHdcCmd(
         requestString: string,
@@ -47,6 +48,7 @@ export class PluginConvertUtils {
     }
 
     public static BeanToCmdTxt(bean: any, needColon: boolean): string {
+        PluginConvertUtils.pluginConfig = bean.pluginConfigs;
         return this.handleObj(bean, 0, needColon, 1);
     }
 

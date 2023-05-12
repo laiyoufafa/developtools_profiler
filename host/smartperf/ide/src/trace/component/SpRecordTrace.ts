@@ -35,7 +35,7 @@ import {
     FpsConfig,
     HilogConfig,
     HiperfPluginConfig,
-    HiSystemEventConfig,
+    HiSystemEventConfig, JsHeapConfig,
     levelFromJSON,
     MemoryConfig,
     NativeHookConfig,
@@ -67,6 +67,8 @@ import { SpSdkConfig } from './setting/SpSdkConfig.js';
 import { SpVmTracker } from './setting/SpVmTracker.js';
 import { SpHisysEvent } from './setting/SpHisysEvent.js';
 import { SpRecordTemplate } from './setting/SpRecordTemplate.js';
+import {SpJsHeap} from "./setting/SpJsHeap.js";
+import {SpStatisticsHttpUtil} from "../../statistics/util/SpStatisticsHttpUtil.js";
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -392,6 +394,7 @@ export class SpRecordTrace extends BaseElement {
     private spVmTracker: SpVmTracker | undefined;
     private spHisysEvent: SpHisysEvent | undefined;
     private spRecordTemplate: SpRecordTemplate | undefined;
+    private spJsHeap: SpJsHeap | undefined;
 
     private menuGroup: LitMainMenuGroup | undefined | null;
     private appContent: HTMLElement | undefined | null;
@@ -573,6 +576,7 @@ export class SpRecordTrace extends BaseElement {
         this.spSdkConfig = new SpSdkConfig();
         this.spVmTracker = new SpVmTracker();
         this.spHisysEvent = new SpHisysEvent();
+        this.spJsHeap = new SpJsHeap();
         this.spRecordTemplate = new SpRecordTemplate(this);
         this.addButton = this.shadowRoot?.querySelector<LitButton>('.add');
         this.addButton!.addEventListener('click', () => {
@@ -992,6 +996,16 @@ export class SpRecordTrace extends BaseElement {
                     },
                 },
                 {
+                    title: 'JS Heap',
+                    icon: 'file-config',
+                    fileChoose: false,
+                    clickHandler: function (ev: InputEvent) {
+                        that.appContent!.innerHTML = '';
+                        that.appContent!.append(that.spJsHeap!);
+                        that.freshMenuItemsStatus('JS Heap');
+                    },
+                },
+                {
                     title: 'SDK Config',
                     icon: 'file-config',
                     fileChoose: false,
@@ -1089,6 +1103,17 @@ export class SpRecordTrace extends BaseElement {
             this.recordSetting!.output,
             this.recordSetting!.maxDur
         );
+        let pluginList: Array<string> = [];
+        request.pluginConfigs.forEach(pluginConfig => {
+            pluginList.push(pluginConfig.pluginName);
+        })
+        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            action: 'config_page',
+            event: 'online_record',
+            eventData: {
+                plugin: pluginList
+            },
+        });
         let selectedOption = this.deviceSelect!.options[
             this.deviceSelect!.selectedIndex
         ] as HTMLOptionElement;
@@ -1479,6 +1504,11 @@ export class SpRecordTrace extends BaseElement {
                     this.createHiSystemEventPluginConfig(
                         this.spHisysEvent.process
                     )
+                );
+            }
+            if (this.spJsHeap!.process != '') {
+                request.pluginConfigs.push(
+                    this.createJsHeapConfig()
                 );
             }
         }
@@ -2052,6 +2082,38 @@ export class SpRecordTrace extends BaseElement {
         return profilerPluginConfig;
     }
 
+    private createJsHeapConfig() {
+        let process = this.spJsHeap!.process;
+        let re = /^[0-9]+.?[0-9]*/;
+        let pid = 0;
+        let processId = '';
+        if (process.indexOf('(') != -1) {
+            processId = process.slice(
+                process.lastIndexOf('(') + 1,
+                process.lastIndexOf(')')
+            );
+        } else {
+            processId = process;
+        }
+        if (re.test(processId)) {
+            pid = Number(processId);
+        }
+        let jsHeapConfig: JsHeapConfig = {
+            pid: pid,
+            type: this.spJsHeap!.radioBoxType,
+            interval: this.spJsHeap!.intervalValue,
+            capture_numeric_value: this.spJsHeap!.grabNumeric,
+            track_allocations: this.spJsHeap!.grabAllocations
+        };
+        let jsHeapPluginConfig: ProfilerPluginConfig<JsHeapConfig> = {
+            pluginName: 'js-memory',
+            sampleInterval: 5000,
+            configData: jsHeapConfig,
+        };
+
+        return jsHeapPluginConfig;
+    }
+
     private createFpsPluginConfig() {
         let fpsConfig: FpsConfig = {
             reportFps: true,
@@ -2157,11 +2219,13 @@ export class SpRecordTrace extends BaseElement {
             this.recordButton!.style.pointerEvents = 'none';
             this.addButton!.style.pointerEvents = 'none';
             this.deviceSelect!.style.pointerEvents = 'none';
+            this.deviceVersion!.style.pointerEvents = 'none';
         } else {
             this.disconnectButton!.style.pointerEvents = 'auto';
             this.recordButton!.style.pointerEvents = 'auto';
             this.addButton!.style.pointerEvents = 'auto';
             this.deviceSelect!.style.pointerEvents = 'auto';
+            this.deviceVersion!.style.pointerEvents = 'auto';
         }
     }
 
