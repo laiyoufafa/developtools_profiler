@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,6 +21,9 @@ OHOS_X64_OUT=$PROJECT_TOP/$2/
 LIBCXX_X64_OUT=$PROJECT_TOP/$1/ndk/libcxx/linux_x86_64
 SUBSYS_X64_OUT=$PROJECT_TOP/$2/developtools/profiler
 PROTOC=$PROJECT_TOP/$2/developtools/profiler/protoc
+OPT_PLUGIN_PATH=$PROJECT_TOP/$2/developtools/profiler/protoencoder_plugin
+OPT_PLUGIN=--plugin=protoc-gen-opt=$PROJECT_TOP/$2/developtools/profiler/protoencoder_plugin
+OPT_OUT=--opt_out
 PYTHON_SHELL=$THIS_DIR/make_standard_proto.py # shell path
 TMP=$2
 PROTO_OUT_DIR="$PROJECT_TOP/${TMP%/*}/$3" # path of the new proto file
@@ -55,6 +58,15 @@ do
   PARAMS_STANDARD="$PARAMS_STANDARD$PROTO_OUT_DIR/${VAR##*/} " # add .proto file name to args
 done
 PARAMS_ALL="$PARAMS_SRC $PARAMS_STANDARD" # add new argument list to old argument list
+
+# avoid conflict, param4=--plugin* means ipc plugin, generate encode file if opt plugin exist
+if [[ "$4" != --plugin* ]]; then
+  if [ -f "$OPT_PLUGIN_PATH" ]; then
+    echo "generate protobuf optimize code OPT_PLUGIN = $OPT_PLUGIN"
+    echo "optimize EXEC: LD_LIBRARY_PATH=$LIBCXX_X64_OUT:$SUBSYS_X64_OUT $PROTOC $OPT_PLUGIN $OPT_OUT $5 $PARAMS_ALL"
+    LD_LIBRARY_PATH=$LIBCXX_X64_OUT:$SUBSYS_X64_OUT exec $PROTOC $OPT_PLUGIN $OPT_OUT $5 $PARAMS_ALL
+  fi
+fi
 
 echo "EXEC: LD_LIBRARY_PATH=$LIBCXX_X64_OUT:$SUBSYS_X64_OUT $PROTOC $PARAMS_ALL"
 LD_LIBRARY_PATH=$LIBCXX_X64_OUT:$SUBSYS_X64_OUT exec $PROTOC $PARAMS_ALL

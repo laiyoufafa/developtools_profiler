@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -53,6 +53,27 @@ ohos_executable("protoc_gen_ipc") {
     "src/ipc_generator.cpp",
     "src/ipc_generator_impl.cpp",
     "src/main.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}",
+  ]
+  public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
+  deps = [
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib(${host_toolchain})",
+  ]
+  install_enable = false
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+}
+
+ohos_executable("protoencoder_plugin") {
+  sources = [
+    "src/proto_encoder_plugin.cpp",
+    "src/proto_encoder_plugin_generator.cpp",
   ]
 
   include_dirs = [
