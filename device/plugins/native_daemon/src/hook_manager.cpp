@@ -399,7 +399,21 @@ bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
     if (stackData_) {
         stackData_->Close();
     }
+    ResetStartupParam();
     return true;
+}
+
+void HookManager::ResetStartupParam()
+{
+    const std::string resetParam = "startup:disabled";
+    if (hookConfig_.startup_mode()) {
+        int ret = SystemSetParameter(PARAM_NAME.c_str(), resetParam.c_str());
+        if (ret < 0) {
+            HILOG_WARN(LOG_CORE, "set param failed, please reset param(%s)", PARAM_NAME.c_str());
+        } else {
+            HILOG_INFO(LOG_CORE, "reset param success");
+        }
+    }
 }
 
 bool HookManager::ReportPluginBasicData(const std::vector<uint32_t>& pluginIds)
