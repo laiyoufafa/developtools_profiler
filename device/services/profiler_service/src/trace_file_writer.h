@@ -71,7 +71,7 @@ private:
     uint64_t writeCount_ = 0;
     TraceFileHeader header_ {};
     TraceFileHelper helper_ {};
-    uint32_t dataSize_;
+    uint32_t dataSize_ = 0;
     bool isSplitFile_ = false;
     uint32_t splitFileMaxSize_;
     uint32_t splitFileMaxNum_;
