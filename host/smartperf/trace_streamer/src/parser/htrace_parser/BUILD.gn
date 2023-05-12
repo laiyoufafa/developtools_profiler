@@ -63,6 +63,7 @@ ohos_source_set("htrace_parser_src") {
     "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
     "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "${OHOS_PROTO_GEN}/types/plugins/hisysevent_data",
+    "${OHOS_PROTO_GEN}/types/plugins/js_memory",
     "../../include",
     "../../",
     "../",

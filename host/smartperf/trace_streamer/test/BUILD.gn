@@ -100,6 +100,8 @@ if (is_test) {
       "..",
       "//third_party/googletest/googletest/include/gtest",
       "//third_party/protobuf/src",
+      "//third_party/hiperf/include",
+      "//third_party/hiperf/include/nonlinux/linux",
       "//third_party/protobuf/src/google/protobuf",
       "//third_party/json-master/include",
       "//third_party/json-master/include/nlohmann",

@@ -121,6 +121,7 @@ if (is_debug) {
 set_defaults("ohos_source_set") {
   configs = default_configs
 }
+
 # set_defaults("ohos_source_hiperf") {
 #   configs = hiperf_default_configs
 # }

@@ -164,6 +164,7 @@ void TraceStreamerConfig::InitEventNameMap()
                      {TRACE_PROCESS, TRACE_ACTION_PROCESS},
                      {TRACE_CPU_USAGE, TRACE_ACTION_CPU_USAGE},
                      {TRACE_NETWORK, TRACE_ACTION_NETWORK},
+                     {TRACE_JS_MEMORY, TRACE_ACTION_JS_MEMORY},
                      {TRACE_PERF, TRACE_ACTION_PERF},
                      {TRACE_HILOG, TRACE_ACTION_HILOG},
                      {TRACE_HIDUMP_FPS, TRACE_ACTION_HIDUMP_FPS},
@@ -929,6 +930,16 @@ void TraceStreamerConfig::InitSecurityMap()
         },
         {
             TRACE_NETWORK,
+            {
+                {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},
+                {STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN},
+                {STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR},
+            },
+        },
+        {
+            TRACE_JS_MEMORY,
             {
                 {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
                 {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},

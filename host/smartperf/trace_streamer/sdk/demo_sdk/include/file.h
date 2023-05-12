@@ -20,6 +20,7 @@
 
 namespace SysTuning {
 namespace base {
+#define TS_PERMISSION_RW 0600
 constexpr uint32_t kFileModeInvalid = 0xFFFFFFFF;
 enum TraceParserStatus {
     TRACE_PARSER_NORMAL = 0,

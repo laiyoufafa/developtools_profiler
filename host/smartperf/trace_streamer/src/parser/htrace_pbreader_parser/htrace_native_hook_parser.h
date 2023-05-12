@@ -34,16 +34,13 @@ public:
     HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceNativeHookParser();
     void ParseConfigInfo(HtraceDataSegment& dataSeg);
-    void SortNativeHookData(HtraceDataSegment& dataSeg);
+    void Parse(HtraceDataSegment& dataSeg);
     void FinishParseNativeHookData();
     void Finish();
 
 private:
-    void MaybeParseNativeHookData();
-    void ParseOneNativeHookData(std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>>::iterator itor);
-    void ParseNativeHookEvent(SupportedTraceEventType type,
-                              uint64_t newTimeStamp,
-                              const ProtoReader::BytesView& bytesView);
+    void MaybeParseNativeHookMainEvent();
+    void ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
     void ParseTagEvent(const ProtoReader::BytesView& bytesView);
     void ParseFileEvent(const ProtoReader::BytesView& bytesView);
     void ParseSymbolEvent(const ProtoReader::BytesView& bytesView);
@@ -52,10 +49,8 @@ private:
     void ParseStackMap(const ProtoReader::BytesView& bytesView);
 
 private:
-    std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsNativeHookQueue_ = {};
     std::vector<std::shared_ptr<const std::string>> segs_ = {};
     std::unique_ptr<NativeHookFilter> nativeHookFilter_;
-    const size_t MAX_CACHE_SIZE = 200000;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

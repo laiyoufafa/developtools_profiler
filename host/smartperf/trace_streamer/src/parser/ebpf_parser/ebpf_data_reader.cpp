@@ -349,6 +349,7 @@ SymbolAndFilePathIndex EbpfDataReader::GetSymbolNameIndexFromElfSym(uint64_t ip)
     auto length = std::distance(kernelSymbolMap_.begin(), end);
     if (length > 0) {
         end--;
+        // Follow the rules of front closing and rear opening, [start, end)
         if (ip < end->first + end->second.size) {
             symbolAndFilePathIndex.flag = true;
             symbolAndFilePathIndex.symbolIndex = end->second.name;

@@ -55,7 +55,7 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
             auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
             traceDataCache_->GetThreadStateData()->SetArgSetId(index, argSetId);
         }
-        RemberInternalTidInStateTable(nextPid, index, TASK_RUNNING);
+        (void)RemberInternalTidInStateTable(nextPid, index, TASK_RUNNING);
         if (cpuToRowThreadState_.find(cpu) == cpuToRowThreadState_.end()) {
             cpuToRowThreadState_.insert(std::make_pair(cpu, index));
         } else {
@@ -92,7 +92,7 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
                 pidToThreadSliceRow.at(prevPid) = threadStateRow;
             }
         }
-        RemberInternalTidInStateTable(prevPid, threadStateRow, prevState);
+        (void)RemberInternalTidInStateTable(prevPid, threadStateRow, prevState);
     }
 }
 
@@ -253,7 +253,7 @@ void CpuFilter::CheckWakeupEvent(uint32_t internalTid)
         }
         auto index = traceDataCache_->GetThreadStateData()->AppendThreadState(
             toRunnableTid_.at(internalTid), INVALID_TIME, INVALID_CPU, internalTid, TASK_RUNNABLE);
-        RemberInternalTidInStateTable(internalTid, index, TASK_RUNNABLE);
+        (void)RemberInternalTidInStateTable(internalTid, index, TASK_RUNNABLE);
         toRunnableTid_.erase(internalTid);
     }
     return;

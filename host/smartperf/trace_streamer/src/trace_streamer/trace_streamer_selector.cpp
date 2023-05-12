@@ -300,6 +300,8 @@ void TraceStreamerSelector::GetSymbols(std::unique_ptr<ElfFile> elfPtr,
 void TraceStreamerSelector::UpdateELFData()
 {
     for (auto i = 0; i < elfSymbolTable_.size(); ++i) {
+        // if (elfSymbolTable_[i].filePathId == traceDataCache_->perfDataParser_->) {
+        // }
     }
 }
 void TraceStreamerSelector::Clear()

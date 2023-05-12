@@ -13,16 +13,10 @@
  * limitations under the License.
  */
 #include "htrace_native_hook_parser.h"
-#include "clock_filter.h"
-#include "process_filter.h"
-#include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceNativeHookParser::HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx),
-      addrToAllocEventRow_(INVALID_UINT64),
-      addrToMmapEventRow_(INVALID_UINT64),
-      frameToFrameId_(INVALID_UINT32)
+    : HtracePluginTimeParser(dataCache, ctx), frameToFrameId_(INVALID_UINT32)
 {
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/libc++.so"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libc++.so"));
@@ -39,12 +33,12 @@ HtraceNativeHookParser::~HtraceNativeHookParser()
 }
 // In order to improve the accuracy of data, it is necessary to sort the original data.
 // Data sorting will be reduced by 5% to 10% Speed of parsing data.
-void HtraceNativeHookParser::SortNativeHookData(BatchNativeHookData& tracePacket)
+void HtraceNativeHookParser::Parse(BatchNativeHookData& tracePacket)
 {
     for (auto i = 0; i < tracePacket.events_size(); i++) {
         auto nativeHookData = std::make_unique<NativeHookData>(*tracePacket.mutable_events(i));
         auto timeStamp = nativeHookData->tv_nsec() + nativeHookData->tv_sec() * SEC_TO_NS;
-        tsNativeHookQueue_.insert(std::make_pair(timeStamp, std::move(nativeHookData)));
+        tsToMainEventsMap_.insert(std::make_pair(timeStamp, std::move(nativeHookData)));
         MaybeParseNativeHookData();
     }
     return;
@@ -61,14 +55,14 @@ void HtraceNativeHookParser::UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1
 }
 void HtraceNativeHookParser::MaybeParseNativeHookData()
 {
-    if (tsNativeHookQueue_.size() > MAX_CACHE_SIZE) {
-        ParseNativeHookData(tsNativeHookQueue_.begin()->first, tsNativeHookQueue_.begin()->second.get());
-        tsNativeHookQueue_.erase(tsNativeHookQueue_.begin());
+    if (tsToMainEventsMap_.size() > MAX_CACHE_SIZE) {
+        ParseNativeHookData(tsToMainEventsMap_.begin()->first, tsToMainEventsMap_.begin()->second.get());
+        tsToMainEventsMap_.erase(tsToMainEventsMap_.begin());
     }
 }
 void HtraceNativeHookParser::FinishParseNativeHookData()
 {
-    for (auto it = tsNativeHookQueue_.begin(); it != tsNativeHookQueue_.end(); it++) {
+    for (auto it = tsToMainEventsMap_.begin(); it != tsToMainEventsMap_.end(); it++) {
         ParseNativeHookData(it->first, it->second.get());
     }
     if (traceDataCache_->GetNativeHookData()->Size() == 0) {
@@ -89,7 +83,7 @@ void HtraceNativeHookParser::FinishParseNativeHookData()
     }
 
     UpdateThreadNameWithNativeHookData();
-    tsNativeHookQueue_.clear();
+    tsToMainEventsMap_.clear();
     threadNameIdToThreadName_.clear();
     itidToThreadNameId_.clear();
     callIdToLastCallerPathIndex_.clear();
@@ -174,7 +168,7 @@ void HtraceNativeHookParser::ParseAllocEvent(uint64_t newTimeStamp, const Native
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
         callChainId, ipid, itid, allocEvent.GetTypeName(), INVALID_UINT64, newTimeStamp, 0, 0, allocEvent.addr(),
         allocEvent.size());
-    addrToAllocEventRow_.Insert(ipid, allocEvent.addr(), static_cast<uint64_t>(row));
+    addrToAllocEventRow_.insert(std::make_pair(allocEvent.addr(), static_cast<uint64_t>(row)));
     MaybeUpdateCurrentSizeDur(row, newTimeStamp, true);
 }
 void HtraceNativeHookParser::ParseFreeEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData)
@@ -186,12 +180,15 @@ void HtraceNativeHookParser::ParseFreeEvent(uint64_t newTimeStamp, const NativeH
         UpdateMap(itidToThreadNameId_, itid, freeEvent.thread_name_id());
     }
     int64_t freeHeapSize = 0;
-    auto row = addrToAllocEventRow_.Find(ipid, freeEvent.addr());
+    uint64_t row = INVALID_UINT64;
+    if (addrToAllocEventRow_.count(freeEventReader.addr()) {
+        row = addrToAllocEventRow_.at(freeEventReader.addr());
+    }
     if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
-        addrToAllocEventRow_.Erase(ipid, freeEvent.addr());
+        addrToAllocEventRow_.erase(freeEvent.addr());
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, newTimeStamp);
         freeHeapSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];
-    } else if (row == INVALID_UINT64) {
+    } else {
         TS_LOGD("func addr:%lu is empty", freeEvent.addr());
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_DATA_INVALID);
         return;
@@ -221,7 +218,7 @@ void HtraceNativeHookParser::ParseMmapEvent(uint64_t newTimeStamp, const NativeH
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
         callChainId, ipid, itid, mMapEvent.GetTypeName(), subType, newTimeStamp, 0, 0, mMapEvent.addr(),
         mMapEvent.size());
-    addrToMmapEventRow_.Insert(ipid, mMapEvent.addr(), static_cast<uint64_t>(row));
+    addrToMmapEventRow_.insert(std::make_pair(mMapEvent.addr(), static_cast<uint64_t>(row)));
     MaybeUpdateCurrentSizeDur(row, newTimeStamp, false);
 }
 void HtraceNativeHookParser::ParseMunmapEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData)
@@ -232,13 +229,16 @@ void HtraceNativeHookParser::ParseMunmapEvent(uint64_t newTimeStamp, const Nativ
     if (mUnMapEvent.thread_name_id() != 0) {
         UpdateMap(itidToThreadNameId_, itid, mUnMapEvent.thread_name_id());
     }
-    auto row = addrToMmapEventRow_.Find(ipid, mUnMapEvent.addr());
+    uint64_t row = INVALID_UINT64;
+    if (addrToMmapEventRow_.count(mUnMapEvent.addr())) {
+        row = addrToMmapEventRow_.at(mUnMapEvent.addr());
+    }
     int64_t effectiveMUnMapSize = 0;
     if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
-        addrToMmapEventRow_.Erase(ipid, mUnMapEvent.addr());
+        addrToMmapEventRow_.erase(mUnMapEvent.addr());
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, newTimeStamp);
         effectiveMUnMapSize = static_cast<int64_t>(mUnMapEvent.size());
-    } else if (row == INVALID_UINT64) {
+    } else {
         TS_LOGD("func addr:%lu is empty", mUnMapEvent.addr());
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_DATA_INVALID);
         return;

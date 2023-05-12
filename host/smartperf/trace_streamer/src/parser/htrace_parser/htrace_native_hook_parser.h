@@ -19,11 +19,14 @@
 #include <set>
 #include <string>
 #include "double_map.h"
+#include "clock_filter.h"
 #include "htrace_event_parser.h"
 #include "htrace_plugin_time_parser.h"
 #include "native_hook_result.pb.h"
 #include "numerical_to_string.h"
+#include "process_filter.h"
 #include "quatra_map.h"
+#include "stat_filter.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 
@@ -33,7 +36,7 @@ class HtraceNativeHookParser : public HtracePluginTimeParser {
 public:
     HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceNativeHookParser();
-    void SortNativeHookData(BatchNativeHookData& tracePacket);
+    void Parse(BatchNativeHookData& tracePacket);
     void FinishParseNativeHookData();
     void Finish();
 
@@ -72,11 +75,11 @@ private:
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
     uint32_t callChainId_ = 0;
-    DoubleMap<uint32_t, uint64_t, uint64_t> addrToAllocEventRow_;
-    DoubleMap<uint32_t, uint64_t, uint64_t> addrToMmapEventRow_;
+    std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_;
+    std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_;
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
-    std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsNativeHookQueue_ = {};
+    std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsToMainEventsMap_ = {};
     std::unordered_map<uint32_t, uint64_t> threadNameIdToThreadName_ = {};
     std::unordered_map<uint32_t, uint32_t> itidToThreadNameId_ = {};
     QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint32_t> frameToFrameId_;

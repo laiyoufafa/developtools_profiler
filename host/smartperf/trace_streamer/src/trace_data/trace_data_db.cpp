@@ -72,7 +72,7 @@ void TraceDataDB::EnableMetaTable(bool enabled)
 
 void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
 {
-    int fd(base::OpenFile(wasmDBName_, O_RDWR, 0600));
+    int fd(base::OpenFile(wasmDBName_, O_RDWR, TS_PERMISSION_RW));
     if (!fd) {
         TS_LOGD("Failed to open file: %s", wasmDBName_.c_str());
         return;
@@ -98,7 +98,7 @@ void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
 int TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack)
 {
     {
-        int fd(base::OpenFile(outputName, O_CREAT | O_RDWR, 0600));
+        int fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
         if (!fd) {
             fprintf(stdout, "Failed to create file: %s", outputName.c_str());
             return 1;

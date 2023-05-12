@@ -27,14 +27,12 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-namespace {
 struct TableContext {
     TabTemplate tmplate;
     TraceDataCache* dataCache;
     sqlite3_module module;
     std::string tableName;
 };
-} // namespace
 
 TableBase::~TableBase()
 {

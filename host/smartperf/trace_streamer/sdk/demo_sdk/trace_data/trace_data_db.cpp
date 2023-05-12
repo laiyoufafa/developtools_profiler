@@ -24,7 +24,6 @@
 #include <string_view>
 #include <unistd.h>
 
-// #include "codec_cov.h"
 #include "ext/sqlite_ext_funcs.h"
 #include "file.h"
 #include "log.h"
@@ -72,7 +71,7 @@ void TraceDataDB::EnableMetaTable(bool enabled)
 int TraceDataDB::ExportDatabase(const std::string& outputName)
 {
     {
-        int fd(base::OpenFile(outputName, O_CREAT | O_RDWR, 0600));
+        int fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
         if (!fd) {
             fprintf(stdout, "Failed to create file: %s", outputName.c_str());
             return 1;

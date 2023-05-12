@@ -99,6 +99,7 @@ enum SupportedTraceEventType {
     TRACE_PROCESS,
     TRACE_CPU_USAGE,
     TRACE_NETWORK,
+    TRACE_JS_MEMORY,
     TRACE_PERF,
     TRACE_EVENT_EBPF,
     TRACE_EVENT_EBPF_FILE_SYSTEM,
@@ -261,6 +262,7 @@ private:
     const std::string TRACE_ACTION_PROCESS = "trace_process";
     const std::string TRACE_ACTION_CPU_USAGE = "trace_cpu_usage";
     const std::string TRACE_ACTION_NETWORK = "trace_network";
+    const std::string TRACE_ACTION_JS_MEMORY = "trace_js_memory";
     const std::string TRACE_ACTION_PERF = "trace_perf";
     const std::string TRACE_ACTION_EBPF = "trace_ebpf";
     const std::string TRACE_ACTION_EBPF_FILE_SYSTEM = "trace_ebpf_file_system";

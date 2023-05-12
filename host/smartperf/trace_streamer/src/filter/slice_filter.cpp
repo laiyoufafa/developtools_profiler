@@ -304,7 +304,7 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
         sliceStack.asyncEventCount++;
         sliceStack.asyncEventLastBeginTs = timeStamp;
         if (!stack.empty()) {
-            return INVALID_UINT32;
+            return SIZE_MAX;
         }
     }
     // keep slice of thread
@@ -316,7 +316,7 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
         sliceData.timeStamp, sliceData.duration, sliceData.internalTid, sliceData.cat,
         GetNameASCIISumNoNum(traceDataCache_->GetDataFromDict(sliceData.name)), sliceData.name, 0, parentId);
     if (depth >= std::numeric_limits<uint8_t>::max()) {
-        return INVALID_UINT32;
+        return SIZE_MAX;
     }
     slices->SetDepth(index, depth);
 
@@ -349,7 +349,7 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp, uint32_t pid, DataIndex ca
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     if (binderStackMap_.find(internalTid) == binderStackMap_.end()) {
-        return INVALID_INT32;
+        return SIZE_MAX;
     }
     auto& stackInfo = binderStackMap_[internalTid];
     SlicesStack& stack = stackInfo.sliceStack;
@@ -357,12 +357,12 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp, uint32_t pid, DataIndex ca
     if (stack.empty()) {
         TS_LOGE("a slice end do not match a slice start event");
         callEventDisMatchCount++;
-        return INVALID_INT32;
+        return SIZE_MAX;
     }
     auto stackIdx = MatchingIncompleteSliceIndex(stack, category, name);
     if (stackIdx < 0) {
         TS_LOGE("MatchingIncompleteSliceIndex failed");
-        return INVALID_INT32;
+        return SIZE_MAX;
     }
     auto lastRow = stack[stackIdx].index;
     auto slices = traceDataCache_->GetInternalSlicesData();

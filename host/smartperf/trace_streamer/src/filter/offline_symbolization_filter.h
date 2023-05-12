@@ -51,22 +51,21 @@ struct NativeHookMetaData {
     std::shared_ptr<const std::string> seg_;
     std::unique_ptr<ProtoReader::NativeHookData_Reader> reader_;
 };
-class OfflineSymbolizationFilter : private FilterBase {
+class OfflineSymbolizationFilter : public FilterBase {
 public:
     OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~OfflineSymbolizationFilter();
-    void ParseMaps(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    void ParseSymbolTables(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    std::shared_ptr<FrameInfo> Parse(uint32_t pid, uint64_t ip);
-    std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> Parse(uint32_t pid, const std::vector<uint64_t>& ips);
+    std::shared_ptr<FrameInfo> OfflineSymbolization(uint64_t ip);
+    std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolization(
+        const std::shared_ptr<std::vector<uint64_t>> ips);
 
-private:
+protected:
     enum SYSTEM_ENTRY_VALUE { ELF32_SYM = 16, ELF64_SYM = 24 };
-    DoubleMap<uint32_t, uint64_t, std::shared_ptr<ProtoReader::MapsInfo_Reader>> ipidAndStartAddrToMapsInfoMap_;
+    std::map<uint64_t, std::shared_ptr<ProtoReader::MapsInfo_Reader>> startAddrToMapsInfoMap_ = {};
     std::unordered_map<uint32_t, std::shared_ptr<ProtoReader::SymbolTable_Reader>> filePathIdToSymbolTableMap_ = {};
     DoubleMap<std::shared_ptr<ProtoReader::SymbolTable_Reader>, uint64_t, const uint8_t*>
         symbolTablePtrAndStValueToSymAddr_;
-    DoubleMap<uint32_t, uint64_t, std::shared_ptr<FrameInfo>> ipidAndIpToFrameInfo_;
+    std::map<uint64_t, std::shared_ptr<FrameInfo>> ipToFrameInfo_ = {};
     std::vector<std::shared_ptr<const std::string>> segs_ = {};
 };
 

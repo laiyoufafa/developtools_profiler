@@ -18,9 +18,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-namespace {
 enum Index { NAMEINDEX = 0, VALUE };
-}
 MetaTable::MetaTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));

@@ -153,7 +153,7 @@ void HtraceParser::FilterData(HtraceDataSegment& seg)
     } else if (seg.dataType == DATA_SOURCE_TYPE_HILOG) {
         htraceHiLogParser_->Parse(seg.logData);
     } else if (seg.dataType == DATA_SOURCE_TYPE_ALLOCATION) {
-        htraceNativeHookParser_->SortNativeHookData(seg.batchNativeHookData);
+        htraceNativeHookParser_->Parse(seg.batchNativeHookData);
     } else if (seg.dataType == DATA_SOURCE_TYPE_FPS) {
         htraceHidumpParser_->Parse(seg.hidumpInfo);
         dataSourceTypeFpsClockid_ = htraceHidumpParser_->ClockId();

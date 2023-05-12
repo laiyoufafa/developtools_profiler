@@ -149,7 +149,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<JsHeapNodesTable>(*db_, this, "js_heap_nodes");
     TableBase::TableDeclare<JsHeapSampleTable>(*db_, this, "js_heap_sample");
     TableBase::TableDeclare<JsHeapStringTable>(*db_, this, "js_heap_string");
-    TableBase::TableDeclare<JsHeapTraceFuncInfoTable>(*db_, this, "js_heap_trace_function_info");
+    TableBase::TableDeclare<JsHeapTraceFunctionInfoTable>(*db_, this, "js_heap_trace_function_info");
     TableBase::TableDeclare<JsHeapTraceNodeTable>(*db_, this, "js_heap_trace_node");
     TableBase::TableDeclare<ArgsTable>(*db_, this, "args");
 
@@ -229,7 +229,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<JsHeapNodesTable>(*db_, this, "_js_heap_nodes");
     TableBase::TableDeclare<JsHeapSampleTable>(*db_, this, "_js_heap_sample");
     TableBase::TableDeclare<JsHeapStringTable>(*db_, this, "_js_heap_string");
-    TableBase::TableDeclare<JsHeapTraceFuncInfoTable>(*db_, this, "_js_heap_trace_function_info");
+    TableBase::TableDeclare<JsHeapTraceFunctionInfoTable>(*db_, this, "_js_heap_trace_function_info");
     TableBase::TableDeclare<JsHeapTraceNodeTable>(*db_, this, "_js_heap_trace_node");
     TableBase::TableDeclare<ArgsTable>(*db_, this, "_args");
     TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "_sys_event_filter");

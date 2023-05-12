@@ -67,7 +67,7 @@ bool PerfDataParser::ReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
 bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data
-    int fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, 0600));
+    int fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, TS_PERMISSION_RW));
     if (!fd) {
         fprintf(stdout, "Failed to create file: %s", tmpPerfData_.c_str());
         return false;

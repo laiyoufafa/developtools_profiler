@@ -154,10 +154,10 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
         fromExpectedSlices.push_back(srcFrame->second.get()->frameExpectedSliceRow_);
         srcFrame->second.get()->dstFrameSliceId_ = pos->get()->frameSliceRow_;
         srcFrame->second.get()->dstExpectedFrameSliceId_ = pos->get()->frameExpectedSliceRow_;
-        traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameSliceRow_,
-                                                       srcFrame->second.get()->dstFrameSliceId_);
-        traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameExpectedSliceRow_,
-                                                       srcFrame->second.get()->dstExpectedFrameSliceId_);
+        (void)traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameSliceRow_,
+                                                             srcFrame->second.get()->dstFrameSliceId_);
+        (void)traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameExpectedSliceRow_,
+                                                             srcFrame->second.get()->dstExpectedFrameSliceId_);
         traceDataCache_->GetFrameSliceData()->SetDst(srcFrame->second.get()->frameSliceRow_,
                                                      srcFrame->second.get()->dstFrameSliceId_);
         traceDataCache_->GetFrameSliceData()->SetDst(srcFrame->second.get()->frameExpectedSliceRow_,
@@ -248,7 +248,8 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
         return false;
     }
     auto pos = frame->second.begin();
-    traceDataCache_->GetGPUSliceData()->AppendNew(pos->get()->frameSliceRow_, ts - pos->get()->frameQueueStartTs_);
+    (void)traceDataCache_->GetGPUSliceData()->AppendNew(pos->get()->frameSliceRow_,
+                                                        ts - pos->get()->frameQueueStartTs_);
     pos->get()->gpuEnd_ = true;
     if (pos->get()->vsyncEnd_) {
         pos->get()->endTs_ = ts;

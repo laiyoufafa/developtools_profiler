@@ -50,7 +50,7 @@ void HtraceNativeHookParser::ParseStackMap(const ProtoReader::BytesView& bytesVi
             itor++;
         }
     } else if (stackMapReader.has_ip()) {
-        auto itor = stackMapReader.ip(&parseError); // packedrepeated 取数据可能会有问题。
+        auto itor = stackMapReader.ip(&parseError);
         if (parseError) {
             TS_LOGE("Parse packed varInt in ParseStackMap function failed!!!");
             return;
@@ -99,80 +99,51 @@ void HtraceNativeHookParser::ParseThreadEvent(const ProtoReader::BytesView& byte
     nativeHookFilter_->AppendThreadNameMap(id, nameIndex);
 }
 
-void HtraceNativeHookParser::ParseNativeHookEvent(SupportedTraceEventType type,
-                                                  uint64_t timeStamp,
-                                                  const ProtoReader::BytesView& bytesView)
+void HtraceNativeHookParser::ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
 {
-    if (type != TRACE_NATIVE_HOOK_MALLOC and type != TRACE_NATIVE_HOOK_FREE and type != TRACE_NATIVE_HOOK_MMAP and
-        type != TRACE_NATIVE_HOOK_MUNMAP and type != TRACE_NATIVE_HOOK_RECORD_STATISTICS) {
-        TS_LOGE("unsupported native hook event!!!");
-        return;
-    }
-    uint64_t newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
-    UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, newTimeStamp);
-    streamFilters_->statFilter_->IncreaseStat(type, STAT_EVENT_RECEIVED);
-    if (newTimeStamp == timeStamp) {
-        streamFilters_->statFilter_->IncreaseStat(type, STAT_EVENT_DATA_INVALID);
-    }
-    nativeHookFilter_->ParseEvent(type, newTimeStamp, bytesView);
-}
-void HtraceNativeHookParser::ParseOneNativeHookData(
-    std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>>::iterator itor)
-{
-    if (!tsNativeHookQueue_.size()) {
-        return;
-    }
-    auto nativeHookDataReader = itor->second->reader_.get();
-    if (nativeHookDataReader->has_maps_info()) {
-        nativeHookFilter_->GetOfflineSymbolizationObj()->ParseMaps(itor->second);
-    } else if (nativeHookDataReader->has_symbol_tab()) {
-        nativeHookFilter_->GetOfflineSymbolizationObj()->ParseSymbolTables(itor->second);
-    } else if (nativeHookDataReader->has_stack_map()) {
-        ParseStackMap(nativeHookDataReader->stack_map());
-    } else if (nativeHookDataReader->has_frame_map()) {
-        ParseFrameMap(itor->second);
-    } else if (nativeHookDataReader->has_tag_event()) {
-        ParseTagEvent(nativeHookDataReader->tag_event());
-    } else if (nativeHookDataReader->has_file_path()) {
-        ParseFileEvent(nativeHookDataReader->file_path());
-    } else if (nativeHookDataReader->has_symbol_name()) {
-        ParseSymbolEvent(nativeHookDataReader->symbol_name());
-    } else if (nativeHookDataReader->has_thread_name_map()) {
-        ParseThreadEvent(nativeHookDataReader->thread_name_map());
-    } else if (nativeHookDataReader->has_alloc_event()) {
-        ParseNativeHookEvent(TRACE_NATIVE_HOOK_MALLOC, itor->first, nativeHookDataReader->alloc_event());
-    } else if (nativeHookDataReader->has_free_event()) {
-        ParseNativeHookEvent(TRACE_NATIVE_HOOK_FREE, itor->first, nativeHookDataReader->free_event());
-    } else if (nativeHookDataReader->has_mmap_event()) {
-        ParseNativeHookEvent(TRACE_NATIVE_HOOK_MMAP, itor->first, nativeHookDataReader->mmap_event());
-    } else if (nativeHookDataReader->has_munmap_event()) {
-        ParseNativeHookEvent(TRACE_NATIVE_HOOK_MUNMAP, itor->first, nativeHookDataReader->munmap_event());
-    } else if (nativeHookDataReader->has_statistics_event()) {
-        ParseNativeHookEvent(TRACE_NATIVE_HOOK_RECORD_STATISTICS, itor->first,
-                             nativeHookDataReader->statistics_event());
-    }
-}
-
-void HtraceNativeHookParser::MaybeParseNativeHookData()
-{
-    if (tsNativeHookQueue_.size() > MAX_CACHE_SIZE) {
-        ParseOneNativeHookData(tsNativeHookQueue_.begin());
-        tsNativeHookQueue_.erase(tsNativeHookQueue_.begin());
+    auto& reader = nativeHookMetaData->reader_;
+    if (reader->has_stack_map()) {
+        ParseStackMap(reader->stack_map());
+    } else if (reader->has_frame_map()) {
+        ParseFrameMap(nativeHookMetaData);
+    } else if (reader->has_tag_event()) {
+        ParseTagEvent(reader->tag_event());
+    } else if (reader->has_file_path()) {
+        ParseFileEvent(reader->file_path());
+    } else if (reader->has_symbol_name()) {
+        ParseSymbolEvent(reader->symbol_name());
+    } else if (reader->has_thread_name_map()) {
+        ParseThreadEvent(reader->thread_name_map());
+    } else if (reader->has_maps_info()) {
+        nativeHookFilter_->ParseMapsEvent(nativeHookMetaData);
+    } else if (reader->has_symbol_tab()) {
+        nativeHookFilter_->ParseSymbolTableEvent(nativeHookMetaData);
+    } else {
+        TS_LOGE("unsupported native_hook data!");
     }
 }
 // In order to improve the accuracy of data, it is necessary to sort the original data.
 // Data sorting will be reduced by 5% to 10% Speed of parsing data.
-void HtraceNativeHookParser::SortNativeHookData(HtraceDataSegment& dataSeg)
+void HtraceNativeHookParser::Parse(HtraceDataSegment& dataSeg)
 {
     auto batchNativeHookDataReader = ProtoReader::BatchNativeHookData_Reader(dataSeg.protoData);
     for (auto itor = batchNativeHookDataReader.events(); itor; itor++) {
         auto nativeHookDataReader = std::make_unique<ProtoReader::NativeHookData_Reader>(itor->ToBytes());
         auto timeStamp = nativeHookDataReader->tv_nsec() + nativeHookDataReader->tv_sec() * SEC_TO_NS;
-        auto nativeHookMetaData = std::make_unique<NativeHookMetaData>(dataSeg.seg, std::move(nativeHookDataReader));
-        tsNativeHookQueue_.insert(std::make_pair(timeStamp, std::move(nativeHookMetaData)));
-        MaybeParseNativeHookData();
+        if (nativeHookDataReader->has_alloc_event() || nativeHookDataReader->has_free_event() ||
+            nativeHookDataReader->has_mmap_event() || nativeHookDataReader->has_munmap_event() ||
+            nativeHookDataReader->has_statistics_event()) {
+            uint64_t newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
+            UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, newTimeStamp);
+            auto nativeHookMetaData =
+                std::make_unique<NativeHookMetaData>(dataSeg.seg, std::move(nativeHookDataReader));
+            nativeHookFilter_->MaybeParseNativeHookMainEvent(newTimeStamp, std::move(nativeHookMetaData));
+        } else {
+            auto nativeHookMetaData =
+                std::make_unique<NativeHookMetaData>(dataSeg.seg, std::move(nativeHookDataReader));
+            ParseNativeHookAuxiliaryEvent(nativeHookMetaData);
+        }
     }
-    return;
 }
 void HtraceNativeHookParser::ParseConfigInfo(HtraceDataSegment& dataSeg)
 {
@@ -180,10 +151,6 @@ void HtraceNativeHookParser::ParseConfigInfo(HtraceDataSegment& dataSeg)
 }
 void HtraceNativeHookParser::FinishParseNativeHookData()
 {
-    for (auto it = tsNativeHookQueue_.begin(); it != tsNativeHookQueue_.end(); it++) {
-        ParseOneNativeHookData(it);
-    }
-    tsNativeHookQueue_.clear();
     nativeHookFilter_->FinishParseNativeHookData();
 }
 void HtraceNativeHookParser::Finish()

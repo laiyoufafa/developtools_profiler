@@ -70,7 +70,7 @@ config("default") {
     cflags += [ "-D IS_PBDECODER" ]
   }
   if (target_os == "windows") {
-    cflags += [ "-D target_cpu_x86_64" ]
+    cflags += ["-D target_cpu_x86_64"]
   } else if (is_linux || is_macx) {
     cflags += [
       "-Wa,--noexecstack",

@@ -17,62 +17,23 @@
 namespace SysTuning {
 namespace TraceStreamer {
 OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter),
-      ipidAndStartAddrToMapsInfoMap_(nullptr),
-      symbolTablePtrAndStValueToSymAddr_(nullptr),
-      ipidAndIpToFrameInfo_(nullptr)
+    : FilterBase(dataCache, filter), symbolTablePtrAndStValueToSymAddr_(nullptr)
 {
 }
 OfflineSymbolizationFilter::~OfflineSymbolizationFilter()
 {
-    ipidAndStartAddrToMapsInfoMap_.Clear();
+    startAddrToMapsInfoMap_.clear();
     symbolTablePtrAndStValueToSymAddr_.Clear();
     filePathIdToSymbolTableMap_.clear();
-    ipidAndIpToFrameInfo_.Clear();
+    ipToFrameInfo_.clear();
+    segs_.clear();
 }
-void OfflineSymbolizationFilter::ParseMaps(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
-{
-    segs_.emplace_back(nativeHookMetaData->seg_);
-    auto reader = std::make_shared<ProtoReader::MapsInfo_Reader>(nativeHookMetaData->reader_->maps_info());
-    auto ipid = streamFilters_->processFilter_->GetOrCreateInternalPid(0, reader->pid());
-    // The temporary variable startTime here is to solve the problem of parsing errors under the window platform
-    uint64_t startTime = reader->start();
-    ipidAndStartAddrToMapsInfoMap_.Insert(ipid, startTime, std::move(reader));
-}
-void OfflineSymbolizationFilter::ParseSymbolTables(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
-{
-    segs_.emplace_back(nativeHookMetaData->seg_);
-    auto reader = std::make_shared<ProtoReader::SymbolTable_Reader>(nativeHookMetaData->reader_->symbol_tab());
-    filePathIdToSymbolTableMap_.insert(std::make_pair(reader->file_path_id(), reader));
-    auto symEntrySize = reader->sym_entry_size();
-    auto symTable = reader->sym_table();
-    auto size = symTable.Size() / symEntrySize;
-    if (symEntrySize == ELF32_SYM) {
-        auto firstSymbolAddr = reinterpret_cast<const Elf32_Sym*>(symTable.Data());
-        for (auto i = 0; i < size; i++) {
-            auto symAddr = firstSymbolAddr + i;
-            if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-                symbolTablePtrAndStValueToSymAddr_.Insert(reader, symAddr->st_value,
-                                                          reinterpret_cast<const uint8_t*>(symAddr));
-            }
-        }
-    } else {
-        auto firstSymbolAddr = reinterpret_cast<const Elf64_Sym*>(symTable.Data());
-        for (auto i = 0; i < size; i++) {
-            auto symAddr = firstSymbolAddr + i;
-            if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-                symbolTablePtrAndStValueToSymAddr_.Insert(reader, symAddr->st_value,
-                                                          reinterpret_cast<const uint8_t*>(symAddr));
-            }
-        }
-    }
-}
-std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>>
-    OfflineSymbolizationFilter::Parse(uint32_t pid, const std::vector<uint64_t>& ips)
+std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolizationFilter::OfflineSymbolization(
+    const std::shared_ptr<std::vector<uint64_t>> ips)
 {
     auto result = std::make_shared<std::vector<std::shared_ptr<FrameInfo>>>();
-    for (auto itor = ips.begin(); itor != ips.end(); itor++) {
-        auto frameInfo = Parse(pid, *itor);
+    for (auto itor = ips->begin(); itor != ips->end(); itor++) {
+        auto frameInfo = OfflineSymbolization(*itor);
         // If the IP in the middle of the call stack cannot be symbolized, the remaining IP is discarded
         if (!frameInfo) {
             break;
@@ -81,29 +42,22 @@ std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>>
     }
     return result;
 }
-std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::Parse(uint32_t pid, uint64_t ip)
+std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolization(uint64_t ip)
 {
-    auto ipid = streamFilters_->processFilter_->GetOrCreateInternalPid(0, pid);
-    auto result = ipidAndIpToFrameInfo_.Find(ipid, ip);
-    if (result) {
-        return result;
+    if (ipToFrameInfo_.count(ip)) {
+        return ipToFrameInfo_.at(ip);
     }
     // start symbolization
     std::shared_ptr<FrameInfo> frameInfo = std::make_shared<FrameInfo>();
     frameInfo->ip_ = ip;
-    auto startAddrToMapsInfoMap = ipidAndStartAddrToMapsInfoMap_.Find(ipid);
-    if (!startAddrToMapsInfoMap) {
-        // can not find pid
-        TS_LOGD("find matching ipid failed, pid = %u, ip = %lu", pid, ip);
-        return nullptr;
-    }
     uint64_t vmStart = INVALID_UINT64;
     uint64_t vmOffset = INVALID_UINT64;
-    auto endItor = startAddrToMapsInfoMap->upper_bound(ip);
-    auto length = std::distance(startAddrToMapsInfoMap->begin(), endItor);
+    auto endItor = startAddrToMapsInfoMap_.upper_bound(ip);
+    auto length = std::distance(startAddrToMapsInfoMap_.begin(), endItor);
     if (length > 0) {
         endItor--;
-        if (ip <= endItor->second->end()) {
+        // Follow the rules of front closing and rear opening, [start, end)
+        if (ip < endItor->second->end()) {
             vmStart = endItor->second->start();
             vmOffset = endItor->second->offset();
             frameInfo->filePathId_ = endItor->second->file_path_id();
@@ -111,16 +65,15 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::Parse(uint32_t pid, uint6
     }
     if (frameInfo->filePathId_ == INVALID_UINT32) {
         // find matching MapsInfo failed!!!
-        TS_LOGD("find matching Maps Info failed, pid = %u, ip = %lu", pid, ip);
+        TS_LOGD("find matching Maps Info failed, ip = %lu", ip);
         return nullptr;
     }
     // find SymbolTable by filePathId
     auto itor = filePathIdToSymbolTableMap_.find(frameInfo->filePathId_);
     if (itor == filePathIdToSymbolTableMap_.end()) {
         // find matching SymbolTable failed, but filePathId is availiable
-        ipidAndIpToFrameInfo_.Insert(ipid, ip, frameInfo);
-        TS_LOGD("find matching filePathId failed, pid = %u, ip = %lu, filePathId = %u", pid, ip,
-                frameInfo->filePathId_);
+        ipToFrameInfo_.insert(std::make_pair(ip, frameInfo));
+        TS_LOGD("find matching filePathId failed, ip = %lu, filePathId = %u", ip, frameInfo->filePathId_);
         return frameInfo;
     }
     auto symbolTable = itor->second;
@@ -164,7 +117,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::Parse(uint32_t pid, uint6
         // find symbolStart failed, but some data is availiable.
         frameInfo->offset_ = ip;
         frameInfo->symbolOffset_ = 0;
-        ipidAndIpToFrameInfo_.Insert(ipid, ip, frameInfo);
+        ipToFrameInfo_.insert(std::make_pair(ip, frameInfo));
         TS_LOGD("symbolStart is invaliable!!!");
         return frameInfo;
     }
@@ -177,7 +130,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::Parse(uint32_t pid, uint6
     } else {
         frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(symbolName);
     }
-    ipidAndIpToFrameInfo_.Insert(ipid, ip, frameInfo);
+    ipToFrameInfo_.insert(std::make_pair(ip, frameInfo));
     return frameInfo;
 }
 } // namespace TraceStreamer

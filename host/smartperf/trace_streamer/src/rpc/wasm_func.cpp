@@ -57,7 +57,13 @@ EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction, uint32_t r
 EMSCRIPTEN_KEEPALIVE uint8_t* InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
 {
     g_parseELFCallback = parseELFCallback;
+    if (reqBufferSize > NAME_MAX) {
+        return nullptr;
+    }
     g_FileNameBuf = new uint8_t[reqBufferSize];
+    if (!g_FileNameBuf) {
+        return nullptr;
+    }
     g_FileNameSize = reqBufferSize;
     return g_FileNameBuf;
 }

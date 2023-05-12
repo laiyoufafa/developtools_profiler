@@ -32,6 +32,7 @@
 #include "htrace_hidump_parser.h"
 #include "htrace_hilog_parser.h"
 #include "htrace_hisysevent_parser.h"
+#include "htrace_js_memory_parser.h"
 #include "htrace_mem_parser.h"
 #include "htrace_native_hook_parser.h"
 #include "htrace_network_parser.h"
@@ -79,6 +80,8 @@ private:
     void ParseProcess(HtraceDataSegment& dataSeg);
     void ParseHisysevent(HtraceDataSegment& dataSeg);
     void ParseHisyseventConfig(HtraceDataSegment& dataSeg);
+    void ParseJSMemory(HtraceDataSegment& dataSeg);
+    void ParseJSMemoryConfig(HtraceDataSegment& dataSeg);
     void ParseThread();
     int GetNextSegment();
     void FilterThread();
@@ -104,6 +107,7 @@ private:
     std::unique_ptr<HtraceDiskIOParser> diskIOParser_;
     std::unique_ptr<HtraceProcessParser> processParser_;
     std::unique_ptr<HtraceHisyseventParser> hisyseventParser_;
+    std::unique_ptr<HtraceJSMemoryParser> jsMemoryParser_;
 #if WITH_PERF
     std::unique_ptr<PerfDataParser> perfDataParser_;
 #endif
@@ -134,6 +138,7 @@ private:
     ClockId dataSourceTypeCpuClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeProcessClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeHisyseventClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeJSMemoryClockid_ = TS_CLOCK_UNKNOW;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

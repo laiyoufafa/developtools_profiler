@@ -225,7 +225,7 @@ int RpcServer::DownloadELFCallback(const std::string fileName,
         TS_LOGE("wasm write file failed");
         return false;
     }
-    fclose(fd);
+    (void)fclose(fd);
 
     if (!ts_->ParserFileSO(fileName, count)) {
         if (parseELFFile) {

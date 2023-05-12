@@ -106,7 +106,8 @@ DataIndex EbpfBase::GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* el
 SymbolAndFilePathIndex EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
 {
     SymbolAndFilePathIndex symbolAndFilePathIndex(false);
-    if (ip <= reader_->maxKernelAddr_ && ip >= reader_->minKernelAddr_) {
+    // Follow the rules of front closing and rear opening, [start, end)
+    if (ip < reader_->maxKernelAddr_ && ip >= reader_->minKernelAddr_) {
         symbolAndFilePathIndex = reader_->GetSymbolNameIndexFromElfSym(ip);
         pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
         return symbolAndFilePathIndex;
@@ -126,7 +127,8 @@ SymbolAndFilePathIndex EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint
     auto length = std::distance(startToMapsAddr->begin(), end);
     if (length > 0) {
         end--;
-        if (ip <= end->second->end) {
+        // Follow the rules of front closing and rear opening, [start, end)
+        if (ip < end->second->end) {
             vmStart = end->first;
             vmOffset = end->second->offset;
             symbolAndFilePathIndex.filePathIndex =

@@ -45,6 +45,7 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
       processParser_(std::make_unique<HtraceProcessParser>(dataCache, filters)),
       ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
       hisyseventParser_(std::make_unique<HtraceHisyseventParser>(dataCache, filters)),
+      jsMemoryParser_(std::make_unique<HtraceJSMemoryParser>(dataCache, filters)),
 #if WITH_PERF
       perfDataParser_(std::make_unique<PerfDataParser>(dataCache, filters)),
 #endif
@@ -87,6 +88,7 @@ void HtraceParser::WaitForParserEnd()
     processParser_->Finish();
     diskIOParser_->Finish();
     hisyseventParser_->Finish();
+    jsMemoryParser_->Finish();
     // keep final upate perf and ebpf data time range
     ebpfDataParser_->Finish();
 #if WITH_PERF
@@ -110,6 +112,8 @@ void HtraceParser::WaitForParserEnd()
                                                                       dataSourceTypeProcessClockid_);
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_HISYSEVENT,
                                                                       dataSourceTypeHisyseventClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_JSMEMORY,
+                                                                      dataSourceTypeJSMemoryClockid_);
     traceDataCache_->GetDataSourceClockIdData()->Finish();
     dataSegArray_.reset();
 }
@@ -147,7 +151,7 @@ void HtraceParser::ParseTraceDataItem(const std::string& buffer)
 void HtraceParser::FilterData(HtraceDataSegment& seg)
 {
     if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK) {
-        htraceNativeHookParser_->SortNativeHookData(seg);
+        htraceNativeHookParser_->Parse(seg);
     } else if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG) {
         htraceNativeHookParser_->ParseConfigInfo(seg);
     } else if (seg.dataType == DATA_SOURCE_TYPE_TRACE) {
@@ -176,6 +180,10 @@ void HtraceParser::FilterData(HtraceDataSegment& seg)
         processParser_->Parse(seg.protoData, seg.timeStamp);
     } else if (seg.dataType == DATA_SOURCE_TYPE_DISKIO) {
         diskIOParser_->Parse(seg.protoData, seg.timeStamp);
+    } else if (seg.dataType == DATA_SOURCE_TYPE_JSMEMORY) {
+        jsMemoryParser_->Parse(seg.protoData, seg.timeStamp);
+    } else if (seg.dataType == DATA_SOURCE_TYPE_JSMEMORY_CONFIG) {
+        jsMemoryParser_->ParseJSMemoryConfig(seg.protoData);
     } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT) {
         ProtoReader::HisyseventInfo_Reader hisyseventInfo(seg.protoData.data_, seg.protoData.size_);
         hisyseventParser_->Parse(&hisyseventInfo, seg.timeStamp);
@@ -268,6 +276,12 @@ void HtraceParser::ParserData(HtraceDataSegment& dataSeg)
     } else if (pluginName == "hisysevent-plugin_config") {
         dataSeg.protoData = pluginDataZero.data();
         ParseHisyseventConfig(dataSeg);
+    } else if (pluginName == "js-memory") {
+        dataSeg.protoData = pluginDataZero.data();
+        ParseJSMemory(dataSeg);
+    } else if (pluginName == "js-memory_config") {
+        dataSeg.protoData = pluginDataZero.data();
+        ParseJSMemoryConfig(dataSeg);
     } else {
 #if IS_WASM
         TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(pluginDataZero.data().data_),
@@ -404,6 +418,20 @@ void HtraceParser::ParseHisyseventConfig(HtraceDataSegment& dataSeg)
 {
     dataSourceTypeHisyseventClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_HISYSEVENT_CONFIG;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+
+void HtraceParser::ParseJSMemory(HtraceDataSegment& dataSeg)
+{
+    dataSourceTypeJSMemoryClockid_ = TS_CLOCK_REALTIME;
+    dataSeg.dataType = DATA_SOURCE_TYPE_JSMEMORY;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+
+void HtraceParser::ParseJSMemoryConfig(HtraceDataSegment& dataSeg)
+{
+    dataSourceTypeJSMemoryClockid_ = TS_CLOCK_REALTIME;
+    dataSeg.dataType = DATA_SOURCE_TYPE_JSMEMORY_CONFIG;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
 
