@@ -37,7 +37,7 @@ const int SLOW_DOWN_THRESHOLD = STACK_DATA_SIZE / 4;
 const size_t MAX_CALL_FRAME_UNWIND_SIZE = MAX_UNWIND_DEPTH + 2;
 // dlopen function minimum stack depth
 const int32_t DLOPEN_MIN_UNWIND_DEPTH = 5;
-const uint32_t  MMAP_LIB_TYPE = (1u << 8);
+const uint32_t  MMAP_FILE_TYPE = (1u << 8);
 }
 }
 }
@@ -64,7 +64,7 @@ enum {
     PR_SET_VMA_MSG,
 };
 
-struct alignas(8) MmapLibRawData { // 8 is 8 bit
+struct alignas(8) MmapFileRawData { // 8 is 8 bit
     off_t offset;
     uint32_t flags;
 };
@@ -73,7 +73,7 @@ struct alignas(8) BaseStackRawData { // 8 is 8 bit
     char tname[MAX_THREAD_NAME];
     union {
         struct timespec ts;
-        MmapLibRawData mmapArgs;
+        MmapFileRawData mmapArgs;
     };
     void* addr;
     size_t mallocSize;

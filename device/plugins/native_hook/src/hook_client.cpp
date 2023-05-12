@@ -554,14 +554,14 @@ void hook_free(void (*free_func)(void*), void* p)
     }
 }
 
-inline void SendMmapLibRawData(int prot, int flags, off_t offset, const std::string& filePath,
-                               const StackRawData& rawdata, std::shared_ptr<HookSocketClient>& holder)
+inline void SendMmapFileRawData(int prot, int flags, off_t offset, const std::string& filePath,
+                                const StackRawData& rawdata, std::shared_ptr<HookSocketClient>& holder)
 {
     StackRawData curRawdata = {{{0}}};
     curRawdata.addr = rawdata.addr;
     curRawdata.mallocSize = rawdata.mallocSize;
     curRawdata.mmapArgs.offset = offset;
-    curRawdata.type = OHOS::Developtools::NativeDaemon::MMAP_LIB_TYPE;
+    curRawdata.type = OHOS::Developtools::NativeDaemon::MMAP_FILE_TYPE;
     if (prot & PROT_EXEC) {
         curRawdata.mmapArgs.flags |= PROT_EXEC;
     }
@@ -644,13 +644,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
             fileName[len] = '\0';
             char* p = strrchr(fileName, '/');
             if (p != nullptr) {
-                size_t index = p - fileName + 1; // jump '/'
-                if (index < PATH_MAX - 3) { // 3 is the last "lib"
-                    // 1,2 is the point of fileName
-                    if (fileName[index] == 'l' && fileName[index + 1] == 'i' && fileName[index  + 2] == 'b') {
-                        SendMmapLibRawData(prot, flags, offset, fileName, rawdata, holder);
-                    }
-                }
+                SendMmapFileRawData(prot, flags, offset, fileName, rawdata, holder);
                 (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, &fileName[p - fileName], MAX_THREAD_NAME - 1);
             } else {
                 (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, fileName, MAX_THREAD_NAME - 1);

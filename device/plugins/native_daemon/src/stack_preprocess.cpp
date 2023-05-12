@@ -161,19 +161,19 @@ void StackPreprocess::TakeResults()
             if (!rawData || isStopTakeData_) {
                 break;
             }
-            if (rawData->stackConext->type == MMAP_LIB_TYPE) {
+            if (rawData->stackConext->type == MMAP_FILE_TYPE) {
                 BaseStackRawData* mmapRawData = rawData->stackConext;
                 std::string filePath(reinterpret_cast<char *>(rawData->data));
-                HILOG_DEBUG(LOG_CORE,
-                    "MMAP_LIB_TYPE curMmapAddr=%p, MAP_FIXED=%d, PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
+                HILOG_DEBUG(LOG_CORE, "MMAP_FILE_TYPE curMmapAddr=%p, MAP_FIXED=%d, "
+                    "PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
                     mmapRawData->addr, mmapRawData->mmapArgs.flags & MAP_FIXED,
                     mmapRawData->mmapArgs.flags & PROT_EXEC, mmapRawData->mmapArgs.offset, filePath.data());
-                runtime_instance->HandleMapInfo((uint64_t)mmapRawData->addr, mmapRawData->mallocSize,
+                runtime_instance->HandleMapInfo(reinterpret_cast<uint64_t>(mmapRawData->addr), mmapRawData->mallocSize,
                     mmapRawData->mmapArgs.flags, mmapRawData->mmapArgs.offset, filePath);
                 flushBasicData_ = true;
                 continue;
             } else if (rawData->stackConext->type == MUNMAP_MSG) {
-                runtime_instance->RemoveMaps((uint64_t)rawData->stackConext->addr);
+                runtime_instance->RemoveMaps(reinterpret_cast<uint64_t>(rawData->stackConext->addr));
             }
             if (!rawData->reportFlag) {
                 ignoreCnts_++;
@@ -611,7 +611,7 @@ inline void StackPreprocess::ReportFrameMap(CallFrame& callFrame, BatchNativeHoo
 
 void StackPreprocess::SetMapsInfo(pid_t pid)
 {
-    for (auto& itemSoBegin : runtime_instance->GetNeedReportMaps()) {
+    for (auto& itemSoBegin : runtime_instance->GetOfflineMaps()) {
         auto& maps = runtime_instance->GetMapsCache();
         auto mapsIter = maps.find(itemSoBegin);
         if (mapsIter == maps.end()) {
@@ -644,7 +644,7 @@ void StackPreprocess::SetMapsInfo(pid_t pid)
         }
         FlushData(stackData);
     }
-    runtime_instance->ClearNeedReportMaps();
+    runtime_instance->ClearOfflineMaps();
 }
 
 void StackPreprocess::SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,

@@ -29,7 +29,7 @@ public:
     MemMaps(uint64_t begin, uint64_t end, uint64_t offset, uint32_t type, uint32_t filePathId, const std::string& name)
         : soBegin_(begin), soEnd_(end), filePathId_(filePathId), name_(name)
     {
-        maps_.emplace_back(begin, end, (uint16_t)type, offset, name);
+        maps_.emplace_back(begin, end, static_cast<uint16_t>(type), offset, name_);
     }
     uint64_t soBegin_;
     uint64_t soEnd_;
@@ -38,7 +38,7 @@ public:
     bool isReported_ {false}; // indicates whether information about item has been reported
 
     class MemMapItem {
-        public:
+    public:
         MemMapItem() {}
         MemMapItem(uint64_t begin, uint64_t end, uint16_t type, uint64_t offset, std::string_view nameHold)
             : begin_(begin), end_(end), type_(type), pageoffset_(offset), nameHold_(nameHold) {}

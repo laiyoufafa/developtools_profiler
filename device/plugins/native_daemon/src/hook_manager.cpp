@@ -288,7 +288,7 @@ void HookManager::ReadShareMemory()
 
             rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->baseStackData.get());
             rawStack->data = rawStack->baseStackData.get() + sizeof(BaseStackRawData);
-            if (rawStack->stackConext->type == MMAP_LIB_TYPE) {
+            if (rawStack->stackConext->type == MMAP_FILE_TYPE) {
                 return true;
             }
             rawStack->reportFlag = true;
