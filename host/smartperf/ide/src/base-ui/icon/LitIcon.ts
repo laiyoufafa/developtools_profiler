@@ -17,49 +17,49 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-icon')
 export class LitIcon extends BaseElement {
-    private view?: number;
-    private icon: HTMLElement | undefined | null;
-    private use: SVGUseElement | undefined | null;
-    private d: SVGPathElement | undefined | null;
-    private _name?: string;
-    private _size?: number;
-    private _color?: string;
-    private _path?: string;
+  private view?: number;
+  private icon: HTMLElement | undefined | null;
+  private use: SVGUseElement | undefined | null;
+  private d: SVGPathElement | undefined | null;
+  private _name?: string;
+  private _size?: number;
+  private _color?: string;
+  private _path?: string;
 
-    static get observedAttributes() {
-        return ['name', 'size', 'color', 'path'];
-    }
+  static get observedAttributes() {
+    return ['name', 'size', 'color', 'path'];
+  }
 
-    get name(): string {
-        return this.getAttribute('name') || '';
-    }
+  get name(): string {
+    return this.getAttribute('name') || '';
+  }
 
-    set name(value: string) {
-        this._name = value;
-        this.setAttribute('name', value);
-    }
+  set name(value: string) {
+    this._name = value;
+    this.setAttribute('name', value);
+  }
 
-    get size(): number {
-        return parseInt(this.getAttribute('size') || '0', 10);
-    }
+  get size(): number {
+    return parseInt(this.getAttribute('size') || '0', 10);
+  }
 
-    set size(value: number) {
-        this._size = value;
-        this.setAttribute('size', `${value}`);
-    }
+  set size(value: number) {
+    this._size = value;
+    this.setAttribute('size', `${value}`);
+  }
 
-    set color(value: string) {
-        this._color = value;
-        this.setAttribute('color', value);
-    }
+  set color(value: string) {
+    this._color = value;
+    this.setAttribute('color', value);
+  }
 
-    set path(value: string) {
-        this._path = value;
-        this.setAttribute('path', value);
-    }
+  set path(value: string) {
+    this._path = value;
+    this.setAttribute('path', value);
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
             <style>
                 :host{
                     font-size: inherit;
@@ -83,45 +83,35 @@ export class LitIcon extends BaseElement {
                     overflow: hidden;
                  }
             </style>
-            <svg class="icon" id="icon" aria-hidden="true" viewBox="0 0 ${
-                this.view || 1024
-            } ${this.view || 1024}">
-                 ${
-                     this._path
-                         ? '<path id="path"></path>'
-                         : '<use id="use"></use>'
-                 }
+            <svg class="icon" id="icon" aria-hidden="true" viewBox="0 0 ${this.view || 1024} ${this.view || 1024}">
+                 ${this._path ? '<path id="path"></path>' : '<use id="use"></use>'}
             </svg>
             `;
-    }
+  }
 
-    initElements() {
-        if (this.shadowRoot) {
-            this.icon = this.shadowRoot.getElementById('icon');
-            this.use = this.shadowRoot.querySelector('use');
-            this.d = this.shadowRoot.querySelector('path');
-        }
+  initElements() {
+    if (this.shadowRoot) {
+      this.icon = this.shadowRoot.getElementById('icon');
+      this.use = this.shadowRoot.querySelector('use');
+      this.d = this.shadowRoot.querySelector('path');
     }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, value: string) {
-        switch (name) {
-            case 'name':
-                if (this.use)
-                    this.use.setAttributeNS(
-                        'http://www.w3.org/1999/xlink',
-                        'xlink:href',
-                        `./base-ui/icon.svg#icon-${value}`
-                    );
-                break;
-            case 'path':
-                if (this.d) this.d.setAttribute('d', value);
-                break;
-            case 'color':
-                if (this.icon) this.icon.style.color = value as string;
-                break;
-            case 'size':
-                if (this.icon) this.icon.style.fontSize = `${value}px`;
-                break;
-        }
+  attributeChangedCallback(name: string, oldValue: string, value: string) {
+    switch (name) {
+      case 'name':
+        if (this.use)
+          this.use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `./base-ui/icon.svg#icon-${value}`);
+        break;
+      case 'path':
+        if (this.d) this.d.setAttribute('d', value);
+        break;
+      case 'color':
+        if (this.icon) this.icon.style.color = value as string;
+        break;
+      case 'size':
+        if (this.icon) this.icon.style.fontSize = `${value}px`;
+        break;
     }
+  }
 }

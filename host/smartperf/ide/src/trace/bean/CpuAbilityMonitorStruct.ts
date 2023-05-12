@@ -16,13 +16,13 @@
 import { BaseStruct } from './BaseStruct.js';
 
 export class CpuAbilityMonitorStruct extends BaseStruct {
-    static maxCpuUtilization: number = 0;
-    static maxCpuUtilizationName: string = '0 %';
-    static hoverCpuAbilityStruct: CpuAbilityMonitorStruct | undefined;
-    static selectCpuAbilityStruct: CpuAbilityMonitorStruct | undefined;
+  static maxCpuUtilization: number = 0;
+  static maxCpuUtilizationName: string = '0 %';
+  static hoverCpuAbilityStruct: CpuAbilityMonitorStruct | undefined;
+  static selectCpuAbilityStruct: CpuAbilityMonitorStruct | undefined;
 
-    type: number | undefined;
-    value: number | undefined;
-    startNS: number | undefined;
-    dur: number | undefined;
+  type: number | undefined;
+  value: number | undefined;
+  startNS: number | undefined;
+  dur: number | undefined;
 }

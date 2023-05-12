@@ -15,12 +15,12 @@
 
 // @ts-ignore
 import {
-    PerfCallChainThread,
-    PerfCallChainPool,
+  PerfCallChainThread,
+  PerfCallChainPool,
 } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerPerfCallchains.js';
 
 describe('ProcedureWorkerPerfCallchains Test', () => {
-    it('ProcedureWorkerPerfCallchainsTest01', () => {
-        expect(PerfCallChainPool).not.toBeUndefined();
-    });
+  it('ProcedureWorkerPerfCallchainsTest01', () => {
+    expect(PerfCallChainPool).not.toBeUndefined();
+  });
 });

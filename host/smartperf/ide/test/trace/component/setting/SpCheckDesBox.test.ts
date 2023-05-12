@@ -16,41 +16,35 @@
 import { SpCheckDesBox } from '../../../../dist/trace/component/setting/SpCheckDesBox.js';
 
 describe('SpCheckDesBox Test', () => {
-    let spCheckDesBox = new SpCheckDesBox();
+  let spCheckDesBox = new SpCheckDesBox();
 
-    it('SpCheckDesBoxTest01', function () {
-        expect(spCheckDesBox.value).toBe('');
-    });
+  it('SpCheckDesBoxTest01', function () {
+    expect(spCheckDesBox.value).toBe('');
+  });
 
-    it('SpCheckDesBoxTest02', function () {
-        expect(
-            spCheckDesBox.attributeChangedCallback('checked', '', '')
-        ).toBeUndefined();
-    });
+  it('SpCheckDesBoxTest02', function () {
+    expect(spCheckDesBox.attributeChangedCallback('checked', '', '')).toBeUndefined();
+  });
 
-    it('SpCheckDesBoxTest03', function () {
-        expect(
-            spCheckDesBox.attributeChangedCallback('value', '', '')
-        ).toBeUndefined();
-    });
+  it('SpCheckDesBoxTest03', function () {
+    expect(spCheckDesBox.attributeChangedCallback('value', '', '')).toBeUndefined();
+  });
 
-    it('SpCheckDesBoxTest04', function () {
-        expect(
-            spCheckDesBox.attributeChangedCallback('des', '', '')
-        ).toBeUndefined();
-    });
+  it('SpCheckDesBoxTest04', function () {
+    expect(spCheckDesBox.attributeChangedCallback('des', '', '')).toBeUndefined();
+  });
 
-    it('SpCheckDesBoxTest05', function () {
-        spCheckDesBox.checked = false;
-        expect(spCheckDesBox.checked).toBeFalsy();
-    });
+  it('SpCheckDesBoxTest05', function () {
+    spCheckDesBox.checked = false;
+    expect(spCheckDesBox.checked).toBeFalsy();
+  });
 
-    it('SpCheckDesBoxTest07', function () {
-        spCheckDesBox.checked = true;
-        expect(spCheckDesBox.checked).toBeTruthy();
-    });
+  it('SpCheckDesBoxTest07', function () {
+    spCheckDesBox.checked = true;
+    expect(spCheckDesBox.checked).toBeTruthy();
+  });
 
-    it('SpCheckDesBoxTest06 ', function () {
-        expect(spCheckDesBox.connectedCallback()).toBeUndefined();
-    });
+  it('SpCheckDesBoxTest06 ', function () {
+    expect(spCheckDesBox.connectedCallback()).toBeUndefined();
+  });
 });

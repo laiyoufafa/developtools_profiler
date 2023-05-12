@@ -14,15 +14,15 @@
  */
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 jest.mock('../../../dist/trace/component/trace/TimerShaftElement.js', () => {
-    return {};
+  return {};
 });
 
 // @ts-ignore
@@ -31,97 +31,87 @@ import { TraceRow } from '../../../dist/trace/component/trace/base/TraceRow.js';
 import { SpRecyclerSystemTrace } from '../../../dist/trace/component/SpRecyclerSystemTrace.js';
 
 describe('SpRecyclerSystemTrace Test', () => {
-    let spRecyclerSystemTrace = new SpRecyclerSystemTrace();
-    const newEl = 1;
-    const targetEl = {
-        parentNode: 1,
-        nextSibling: 1,
-    };
+  let spRecyclerSystemTrace = new SpRecyclerSystemTrace();
+  const newEl = 1;
+  const targetEl = {
+    parentNode: 1,
+    nextSibling: 1,
+  };
 
-    spRecyclerSystemTrace.initElements = jest.fn(() => true);
+  spRecyclerSystemTrace.initElements = jest.fn(() => true);
 
-    it('SpRecyclerSystemTraceTest01', function () {
-        expect(spRecyclerSystemTrace.getScrollWidth()).toBe(1);
-    });
+  it('SpRecyclerSystemTraceTest01', function () {
+    expect(spRecyclerSystemTrace.getScrollWidth()).toBe(1);
+  });
 
-    it('SpRecyclerSystemTraceTest02', function () {
-        let resultLength = spRecyclerSystemTrace.getVisibleRows([{}]).length;
-        expect(resultLength).toBe(0);
-    });
+  it('SpRecyclerSystemTraceTest02', function () {
+    let resultLength = spRecyclerSystemTrace.getVisibleRows([{}]).length;
+    expect(resultLength).toBe(0);
+  });
 
-    it('SpRecyclerSystemTraceTest03', function () {
-        expect(
-            spRecyclerSystemTrace.timerShaftELRangeChange('')
-        ).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest03', function () {
+    expect(spRecyclerSystemTrace.timerShaftELRangeChange('')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest04', function () {
-        expect(spRecyclerSystemTrace.rowsElOnScroll('Scroll')).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest04', function () {
+    expect(spRecyclerSystemTrace.rowsElOnScroll('Scroll')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest05', function () {
-        let htmlElement = document.createElement('div');
-        spRecyclerSystemTrace.rangeSelect.rowsPaneEL = htmlElement;
-        spRecyclerSystemTrace.rangeSelect.MouseDown = jest.fn(() => {});
-        expect(
-            spRecyclerSystemTrace.documentOnMouseDown('MouseDown')
-        ).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest05', function () {
+    let htmlElement = document.createElement('div');
+    spRecyclerSystemTrace.rangeSelect.rowsPaneEL = htmlElement;
+    spRecyclerSystemTrace.rangeSelect.MouseDown = jest.fn(() => {});
+    expect(spRecyclerSystemTrace.documentOnMouseDown('MouseDown')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest06', function () {
-        expect(
-            spRecyclerSystemTrace.documentOnMouseUp('MouseUp')
-        ).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest06', function () {
+    expect(spRecyclerSystemTrace.documentOnMouseUp('MouseUp')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest07', function () {
-        spRecyclerSystemTrace.rangeSelec = jest.fn(() => true);
-        spRecyclerSystemTrace.rangeSelect.mouseMove = jest.fn(() => true);
-        expect(
-            spRecyclerSystemTrace.documentOnMouseMove('MouseMove')
-        ).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest07', function () {
+    spRecyclerSystemTrace.rangeSelec = jest.fn(() => true);
+    spRecyclerSystemTrace.rangeSelect.mouseMove = jest.fn(() => true);
+    expect(spRecyclerSystemTrace.documentOnMouseMove('MouseMove')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest08', function () {
-        expect(spRecyclerSystemTrace.hoverStructNull('')).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest08', function () {
+    expect(spRecyclerSystemTrace.hoverStructNull('')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest09', function () {
-        expect(spRecyclerSystemTrace.selectStructNull('')).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest09', function () {
+    expect(spRecyclerSystemTrace.selectStructNull('')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest10', function () {
-        spRecyclerSystemTrace.rangeSelec = jest.fn(() => true);
-        spRecyclerSystemTrace.rangeSelect.mouseMove = jest.fn(() => true);
-        expect(
-            spRecyclerSystemTrace.documentOnClick('OnClick')
-        ).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest10', function () {
+    spRecyclerSystemTrace.rangeSelec = jest.fn(() => true);
+    spRecyclerSystemTrace.rangeSelect.mouseMove = jest.fn(() => true);
+    expect(spRecyclerSystemTrace.documentOnClick('OnClick')).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest11', function () {
-        expect(spRecyclerSystemTrace.connectedCallback()).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest11', function () {
+    expect(spRecyclerSystemTrace.connectedCallback()).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest12', function () {
-        expect(spRecyclerSystemTrace.disconnectedCallback()).toBeUndefined();
-    });
+  it('SpRecyclerSystemTraceTest12', function () {
+    expect(spRecyclerSystemTrace.disconnectedCallback()).toBeUndefined();
+  });
 
-    it('SpRecyclerSystemTraceTest13', function () {
-        expect(spRecyclerSystemTrace.init).toBeTruthy();
-    });
+  it('SpRecyclerSystemTraceTest13', function () {
+    expect(spRecyclerSystemTrace.init).toBeTruthy();
+  });
 
-    it('SpRecyclerSystemTraceTest15', function () {
-        spRecyclerSystemTrace.loadDatabaseUrl = jest.fn(() => true);
-        expect(spRecyclerSystemTrace.loadDatabaseUrl()).toBeTruthy();
-    });
+  it('SpRecyclerSystemTraceTest15', function () {
+    spRecyclerSystemTrace.loadDatabaseUrl = jest.fn(() => true);
+    expect(spRecyclerSystemTrace.loadDatabaseUrl()).toBeTruthy();
+  });
 
-    it('SpRecyclerSystemTraceTest16', function () {
-        spRecyclerSystemTrace.loadDatabaseArrayBuffer = jest.fn(() => true);
-        expect(spRecyclerSystemTrace.loadDatabaseArrayBuffer()).toBeTruthy();
-    });
+  it('SpRecyclerSystemTraceTest16', function () {
+    spRecyclerSystemTrace.loadDatabaseArrayBuffer = jest.fn(() => true);
+    expect(spRecyclerSystemTrace.loadDatabaseArrayBuffer()).toBeTruthy();
+  });
 
-    it('SpRecyclerSystemTraceTest17', function () {
-        expect(spRecyclerSystemTrace.initHtml()).toMatchInlineSnapshot(`
+  it('SpRecyclerSystemTraceTest17', function () {
+    expect(spRecyclerSystemTrace.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -162,18 +152,16 @@ describe('SpRecyclerSystemTrace Test', () => {
         </div>
         "
 `);
-    });
-    it('SpRecyclerSystemTraceTest18', function () {
-        const newEl = 1;
-        const targetEl = {
-            parentNode: {
-                insertBefore: jest.fn(() => true),
-            },
-            nextSibling: 1,
-        };
+  });
+  it('SpRecyclerSystemTraceTest18', function () {
+    const newEl = 1;
+    const targetEl = {
+      parentNode: {
+        insertBefore: jest.fn(() => true),
+      },
+      nextSibling: 1,
+    };
 
-        expect(
-            spRecyclerSystemTrace.insertAfter(newEl, targetEl)
-        ).toBeUndefined();
-    });
+    expect(spRecyclerSystemTrace.insertAfter(newEl, targetEl)).toBeUndefined();
+  });
 });

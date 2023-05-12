@@ -17,10 +17,10 @@
 import { TraceRowObject } from '../../../../../dist/trace/component/trace/base/TraceRowObject.js';
 
 describe('TraceRow Test', () => {
-    beforeAll(() => {});
+  beforeAll(() => {});
 
-    it('Utils Test01', () => {
-        let traceRow = new TraceRowObject<any>();
-        expect(traceRow);
-    });
+  it('Utils Test01', () => {
+    let traceRow = new TraceRowObject<any>();
+    expect(traceRow);
+  });
 });

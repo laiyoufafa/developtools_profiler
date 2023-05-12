@@ -18,67 +18,67 @@ let textColor = '';
 
 @element('lit-main-menu-group')
 export class LitMainMenuGroup extends BaseElement {
-    protected _collapsed: boolean | undefined;
-    private groupNameEl: HTMLElement | null | undefined;
-    private groupDescEl: HTMLElement | null | undefined;
-    private group: HTMLElement | null | undefined;
+  protected _collapsed: boolean | undefined;
+  private groupNameEl: HTMLElement | null | undefined;
+  private groupDescEl: HTMLElement | null | undefined;
+  private group: HTMLElement | null | undefined;
 
-    static get observedAttributes() {
-        return ['title', 'describe', 'collapsed', 'nocollapse', 'radius'];
+  static get observedAttributes() {
+    return ['title', 'describe', 'collapsed', 'nocollapse', 'radius'];
+  }
+
+  get collapsed(): boolean {
+    return this.hasAttribute('collapsed');
+  }
+
+  set collapsed(value: boolean) {
+    if (value) {
+      this.setAttribute('collapsed', '');
+    } else {
+      this.removeAttribute('collapsed');
     }
+  }
 
-    get collapsed(): boolean {
-        return this.hasAttribute('collapsed');
+  get nocollapsed() {
+    return this.hasAttribute('nocollapsed');
+  }
+
+  set nocollapsed(value: boolean) {
+    if (value) {
+      this.setAttribute('nocollapsed', '');
+    } else {
+      this.removeAttribute('nocollapsed');
     }
+  }
 
-    set collapsed(value: boolean) {
-        if (value) {
-            this.setAttribute('collapsed', '');
-        } else {
-            this.removeAttribute('collapsed');
-        }
+  get radius() {
+    return this.hasAttribute('radius');
+  }
+
+  initElements(): void {
+    this.groupNameEl = this.shadowRoot?.querySelector('.group-name');
+    this.groupDescEl = this.shadowRoot?.querySelector('.group-describe');
+    this.group = this.shadowRoot?.querySelector('#group');
+    this.group!.addEventListener('click', (e) => {
+      if (this.nocollapsed) {
+        return;
+      }
+      this.collapsed = !this.collapsed;
+    });
+    let backgroundColor = sessionStorage.getItem('backgroundColor');
+    if (backgroundColor == 'rgb(38, 47, 60)') {
+      textColor = 'white';
+      this.groupNameEl!.style.color = 'white';
+      this.groupDescEl!.style.color = 'white';
+    } else {
+      textColor = 'black';
+      this.groupNameEl!.style.color = 'black';
+      this.groupDescEl!.style.color = 'black';
     }
+  }
 
-    get nocollapsed() {
-        return this.hasAttribute('nocollapsed');
-    }
-
-    set nocollapsed(value: boolean) {
-        if (value) {
-            this.setAttribute('nocollapsed', '');
-        } else {
-            this.removeAttribute('nocollapsed');
-        }
-    }
-
-    get radius() {
-        return this.hasAttribute('radius');
-    }
-
-    initElements(): void {
-        this.groupNameEl = this.shadowRoot?.querySelector('.group-name');
-        this.groupDescEl = this.shadowRoot?.querySelector('.group-describe');
-        this.group = this.shadowRoot?.querySelector('#group');
-        this.group!.addEventListener('click', (e) => {
-            if (this.nocollapsed) {
-                return;
-            }
-            this.collapsed = !this.collapsed;
-        });
-        let backgroundColor = sessionStorage.getItem('backgroundColor');
-        if (backgroundColor == 'rgb(38, 47, 60)') {
-            textColor = 'white';
-            this.groupNameEl!.style.color = 'white';
-            this.groupDescEl!.style.color = 'white';
-        } else {
-            textColor = 'black';
-            this.groupNameEl!.style.color = 'black';
-            this.groupDescEl!.style.color = 'black';
-        }
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             transition: background-color .3s;
@@ -140,16 +140,16 @@ export class LitMainMenuGroup extends BaseElement {
        </div>
         <slot></slot>
         `;
-    }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        switch (name) {
-            case 'title':
-                if (this.groupNameEl) this.groupNameEl.textContent = newValue;
-                break;
-            case 'describe':
-                if (this.groupDescEl) this.groupDescEl.textContent = newValue;
-                break;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    switch (name) {
+      case 'title':
+        if (this.groupNameEl) this.groupNameEl.textContent = newValue;
+        break;
+      case 'describe':
+        if (this.groupDescEl) this.groupDescEl.textContent = newValue;
+        break;
     }
+  }
 }

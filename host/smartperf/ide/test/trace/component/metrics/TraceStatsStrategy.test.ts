@@ -16,16 +16,16 @@
 import { initTraceStateStrategy } from '../../../../dist/trace/component/metrics/TraceStatsStrategy.js';
 
 describe('TraceTaskStrategy Test', () => {
-    let metricData = [
-        {
-            length: 1,
-            event_name: 'name',
-            count: 1,
-            source: 1,
-            serverity: 0,
-        },
-    ];
-    it('initTraceStateStrategyTest01', () => {
-        expect(initTraceStateStrategy(metricData)).toBeTruthy();
-    });
+  let metricData = [
+    {
+      length: 1,
+      event_name: 'name',
+      count: 1,
+      source: 1,
+      serverity: 0,
+    },
+  ];
+  it('initTraceStateStrategyTest01', () => {
+    expect(initTraceStateStrategy(metricData)).toBeTruthy();
+  });
 });

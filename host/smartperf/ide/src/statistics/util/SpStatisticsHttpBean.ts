@@ -14,12 +14,12 @@
  */
 
 export interface BurialPointRequestBody {
-    action: string;
-    event: string;
-    ts?: number;
-    eventData?: EventData;
+  action: string;
+  event: string;
+  ts?: number;
+  eventData?: EventData;
 }
 
 export interface EventData {
-    plugin?: Array<string>;
+  plugin?: Array<string>;
 }

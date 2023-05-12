@@ -15,10 +15,7 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import {
-    SelectionData,
-    SelectionParam,
-} from '../../../../bean/BoxSelection.js';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import '../../../StackBar.js';
 import { getTabThreadStates } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
@@ -27,91 +24,72 @@ import { log } from '../../../../../log/Log.js';
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private range: HTMLLabelElement | null | undefined;
-    private stackBar: StackBar | null | undefined;
-    private source: Array<SelectionData> = [];
+  private tbl: LitTable | null | undefined;
+  private range: HTMLLabelElement | null | undefined;
+  private stackBar: StackBar | null | undefined;
+  private source: Array<SelectionData> = [];
 
-    set data(val: SelectionParam | any) {
-        //@ts-ignore
-        this.tbl?.shadowRoot?.querySelector('.table')?.style?.height =
-            this.parentElement!.clientHeight - 45 + 'px';
-        // // @ts-ignore
-        this.range!.textContent =
-            'Selected range: ' +
-            ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) +
-            ' ms';
-        getTabThreadStates(val.threadIds, val.leftNs, val.rightNs).then(
-            (result) => {
-                if (result != null && result.length > 0) {
-                    log('getTabThreadStates result size : ' + result.length);
-                    let sumWall = 0.0;
-                    let sumOcc = 0;
-                    for (let e of result) {
-                        let process = Utils.PROCESS_MAP.get(e.pid);
-                        let thread = Utils.THREAD_MAP.get(e.tid);
-                        e.process =
-                            process == null || process.length == 0
-                                ? '[NULL]'
-                                : process;
-                        e.thread =
-                            thread == null || thread.length == 0
-                                ? '[NULL]'
-                                : thread;
-                        sumWall += e.wallDuration;
-                        sumOcc += e.occurrences;
-                        e.stateJX = e.state;
-                        e.state = Utils.getEndState(e.stateJX);
-                        e.wallDuration = parseFloat(
-                            (e.wallDuration / 1000000.0).toFixed(5)
-                        );
-                        e.avgDuration = parseFloat(
-                            (e.avgDuration / 1000000.0).toFixed(5)
-                        );
-                    }
-                    let count: any = {};
-                    count.process = ' ';
-                    count.state = ' ';
-                    count.wallDuration = parseFloat(
-                        (sumWall / 1000000.0).toFixed(5)
-                    );
-                    count.occurrences = sumOcc;
-                    result.splice(0, 0, count);
-                    this.source = result;
-                    this.tbl!.recycleDataSource = result;
-                    this.stackBar!.data = result;
-                } else {
-                    this.source = [];
-                    this.stackBar!.data = [];
-                    this.tbl!.recycleDataSource = [];
-                }
-            }
-        );
-    }
+  set data(val: SelectionParam | any) {
+    //@ts-ignore
+    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    // // @ts-ignore
+    this.range!.textContent = 'Selected range: ' + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    getTabThreadStates(val.threadIds, val.leftNs, val.rightNs).then((result) => {
+      if (result != null && result.length > 0) {
+        log('getTabThreadStates result size : ' + result.length);
+        let sumWall = 0.0;
+        let sumOcc = 0;
+        for (let e of result) {
+          let process = Utils.PROCESS_MAP.get(e.pid);
+          let thread = Utils.THREAD_MAP.get(e.tid);
+          e.process = process == null || process.length == 0 ? '[NULL]' : process;
+          e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
+          sumWall += e.wallDuration;
+          sumOcc += e.occurrences;
+          e.stateJX = e.state;
+          e.state = Utils.getEndState(e.stateJX);
+          e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
+          e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+        }
+        let count: any = {};
+        count.process = ' ';
+        count.state = ' ';
+        count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
+        count.occurrences = sumOcc;
+        result.splice(0, 0, count);
+        this.source = result;
+        this.tbl!.recycleDataSource = result;
+        this.stackBar!.data = result;
+      } else {
+        this.source = [];
+        this.stackBar!.data = [];
+        this.tbl!.recycleDataSource = [];
+      }
+    });
+  }
 
-    initElements(): void {
-        this.tbl =
-            this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
-        this.range = this.shadowRoot?.querySelector('#time-range');
-        this.stackBar = this.shadowRoot?.querySelector('#stack-bar');
-        this.tbl!.addEventListener('column-click', (evt: any) => {
-            this.sortByColumn(evt.detail);
-        });
-    }
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
+    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.stackBar = this.shadowRoot?.querySelector('#stack-bar');
+    this.tbl!.addEventListener('column-click', (evt: any) => {
+      this.sortByColumn(evt.detail);
+    });
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
-    }
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -142,39 +120,35 @@ export class TabPaneThreadStates extends BaseElement {
             </lit-table-column>
         </lit-table>
         `;
-    }
+  }
 
-    sortByColumn(detail: any) {
-        function compare(property: any, sort: any, type: any) {
-            return function (a: SelectionData | any, b: SelectionData | any) {
-                if (a.process == ' ' || b.process == ' ') {
-                    return 0;
-                }
-                if (type === 'number') {
-                    return sort === 2
-                        ? parseFloat(b[property]) - parseFloat(a[property])
-                        : parseFloat(a[property]) - parseFloat(b[property]);
-                } else {
-                    if (b[property] > a[property]) {
-                        return sort === 2 ? 1 : -1;
-                    } else if (b[property] == a[property]) {
-                        return 0;
-                    } else {
-                        return sort === 2 ? -1 : 1;
-                    }
-                }
-            };
+  sortByColumn(detail: any) {
+    function compare(property: any, sort: any, type: any) {
+      return function (a: SelectionData | any, b: SelectionData | any) {
+        if (a.process == ' ' || b.process == ' ') {
+          return 0;
         }
-
-        if (
-            detail.key === 'name' ||
-            detail.key === 'thread' ||
-            detail.key === 'state'
-        ) {
-            this.source.sort(compare(detail.key, detail.sort, 'string'));
+        if (type === 'number') {
+          return sort === 2
+            ? parseFloat(b[property]) - parseFloat(a[property])
+            : parseFloat(a[property]) - parseFloat(b[property]);
         } else {
-            this.source.sort(compare(detail.key, detail.sort, 'number'));
+          if (b[property] > a[property]) {
+            return sort === 2 ? 1 : -1;
+          } else if (b[property] == a[property]) {
+            return 0;
+          } else {
+            return sort === 2 ? -1 : 1;
+          }
         }
-        this.tbl!.recycleDataSource = this.source;
+      };
     }
+
+    if (detail.key === 'name' || detail.key === 'thread' || detail.key === 'state') {
+      this.source.sort(compare(detail.key, detail.sort, 'string'));
+    } else {
+      this.source.sort(compare(detail.key, detail.sort, 'number'));
+    }
+    this.tbl!.recycleDataSource = this.source;
+  }
 }

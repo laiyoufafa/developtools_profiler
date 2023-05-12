@@ -17,26 +17,26 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-progress-bar')
 export class LitProgressBar extends BaseElement {
-    static get observedAttributes() {
-        return ['loading'];
+  static get observedAttributes() {
+    return ['loading'];
+  }
+
+  get loading(): boolean {
+    return this.hasAttribute('loading');
+  }
+
+  set loading(value: boolean) {
+    if (value) {
+      this.setAttribute('loading', '');
+    } else {
+      this.removeAttribute('loading');
     }
+  }
 
-    get loading(): boolean {
-        return this.hasAttribute('loading');
-    }
+  initElements(): void {}
 
-    set loading(value: boolean) {
-        if (value) {
-            this.setAttribute('loading', '');
-        } else {
-            this.removeAttribute('loading');
-        }
-    }
-
-    initElements(): void {}
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
             :host{
                 width: 100%;
@@ -82,5 +82,5 @@ export class LitProgressBar extends BaseElement {
             <div class="track2"></div>
         </div>
         `;
-    }
+  }
 }

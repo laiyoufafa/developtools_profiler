@@ -22,34 +22,34 @@ const sqlite = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('SpClockChart Test', () => {
-    let clockChart = new SpClockChart(new SpChartManager());
+  let clockChart = new SpClockChart(new SpChartManager());
 
-    let queryClock = sqlite.queryClockData;
-    let queryClockData = [
-        {
-            name: 'Frequency',
-            num: 20,
-        },
-        {
-            name: 'State',
-            num: 10,
-        },
-        {
-            name: 'ScreenState',
-            num: 10,
-        },
-    ];
-    queryClock.mockResolvedValue(queryClockData);
+  let queryClock = sqlite.queryClockData;
+  let queryClockData = [
+    {
+      name: 'Frequency',
+      num: 20,
+    },
+    {
+      name: 'State',
+      num: 10,
+    },
+    {
+      name: 'ScreenState',
+      num: 10,
+    },
+  ];
+  queryClock.mockResolvedValue(queryClockData);
 
-    it('SpClockChart01', function () {
-        expect(clockChart.init()).toBeDefined();
-    });
+  it('SpClockChart01', function () {
+    expect(clockChart.init()).toBeDefined();
+  });
 });

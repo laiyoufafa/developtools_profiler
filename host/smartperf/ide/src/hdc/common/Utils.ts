@@ -17,42 +17,42 @@ import { FormatCommand } from '../hdcclient/FormatCommand.js';
 import { warn } from '../../log/Log.js';
 
 export class Utils {
-    private static localId = 1;
+  private static localId = 1;
 
-    public static getSessionId(): number {
-        return Math.round(Math.random() * 100000000);
-    }
+  public static getSessionId(): number {
+    return Math.round(Math.random() * 100000000);
+  }
 
-    public static getLocalId(): number {
-        if (this.localId == 4294967295) {
-            this.localId = 1;
-        }
-        return this.localId++;
+  public static getLocalId(): number {
+    if (this.localId == 4294967295) {
+      this.localId = 1;
     }
+    return this.localId++;
+  }
 
-    public static formatCommand(cmd: string): FormatCommand {
-        let command = cmd;
-        if (cmd.startsWith('hdc_std')) {
-            command = command.substring('hdc_std '.length);
-        } else if (cmd.startsWith('hdc')) {
-            command = command.substring('hdc '.length);
-        }
-        let formatCommand = FormatCommand.string2FormatCommand(command);
-        // formatCommand Success
-        if (formatCommand.cmdFlag <= -1) {
-            warn('command : ' + command + ' is not Support');
-        }
-        return formatCommand;
+  public static formatCommand(cmd: string): FormatCommand {
+    let command = cmd;
+    if (cmd.startsWith('hdc_std')) {
+      command = command.substring('hdc_std '.length);
+    } else if (cmd.startsWith('hdc')) {
+      command = command.substring('hdc '.length);
     }
+    let formatCommand = FormatCommand.string2FormatCommand(command);
+    // formatCommand Success
+    if (formatCommand.cmdFlag <= -1) {
+      warn('command : ' + command + ' is not Support');
+    }
+    return formatCommand;
+  }
 
-    public static numToHexString(num: number): string {
-        if (num == undefined || num == null || isNaN(num)) {
-            return '0x0';
-        }
-        if (num < 0) {
-            return '0x' + (num >>> 0).toString(16);
-        } else {
-            return '0x' + num.toString(16);
-        }
+  public static numToHexString(num: number): string {
+    if (num == undefined || num == null || isNaN(num)) {
+      return '0x0';
     }
+    if (num < 0) {
+      return '0x' + (num >>> 0).toString(16);
+    } else {
+      return '0x' + num.toString(16);
+    }
+  }
 }

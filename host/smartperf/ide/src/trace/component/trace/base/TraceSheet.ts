@@ -41,7 +41,7 @@ import { threadPool } from '../../../database/SqlLite.js';
 import { HeapSnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
 import { TabPaneComparison } from '../sheet/snapshot/TabPaneComparison.js';
 import { TabPaneSummary } from '../sheet/snapshot/TabPaneSummary.js';
-import { TabPaneNMStatisticAnalysis } from "../sheet/native-memory/TabPaneNMStatisticAnalysis.js";
+import { TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStatisticAnalysis.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -222,7 +222,8 @@ export class TraceSheet extends BaseElement {
     };
     let tabsOpenUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#max-btn');
     let tabsPackUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#min-btn');
-    let importFileBt: HTMLInputElement | undefined | null = this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
+    let importFileBt: HTMLInputElement | undefined | null =
+      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     let exportDataBt: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = () => {
       tabs!.style.height = window.innerHeight - search!.offsetHeight - timerShaft!.offsetHeight - borderTop + 'px';
@@ -255,23 +256,23 @@ export class TraceSheet extends BaseElement {
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = initialHeight.node));
       }
     };
-    importFileBt!.addEventListener('change',() => {
+    importFileBt!.addEventListener('change', () => {
       let files = importFileBt?.files;
       if (files) {
-        let fileList:Array<File> = [];
+        let fileList: Array<File> = [];
         for (let file of files) {
           if (file.name.endsWith('.so')) {
             fileList.push(file);
           }
         }
         threadPool.submit(
-            'upload-so',
-            '',
-            fileList,
-            (res: any) => {
-              window.publish(window.SmartEvent.UI.UploadSOFile,{});
-            },
-            'upload-so'
+          'upload-so',
+          '',
+          fileList,
+          (res: any) => {
+            window.publish(window.SmartEvent.UI.UploadSOFile, {});
+          },
+          'upload-so'
         );
       }
     });
@@ -348,7 +349,7 @@ export class TraceSheet extends BaseElement {
     val.nativeMemory = [];
     val.leftNs = data.startTime!;
     val.rightNs = data.startTime! + data.dur!;
-    this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis','box-native-calltree').data = val;
+    this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
   };
 
   displayFuncData = (data: FuncStruct, scrollCallback: Function) =>
@@ -374,7 +375,9 @@ export class TraceSheet extends BaseElement {
         dataList,
         scrollCallback
       );
-      let nav = this.shadowRoot!.querySelector('#tabs')!.shadowRoot!.querySelector('#nav > div:nth-child(62)') as  HTMLDivElement;
+      let nav = this.shadowRoot!.querySelector('#tabs')!.shadowRoot!.querySelector(
+        '#nav > div:nth-child(62)'
+      ) as HTMLDivElement;
       let tabPaneComparison = this.shadowRoot!.querySelector(
         '#box-heap-comparison > tabpane-comparison'
       ) as TabPaneComparison;

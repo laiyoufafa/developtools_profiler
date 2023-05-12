@@ -725,6 +725,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let analysisSampleList = new Array<AnalysisSample>();
     samples.forEach((sample, idx, _) => {
       let applySample = sample;
+	  // @ts-ignore
       if (['FreeEvent', 'MunmapEvent'].includes(sample.eventType)) {
         applySample = this.releaseSetApplyCallChain(idx, samples);
         if (!applySample) return;

@@ -17,11 +17,11 @@
 import { HdcDeviceManager } from '../../dist/hdc/HdcDeviceManager.js';
 
 describe('HdcDeviceManager', () => {
-    it('HdcDeviceManagerTest_01', () => {
-        expect(HdcDeviceManager.disConnect(1)).toBeTruthy();
-    });
+  it('HdcDeviceManagerTest_01', () => {
+    expect(HdcDeviceManager.disConnect(1)).toBeTruthy();
+  });
 
-    it('HdcDeviceManagerTest_02', () => {
-        expect(HdcDeviceManager.fileRecv('1')).toBeTruthy();
-    });
+  it('HdcDeviceManagerTest_02', () => {
+    expect(HdcDeviceManager.fileRecv('1')).toBeTruthy();
+  });
 });

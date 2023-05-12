@@ -13,35 +13,32 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {
-    AsyncQueue,
-    DataMessageQueue,
-} from '../../../dist/hdc/hdcclient/AsyncQueue.js';
+import { AsyncQueue, DataMessageQueue } from '../../../dist/hdc/hdcclient/AsyncQueue.js';
 
 describe('AsyncQueueTest', () => {
-    let queue = new DataMessageQueue();
+  let queue = new DataMessageQueue();
+  let dataMessageQueue = new DataMessageQueue();
+  let asqueue = new AsyncQueue();
+  it('AsyncQueueTest_DataMessageQueue_01', () => {
+    expect(queue.push('abc')).toEqual(true);
+  });
+
+  it('AsyncQueueTest_DataMessageQueue_02', () => {
+    expect(queue.size()).toEqual(1);
+  });
+
+  it('AsyncQueueTest_DataMessageQueue_03', () => {
+    expect(queue.pop()).toEqual('abc');
+  });
+
+  it('AsyncQueueTest_DataMessageQueue_04', () => {
+    expect(queue.push(null)).toEqual(false);
+  });
+
+  it('AsyncQueueTest_AsyncQueue_01', () => {
     let dataMessageQueue = new DataMessageQueue();
-    let asqueue = new AsyncQueue();
-    it('AsyncQueueTest_DataMessageQueue_01', () => {
-        expect(queue.push('abc')).toEqual(true);
-    });
-
-    it('AsyncQueueTest_DataMessageQueue_02', () => {
-        expect(queue.size()).toEqual(1);
-    });
-
-    it('AsyncQueueTest_DataMessageQueue_03', () => {
-        expect(queue.pop()).toEqual('abc');
-    });
-
-    it('AsyncQueueTest_DataMessageQueue_04', () => {
-        expect(queue.push(null)).toEqual(false);
-    });
-
-    it('AsyncQueueTest_AsyncQueue_01', () => {
-        let dataMessageQueue = new DataMessageQueue();
-        dataMessageQueue.push('aaa');
-        asqueue.enqueue(dataMessageQueue);
-        expect(asqueue.dequeue()).toBeTruthy();
-    });
+    dataMessageQueue.push('aaa');
+    asqueue.enqueue(dataMessageQueue);
+    expect(asqueue.dequeue()).toBeTruthy();
+  });
 });

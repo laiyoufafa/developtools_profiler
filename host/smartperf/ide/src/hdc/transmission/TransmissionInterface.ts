@@ -14,7 +14,7 @@
  */
 
 export interface TransmissionInterface {
-    writeData(writeData: ArrayBuffer): Promise<void>;
-    readData(length: number): Promise<DataView>;
-    close(): Promise<void>;
+  writeData(writeData: ArrayBuffer): Promise<void>;
+  readData(length: number): Promise<DataView>;
+  close(): Promise<void>;
 }

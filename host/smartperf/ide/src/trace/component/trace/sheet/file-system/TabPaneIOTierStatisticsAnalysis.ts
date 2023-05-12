@@ -681,8 +681,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       let libName = '';
       for (let item of value) {
         dur += item.dur;
-        if(key == null){
-          item.libName = 'unkown'
+        if (key == null) {
+          item.libName = 'unkown';
         }
         libName = item.libName;
       }
@@ -824,14 +824,14 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     }
     return releaseType;
   }
-  totalDurationData(duration:any){
+  totalDurationData(duration: any) {
     let allDuration;
     allDuration = {
       durFormat: Utils.getProbablyTime(duration),
-      percent:((duration / duration) * 100).toFixed(2),
+      percent: ((duration / duration) * 100).toFixed(2),
       tableName: '',
       duration: 0,
-      allDuration:duration,
+      allDuration: duration,
     };
     return allDuration;
   }

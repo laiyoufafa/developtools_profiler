@@ -379,7 +379,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
           this.getVirtualMemoryFunction(it, val);
           this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent =
             // @ts-ignore
-            this.processName + ' / ' + this.typeName + ' / ' + this.threadName +  ' / ' + it.tableName;
+            this.processName + ' / ' + this.typeName + ' / ' + this.threadName + ' / ' + it.tableName;
         }
       },
       hoverHandler: (data) => {
@@ -682,8 +682,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       let libName = '';
       for (let item of value) {
         dur += item.dur;
-        if(key == null){
-          item.libName = 'unkown'
+        if (key == null) {
+          item.libName = 'unkown';
         }
         libName = item.libName;
       }
@@ -822,11 +822,11 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     }
     return releaseType;
   }
-  totalDurationData(duration:any){
+  totalDurationData(duration: any) {
     let allDuration;
     allDuration = {
       durFormat: Utils.getProbablyTime(duration),
-      percent:((duration / duration) * 100).toFixed(2),
+      percent: ((duration / duration) * 100).toFixed(2),
       tableName: '',
       duration: 0,
     };

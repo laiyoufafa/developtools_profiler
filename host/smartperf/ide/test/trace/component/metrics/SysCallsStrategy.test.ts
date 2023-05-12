@@ -16,17 +16,17 @@
 import { initSysCallsStrategy } from '../../../../dist/trace/component/metrics/SysCallsStrategy.js';
 
 describe('SysCallsStrategy Test', () => {
-    const metricData = [
-        {
-            length: 1,
-            funName: 'name',
-            maxDur: '',
-            minDur: '',
-            avgDur: '',
-        },
-    ];
+  const metricData = [
+    {
+      length: 1,
+      funName: 'name',
+      maxDur: '',
+      minDur: '',
+      avgDur: '',
+    },
+  ];
 
-    it('initMetaDataStrategyTest01', () => {
-        expect(initSysCallsStrategy(metricData)).toBeTruthy();
-    });
+  it('initMetaDataStrategyTest01', () => {
+    expect(initSysCallsStrategy(metricData)).toBeTruthy();
+  });
 });

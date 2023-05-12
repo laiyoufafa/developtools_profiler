@@ -29,128 +29,118 @@ import { HdcStream } from './HdcStream.js';
 import { toHex16 } from '../common/BaseConversion.js';
 
 export class HdcClient implements DataListener {
+  // @ts-ignore
+  usbDevice: USBDevice | undefined;
+  sessionId: number = 0;
+  private transmissionChannel: TransmissionInterface;
+  public readDataProcessing: DataProcessing;
+  private stream: HdcStream | undefined | null;
+  private hdcStopStream: HdcStream | undefined | null;
+  private cmdStream: number = -1;
+  private stopStream: number = -1;
+
+  constructor(
+    transmissionChannel: TransmissionInterface,
     // @ts-ignore
-    usbDevice: USBDevice | undefined;
-    sessionId: number = 0;
-    private transmissionChannel: TransmissionInterface;
-    public readDataProcessing: DataProcessing;
-    private stream: HdcStream | undefined | null;
-    private hdcStopStream: HdcStream | undefined | null;
-    private cmdStream: number = -1;
-    private stopStream: number = -1;
+    usbDevice: USBDevice | undefined
+  ) {
+    this.transmissionChannel = transmissionChannel;
+    this.usbDevice = usbDevice;
+    this.readDataProcessing = new DataProcessing(this, transmissionChannel);
+  }
 
-    constructor(
-        transmissionChannel: TransmissionInterface,
-        // @ts-ignore
-        usbDevice: USBDevice | undefined
-    ) {
-        this.transmissionChannel = transmissionChannel;
-        this.usbDevice = usbDevice;
-        this.readDataProcessing = new DataProcessing(this, transmissionChannel);
-    }
-
-    async connectDevice(): Promise<boolean> {
-        debug('start Connect Device');
-        this.sessionId = Utils.getSessionId();
-        log('sessionId is ' + this.sessionId);
-        // @ts-ignore
-        let handShake: SessionHandShake = new SessionHandShake(
-            HANDSHAKE_MESSAGE,
-            AuthType.AUTH_NONE,
-            this.sessionId,
-			// @ts-ignore
-            this.usbDevice.serialNumber,
-            ''
+  async connectDevice(): Promise<boolean> {
+    debug('start Connect Device');
+    this.sessionId = Utils.getSessionId();
+    log('sessionId is ' + this.sessionId);
+    // @ts-ignore
+    let handShake: SessionHandShake = new SessionHandShake(
+      HANDSHAKE_MESSAGE,
+      AuthType.AUTH_NONE,
+      this.sessionId,
+      // @ts-ignore
+      this.usbDevice.serialNumber,
+      ''
+    );
+    let hs = Serialize.serializeSessionHandShake(handShake);
+    debug('start Connect hs ', hs);
+    let sendResult = await this.readDataProcessing.send(
+      handShake.sessionId,
+      0,
+      HdcCommand.CMD_KERNEL_HANDSHAKE,
+      hs,
+      hs.length
+    );
+    if (sendResult) {
+      let handShake = await this.readDataProcessing.readUsbHead();
+      let handBody = await this.readDataProcessing.readBody(handShake!.dataSize);
+      if (this.sessionId == handShake!.sessionId) {
+        debug('handShake: ', handShake);
+        let playHeadArray = handBody.buffer.slice(0, PayloadHead.getPayloadHeadLength());
+        let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
+        debug('resultPayloadHead is ', resultPayloadHead);
+        let headSize = resultPayloadHead.headSize;
+        let dataSize = resultPayloadHead.dataSize;
+        let resPlayProtectBuffer = handBody.buffer.slice(
+          PayloadHead.getPayloadHeadLength(),
+          PayloadHead.getPayloadHeadLength() + headSize
         );
-        let hs = Serialize.serializeSessionHandShake(handShake);
-        debug('start Connect hs ', hs);
-        let sendResult = await this.readDataProcessing.send(
-            handShake.sessionId,
-            0,
-            HdcCommand.CMD_KERNEL_HANDSHAKE,
-            hs,
-            hs.length
+        debug('PlayProtect is ', resPlayProtectBuffer);
+        let resData = handBody.buffer.slice(
+          PayloadHead.getPayloadHeadLength() + headSize,
+          PayloadHead.getPayloadHeadLength() + headSize + dataSize
         );
-        if (sendResult) {
-            let handShake = await this.readDataProcessing.readUsbHead();
-            let handBody = await this.readDataProcessing.readBody(
-                handShake!.dataSize
-            );
-            if (this.sessionId == handShake!.sessionId) {
-                debug('handShake: ', handShake);
-                let playHeadArray = handBody.buffer.slice(
-                    0,
-                    PayloadHead.getPayloadHeadLength()
-                );
-                let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(
-                    new DataView(playHeadArray)
-                );
-                debug('resultPayloadHead is ', resultPayloadHead);
-                let headSize = resultPayloadHead.headSize;
-                let dataSize = resultPayloadHead.dataSize;
-                let resPlayProtectBuffer = handBody.buffer.slice(
-                    PayloadHead.getPayloadHeadLength(),
-                    PayloadHead.getPayloadHeadLength() + headSize
-                );
-                debug('PlayProtect is ', resPlayProtectBuffer);
-                let resData = handBody.buffer.slice(
-                    PayloadHead.getPayloadHeadLength() + headSize,
-                    PayloadHead.getPayloadHeadLength() + headSize + dataSize
-                );
-                debug('resData is ', resData);
-                this.readDataProcessing.startReadData().then(() => {});
-                return true;
-            } else {
-                log(
-                    'session is not eq handShake?.sessionId is : ' +
-                        handShake?.sessionId +
-                        ' now session is ' +
-                        this.sessionId
-                );
-                return false;
-            }
-        } else {
-            return false;
-        }
+        debug('resData is ', resData);
+        this.readDataProcessing.startReadData().then(() => {});
+        return true;
+      } else {
+        log(
+          'session is not eq handShake?.sessionId is : ' + handShake?.sessionId + ' now session is ' + this.sessionId
+        );
+        return false;
+      }
+    } else {
+      return false;
     }
+  }
 
-    public async disconnect(): Promise<void> {
-        try {
-            await this.transmissionChannel.close();
-            this.readDataProcessing.stopReadData();
-        } catch (e) {}
-    }
+  public async disconnect(): Promise<void> {
+    try {
+      await this.transmissionChannel.close();
+      this.readDataProcessing.stopReadData();
+    } catch (e) {}
+  }
 
-    public bindStream(channel: number, hdcStream: HdcStream) {
-        this.cmdStream = channel;
-        this.stream = hdcStream;
-    }
+  public bindStream(channel: number, hdcStream: HdcStream) {
+    this.cmdStream = channel;
+    this.stream = hdcStream;
+  }
 
-    public bindStopStream(channel: number, hdcStopStream: HdcStream) {
-        this.stopStream = channel;
-        this.hdcStopStream = hdcStopStream;
-    }
+  public bindStopStream(channel: number, hdcStopStream: HdcStream) {
+    this.stopStream = channel;
+    this.hdcStopStream = hdcStopStream;
+  }
 
-    public unbindStream(channel: number): boolean {
-        this.stream = null;
-        return this.stream == null;
-    }
+  public unbindStream(channel: number): boolean {
+    this.stream = null;
+    return this.stream == null;
+  }
 
-    public unbindStopStream(channel: number): boolean {
-        this.hdcStopStream = null;
-        return this.hdcStopStream == null;
-    }
+  public unbindStopStream(channel: number): boolean {
+    this.hdcStopStream = null;
+    return this.hdcStopStream == null;
+  }
 
-    createDataMessage(data: DataMessage): void {
-        if (this.hdcStopStream && data.getChannelId() == this.stopStream) {
-            this.hdcStopStream.putMessageInQueue(data);
-        }
-        if (this.stream && data.getChannelId() == this.cmdStream) {
-            this.stream.putMessageInQueue(data);
-        }
-        if (data.getChannelId() == -1) {
-            this.stream?.putMessageInQueue(data);
-            this.hdcStopStream?.putMessageInQueue(data);
-        }
+  createDataMessage(data: DataMessage): void {
+    if (this.hdcStopStream && data.getChannelId() == this.stopStream) {
+      this.hdcStopStream.putMessageInQueue(data);
     }
+    if (this.stream && data.getChannelId() == this.cmdStream) {
+      this.stream.putMessageInQueue(data);
+    }
+    if (data.getChannelId() == -1) {
+      this.stream?.putMessageInQueue(data);
+      this.hdcStopStream?.putMessageInQueue(data);
+    }
+  }
 }

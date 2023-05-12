@@ -600,7 +600,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       this.typeData.push(typeData);
     });
     this.typeData.sort((a, b) => b.duration - a.duration);
-    this.typeStatisticsData =this.totalDurationData(allDur);
+    this.typeStatisticsData = this.totalDurationData(allDur);
     this.currentLevel = 1;
     this.typePieChart(val);
     this.progressEL!.loading = false;
@@ -684,8 +684,8 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       let libName = '';
       for (let item of value) {
         dur += item.dur;
-        if(key == null){
-          item.libName = 'unkown'
+        if (key == null) {
+          item.libName = 'unkown';
         }
         libName = item.libName;
       }
@@ -828,11 +828,11 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     }
     return releaseType;
   }
-  totalDurationData(duration:any){
+  totalDurationData(duration: any) {
     let allDuration;
     allDuration = {
       durFormat: Utils.getProbablyTime(duration),
-      percent:((duration / duration) * 100).toFixed(2),
+      percent: ((duration / duration) * 100).toFixed(2),
       tableName: '',
       duration: 0,
     };

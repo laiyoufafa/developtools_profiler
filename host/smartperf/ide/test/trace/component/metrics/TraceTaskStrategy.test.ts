@@ -16,15 +16,15 @@
 import { initTraceTaskStrategy } from '../../../../dist/trace/component/metrics/TraceTaskStrategy.js';
 
 describe('TraceTaskStrategy Test', () => {
-    let metricData = [
-        {
-            length: 1,
-            process_name: '',
-            thread_name: '',
-            pid: 3,
-        },
-    ];
-    it('initTraceTaskStrategyTest01', () => {
-        expect(initTraceTaskStrategy(metricData)).toBeTruthy();
-    });
+  let metricData = [
+    {
+      length: 1,
+      process_name: '',
+      thread_name: '',
+      pid: 3,
+    },
+  ];
+  it('initTraceTaskStrategyTest01', () => {
+    expect(initTraceTaskStrategy(metricData)).toBeTruthy();
+  });
 });

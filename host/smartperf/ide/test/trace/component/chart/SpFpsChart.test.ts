@@ -22,21 +22,21 @@ const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('spFpsChart Test', () => {
-    let spFpsChart = new SpFpsChart(new SpChartManager());
-    let fpsMock = sqlit.getFps;
-    fpsMock.mockResolvedValue([
-        { startNS: 0, fps: 1 },
-        { startNS: 2, fps: 3 },
-    ]);
+  let spFpsChart = new SpFpsChart(new SpChartManager());
+  let fpsMock = sqlit.getFps;
+  fpsMock.mockResolvedValue([
+    { startNS: 0, fps: 1 },
+    { startNS: 2, fps: 3 },
+  ]);
 
-    it('spFpsChart01', function () {
-        expect(spFpsChart.init()).toBeDefined();
-    });
+  it('spFpsChart01', function () {
+    expect(spFpsChart.init()).toBeDefined();
+  });
 });

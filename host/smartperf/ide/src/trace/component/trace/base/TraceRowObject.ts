@@ -17,49 +17,49 @@ import { Rect } from '../timer-shaft/Rect.js';
 import { TraceRow } from './TraceRow.js';
 
 export class TraceRowObject<T extends BaseStruct> {
-    public rowId: string | undefined;
-    public rowType: string | undefined;
-    public rowParentId: string | undefined;
-    public rowHidden: boolean = false;
-    public rowHeight: number = 40;
-    public name: string | undefined;
-    public must: boolean = true;
-    public folder: boolean = false;
-    public isLoading: boolean = false;
-    public children: boolean = false;
-    public expansion: boolean = false;
-    public dataList: Array<T> | undefined;
-    public dataListCache: Array<T> = [];
-    public color: string | undefined;
-    public frame: Rect | undefined;
-    public supplier: (() => Promise<Array<T>>) | undefined | null;
-    public onThreadHandler:
-        | ((
-              row: TraceRow<T>,
-              ctx:
-                  | ImageBitmapRenderingContext
-                  | CanvasRenderingContext2D
-                  | WebGLRenderingContext
-                  | WebGL2RenderingContext
-                  | null
-                  | undefined
-          ) => void)
-        | undefined
-        | null;
-    public onDrawHandler:
-        | ((
-              ctx:
-                  | ImageBitmapRenderingContext
-                  | CanvasRenderingContext2D
-                  | WebGLRenderingContext
-                  | WebGL2RenderingContext
-                  | null
-                  | undefined
-          ) => void)
-        | undefined
-        | null;
-    public top: number = 0;
-    public rowIndex: number = 0;
-    public preObject: TraceRowObject<T> | undefined | null;
-    public nextObject: TraceRowObject<T> | undefined | null;
+  public rowId: string | undefined;
+  public rowType: string | undefined;
+  public rowParentId: string | undefined;
+  public rowHidden: boolean = false;
+  public rowHeight: number = 40;
+  public name: string | undefined;
+  public must: boolean = true;
+  public folder: boolean = false;
+  public isLoading: boolean = false;
+  public children: boolean = false;
+  public expansion: boolean = false;
+  public dataList: Array<T> | undefined;
+  public dataListCache: Array<T> = [];
+  public color: string | undefined;
+  public frame: Rect | undefined;
+  public supplier: (() => Promise<Array<T>>) | undefined | null;
+  public onThreadHandler:
+    | ((
+        row: TraceRow<T>,
+        ctx:
+          | ImageBitmapRenderingContext
+          | CanvasRenderingContext2D
+          | WebGLRenderingContext
+          | WebGL2RenderingContext
+          | null
+          | undefined
+      ) => void)
+    | undefined
+    | null;
+  public onDrawHandler:
+    | ((
+        ctx:
+          | ImageBitmapRenderingContext
+          | CanvasRenderingContext2D
+          | WebGLRenderingContext
+          | WebGL2RenderingContext
+          | null
+          | undefined
+      ) => void)
+    | undefined
+    | null;
+  public top: number = 0;
+  public rowIndex: number = 0;
+  public preObject: TraceRowObject<T> | undefined | null;
+  public nextObject: TraceRowObject<T> | undefined | null;
 }

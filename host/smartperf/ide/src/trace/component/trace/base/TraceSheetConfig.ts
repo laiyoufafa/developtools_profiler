@@ -72,9 +72,9 @@ import { TabPaneSummary } from '../sheet/snapshot/TabPaneSummary.js';
 import { TabPaneComparison } from '../sheet/snapshot/TabPaneComparison.js';
 import { TabPanePerfAnalysis } from '../sheet/hiperf/TabPanePerfAnalysis.js';
 import { TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStatisticAnalysis.js';
-import {TabPaneFilesystemStatisticsAnalysis} from "../sheet/file-system/TabPaneFilesystemStatisticsAnalysis.js";
+import { TabPaneFilesystemStatisticsAnalysis } from '../sheet/file-system/TabPaneFilesystemStatisticsAnalysis.js';
 import { TabPaneIOTierStatisticsAnalysis } from '../sheet/file-system/TabPaneIOTierStatisticsAnalysis.js';
-import {TabPaneVirtualMemoryStatisticsAnalysis} from "../sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis.js";
+import { TabPaneVirtualMemoryStatisticsAnalysis } from '../sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis.js';
 export let tabConfig: any = {
   'current-selection': {
     title: 'Current Selection',

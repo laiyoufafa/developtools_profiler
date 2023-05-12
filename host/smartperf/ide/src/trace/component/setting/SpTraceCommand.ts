@@ -15,78 +15,74 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement.js';
 import { info } from '../../../log/Log.js';
-import { SpStatisticsHttpUtil } from "../../../statistics/util/SpStatisticsHttpUtil.js";
-import { PluginConvertUtils } from "./utils/PluginConvertUtils.js";
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil.js';
+import { PluginConvertUtils } from './utils/PluginConvertUtils.js';
 
 @element('trace-command')
 export class SpTraceCommand extends BaseElement {
-    private codeHl: HTMLTextAreaElement | undefined | null;
-    private copyEl: HTMLElement | undefined | null;
-    private codeCopyText: HTMLInputElement | undefined;
+  private codeHl: HTMLTextAreaElement | undefined | null;
+  private copyEl: HTMLElement | undefined | null;
+  private codeCopyText: HTMLInputElement | undefined;
 
-    set show(show: boolean) {
-        if (show) {
-            this.setAttribute('show', '');
-        } else {
-            this.removeAttribute('show');
-        }
+  set show(show: boolean) {
+    if (show) {
+      this.setAttribute('show', '');
+    } else {
+      this.removeAttribute('show');
     }
+  }
 
-    get show() {
-        return this.hasAttribute('show');
-    }
+  get show() {
+    return this.hasAttribute('show');
+  }
 
-    get hdcCommon(): string {
-        return this.codeHl!.textContent + '';
-    }
+  get hdcCommon(): string {
+    return this.codeHl!.textContent + '';
+  }
 
-    set hdcCommon(value: string) {
-        info('hdc Common is:', value);
-        this.codeHl!.textContent = value;
-    }
+  set hdcCommon(value: string) {
+    info('hdc Common is:', value);
+    this.codeHl!.textContent = value;
+  }
 
-    //当 custom element首次被插入文档DOM时，被调用。
-    public connectedCallback() {
-        this.codeHl!.textContent = '';
-        this.copyEl?.addEventListener('click', this.codeCopyEvent);
-        this.codeHl?.addEventListener('selectionchange', this.textSelectEvent);
-    }
+  //当 custom element首次被插入文档DOM时，被调用。
+  public connectedCallback() {
+    this.codeHl!.textContent = '';
+    this.copyEl?.addEventListener('click', this.codeCopyEvent);
+    this.codeHl?.addEventListener('selectionchange', this.textSelectEvent);
+  }
 
-    public disconnectedCallback() {
-        this.copyEl?.removeEventListener('click', this.codeCopyEvent);
-    }
+  public disconnectedCallback() {
+    this.copyEl?.removeEventListener('click', this.codeCopyEvent);
+  }
 
-    codeCopyEvent = (event: any) => {
-        this.codeHl?.select();
-        document.execCommand('copy');
-        let allPlugin: Array<string> = [];
-        PluginConvertUtils.pluginConfig.forEach(plugin => {
-            allPlugin.push(plugin.pluginName);
-        });
-        SpStatisticsHttpUtil.addOrdinaryVisitAction({
-            action: 'config_page',
-            event: 'offline_record',
-            eventData: {
-                plugin: allPlugin,
-            }
-        });
-    };
+  codeCopyEvent = (event: any) => {
+    this.codeHl?.select();
+    document.execCommand('copy');
+    let allPlugin: Array<string> = [];
+    PluginConvertUtils.pluginConfig.forEach((plugin) => {
+      allPlugin.push(plugin.pluginName);
+    });
+    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+      action: 'config_page',
+      event: 'offline_record',
+      eventData: {
+        plugin: allPlugin,
+      },
+    });
+  };
 
-    textSelectEvent = (event: any) => {
-        this.copyEl!.style.backgroundColor = '#FFFFFF';
-    };
+  textSelectEvent = (event: any) => {
+    this.copyEl!.style.backgroundColor = '#FFFFFF';
+  };
 
-    initElements(): void {
-        this.codeHl = this.shadowRoot?.querySelector(
-            '#code-text'
-        ) as HTMLTextAreaElement;
-        this.copyEl = this.shadowRoot?.querySelector(
-            '#copy-image'
-        ) as HTMLElement;
-    }
+  initElements(): void {
+    this.codeHl = this.shadowRoot?.querySelector('#code-text') as HTMLTextAreaElement;
+    this.copyEl = this.shadowRoot?.querySelector('#copy-image') as HTMLElement;
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             width: 100%;
@@ -197,5 +193,5 @@ export class SpTraceCommand extends BaseElement {
             <button id="stop-button">Stop Cmd</button>
         </div>
         `;
-    }
+  }
 }

@@ -18,45 +18,45 @@ import { LitRadioGroup } from './LitRadioGroup.js';
 
 @element('lit-radio')
 export class LitRadioBox extends BaseElement {
-    private group: LitRadioGroup | undefined | null;
-    private parent: LitRadioGroup | undefined | null;
-    private radio: HTMLInputElement | undefined | null;
+  private group: LitRadioGroup | undefined | null;
+  private parent: LitRadioGroup | undefined | null;
+  private radio: HTMLInputElement | undefined | null;
 
-    static get observedAttributes() {
-        return ['checked', 'value'];
+  static get observedAttributes() {
+    return ['checked', 'value'];
+  }
+
+  get checked() {
+    return this.getAttribute('checked') !== null;
+  }
+
+  set checked(value: boolean) {
+    if (value === null || !value) {
+      this.removeAttribute('checked');
+    } else {
+      this.setAttribute('checked', '');
     }
+  }
 
-    get checked() {
-        return this.getAttribute('checked') !== null;
-    }
+  get name() {
+    return this.getAttribute('name');
+  }
 
-    set checked(value: boolean) {
-        if (value === null || !value) {
-            this.removeAttribute('checked');
-        } else {
-            this.setAttribute('checked', '');
-        }
-    }
+  get value() {
+    let slot = this.shadowRoot?.getElementById('slot');
+    return slot!.textContent || this.textContent || '';
+  }
 
-    get name() {
-        return this.getAttribute('name');
-    }
+  set value(value: string) {
+    this.setAttribute('value', value);
+  }
 
-    get value() {
-        let slot = this.shadowRoot?.getElementById('slot');
-        return slot!.textContent || this.textContent || '';
-    }
+  set dis(dis: string) {
+    this.setAttribute('dis', dis);
+  }
 
-    set value(value: string) {
-        this.setAttribute('value', value);
-    }
-
-    set dis(dis: string) {
-        this.setAttribute('dis', dis);
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host([dis=round]):host{ 
             font-family: Helvetica,serif;
@@ -191,42 +191,34 @@ export class LitRadioBox extends BaseElement {
             <slot id='slot'></slot>
         </label>
         `;
-    }
+  }
 
-    initElements(): void {
-        this.radio = this.shadowRoot?.getElementById(
-            'radio'
-        ) as HTMLInputElement;
-    }
+  initElements(): void {
+    this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
+  }
 
-    connectedCallback() {
-        this.group = this.closest('lit-radio-group') as LitRadioGroup;
-        this.parent = this.group || this.getRootNode();
-        this.radio = this.shadowRoot?.getElementById(
-            'radio'
-        ) as HTMLInputElement;
-        this.checked = this.checked;
-        this.radio.addEventListener('change', () => {
-            const selector = this.group
-                ? `lit-radio[checked]`
-                : `lit-radio[name="${this.name}"][checked]`;
-            const siblingNode = this.parent?.querySelector(
-                selector
-            ) as LitRadioBox;
-            if (siblingNode) {
-                siblingNode.checked = false;
-            }
-            this.checked = true;
-        });
-    }
+  connectedCallback() {
+    this.group = this.closest('lit-radio-group') as LitRadioGroup;
+    this.parent = this.group || this.getRootNode();
+    this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
+    this.checked = this.checked;
+    this.radio.addEventListener('change', () => {
+      const selector = this.group ? `lit-radio[checked]` : `lit-radio[name="${this.name}"][checked]`;
+      const siblingNode = this.parent?.querySelector(selector) as LitRadioBox;
+      if (siblingNode) {
+        siblingNode.checked = false;
+      }
+      this.checked = true;
+    });
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name == 'checked' && this.radio) {
-            this.radio.checked = newValue !== null;
-        }
-        if (name == 'value') {
-            let slot = this.shadowRoot?.getElementById('slot');
-            slot!.textContent = newValue;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name == 'checked' && this.radio) {
+      this.radio.checked = newValue !== null;
     }
+    if (name == 'value') {
+      let slot = this.shadowRoot?.getElementById('slot');
+      slot!.textContent = newValue;
+    }
+  }
 }

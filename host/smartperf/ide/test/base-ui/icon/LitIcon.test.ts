@@ -17,53 +17,53 @@
 import { LitIcon } from '../../../dist/base-ui/icon/LitIcon.js';
 
 describe('testLitIcon Test', () => {
-    it('testLitIcon01', () => {
-        let litIcon = new LitIcon();
-        expect(litIcon).not.toBeUndefined();
-        expect(litIcon).not.toBeNull();
-    });
+  it('testLitIcon01', () => {
+    let litIcon = new LitIcon();
+    expect(litIcon).not.toBeUndefined();
+    expect(litIcon).not.toBeNull();
+  });
 
-    it('testLitIcon02', () => {
-        let litIcon = new LitIcon();
-        expect(litIcon.path).toBeUndefined();
-    });
+  it('testLitIcon02', () => {
+    let litIcon = new LitIcon();
+    expect(litIcon.path).toBeUndefined();
+  });
 
-    it('testLitIcon03', () => {
-        let litIcon = new LitIcon();
-        litIcon.path = 'ss';
-        expect(litIcon.path).toBeUndefined();
-    });
+  it('testLitIcon03', () => {
+    let litIcon = new LitIcon();
+    litIcon.path = 'ss';
+    expect(litIcon.path).toBeUndefined();
+  });
 
-    it('testLitIcon04', () => {
-        let litIcon = new LitIcon();
-        expect(litIcon.size).toBe(0);
-    });
+  it('testLitIcon04', () => {
+    let litIcon = new LitIcon();
+    expect(litIcon.size).toBe(0);
+  });
 
-    it('testLitIcon05', () => {
-        let litIcon = new LitIcon();
-        litIcon.size = 1024;
-        expect(litIcon.size).toBe(1024);
-    });
+  it('testLitIcon05', () => {
+    let litIcon = new LitIcon();
+    litIcon.size = 1024;
+    expect(litIcon.size).toBe(1024);
+  });
 
-    it('testLitIcon06', () => {
-        let litIcon = new LitIcon();
-        expect(litIcon.name).toBe('');
-    });
+  it('testLitIcon06', () => {
+    let litIcon = new LitIcon();
+    expect(litIcon.name).toBe('');
+  });
 
-    it('testLitIcon07', () => {
-        let litIcon = new LitIcon();
-        litIcon.name = 'sss';
-        expect(litIcon.name).toBe('sss');
-    });
+  it('testLitIcon07', () => {
+    let litIcon = new LitIcon();
+    litIcon.name = 'sss';
+    expect(litIcon.name).toBe('sss');
+  });
 
-    it('testLitIcon07', () => {
-        let litIcon = new LitIcon();
-        expect((litIcon.color = '#FFF')).not.toBeUndefined();
-    });
+  it('testLitIcon07', () => {
+    let litIcon = new LitIcon();
+    expect((litIcon.color = '#FFF')).not.toBeUndefined();
+  });
 
-    it('testLitIcon07', () => {
-        let litIcon = new LitIcon();
-        expect(litIcon.initHtml()).toMatchInlineSnapshot(`
+  it('testLitIcon07', () => {
+    let litIcon = new LitIcon();
+    expect(litIcon.initHtml()).toMatchInlineSnapshot(`
 "
             <style>
                 :host{
@@ -93,5 +93,5 @@ describe('testLitIcon Test', () => {
             </svg>
             "
 `);
-    });
+  });
 });

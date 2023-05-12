@@ -14,18 +14,18 @@
  */
 
 export class CounterSummary {
-    value: number = 0;
-    ts: number = 0;
-    counter_id: number = 0;
+  value: number = 0;
+  ts: number = 0;
+  counter_id: number = 0;
 }
 
 export class SdkSliceSummary {
-    start_ts: number = 0;
-    startTime: number = 0;
-    end_ts: number = 0;
-    endTime: number = 0;
-    value: number = 0;
-    slice_id: number = 0;
-    slice_name: string = '';
-    slice_message: string = '';
+  start_ts: number = 0;
+  startTime: number = 0;
+  end_ts: number = 0;
+  endTime: number = 0;
+  value: number = 0;
+  slice_id: number = 0;
+  slice_name: string = '';
+  slice_message: string = '';
 }

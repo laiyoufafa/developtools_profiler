@@ -16,56 +16,56 @@
 import { Address, ProfilerClient } from './ProfilerClient.js';
 
 export class HiProfilerClient {
-    private _client: ProfilerClient;
-    private _address: Address;
+  private _client: ProfilerClient;
+  private _address: Address;
 
-    public constructor(clients: ProfilerClient, addr: Address) {
-        this._client = clients;
-        this._address = addr;
-    }
+  public constructor(clients: ProfilerClient, addr: Address) {
+    this._client = clients;
+    this._address = addr;
+  }
 
-    get client(): ProfilerClient {
-        return this._client;
-    }
+  get client(): ProfilerClient {
+    return this._client;
+  }
 
-    set client(value: ProfilerClient) {
-        this._client = value;
-    }
+  set client(value: ProfilerClient) {
+    this._client = value;
+  }
 
-    get address(): Address {
-        return this._address;
-    }
+  get address(): Address {
+    return this._address;
+  }
 
-    set address(value: Address) {
-        this._address = value;
-    }
+  set address(value: Address) {
+    this._address = value;
+  }
 
-    public getProfilerClient(): ProfilerClient {
-        return this._client;
-    }
+  public getProfilerClient(): ProfilerClient {
+    return this._client;
+  }
 
-    public getCapabilities() {
-        // this.client.start()
-        // this.client.getCapabilities(
-    }
+  public getCapabilities() {
+    // this.client.start()
+    // this.client.getCapabilities(
+  }
 
-    public createSession() {
-        // this.client.createSession(
-    }
+  public createSession() {
+    // this.client.createSession(
+  }
 
-    public startSession() {
-        // this.client.startSession(
-    }
+  public startSession() {
+    // this.client.startSession(
+  }
 
-    public stopSession() {
-        // this.client.stopSession(
-    }
+  public stopSession() {
+    // this.client.stopSession(
+  }
 
-    public destroySession() {
-        // this.client.destroySession(
-    }
+  public destroySession() {
+    // this.client.destroySession(
+  }
 
-    public keepSession() {
-        // this.client.keepSession(
-    }
+  public keepSession() {
+    // this.client.keepSession(
+  }
 }

@@ -570,6 +570,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.resetCurrentLevelData(item);
 
     for (let itemData of this.processData) {
+	  // @ts-ignore
       if (!types.includes(itemData.type)) {
         continue;
       }
@@ -614,6 +615,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.soData = [];
     if (!this.processData) return;
     for (let itemData of this.processData) {
+	  // @ts-ignore
       if (!types.includes(itemData.type)) {
         continue;
       }
@@ -666,6 +668,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       return;
     }
     for (let data of this.processData) {
+	  // @ts-ignore
       if (!types.includes(data.type) || data.libId !== libId) {
         continue;
       }
@@ -905,6 +908,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         sizeObj.releaseCount += item.releaseCount;
         sizeObj.releaseSize += item.releaseSize;
       } else {
+		// @ts-ignore
         if ([TYPE_ALLOC, TYPE_MAP].includes(item.type)) {
           sizeObj.applyCount += item.count;
           sizeObj.applySize += item.size;

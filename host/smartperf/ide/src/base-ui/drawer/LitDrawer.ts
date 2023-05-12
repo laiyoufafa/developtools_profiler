@@ -17,21 +17,12 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-drawer')
 export class LitDrawer extends BaseElement {
-    static get observedAttributes() {
-        return [
-            'title',
-            'visible',
-            'placement',
-            'mask',
-            'mask-closable',
-            'closeable',
-            'content-padding',
-            'content-width',
-        ];
-    }
+  static get observedAttributes() {
+    return ['title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -235,126 +226,122 @@ export class LitDrawer extends BaseElement {
             </div>
         </div>
         `;
+  }
+  get contentWidth() {
+    return this.getAttribute('content-width') || '400px';
+  }
+  set contentWidth(value) {
+    this.shadowRoot!.querySelector<HTMLDivElement>('.drawer')!.style.width = value;
+    this.setAttribute('content-width', value);
+  }
+  get contentPadding() {
+    return this.getAttribute('content-padding') || '20px';
+  }
+  set contentPadding(value) {
+    this.shadowRoot!.querySelector('slot')!.style.padding = value;
+    this.setAttribute('content-padding', value);
+  }
+  get placement() {
+    return this.getAttribute('placement');
+  }
+  set placement(value: any) {
+    this.setAttribute('placement', value);
+  }
+  get title() {
+    return this.getAttribute('title') || '';
+  }
+  set title(value) {
+    this.shadowRoot!.querySelector('#drawer-tittle-text')!.textContent = value;
+    this.setAttribute('title', value);
+  }
+  get visible() {
+    return this.getAttribute('visible') !== null;
+  }
+  set visible(value: any) {
+    if (value) {
+      this.setAttribute('visible', value);
+    } else {
+      this.removeAttribute('visible');
     }
-    get contentWidth() {
-        return this.getAttribute('content-width') || '400px';
+  }
+  get mask() {
+    return this.getAttribute('mask') !== null;
+  }
+  set mask(value) {
+    if (value) {
+      this.setAttribute('mask', '');
+    } else {
+      this.removeAttribute('mask');
     }
-    set contentWidth(value) {
-        this.shadowRoot!.querySelector<HTMLDivElement>('.drawer')!.style.width =
-            value;
-        this.setAttribute('content-width', value);
+  }
+  get maskCloseable() {
+    return this.getAttribute('mask-closeable') !== null;
+  }
+  set maskCloseable(value) {
+    if (value) {
+      this.setAttribute('mask-closeable', '');
+    } else {
+      this.removeAttribute('mask-closeable');
     }
-    get contentPadding() {
-        return this.getAttribute('content-padding') || '20px';
-    }
-    set contentPadding(value) {
-        this.shadowRoot!.querySelector('slot')!.style.padding = value;
-        this.setAttribute('content-padding', value);
-    }
-    get placement() {
-        return this.getAttribute('placement');
-    }
-    set placement(value: any) {
-        this.setAttribute('placement', value);
-    }
-    get title() {
-        return this.getAttribute('title') || '';
-    }
-    set title(value) {
-        this.shadowRoot!.querySelector('#drawer-tittle-text')!.textContent =
-            value;
-        this.setAttribute('title', value);
-    }
-    get visible() {
-        return this.getAttribute('visible') !== null;
-    }
-    set visible(value: any) {
-        if (value) {
-            this.setAttribute('visible', value);
-        } else {
-            this.removeAttribute('visible');
-        }
-    }
-    get mask() {
-        return this.getAttribute('mask') !== null;
-    }
-    set mask(value) {
-        if (value) {
-            this.setAttribute('mask', '');
-        } else {
-            this.removeAttribute('mask');
-        }
-    }
-    get maskCloseable() {
-        return this.getAttribute('mask-closeable') !== null;
-    }
-    set maskCloseable(value) {
-        if (value) {
-            this.setAttribute('mask-closeable', '');
-        } else {
-            this.removeAttribute('mask-closeable');
-        }
-    }
-    get closeable() {
-        return this.getAttribute('closeable') !== null;
-    }
+  }
+  get closeable() {
+    return this.getAttribute('closeable') !== null;
+  }
 
-    set closeable(value) {
-        if (value) {
-            this.setAttribute('closeable', '');
+  set closeable(value) {
+    if (value) {
+      this.setAttribute('closeable', '');
+    } else {
+      this.removeAttribute('closeable');
+    }
+  }
+
+  //当 custom element首次被插入文档DOM时，被调用。
+  initElements(): void {
+    let bg: HTMLDivElement | null = this.shadowRoot!.querySelector('.bg');
+    if (this.maskCloseable) {
+      bg!.onclick = (e: any) => {
+        e.stopPropagation();
+        this.visible = false;
+        this.dispatchEvent(new CustomEvent('onClose', e));
+      };
+    }
+    if (this.closeable) {
+      (this.shadowRoot!.querySelector('.close-icon') as any).onclick = (e: any) => {
+        this.visible = false;
+        this.dispatchEvent(new CustomEvent('onClose', e));
+      };
+    }
+  }
+  set onClose(fn: any) {
+    this.addEventListener('onClose', fn);
+  }
+  //当 custom element从文档DOM中删除时，被调用。
+  disconnectedCallback() {}
+
+  //当 custom element被移动到新的文档时，被调用。
+  adoptedCallback() {
+    console.log('Custom square element moved to new page.');
+  }
+
+  //当 custom element增加、删除、修改自身属性时，被调用。
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (this.mask) {
+      if (name === 'visible') {
+        if (newValue !== null) {
+          this.style.pointerEvents = 'all';
         } else {
-            this.removeAttribute('closeable');
+          this.style.pointerEvents = 'none';
         }
-    }
-
-    //当 custom element首次被插入文档DOM时，被调用。
-    initElements(): void {
-        let bg: HTMLDivElement | null = this.shadowRoot!.querySelector('.bg');
-        if (this.maskCloseable) {
-            bg!.onclick = (e: any) => {
-                e.stopPropagation();
-                this.visible = false;
-                this.dispatchEvent(new CustomEvent('onClose', e));
-            };
+      } else if (name === 'placement') {
+        if (newValue === 'bottom') {
+          let el = this.shadowRoot!.querySelector('.drawer');
         }
-        if (this.closeable) {
-            (this.shadowRoot!.querySelector('.close-icon') as any).onclick = (
-                e: any
-            ) => {
-                this.visible = false;
-                this.dispatchEvent(new CustomEvent('onClose', e));
-            };
-        }
+      }
     }
-    set onClose(fn: any) {
-        this.addEventListener('onClose', fn);
-    }
-    //当 custom element从文档DOM中删除时，被调用。
-    disconnectedCallback() {}
-
-    //当 custom element被移动到新的文档时，被调用。
-    adoptedCallback() {
-        console.log('Custom square element moved to new page.');
-    }
-
-    //当 custom element增加、删除、修改自身属性时，被调用。
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (this.mask) {
-            if (name === 'visible') {
-                if (newValue !== null) {
-                    this.style.pointerEvents = 'all';
-                } else {
-                    this.style.pointerEvents = 'none';
-                }
-            } else if (name === 'placement') {
-                if (newValue === 'bottom') {
-                    let el = this.shadowRoot!.querySelector('.drawer');
-                }
-            }
-        }
-    }
+  }
 }
 
 if (!customElements.get('lit-drawer')) {
-    customElements.define('lit-drawer', LitDrawer);
+  customElements.define('lit-drawer', LitDrawer);
 }

@@ -18,82 +18,82 @@ import { DataMessage } from '../../../dist/hdc/message/DataMessage.js';
 import { TextEncoder } from 'util';
 
 describe('DataMessage Test', () => {
-    let dataMessage = new DataMessage();
-    dataMessage.body = true;
-    it('DataMessageTest01', function () {
-        expect(dataMessage).not.toBeUndefined();
-    });
+  let dataMessage = new DataMessage();
+  dataMessage.body = true;
+  it('DataMessageTest01', function () {
+    expect(dataMessage).not.toBeUndefined();
+  });
 
-    it('DataMessageTest02', function () {
-        expect(dataMessage.usbHead).toBeUndefined();
-    });
+  it('DataMessageTest02', function () {
+    expect(dataMessage.usbHead).toBeUndefined();
+  });
 
-    it('DataMessageTest03', function () {
-        dataMessage.usbHead = true;
-        expect(dataMessage.usbHead).toBeTruthy();
-    });
+  it('DataMessageTest03', function () {
+    dataMessage.usbHead = true;
+    expect(dataMessage.usbHead).toBeTruthy();
+  });
 
-    it('DataMessageTest04', function () {
-        expect(dataMessage.channelId).toBe(-1);
-    });
+  it('DataMessageTest04', function () {
+    expect(dataMessage.channelId).toBe(-1);
+  });
 
-    it('DataMessageTest05', function () {
-        dataMessage.channelId = true;
-        expect(dataMessage.channelId).toBeTruthy();
-    });
+  it('DataMessageTest05', function () {
+    dataMessage.channelId = true;
+    expect(dataMessage.channelId).toBeTruthy();
+  });
 
-    it('DataMessageTest06', function () {
-        expect(dataMessage.result).toBe('');
-    });
+  it('DataMessageTest06', function () {
+    expect(dataMessage.result).toBe('');
+  });
 
-    it('DataMessageTest07', function () {
-        dataMessage.result = true;
-        expect(dataMessage.result).toBeTruthy();
-    });
+  it('DataMessageTest07', function () {
+    dataMessage.result = true;
+    expect(dataMessage.result).toBeTruthy();
+  });
 
-    it('DataMessageTest08', function () {
-        expect(dataMessage.channelClose).toBeFalsy();
-    });
+  it('DataMessageTest08', function () {
+    expect(dataMessage.channelClose).toBeFalsy();
+  });
 
-    it('DataMessageTest09', function () {
-        dataMessage.channelClose = true;
-        expect(dataMessage.channelClose).toBeTruthy();
-    });
+  it('DataMessageTest09', function () {
+    dataMessage.channelClose = true;
+    expect(dataMessage.channelClose).toBeTruthy();
+  });
 
-    it('DataMessageTest10', function () {
-        expect(dataMessage.commandFlag).toBe(-1);
-    });
+  it('DataMessageTest10', function () {
+    expect(dataMessage.commandFlag).toBe(-1);
+  });
 
-    it('DataMessageTest11', function () {
-        dataMessage.commandFlag = true;
-        expect(dataMessage.commandFlag).toBeTruthy();
-    });
+  it('DataMessageTest11', function () {
+    dataMessage.commandFlag = true;
+    expect(dataMessage.commandFlag).toBeTruthy();
+  });
 
-    it('DataMessageTest12', function () {
-        expect(dataMessage.resArrayBuffer).toBeUndefined();
-    });
+  it('DataMessageTest12', function () {
+    expect(dataMessage.resArrayBuffer).toBeUndefined();
+  });
 
-    it('DataMessageTest13', function () {
-        dataMessage.resArrayBuffer = true;
-        expect(dataMessage.resArrayBuffer).toBeTruthy();
-    });
+  it('DataMessageTest13', function () {
+    dataMessage.resArrayBuffer = true;
+    expect(dataMessage.resArrayBuffer).toBeTruthy();
+  });
 
-    it('DataMessageTest14', function () {
-        expect(dataMessage.toString()).not.toBeUndefined();
-    });
+  it('DataMessageTest14', function () {
+    expect(dataMessage.toString()).not.toBeUndefined();
+  });
 
-    it('DataMessageTest15', function () {
-        expect(dataMessage.getChannelId()).not.toBeUndefined();
-    });
+  it('DataMessageTest15', function () {
+    expect(dataMessage.getChannelId()).not.toBeUndefined();
+  });
 
-    it('DataMessageTest16', function () {
-        expect(dataMessage.getData()).not.toBeUndefined();
-    });
+  it('DataMessageTest16', function () {
+    expect(dataMessage.getData()).not.toBeUndefined();
+  });
 
-    it('DataMessageTest17', function () {
-        let end = new TextEncoder();
+  it('DataMessageTest17', function () {
+    let end = new TextEncoder();
 
-        dataMessage.resArrayBuffer = end.encode('111');
-        expect(dataMessage.getDataToString()).toBe('111');
-    });
+    dataMessage.resArrayBuffer = end.encode('111');
+    expect(dataMessage.getDataToString()).toBe('111');
+  });
 });

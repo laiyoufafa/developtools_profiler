@@ -20,39 +20,39 @@ import { queryCustomizeSelect } from '../../../dist/trace/database/SqlLite.js';
 const sqlite = require('../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../dist/trace/database/SqlLite.js');
 describe('SpQuerySQL Test', () => {
-    let spQuerySQL = new SpQuerySQL();
+  let spQuerySQL = new SpQuerySQL();
 
-    it('SpQuerySQLTest01', function () {
-        expect(spQuerySQL.checkSupportSqlAbility()).toBeFalsy();
-    });
+  it('SpQuerySQLTest01', function () {
+    expect(spQuerySQL.checkSupportSqlAbility()).toBeFalsy();
+  });
 
-    it('SpQuerySQLTest02', function () {
-        expect(spQuerySQL.checkSafetySelectSql()).toBeTruthy();
-    });
+  it('SpQuerySQLTest02', function () {
+    expect(spQuerySQL.checkSafetySelectSql()).toBeTruthy();
+  });
 
-    it('SpQuerySQLTest03', function () {
-        expect(spQuerySQL.getSelectSqlField()).toBe('');
-    });
+  it('SpQuerySQLTest03', function () {
+    expect(spQuerySQL.getSelectSqlField()).toBe('');
+  });
 
-    it('SpQuerySQLTest04', function () {
-        expect(spQuerySQL.getSelectSqlTableName()).not.toBeUndefined();
-    });
+  it('SpQuerySQLTest04', function () {
+    expect(spQuerySQL.getSelectSqlTableName()).not.toBeUndefined();
+  });
 
-    it('SpQuerySQLTest05', function () {
-        expect(spQuerySQL.initDataElement()).toBeUndefined();
-    });
+  it('SpQuerySQLTest05', function () {
+    expect(spQuerySQL.initDataElement()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest06', function () {
-        spQuerySQL.statDataArray.length = 1;
-        expect(spQuerySQL.initData()).toBeUndefined();
-    });
+  it('SpQuerySQLTest06', function () {
+    spQuerySQL.statDataArray.length = 1;
+    expect(spQuerySQL.initData()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest07', function () {
-        expect(spQuerySQL.attributeChangedCallback()).toBeUndefined();
-    });
+  it('SpQuerySQLTest07', function () {
+    expect(spQuerySQL.attributeChangedCallback()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest08', function () {
-        expect(spQuerySQL.initHtml()).toMatchInlineSnapshot(`
+  it('SpQuerySQLTest08', function () {
+    expect(spQuerySQL.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -207,85 +207,83 @@ describe('SpQuerySQL Test', () => {
         </div>
         "
 `);
-    });
+  });
 
-    it('SpQuerySQLTest09', function () {
-        expect(
-            spQuerySQL.initDataTableStyle({
-                children: [
-                    {
-                        length: 3,
-                        style: {
-                            backgroundColor: 'var(--dark-background5,#F6F6F6)',
-                        },
-                    },
-                ],
-            })
-        ).toBeUndefined();
-    });
+  it('SpQuerySQLTest09', function () {
+    expect(
+      spQuerySQL.initDataTableStyle({
+        children: [
+          {
+            length: 3,
+            style: {
+              backgroundColor: 'var(--dark-background5,#F6F6F6)',
+            },
+          },
+        ],
+      })
+    ).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest010', function () {
-        expect(spQuerySQL.freshTableHeadResizeStyle()).toBeUndefined();
-    });
+  it('SpQuerySQLTest010', function () {
+    expect(spQuerySQL.freshTableHeadResizeStyle()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest011', function () {
-        expect(spQuerySQL.reset()).toBeUndefined();
-    });
+  it('SpQuerySQLTest011', function () {
+    expect(spQuerySQL.reset()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest012', function () {
-        let spQuerySQL = new SpQuerySQL();
-        expect(
-            spQuerySQL.initDataTableStyle({
-                children: [
-                    {
-                        length: 1,
-                        style: {
-                            backgroundColor: 'var(--dark-background5,#F6F6F6)',
-                        },
-                    },
-                ],
-            })
-        ).toBeUndefined();
-    });
+  it('SpQuerySQLTest012', function () {
+    let spQuerySQL = new SpQuerySQL();
+    expect(
+      spQuerySQL.initDataTableStyle({
+        children: [
+          {
+            length: 1,
+            style: {
+              backgroundColor: 'var(--dark-background5,#F6F6F6)',
+            },
+          },
+        ],
+      })
+    ).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest013', function () {
-        expect(spQuerySQL.initDataElement()).toBeUndefined();
-    });
+  it('SpQuerySQLTest013', function () {
+    expect(spQuerySQL.initDataElement()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest014', function () {
-        expect(spQuerySQL.connectedCallback()).toBeUndefined();
-    });
+  it('SpQuerySQLTest014', function () {
+    expect(spQuerySQL.connectedCallback()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest015', function () {
-        expect(spQuerySQL.disconnectedCallback()).toBeUndefined();
-    });
+  it('SpQuerySQLTest015', function () {
+    expect(spQuerySQL.disconnectedCallback()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest016', function () {
-        expect(spQuerySQL.initData()).toBeUndefined();
-    });
+  it('SpQuerySQLTest016', function () {
+    expect(spQuerySQL.initData()).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest017', function () {
-        expect(spQuerySQL.attributeChangedCallback('', '', '')).toBeUndefined();
-    });
+  it('SpQuerySQLTest017', function () {
+    expect(spQuerySQL.attributeChangedCallback('', '', '')).toBeUndefined();
+  });
 
-    it('SpQuerySQLTest018', function () {
-        document.body.innerHTML = `
+  it('SpQuerySQLTest018', function () {
+    document.body.innerHTML = `
          <sp-query-sql id="query-sql"></sp-query-sql>
         `;
-        let spQuerySql = document.getElementById('query-sql') as SpQuerySQL;
-        spQuerySql.queryStr = 'select * from trace_range';
-        let range = sqlite.queryCustomizeSelect;
-        let dataTime: Array<any> = [
-            {
-                start_ts: 1000,
-                end_ts: 12000,
-            },
-        ];
-        range.mockResolvedValue(dataTime);
-        let keyboardEvent: KeyboardEvent = new KeyboardEvent('keydown', <
-            KeyboardEventInit
-        >{ ctrlKey: true, keyCode: 13 });
-        spQuerySql.dispatchEvent(keyboardEvent);
-        expect(spQuerySQL.attributeChangedCallback('', '', '')).toBeUndefined();
-    });
+    let spQuerySql = document.getElementById('query-sql') as SpQuerySQL;
+    spQuerySql.queryStr = 'select * from trace_range';
+    let range = sqlite.queryCustomizeSelect;
+    let dataTime: Array<any> = [
+      {
+        start_ts: 1000,
+        end_ts: 12000,
+      },
+    ];
+    range.mockResolvedValue(dataTime);
+    let keyboardEvent: KeyboardEvent = new KeyboardEvent('keydown', <KeyboardEventInit>{ ctrlKey: true, keyCode: 13 });
+    spQuerySql.dispatchEvent(keyboardEvent);
+    expect(spQuerySQL.attributeChangedCallback('', '', '')).toBeUndefined();
+  });
 });

@@ -15,15 +15,8 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import {
-    SelectionData,
-    SelectionParam,
-} from '../../../../bean/BoxSelection.js';
-import {
-    getTabSdkCounterData,
-    getTabSdkCounterLeftData,
-    queryStartTime,
-} from '../../../../database/SqlLite.js';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
+import { getTabSdkCounterData, getTabSdkCounterLeftData, queryStartTime } from '../../../../database/SqlLite.js';
 import '../../../SpFilter.js';
 import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column';
 import { Utils } from '../../base/Utils.js';
@@ -31,229 +24,193 @@ import { SpSystemTrace } from '../../../SpSystemTrace.js';
 
 @element('tabpane-sdk-counter')
 export class TabPaneSdkCounter extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private range: HTMLLabelElement | null | undefined;
-    private keyList: Array<string> | undefined;
-    private statDataArray: any = [];
-    private columnMap: any = {};
-    private sqlMap: Map<number, any> = new Map<number, any>();
+  private tbl: LitTable | null | undefined;
+  private range: HTMLLabelElement | null | undefined;
+  private keyList: Array<string> | undefined;
+  private statDataArray: any = [];
+  private columnMap: any = {};
+  private sqlMap: Map<number, any> = new Map<number, any>();
 
-    set data(val: SelectionParam | any) {
-        this.range!.textContent =
-            'Selected range: ' +
-            ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) +
-            ' ms';
-        this.queryDataByDB(val);
-    }
+  set data(val: SelectionParam | any) {
+    this.range!.textContent = 'Selected range: ' + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    this.queryDataByDB(val);
+  }
 
-    initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
-        this.range = this.shadowRoot?.querySelector('#time-range');
-        this.tbl!.addEventListener('column-click', (evt) => {
-            // @ts-ignore
-            this.sortByColumn(evt.detail);
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
+    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.tbl!.addEventListener('column-click', (evt) => {
+      // @ts-ignore
+      this.sortByColumn(evt.detail);
+    });
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
+
+  queryDataByDB(val: SelectionParam | any) {
+    queryStartTime().then((res) => {
+      let startTime = res[0].start_ts;
+      this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
+      let counters: Array<string> = [];
+      let componentId: number = -1;
+      for (let index = 0; index < val.sdkCounterIds.length; index++) {
+        let values = val.sdkCounterIds[index].split('-');
+        let value = values[0];
+        componentId = Number(values[1]);
+        counters.push(value);
+      }
+      let sqlObj = this.sqlMap.get(componentId);
+      let sql = sqlObj.TabCounterLeftData;
+      getTabSdkCounterLeftData(sql, val.leftNs + startTime, counters, componentId).then((res) => {
+        let leftTime = res[res.length - 1].max_value - startTime;
+        let sql = sqlObj.TabCounterData;
+        getTabSdkCounterData(sql, startTime, leftTime, val.rightNs, counters, componentId).then((item) => {
+          this.keyList = [];
+          this.tbl!.innerHTML = '';
+          this.statDataArray = [];
+          if (item.length != null && item.length > 0) {
+            for (let index = 0; index < item.length; index++) {
+              const dataResult = item[index];
+              let keys = Object.keys(dataResult);
+              // @ts-ignore
+              let values = Object.values(dataResult);
+              let jsonText = '{';
+              for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                let key = keys[keyIndex];
+                if (this.keyList.indexOf(key) <= -1) {
+                  this.keyList.push(key);
+                }
+                let value = values[keyIndex];
+                if (this.columnMap[key] == 'TimeStamp') {
+                  value = Utils.getTimeString(Number(value));
+                } else if (this.columnMap[key] == 'ClockTime') {
+                  value = Utils.getTimeStampHMS(Number(value));
+                } else if (this.columnMap[key] == 'RangTime') {
+                  value = Utils.getDurString(Number(value));
+                } else if (this.columnMap[key] == 'PercentType') {
+                  value = value + '%';
+                } else if (this.columnMap[key] == 'CurrencyType') {
+                  // @ts-ignore
+                  value = value.toString().replace(/\B(?=(\d{3})+$)/g, ',');
+                }
+                if (typeof value == 'string') {
+                  value = value.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
+                }
+                jsonText += '"' + key + '"' + ': ' + '"' + value + '"';
+                if (keyIndex != keys.length - 1) {
+                  jsonText += ',';
+                } else {
+                  jsonText += '}';
+                }
+              }
+              this.statDataArray.push(JSON.parse(jsonText));
+            }
+            this.tbl!.recycleDataSource = this.statDataArray;
+          } else {
+            this.tbl!.recycleDataSource = [];
+          }
+          this.initDataElement();
+
+          setTimeout(() => {
+            this.tbl!.recycleDataSource = this.statDataArray;
+            new ResizeObserver(() => {
+              if (this.parentElement?.clientHeight != 0) {
+                this.tbl!.style.height = '100%';
+                this.tbl!.reMeauseHeight();
+              }
+            }).observe(this.parentElement!);
+          }, 200);
         });
-    }
+      });
+    });
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
-    }
-
-    queryDataByDB(val: SelectionParam | any) {
-        queryStartTime().then((res) => {
-            let startTime = res[0].start_ts;
-            this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
-            let counters: Array<string> = [];
-            let componentId: number = -1;
-            for (let index = 0; index < val.sdkCounterIds.length; index++) {
-                let values = val.sdkCounterIds[index].split('-');
-                let value = values[0];
-                componentId = Number(values[1]);
-                counters.push(value);
-            }
-            let sqlObj = this.sqlMap.get(componentId);
-            let sql = sqlObj.TabCounterLeftData;
-            getTabSdkCounterLeftData(
-                sql,
-                val.leftNs + startTime,
-                counters,
-                componentId
-            ).then((res) => {
-                let leftTime = res[res.length - 1].max_value - startTime;
-                let sql = sqlObj.TabCounterData;
-                getTabSdkCounterData(
-                    sql,
-                    startTime,
-                    leftTime,
-                    val.rightNs,
-                    counters,
-                    componentId
-                ).then((item) => {
-                    this.keyList = [];
-                    this.tbl!.innerHTML = '';
-                    this.statDataArray = [];
-                    if (item.length != null && item.length > 0) {
-                        for (let index = 0; index < item.length; index++) {
-                            const dataResult = item[index];
-                            let keys = Object.keys(dataResult);
-							 // @ts-ignore
-                            let values = Object.values(dataResult);
-                            let jsonText = '{';
-                            for (
-                                let keyIndex = 0;
-                                keyIndex < keys.length;
-                                keyIndex++
-                            ) {
-                                let key = keys[keyIndex];
-                                if (this.keyList.indexOf(key) <= -1) {
-                                    this.keyList.push(key);
-                                }
-                                let value = values[keyIndex];
-                                if (this.columnMap[key] == 'TimeStamp') {
-                                    value = Utils.getTimeString(Number(value));
-                                } else if (this.columnMap[key] == 'ClockTime') {
-                                    value = Utils.getTimeStampHMS(
-                                        Number(value)
-                                    );
-                                } else if (this.columnMap[key] == 'RangTime') {
-                                    value = Utils.getDurString(Number(value));
-                                } else if (
-                                    this.columnMap[key] == 'PercentType'
-                                ) {
-                                    value = value + '%';
-                                } else if (
-                                    this.columnMap[key] == 'CurrencyType'
-                                ) {
-                                    // @ts-ignore
-                                    value = value
-                                        .toString()
-                                        .replace(/\B(?=(\d{3})+$)/g, ',');
-                                }
-                                if (typeof value == 'string') {
-                                    value = value
-                                        .replace(/</gi, '&lt;')
-                                        .replace(/>/gi, '&gt;');
-                                }
-                                jsonText +=
-                                    '"' + key + '"' + ': ' + '"' + value + '"';
-                                if (keyIndex != keys.length - 1) {
-                                    jsonText += ',';
-                                } else {
-                                    jsonText += '}';
-                                }
-                            }
-                            this.statDataArray.push(JSON.parse(jsonText));
-                        }
-                        this.tbl!.recycleDataSource = this.statDataArray;
-                    } else {
-                        this.tbl!.recycleDataSource = [];
-                    }
-                    this.initDataElement();
-
-                    setTimeout(() => {
-                        this.tbl!.recycleDataSource = this.statDataArray;
-                        new ResizeObserver(() => {
-                            if (this.parentElement?.clientHeight != 0) {
-                                this.tbl!.style.height = '100%';
-                                this.tbl!.reMeauseHeight();
-                            }
-                        }).observe(this.parentElement!);
-                    }, 200);
-                });
-            });
-        });
-    }
-
-    parseJson(map: Map<number, string>): string {
-        let keys = map.keys();
-        for (let key of keys) {
-            let configObj: any = map.get(key);
-            if (configObj != undefined) {
-                let configStr = configObj.jsonConfig;
-                let json = JSON.parse(configStr);
-                let tableConfig = json.tableConfig;
-                if (tableConfig != null) {
-                    let showTypes = tableConfig.showType;
-                    for (let i = 0; i < showTypes.length; i++) {
-                        let showType = showTypes[i];
-                        let type = this.getTableType(showType);
-                        if (type == 'counter') {
-                            let selectSql = 'select ';
-                            for (let j = 0; j < showType.columns.length; j++) {
-                                this.columnMap[showType.columns[j].column] =
-                                    showType.columns[j].displayName;
-                                if (
-                                    showType.columns[j].showType.indexOf(3) > -1
-                                ) {
-                                    selectSql +=
-                                        showType.columns[j].column + ',';
-                                }
-                            }
-                            let leftSql =
-                                'select max(ts) as max_value,counter_id from ' +
-                                showType.tableName +
-                                ' where ts <= $leftNs and counter_id in' +
-                                ' ($counters) group by counter_id order by max_value desc';
-                            let tabCounterDataSql =
-                                selectSql.substring(0, selectSql.length - 1) +
-                                ' from ' +
-                                showType.tableName +
-                                ' where counter_id in ($counters) and (ts - $startTime) between $leftNs and $rightNs';
-                            this.sqlMap.set(key, {
-                                TabCounterData: tabCounterDataSql,
-                                TabCounterLeftData: leftSql,
-                            });
-                        }
-                    }
+  parseJson(map: Map<number, string>): string {
+    let keys = map.keys();
+    for (let key of keys) {
+      let configObj: any = map.get(key);
+      if (configObj != undefined) {
+        let configStr = configObj.jsonConfig;
+        let json = JSON.parse(configStr);
+        let tableConfig = json.tableConfig;
+        if (tableConfig != null) {
+          let showTypes = tableConfig.showType;
+          for (let i = 0; i < showTypes.length; i++) {
+            let showType = showTypes[i];
+            let type = this.getTableType(showType);
+            if (type == 'counter') {
+              let selectSql = 'select ';
+              for (let j = 0; j < showType.columns.length; j++) {
+                this.columnMap[showType.columns[j].column] = showType.columns[j].displayName;
+                if (showType.columns[j].showType.indexOf(3) > -1) {
+                  selectSql += showType.columns[j].column + ',';
                 }
+              }
+              let leftSql =
+                'select max(ts) as max_value,counter_id from ' +
+                showType.tableName +
+                ' where ts <= $leftNs and counter_id in' +
+                ' ($counters) group by counter_id order by max_value desc';
+              let tabCounterDataSql =
+                selectSql.substring(0, selectSql.length - 1) +
+                ' from ' +
+                showType.tableName +
+                ' where counter_id in ($counters) and (ts - $startTime) between $leftNs and $rightNs';
+              this.sqlMap.set(key, {
+                TabCounterData: tabCounterDataSql,
+                TabCounterLeftData: leftSql,
+              });
             }
+          }
         }
-        return '';
+      }
     }
+    return '';
+  }
 
-    private getTableType(showType: any) {
-        let columns = showType.columns;
-        for (let i = 0; i < columns.length; i++) {
-            let column = columns[i];
-            let showType = column.showType;
-            if (showType != null) {
-                if (showType.indexOf(1) != -1) {
-                    return 'counter';
-                }
-                if (showType.indexOf(2) != -1) {
-                    return 'slice';
-                }
-            }
+  private getTableType(showType: any) {
+    let columns = showType.columns;
+    for (let i = 0; i < columns.length; i++) {
+      let column = columns[i];
+      let showType = column.showType;
+      if (showType != null) {
+        if (showType.indexOf(1) != -1) {
+          return 'counter';
         }
-        return '';
-    }
-
-    initDataElement() {
-        if (this.keyList) {
-            this.keyList.forEach((item) => {
-                let htmlElement = document.createElement(
-                    'lit-table-column'
-                ) as LitTableColumn;
-                htmlElement.setAttribute('title', item);
-                htmlElement.setAttribute('data-index', item);
-                htmlElement.setAttribute('key', item);
-                htmlElement.setAttribute('align', 'flex-start');
-                htmlElement.setAttribute('width', '1fr');
-                htmlElement.setAttribute('order', '');
-                this.tbl!.appendChild(htmlElement);
-            });
+        if (showType.indexOf(2) != -1) {
+          return 'slice';
         }
+      }
     }
+    return '';
+  }
 
-    initHtml(): string {
-        return `
+  initDataElement() {
+    if (this.keyList) {
+      this.keyList.forEach((item) => {
+        let htmlElement = document.createElement('lit-table-column') as LitTableColumn;
+        htmlElement.setAttribute('title', item);
+        htmlElement.setAttribute('data-index', item);
+        htmlElement.setAttribute('key', item);
+        htmlElement.setAttribute('align', 'flex-start');
+        htmlElement.setAttribute('width', '1fr');
+        htmlElement.setAttribute('order', '');
+        this.tbl!.appendChild(htmlElement);
+      });
+    }
+  }
+
+  initHtml(): string {
+    return `
 <style>
 :host{
     display: flex;
@@ -268,38 +225,38 @@ export class TabPaneSdkCounter extends BaseElement {
 <lit-table id="tb-counter" style="height: auto">
 </lit-table>
         `;
-    }
+  }
 
-    sortByColumn(detail: any) {
+  sortByColumn(detail: any) {
+    // @ts-ignore
+    function compare(property, sort, type) {
+      return function (a: SelectionData, b: SelectionData) {
+        if (a.process == ' ' || b.process == ' ') {
+          return 0;
+        }
+        if (type === 'number') {
+          // @ts-ignore
+          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+        }
         // @ts-ignore
-        function compare(property, sort, type) {
-            return function (a: SelectionData, b: SelectionData) {
-                if (a.process == ' ' || b.process == ' ') {
-                    return 0;
-                }
-                if (type === 'number') {
-                    // @ts-ignore
-                    return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
-                }
-                // @ts-ignore
-                if (b[property] > a[property]) {
-                    return sort === 2 ? 1 : -1;
-                } else {
-                    // @ts-ignore
-                    if (b[property] == a[property]) {
-                        return 0;
-                    } else {
-                        return sort === 2 ? -1 : 1;
-                    }
-                }
-            };
-        }
-
-        if (detail.key.indexOf('name') != -1) {
-            this.statDataArray.sort(compare(detail.key, detail.sort, 'string'));
+        if (b[property] > a[property]) {
+          return sort === 2 ? 1 : -1;
         } else {
-            this.statDataArray.sort(compare(detail.key, detail.sort, 'number'));
+          // @ts-ignore
+          if (b[property] == a[property]) {
+            return 0;
+          } else {
+            return sort === 2 ? -1 : 1;
+          }
         }
-        this.tbl!.recycleDataSource = this.statDataArray;
+      };
     }
+
+    if (detail.key.indexOf('name') != -1) {
+      this.statDataArray.sort(compare(detail.key, detail.sort, 'string'));
+    } else {
+      this.statDataArray.sort(compare(detail.key, detail.sort, 'number'));
+    }
+    this.tbl!.recycleDataSource = this.statDataArray;
+  }
 }

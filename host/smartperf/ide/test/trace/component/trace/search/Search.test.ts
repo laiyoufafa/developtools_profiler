@@ -17,69 +17,69 @@
 import { LitSearch } from '../../../../../dist/trace/component/trace/search/Search.js';
 
 describe(' SearchTest', () => {
-    beforeAll(() => {});
-    it('Search Test01', () => {
-        let search = new LitSearch();
-        expect(search).not.toBeUndefined();
-    });
+  beforeAll(() => {});
+  it('Search Test01', () => {
+    let search = new LitSearch();
+    expect(search).not.toBeUndefined();
+  });
 
-    it('Search Test02', () => {
-        let search = new LitSearch();
-        search.list = ['1'];
-        expect(search.list[0]).toBe('1');
-    });
+  it('Search Test02', () => {
+    let search = new LitSearch();
+    search.list = ['1'];
+    expect(search.list[0]).toBe('1');
+  });
 
-    it('Search Test03', () => {
-        let search = new LitSearch();
-        search.index = 1;
-        expect(search.index).toBe(1);
-    });
+  it('Search Test03', () => {
+    let search = new LitSearch();
+    search.index = 1;
+    expect(search.index).toBe(1);
+  });
 
-    it('Search Test04', () => {
-        let search = new LitSearch();
-        search.index = 1;
-        expect(search.total).toBe(0);
-    });
+  it('Search Test04', () => {
+    let search = new LitSearch();
+    search.index = 1;
+    expect(search.total).toBe(0);
+  });
 
-    it('Search Test05', () => {
-        let search = new LitSearch();
-        search.index = 1;
-        expect(search.setPercent('1', 2)).toBeUndefined();
-    });
+  it('Search Test05', () => {
+    let search = new LitSearch();
+    search.index = 1;
+    expect(search.setPercent('1', 2)).toBeUndefined();
+  });
 
-    it('Search Test06', () => {
-        let search = new LitSearch();
-        search.index = 1;
-        expect(search.setPercent('1', 101)).toBeUndefined();
-    });
+  it('Search Test06', () => {
+    let search = new LitSearch();
+    search.index = 1;
+    expect(search.setPercent('1', 101)).toBeUndefined();
+  });
 
-    it('Search Test07', () => {
-        let search = new LitSearch();
-        search.index = 1;
-        expect(search.setPercent('1', -1)).toBeUndefined();
-    });
+  it('Search Test07', () => {
+    let search = new LitSearch();
+    search.index = 1;
+    expect(search.setPercent('1', -1)).toBeUndefined();
+  });
 
-    it('Search Test08', () => {
-        let search = new LitSearch();
-        search.index = 1;
-        expect(search.setPercent('1', -2)).toBeUndefined();
-    });
+  it('Search Test08', () => {
+    let search = new LitSearch();
+    search.index = 1;
+    expect(search.setPercent('1', -2)).toBeUndefined();
+  });
 
-    it('Search Test09', () => {
-        let search = new LitSearch();
-        expect(search.clear()).toBeUndefined();
-    });
+  it('Search Test09', () => {
+    let search = new LitSearch();
+    expect(search.clear()).toBeUndefined();
+  });
 
-    it('Search Test11', function () {
-        let search = new LitSearch();
-        search.search = jest.fn(() => undefined);
-        search.search.blur = jest.fn(() => true);
-        expect(search.blur()).toBeUndefined();
-    });
+  it('Search Test11', function () {
+    let search = new LitSearch();
+    search.search = jest.fn(() => undefined);
+    search.search.blur = jest.fn(() => true);
+    expect(search.blur()).toBeUndefined();
+  });
 
-    it('Search Test10', () => {
-        let search = new LitSearch();
-        expect(search.initHtml()).toMatchInlineSnapshot(`
+  it('Search Test10', () => {
+    let search = new LitSearch();
+    expect(search.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -174,15 +174,15 @@ describe(' SearchTest', () => {
         </div>
         "
 `);
-    });
+  });
 
-    it('Search Test12', () => {
-        let search = new LitSearch();
-        expect(search.searchValue).toBe('');
-    });
+  it('Search Test12', () => {
+    let search = new LitSearch();
+    expect(search.searchValue).toBe('');
+  });
 
-    it('Search Test13', () => {
-        let search = new LitSearch();
-        expect(search.isLoading).toBeFalsy();
-    });
+  it('Search Test13', () => {
+    let search = new LitSearch();
+    expect(search.isLoading).toBeFalsy();
+  });
 });

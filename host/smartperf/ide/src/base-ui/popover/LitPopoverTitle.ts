@@ -17,18 +17,18 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-popover-title')
 export class LitPopoverTitle extends BaseElement {
-    private titleText: HTMLElement | null | undefined;
+  private titleText: HTMLElement | null | undefined;
 
-    static get observedAttributes() {
-        return ['title'];
-    }
+  static get observedAttributes() {
+    return ['title'];
+  }
 
-    initElements(): void {
-        this.titleText = this.shadowRoot?.querySelector('.pop-title');
-    }
+  initElements(): void {
+    this.titleText = this.shadowRoot?.querySelector('.pop-title');
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
            .pop-title{
                font-family: Helvetica,serif;
@@ -43,15 +43,15 @@ export class LitPopoverTitle extends BaseElement {
         </style>
         <div class="pop-title"></div>
         `;
-    }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        switch (name) {
-            case 'title':
-                if (this.titleText) this.titleText.textContent = newValue;
-                break;
-            default:
-                break;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    switch (name) {
+      case 'title':
+        if (this.titleText) this.titleText.textContent = newValue;
+        break;
+      default:
+        break;
     }
+  }
 }

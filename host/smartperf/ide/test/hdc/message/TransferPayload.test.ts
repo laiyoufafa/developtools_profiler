@@ -17,48 +17,48 @@
 import { TransferPayload } from '../../../dist/hdc/message/TransferPayload.js';
 
 describe('TransferPayload Test', () => {
-    let transferPayload = new TransferPayload();
-    it('TransferPayloadTest01', function () {
-        expect(transferPayload).not.toBeUndefined();
-    });
+  let transferPayload = new TransferPayload();
+  it('TransferPayloadTest01', function () {
+    expect(transferPayload).not.toBeUndefined();
+  });
 
-    it('TransferPayloadTest02', function () {
-        expect(transferPayload.index).toBeUndefined();
-    });
+  it('TransferPayloadTest02', function () {
+    expect(transferPayload.index).toBeUndefined();
+  });
 
-    it('TransferPayloadTest03', function () {
-        transferPayload.index = true;
-        expect(transferPayload.index).toBeTruthy();
-    });
+  it('TransferPayloadTest03', function () {
+    transferPayload.index = true;
+    expect(transferPayload.index).toBeTruthy();
+  });
 
-    it('TransferPayloadTest04', function () {
-        expect(transferPayload.compressType).toBeUndefined();
-    });
+  it('TransferPayloadTest04', function () {
+    expect(transferPayload.compressType).toBeUndefined();
+  });
 
-    it('TransferPayloadTest05', function () {
-        transferPayload.compressType = true;
-        expect(transferPayload.compressType).toBeTruthy();
-    });
+  it('TransferPayloadTest05', function () {
+    transferPayload.compressType = true;
+    expect(transferPayload.compressType).toBeTruthy();
+  });
 
-    it('TransferPayloadTest06', function () {
-        expect(transferPayload.compressSize).toBeUndefined();
-    });
+  it('TransferPayloadTest06', function () {
+    expect(transferPayload.compressSize).toBeUndefined();
+  });
 
-    it('TransferPayloadTest07', function () {
-        transferPayload.compressSize = true;
-        expect(transferPayload.compressSize).toBeTruthy();
-    });
+  it('TransferPayloadTest07', function () {
+    transferPayload.compressSize = true;
+    expect(transferPayload.compressSize).toBeTruthy();
+  });
 
-    it('TransferPayloadTest08', function () {
-        expect(transferPayload.uncompressSize).toBeFalsy();
-    });
+  it('TransferPayloadTest08', function () {
+    expect(transferPayload.uncompressSize).toBeFalsy();
+  });
 
-    it('TransferPayloadTest09', function () {
-        transferPayload.uncompressSize = true;
-        expect(transferPayload.uncompressSize).toBeTruthy();
-    });
+  it('TransferPayloadTest09', function () {
+    transferPayload.uncompressSize = true;
+    expect(transferPayload.uncompressSize).toBeTruthy();
+  });
 
-    it('TransferPayloadTest10', function () {
-        expect(transferPayload.toString()).not.toBeUndefined();
-    });
+  it('TransferPayloadTest10', function () {
+    expect(transferPayload.toString()).not.toBeUndefined();
+  });
 });

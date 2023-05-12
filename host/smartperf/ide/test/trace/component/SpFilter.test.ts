@@ -17,14 +17,14 @@
 import { SpFilter } from '../../../dist/trace/component/SpFilter.js';
 
 describe('SpFilter Test', () => {
-    let spFilter = new SpFilter();
+  let spFilter = new SpFilter();
 
-    it('SpFilterTest01', function () {
-        expect(spFilter.initElements()).toBeUndefined();
-    });
+  it('SpFilterTest01', function () {
+    expect(spFilter.initElements()).toBeUndefined();
+  });
 
-    it('SSpFilterTest01', function () {
-        expect(spFilter.initHtml()).toMatchInlineSnapshot(`
+  it('SSpFilterTest01', function () {
+    expect(spFilter.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -85,5 +85,5 @@ describe('SpFilter Test', () => {
         </div>
         "
 `);
-    });
+  });
 });

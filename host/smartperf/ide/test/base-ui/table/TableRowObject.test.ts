@@ -16,7 +16,7 @@
 import { TableRowObject } from '../../../dist/base-ui/table/TableRowObject.js';
 
 describe('TableRowObject Test', () => {
-    it('TableRowObjectTest01', () => {
-        expect(new TableRowObject().top).toBe(0);
-    });
+  it('TableRowObjectTest01', () => {
+    expect(new TableRowObject().top).toBe(0);
+  });
 });

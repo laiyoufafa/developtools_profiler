@@ -17,50 +17,48 @@
 import { SpInfoAndStats } from '../../../dist/trace/component/SpInfoAndStas.js';
 
 describe('SpInfoAndStasTest', () => {
-    document.body.innerHTML = `<sp-info-and-stats id="ddd"></sp-info-and-stats>`;
-    let spInfoAndStats = document.querySelector('#ddd') as SpInfoAndStats;
-    it('SpInfoAndStasTest01', function () {
-        let spInfoAndStats = new SpInfoAndStats();
-        expect(spInfoAndStats.initElements()).toBeUndefined();
-    });
+  document.body.innerHTML = `<sp-info-and-stats id="ddd"></sp-info-and-stats>`;
+  let spInfoAndStats = document.querySelector('#ddd') as SpInfoAndStats;
+  it('SpInfoAndStasTest01', function () {
+    let spInfoAndStats = new SpInfoAndStats();
+    expect(spInfoAndStats.initElements()).toBeUndefined();
+  });
 
-    it('SpInfoAndStasTest03', function () {
-        spInfoAndStats.initMetricItemData = jest.fn(() => true);
-        expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
-    });
+  it('SpInfoAndStasTest03', function () {
+    spInfoAndStats.initMetricItemData = jest.fn(() => true);
+    expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
+  });
 
-    it('SpInfoAndStasTest04', function () {
-        let spInfoAndStats = new SpInfoAndStats();
-        expect(
-            spInfoAndStats.initDataTableStyle({
-                children: [
-                    {
-                        length: 1,
-                        style: {
-                            backgroundColor: 'var(--dark-background5,#F6F6F6)',
-                        },
-                    },
-                ],
-            })
-        ).toBeUndefined();
-    });
+  it('SpInfoAndStasTest04', function () {
+    let spInfoAndStats = new SpInfoAndStats();
+    expect(
+      spInfoAndStats.initDataTableStyle({
+        children: [
+          {
+            length: 1,
+            style: {
+              backgroundColor: 'var(--dark-background5,#F6F6F6)',
+            },
+          },
+        ],
+      })
+    ).toBeUndefined();
+  });
 
-    it('SpInfoAndStasTest06 ', function () {
-        expect(spInfoAndStats.connectedCallback()).toBeUndefined();
-    });
+  it('SpInfoAndStasTest06 ', function () {
+    expect(spInfoAndStats.connectedCallback()).toBeUndefined();
+  });
 
-    it('SpInfoAndStasTest07 ', function () {
-        expect(spInfoAndStats.disconnectedCallback()).toBeUndefined();
-    });
+  it('SpInfoAndStasTest07 ', function () {
+    expect(spInfoAndStats.disconnectedCallback()).toBeUndefined();
+  });
 
-    it('SpInfoAndStasTest08 ', function () {
-        expect(
-            spInfoAndStats.attributeChangedCallback([], [], [])
-        ).toBeUndefined();
-    });
+  it('SpInfoAndStasTest08 ', function () {
+    expect(spInfoAndStats.attributeChangedCallback([], [], [])).toBeUndefined();
+  });
 
-    it('SpInfoAndStasTest05', function () {
-        expect(spInfoAndStats.initHtml()).toMatchInlineSnapshot(`
+  it('SpInfoAndStasTest05', function () {
+    expect(spInfoAndStats.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
             :host{
@@ -189,9 +187,9 @@ describe('SpInfoAndStasTest', () => {
         </div>
         "
 `);
-    });
+  });
 
-    it('SpInfoAndStasTest9', function () {
-        expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
-    });
+  it('SpInfoAndStasTest9', function () {
+    expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
+  });
 });

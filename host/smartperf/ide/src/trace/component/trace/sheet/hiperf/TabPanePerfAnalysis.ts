@@ -68,7 +68,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.back!.style.visibility = 'hidden';
     this.range!.textContent =
       'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    if (!this.callChainMap){
+    if (!this.callChainMap) {
       this.getCallChainDataFromWorker();
     }
     queryPerfProcess().then((result) => {
@@ -412,14 +412,14 @@ export class TabPanePerfAnalysis extends BaseElement {
           }
         });
       } else if (column == 'countFormat') {
-              currentTable!.recycleDataSource = arr.sort((a, b) => {
-                return sort == 1 ? a.count - b.count : b.count - a.count;
-              });
-            } else if (column == 'percent') {
-              currentTable!.recycleDataSource = arr.sort((a, b) => {
-                return sort == 1 ? a.count - b.count : b.count - a.count;
-              });
-            }
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.count - b.count : b.count - a.count;
+        });
+      } else if (column == 'percent') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.count - b.count : b.count - a.count;
+        });
+      }
       switch (this.currentLevel) {
         case 0:
           arr.unshift(this.allProcessCount);
@@ -707,13 +707,13 @@ export class TabPanePerfAnalysis extends BaseElement {
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
   }
-  totalCountData(count:any){
+  totalCountData(count: any) {
     let allCount;
     allCount = {
       countFormat: Utils.timeMsFormat2p(count),
       percent: ((count / count) * 100).toFixed(2),
       count: 0,
-      allCount:count,
+      allCount: count,
       pid: '',
     };
     return allCount;

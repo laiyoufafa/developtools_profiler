@@ -22,101 +22,101 @@ const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneCounterSample Test', () => {
-    document.body.innerHTML = `<div class="ddd"><lit-table id="tb-states"></lit-table><div>`;
-    let tab = document.querySelector('.ddd') as HTMLDivElement;
-    let tabPaneCounterSample = new TabPaneCounterSample();
-    tabPaneCounterSample.tbl = jest.fn(() => tab);
-    tabPaneCounterSample.tbl.treeElement = jest.fn(() => tab);
-    tabPaneCounterSample.tbl.tableElement = jest.fn(() => tab);
-    SpSystemTrace.SPT_DATA = [
-        {
-            process: '',
-            processId: 0,
-            thread: '',
-            threadId: 0,
-            state: '',
-            dur: 0,
-            start_ts: 0,
-            end_ts: 0,
-            cpu: 0,
-            priority: '-',
-            note: '-',
-        },
-        {
-            process: '',
-            processId: 1,
-            thread: '',
-            threadId: 1,
-            state: '',
-            dur: 0,
-            start_ts: 0,
-            end_ts: 0,
-            cpu: 0,
-            priority: '-',
-            note: '-',
-        },
-        {
-            process: '',
-            processId: 2,
-            thread: '',
-            threadId: 2,
-            state: '',
-            dur: 0,
-            start_ts: 0,
-            end_ts: 0,
-            cpu: 0,
-            priority: '-',
-            note: '-',
-        },
-    ];
+  document.body.innerHTML = `<div class="ddd"><lit-table id="tb-states"></lit-table><div>`;
+  let tab = document.querySelector('.ddd') as HTMLDivElement;
+  let tabPaneCounterSample = new TabPaneCounterSample();
+  tabPaneCounterSample.tbl = jest.fn(() => tab);
+  tabPaneCounterSample.tbl.treeElement = jest.fn(() => tab);
+  tabPaneCounterSample.tbl.tableElement = jest.fn(() => tab);
+  SpSystemTrace.SPT_DATA = [
+    {
+      process: '',
+      processId: 0,
+      thread: '',
+      threadId: 0,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+    {
+      process: '',
+      processId: 1,
+      thread: '',
+      threadId: 1,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+    {
+      process: '',
+      processId: 2,
+      thread: '',
+      threadId: 2,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+  ];
 
-    let dataArray = {
-        id: '',
-        pid: '',
-        title: '',
-        children: [],
-        process: '',
-        processId: 0,
-        thread: '',
-        threadId: 0,
-        state: '',
-        wallDuration: 0,
-        avgDuration: '',
-        count: 0,
-        minDuration: 0,
-        maxDuration: 0,
-        stdDuration: '',
-        cpuStateFilterIds: [1, 2, 3],
-    };
+  let dataArray = {
+    id: '',
+    pid: '',
+    title: '',
+    children: [],
+    process: '',
+    processId: 0,
+    thread: '',
+    threadId: 0,
+    state: '',
+    wallDuration: 0,
+    avgDuration: '',
+    count: 0,
+    minDuration: 0,
+    maxDuration: 0,
+    stdDuration: '',
+    cpuStateFilterIds: [1, 2, 3],
+  };
 
-    it('TabPaneCounterSampleTest01', function () {
-        let getTabPaneCounterSampleData = sqlit.getTabPaneCounterSampleData;
-        getTabPaneCounterSampleData.mockResolvedValue([
-            {
-                value: 'process',
-                filterId: 1,
-                ts: 1000,
-                cpu: 'cpu',
-            },
-        ]);
-        tabPaneCounterSample.tbl.recycleDataSource = jest.fn(() => dataArray);
-        expect((tabPaneCounterSample.data = dataArray)).toBeTruthy();
-    });
+  it('TabPaneCounterSampleTest01', function () {
+    let getTabPaneCounterSampleData = sqlit.getTabPaneCounterSampleData;
+    getTabPaneCounterSampleData.mockResolvedValue([
+      {
+        value: 'process',
+        filterId: 1,
+        ts: 1000,
+        cpu: 'cpu',
+      },
+    ]);
+    tabPaneCounterSample.tbl.recycleDataSource = jest.fn(() => dataArray);
+    expect((tabPaneCounterSample.data = dataArray)).toBeTruthy();
+  });
 
-    it('TabPaneCounterSampleTest02', function () {
-        expect(tabPaneCounterSample.initElements()).toBeUndefined();
-    });
+  it('TabPaneCounterSampleTest02', function () {
+    expect(tabPaneCounterSample.initElements()).toBeUndefined();
+  });
 
-    it('TabPaneCounterSampleTest03', function () {
-        expect(tabPaneCounterSample.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneCounterSampleTest03', function () {
+    expect(tabPaneCounterSample.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -153,5 +153,5 @@ describe('TabPaneCounterSample Test', () => {
         <div class=\\"loading\\"></div>
         "
 `);
-    });
+  });
 });

@@ -16,73 +16,73 @@
 import { SpFileSystem } from '../../../../dist/trace/component/setting/SpFileSystem';
 
 describe('spFileSystem Test', () => {
-    let spFileSystem = new SpFileSystem();
-    it('SpFileSystemTest01', function () {
-        spFileSystem.startSamp = true;
-        expect(spFileSystem.startSamp).toBeTruthy();
-    });
+  let spFileSystem = new SpFileSystem();
+  it('SpFileSystemTest01', function () {
+    spFileSystem.startSamp = true;
+    expect(spFileSystem.startSamp).toBeTruthy();
+  });
 
-    it('SpFileSystemTest02', function () {
-        spFileSystem.startSamp = false;
-        expect(spFileSystem.startSamp).toBeFalsy();
-    });
+  it('SpFileSystemTest02', function () {
+    spFileSystem.startSamp = false;
+    expect(spFileSystem.startSamp).toBeFalsy();
+  });
 
-    it('SpFileSystemTest03', function () {
-        expect(spFileSystem.getSystemConfig()).toStrictEqual({
-            process: '',
-            unWindLevel: 10,
-        });
+  it('SpFileSystemTest03', function () {
+    expect(spFileSystem.getSystemConfig()).toStrictEqual({
+      process: '',
+      unWindLevel: 10,
     });
+  });
 
-    it('SpFileSystemTest04', function () {
-        expect(spFileSystem.unDisable()).toBeUndefined();
-    });
+  it('SpFileSystemTest04', function () {
+    expect(spFileSystem.unDisable()).toBeUndefined();
+  });
 
-    it('SpFileSystemTest05', function () {
-        expect(spFileSystem.disable()).toBeUndefined();
-    });
+  it('SpFileSystemTest05', function () {
+    expect(spFileSystem.disable()).toBeUndefined();
+  });
 
-    it('SpFileSystemTest06', function () {
-        expect(spFileSystem.initConfigList()).toBeUndefined();
-    });
+  it('SpFileSystemTest06', function () {
+    expect(spFileSystem.initConfigList()).toBeUndefined();
+  });
 
-    it('SpFileSystemTest07', function () {
-        spFileSystem.startRecord = true;
-        expect(spFileSystem.startRecord).toBeTruthy();
-    });
+  it('SpFileSystemTest07', function () {
+    spFileSystem.startRecord = true;
+    expect(spFileSystem.startRecord).toBeTruthy();
+  });
 
-    it('SpFileSystemTest08', function () {
-        spFileSystem.startRecord = false;
-        expect(spFileSystem.startRecord).toBeFalsy();
-    });
+  it('SpFileSystemTest08', function () {
+    spFileSystem.startRecord = false;
+    expect(spFileSystem.startRecord).toBeFalsy();
+  });
 
-    it('SpFileSystemTest09', function () {
-        spFileSystem.startFileSystem = true;
-        expect(spFileSystem.startFileSystem).toBeTruthy();
-    });
+  it('SpFileSystemTest09', function () {
+    spFileSystem.startFileSystem = true;
+    expect(spFileSystem.startFileSystem).toBeTruthy();
+  });
 
-    it('SpFileSystemTest10', function () {
-        spFileSystem.startFileSystem = false;
-        expect(spFileSystem.startFileSystem).toBeFalsy();
-    });
+  it('SpFileSystemTest10', function () {
+    spFileSystem.startFileSystem = false;
+    expect(spFileSystem.startFileSystem).toBeFalsy();
+  });
 
-    it('SpFileSystemTest11', function () {
-        spFileSystem.startVirtualMemory = true;
-        expect(spFileSystem.startVirtualMemory).toBeTruthy();
-    });
+  it('SpFileSystemTest11', function () {
+    spFileSystem.startVirtualMemory = true;
+    expect(spFileSystem.startVirtualMemory).toBeTruthy();
+  });
 
-    it('SpFileSystemTest12', function () {
-        spFileSystem.startVirtualMemory = false;
-        expect(spFileSystem.startVirtualMemory).toBeFalsy();
-    });
+  it('SpFileSystemTest12', function () {
+    spFileSystem.startVirtualMemory = false;
+    expect(spFileSystem.startVirtualMemory).toBeFalsy();
+  });
 
-    it('SpFileSystemTest13', function () {
-        spFileSystem.startIo = true;
-        expect(spFileSystem.startIo).toBeTruthy();
-    });
+  it('SpFileSystemTest13', function () {
+    spFileSystem.startIo = true;
+    expect(spFileSystem.startIo).toBeTruthy();
+  });
 
-    it('SpFileSystemTest14', function () {
-        spFileSystem.startIo = false;
-        expect(spFileSystem.startIo).toBeFalsy();
-    });
+  it('SpFileSystemTest14', function () {
+    spFileSystem.startIo = false;
+    expect(spFileSystem.startIo).toBeFalsy();
+  });
 });

@@ -17,66 +17,66 @@
 import { SessionHandShake } from '../../../dist/hdc/message/SessionHandShake.js';
 
 describe('SessionHandShake Test', () => {
-    let sessionHandShake = new SessionHandShake();
-    it('SessionHandShakeTest01', function () {
-        expect(sessionHandShake).not.toBeUndefined();
-    });
+  let sessionHandShake = new SessionHandShake();
+  it('SessionHandShakeTest01', function () {
+    expect(sessionHandShake).not.toBeUndefined();
+  });
 
-    it('SessionHandShakeTest02', function () {
-        expect(sessionHandShake.banner).toBeUndefined();
-    });
+  it('SessionHandShakeTest02', function () {
+    expect(sessionHandShake.banner).toBeUndefined();
+  });
 
-    it('SessionHandShakeTest03', function () {
-        sessionHandShake.banner = true;
-        expect(sessionHandShake.banner).toBeTruthy();
-    });
+  it('SessionHandShakeTest03', function () {
+    sessionHandShake.banner = true;
+    expect(sessionHandShake.banner).toBeTruthy();
+  });
 
-    it('SessionHandShakeTest04', function () {
-        expect(sessionHandShake.authType).toBeUndefined();
-    });
+  it('SessionHandShakeTest04', function () {
+    expect(sessionHandShake.authType).toBeUndefined();
+  });
 
-    it('SessionHandShakeTest05', function () {
-        sessionHandShake.authType = true;
-        expect(sessionHandShake.authType).toBeTruthy();
-    });
+  it('SessionHandShakeTest05', function () {
+    sessionHandShake.authType = true;
+    expect(sessionHandShake.authType).toBeTruthy();
+  });
 
-    it('SessionHandShakeTest06', function () {
-        expect(sessionHandShake.sessionId).toBeUndefined();
-    });
+  it('SessionHandShakeTest06', function () {
+    expect(sessionHandShake.sessionId).toBeUndefined();
+  });
 
-    it('SessionHandShakeTest07', function () {
-        sessionHandShake.sessionId = true;
-        expect(sessionHandShake.sessionId).toBeTruthy();
-    });
+  it('SessionHandShakeTest07', function () {
+    sessionHandShake.sessionId = true;
+    expect(sessionHandShake.sessionId).toBeTruthy();
+  });
 
-    it('SessionHandShakeTest08', function () {
-        expect(sessionHandShake.connectKey).toBeUndefined();
-    });
+  it('SessionHandShakeTest08', function () {
+    expect(sessionHandShake.connectKey).toBeUndefined();
+  });
 
-    it('SessionHandShakeTest9', function () {
-        sessionHandShake.connectKey = true;
-        expect(sessionHandShake.connectKey).toBeTruthy();
-    });
+  it('SessionHandShakeTest9', function () {
+    sessionHandShake.connectKey = true;
+    expect(sessionHandShake.connectKey).toBeTruthy();
+  });
 
-    it('SessionHandShakeTest10', function () {
-        expect(sessionHandShake.buf).toBeUndefined();
-    });
+  it('SessionHandShakeTest10', function () {
+    expect(sessionHandShake.buf).toBeUndefined();
+  });
 
-    it('SessionHandShakeTest11', function () {
-        sessionHandShake.buf = true;
-        expect(sessionHandShake.buf).toBeTruthy();
-    });
+  it('SessionHandShakeTest11', function () {
+    sessionHandShake.buf = true;
+    expect(sessionHandShake.buf).toBeTruthy();
+  });
 
-    it('SessionHandShakeTest12', function () {
-        expect(sessionHandShake.version).toBe('');
-    });
+  it('SessionHandShakeTest12', function () {
+    expect(sessionHandShake.version).toBe('');
+  });
 
-    it('SessionHandShakeTest13', function () {
-        sessionHandShake.version = true;
-        expect(sessionHandShake.version).toBeTruthy();
-    });
+  it('SessionHandShakeTest13', function () {
+    sessionHandShake.version = true;
+    expect(sessionHandShake.version).toBeTruthy();
+  });
 
-    it('SessionHandShakeTest14', function () {
-        expect(sessionHandShake.toString()).toBeTruthy();
-    });
+  it('SessionHandShakeTest14', function () {
+    expect(sessionHandShake.toString()).toBeTruthy();
+  });
 });

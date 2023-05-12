@@ -16,10 +16,7 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import {
-    getTabMemoryAbilityData,
-    queryStartTime,
-} from '../../../../database/SqlLite.js';
+import { getTabMemoryAbilityData, queryStartTime } from '../../../../database/SqlLite.js';
 import { SystemMemorySummary } from '../../../../bean/AbilityMonitor.js';
 import { Utils } from '../../base/Utils.js';
 import '../../../SpFilter.js';
@@ -27,255 +24,179 @@ import { log } from '../../../../../log/Log.js';
 
 @element('tabpane-memory-ability')
 export class TabPaneMemoryAbility extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private source: Array<SystemMemorySummary> = [];
-    private float: HTMLDivElement | null | undefined;
-    private queryResult: Array<SystemMemorySummary> = [];
-    private search: HTMLInputElement | undefined | null;
+  private tbl: LitTable | null | undefined;
+  private source: Array<SystemMemorySummary> = [];
+  private float: HTMLDivElement | null | undefined;
+  private queryResult: Array<SystemMemorySummary> = [];
+  private search: HTMLInputElement | undefined | null;
 
-    set data(val: SelectionParam | any) {
+  set data(val: SelectionParam | any) {
+    // @ts-ignore
+    this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(val);
+  }
+
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-memory-ability');
+    this.tbl!.addEventListener('column-click', (evt) => {
+      // @ts-ignore
+      this.sortByColumn(evt.detail);
+    });
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.queryDataByDB(val);
-    }
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
 
-    initElements(): void {
-        this.tbl =
-            this.shadowRoot?.querySelector<LitTable>('#tb-memory-ability');
-        this.tbl!.addEventListener('column-click', (evt) => {
-            // @ts-ignore
-            this.sortByColumn(evt.detail);
-        });
+  filterData() {
+    if (this.queryResult.length > 0) {
+      let filter = this.queryResult.filter((item) => {
+        let array = this.toMemoryAbilityArray(item);
+        let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
+        return isInclude.length > 0;
+      });
+      if (filter.length > 0) {
+        this.source = filter;
+        this.tbl!.recycleDataSource = this.source;
+      } else {
+        this.source = [];
+        this.tbl!.recycleDataSource = [];
+      }
     }
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
-    }
+  toMemoryAbilityArray(systemMemorySummary: SystemMemorySummary): any[] {
+    let array: Array<string> = [];
+    array.push(systemMemorySummary.startTimeStr);
+    array.push(systemMemorySummary.durationStr);
+    array.push(systemMemorySummary.memoryTotal);
+    array.push(systemMemorySummary.cached);
+    array.push(systemMemorySummary.swapTotal);
+    return array;
+  }
 
-    filterData() {
-        if (this.queryResult.length > 0) {
-            let filter = this.queryResult.filter((item) => {
-                let array = this.toMemoryAbilityArray(item);
-                let isInclude = array.filter(
-                    (value) => value.indexOf(this.search!.value) > -1
-                );
-                return isInclude.length > 0;
-            });
-            if (filter.length > 0) {
-                this.source = filter;
-                this.tbl!.recycleDataSource = this.source;
+  queryDataByDB(val: SelectionParam | any) {
+    queryStartTime().then((res) => {
+      let startTime = res[0].start_ts;
+      getTabMemoryAbilityData(val.leftNs + startTime, val.rightNs + startTime).then((items) => {
+        log('getTabMemoryAbilityData result size : ' + items.length);
+        this.source = [];
+        this.queryResult = [];
+        if (items.length != null && items.length > 0) {
+          let lastTime = 0;
+          for (const item of items) {
+            let systemMemorySummary = new SystemMemorySummary();
+            if (item.startTime - startTime <= 0) {
+              systemMemorySummary.startTimeStr = '0:000.000.000';
             } else {
-                this.source = [];
-                this.tbl!.recycleDataSource = [];
+              systemMemorySummary.startTimeStr = Utils.getTimeStampHMS(item.startTime - startTime);
             }
-        }
-    }
-
-    toMemoryAbilityArray(systemMemorySummary: SystemMemorySummary): any[] {
-        let array: Array<string> = [];
-        array.push(systemMemorySummary.startTimeStr);
-        array.push(systemMemorySummary.durationStr);
-        array.push(systemMemorySummary.memoryTotal);
-        array.push(systemMemorySummary.cached);
-        array.push(systemMemorySummary.swapTotal);
-        return array;
-    }
-
-    queryDataByDB(val: SelectionParam | any) {
-        queryStartTime().then((res) => {
-            let startTime = res[0].start_ts;
-            getTabMemoryAbilityData(
-                val.leftNs + startTime,
-                val.rightNs + startTime
-            ).then((items) => {
-                log('getTabMemoryAbilityData result size : ' + items.length);
-                this.source = [];
-                this.queryResult = [];
-                if (items.length != null && items.length > 0) {
-                    let lastTime = 0;
-                    for (const item of items) {
-                        let systemMemorySummary = new SystemMemorySummary();
-                        if (item.startTime - startTime <= 0) {
-                            systemMemorySummary.startTimeStr = '0:000.000.000';
-                        } else {
-                            systemMemorySummary.startTimeStr =
-                                Utils.getTimeStampHMS(
-                                    item.startTime - startTime
-                                );
-                        }
-                        if (lastTime !== 0) {
-                            systemMemorySummary.durationNumber =
-                                item.startTime - lastTime;
-                            systemMemorySummary.durationStr =
-                                Utils.getDurString(
-                                    systemMemorySummary.durationNumber
-                                );
-                        } else {
-                            systemMemorySummary.durationNumber = 0;
-                            systemMemorySummary.durationStr = '-';
-                        }
-                        lastTime = item.startTime;
-                        let memorys = item.value.split(',');
-                        let names = item.name.split(',');
-                        if (memorys.length != names.length) {
-                            continue;
-                        }
-                        for (let i = 0; i < names.length; i++) {
-                            switch (names[i]) {
-                                case 'sys.mem.total':
-                                    systemMemorySummary.memoryTotal =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.free':
-                                    systemMemorySummary.memFree =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.buffers':
-                                    systemMemorySummary.buffers =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.cached':
-                                    systemMemorySummary.cached =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.shmem':
-                                    systemMemorySummary.shmem =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.slab':
-                                    systemMemorySummary.slab =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.swap.total':
-                                    systemMemorySummary.swapTotal =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.swap.free':
-                                    systemMemorySummary.swapFree =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.mapped':
-                                    systemMemorySummary.mapped =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.vmalloc.used':
-                                    systemMemorySummary.vmallocUsed =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.page.tables':
-                                    systemMemorySummary.pageTables =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.kernel.stack':
-                                    systemMemorySummary.kernelStack =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.active':
-                                    systemMemorySummary.active =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.inactive':
-                                    systemMemorySummary.inactive =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.unevictable':
-                                    systemMemorySummary.unevictable =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.vmalloc.total':
-                                    systemMemorySummary.vmallocTotal =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.slab.unreclaimable':
-                                    systemMemorySummary.sUnreclaim =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.cma.total':
-                                    systemMemorySummary.cmaTotal =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.cma.free':
-                                    systemMemorySummary.cmaFree =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.kernel.reclaimable':
-                                    systemMemorySummary.kReclaimable =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i])
-                                        );
-                                    break;
-                                case 'sys.mem.zram':
-                                    systemMemorySummary.zram =
-                                        Utils.getBinaryKBWithUnit(
-                                            Number(memorys[i]) * 1000
-                                        );
-                                    break;
-                            }
-                        }
-                        this.source.push(systemMemorySummary);
-                    }
-                    this.tbl!.recycleDataSource = this.source;
-                } else {
-                    this.source = [];
-                    this.tbl!.recycleDataSource = [];
-                }
-            });
-        });
-        if (this.tbl) {
-            let th = this.tbl.shadowRoot?.querySelector<HTMLDivElement>('.th');
-            if (th) {
-                th.style.gridColumnGap = '5px';
+            if (lastTime !== 0) {
+              systemMemorySummary.durationNumber = item.startTime - lastTime;
+              systemMemorySummary.durationStr = Utils.getDurString(systemMemorySummary.durationNumber);
+            } else {
+              systemMemorySummary.durationNumber = 0;
+              systemMemorySummary.durationStr = '-';
             }
+            lastTime = item.startTime;
+            let memorys = item.value.split(',');
+            let names = item.name.split(',');
+            if (memorys.length != names.length) {
+              continue;
+            }
+            for (let i = 0; i < names.length; i++) {
+              switch (names[i]) {
+                case 'sys.mem.total':
+                  systemMemorySummary.memoryTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.free':
+                  systemMemorySummary.memFree = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.buffers':
+                  systemMemorySummary.buffers = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.cached':
+                  systemMemorySummary.cached = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.shmem':
+                  systemMemorySummary.shmem = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.slab':
+                  systemMemorySummary.slab = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.swap.total':
+                  systemMemorySummary.swapTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.swap.free':
+                  systemMemorySummary.swapFree = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.mapped':
+                  systemMemorySummary.mapped = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.vmalloc.used':
+                  systemMemorySummary.vmallocUsed = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.page.tables':
+                  systemMemorySummary.pageTables = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.kernel.stack':
+                  systemMemorySummary.kernelStack = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.active':
+                  systemMemorySummary.active = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.inactive':
+                  systemMemorySummary.inactive = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.unevictable':
+                  systemMemorySummary.unevictable = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.vmalloc.total':
+                  systemMemorySummary.vmallocTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.slab.unreclaimable':
+                  systemMemorySummary.sUnreclaim = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.cma.total':
+                  systemMemorySummary.cmaTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.cma.free':
+                  systemMemorySummary.cmaFree = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.kernel.reclaimable':
+                  systemMemorySummary.kReclaimable = Utils.getBinaryKBWithUnit(Number(memorys[i]));
+                  break;
+                case 'sys.mem.zram':
+                  systemMemorySummary.zram = Utils.getBinaryKBWithUnit(Number(memorys[i]) * 1000);
+                  break;
+              }
+            }
+            this.source.push(systemMemorySummary);
+          }
+          this.tbl!.recycleDataSource = this.source;
+        } else {
+          this.source = [];
+          this.tbl!.recycleDataSource = [];
         }
+      });
+    });
+    if (this.tbl) {
+      let th = this.tbl.shadowRoot?.querySelector<HTMLDivElement>('.th');
+      if (th) {
+        th.style.gridColumnGap = '5px';
+      }
     }
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
 <style>
 :host{
     display: flex;
@@ -312,42 +233,40 @@ export class TabPaneMemoryAbility extends BaseElement {
     <lit-table-column order width="100px" title="Zram" data-index="zram" key="zram" align="flex-start" ></lit-table-column>
 </lit-table>
         `;
-    }
+  }
 
-    sortByColumn(detail: any) {
-        // @ts-ignore
-        function compare(property, sort, type) {
-            return function (a: SystemMemorySummary, b: SystemMemorySummary) {
-                if (type === 'number') {
-                    // @ts-ignore
-                    return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
-                } else if (type === 'durationStr') {
-                    return sort === 2
-                        ? b.durationNumber - a.durationNumber
-                        : a.durationNumber - b.durationNumber;
-                } else {
-                    // @ts-ignore
-                    if (b[property] > a[property]) {
-                        return sort === 2 ? 1 : -1;
-                    } else {
-                        // @ts-ignore
-                        if (b[property] == a[property]) {
-                            return 0;
-                        } else {
-                            return sort === 2 ? -1 : 1;
-                        }
-                    }
-                }
-            };
-        }
-
-        if (detail.key === 'startTime') {
-            this.source.sort(compare(detail.key, detail.sort, 'string'));
-        } else if (detail.key === 'durationStr') {
-            this.source.sort(compare(detail.key, detail.sort, 'durationStr'));
+  sortByColumn(detail: any) {
+    // @ts-ignore
+    function compare(property, sort, type) {
+      return function (a: SystemMemorySummary, b: SystemMemorySummary) {
+        if (type === 'number') {
+          // @ts-ignore
+          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+        } else if (type === 'durationStr') {
+          return sort === 2 ? b.durationNumber - a.durationNumber : a.durationNumber - b.durationNumber;
         } else {
-            this.source.sort(compare(detail.key, detail.sort, 'number'));
+          // @ts-ignore
+          if (b[property] > a[property]) {
+            return sort === 2 ? 1 : -1;
+          } else {
+            // @ts-ignore
+            if (b[property] == a[property]) {
+              return 0;
+            } else {
+              return sort === 2 ? -1 : 1;
+            }
+          }
         }
-        this.tbl!.recycleDataSource = this.source;
+      };
     }
+
+    if (detail.key === 'startTime') {
+      this.source.sort(compare(detail.key, detail.sort, 'string'));
+    } else if (detail.key === 'durationStr') {
+      this.source.sort(compare(detail.key, detail.sort, 'durationStr'));
+    } else {
+      this.source.sort(compare(detail.key, detail.sort, 'number'));
+    }
+    this.tbl!.recycleDataSource = this.source;
+  }
 }

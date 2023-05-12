@@ -17,57 +17,47 @@
 import LitSwitch from '../../../dist/base-ui/switch/lit-switch';
 
 describe('LitSwitch Test', () => {
-    let litSwitch = new LitSwitch();
-    litSwitch.checked = true;
-    litSwitch.checked = false;
-    litSwitch.disabled = true;
-    litSwitch.disabled = false;
+  let litSwitch = new LitSwitch();
+  litSwitch.checked = true;
+  litSwitch.checked = false;
+  litSwitch.disabled = true;
+  litSwitch.disabled = false;
 
-    it('LitSwitchTest01', () => {
-        expect(litSwitch.name).toBeNull();
-    });
+  it('LitSwitchTest01', () => {
+    expect(litSwitch.name).toBeNull();
+  });
 
-    it('LitSwitchTest02', () => {
-        expect(litSwitch.disabled).toBeFalsy();
-    });
+  it('LitSwitchTest02', () => {
+    expect(litSwitch.disabled).toBeFalsy();
+  });
 
-    it('LitSwitchTest03', () => {
-        expect(litSwitch.checked).toBeFalsy();
-    });
+  it('LitSwitchTest03', () => {
+    expect(litSwitch.checked).toBeFalsy();
+  });
 
-    it('LitSwitchTest04', () => {
-        LitSwitch.switch = document.querySelector(
-            '#switch'
-        ) as HTMLInputElement;
-        expect(litSwitch.connectedCallback()).toBeUndefined();
-    });
+  it('LitSwitchTest04', () => {
+    LitSwitch.switch = document.querySelector('#switch') as HTMLInputElement;
+    expect(litSwitch.connectedCallback()).toBeUndefined();
+  });
 
-    it('LitSwitchTest05', () => {
-        expect(
-            litSwitch.attributeChangedCallback('disabled', 'disabled', '')
-        ).toBeUndefined();
-    });
+  it('LitSwitchTest05', () => {
+    expect(litSwitch.attributeChangedCallback('disabled', 'disabled', '')).toBeUndefined();
+  });
 
-    it('LitSwitchTest06', () => {
-        expect(
-            litSwitch.attributeChangedCallback('disabled', 'disabled', null)
-        ).toBeUndefined();
-    });
+  it('LitSwitchTest06', () => {
+    expect(litSwitch.attributeChangedCallback('disabled', 'disabled', null)).toBeUndefined();
+  });
 
-    it('LitSwitchTest07', () => {
-        expect(
-            litSwitch.attributeChangedCallback('checked', 'disabled', '')
-        ).toBeUndefined();
-    });
+  it('LitSwitchTest07', () => {
+    expect(litSwitch.attributeChangedCallback('checked', 'disabled', '')).toBeUndefined();
+  });
 
-    it('LitSwitchTest08', () => {
-        expect(
-            litSwitch.attributeChangedCallback('checked', 'disabled', null)
-        ).toBeUndefined();
-    });
+  it('LitSwitchTest08', () => {
+    expect(litSwitch.attributeChangedCallback('checked', 'disabled', null)).toBeUndefined();
+  });
 
-    it('LitSwitchTest09', () => {
-        expect(litSwitch.initHtml()).toMatchInlineSnapshot(`
+  it('LitSwitchTest09', () => {
+    expect(litSwitch.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{ 
@@ -138,5 +128,5 @@ describe('LitSwitch Test', () => {
         <input type=\\"checkbox\\" id=\\"switch\\"><label id=\\"name\\" for=\\"switch\\"></label>
         "
 `);
-    });
+  });
 });

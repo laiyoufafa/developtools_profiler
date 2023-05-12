@@ -19,19 +19,18 @@ import { LitPopover } from '../../base-ui/popover/LitPopover.js';
 
 @element('sp-text')
 export class SpText extends BaseElement {
-    initElements(): void {
-        let litPopover =
-            this.shadowRoot?.querySelector<LitPopover>('lit-popover');
-        litPopover!.dataSource = [
-            {
-                text: '# Samples',
-                isSelected: true,
-            },
-        ];
-    }
+  initElements(): void {
+    let litPopover = this.shadowRoot?.querySelector<LitPopover>('lit-popover');
+    litPopover!.dataSource = [
+      {
+        text: '# Samples',
+        isSelected: true,
+      },
+    ];
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
         }
@@ -58,5 +57,5 @@ export class SpText extends BaseElement {
             </div>
         </div>
         `;
-    }
+  }
 }

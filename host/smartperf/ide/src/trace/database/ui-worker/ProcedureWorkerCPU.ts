@@ -15,516 +15,390 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
-    BaseStruct,
-    dataFilterHandler,
-    drawFlagLine,
-    drawLines,
-    drawLoading,
-    drawSelection,
-    drawWakeUp,
-    Render,
-    RequestMessage,
+  BaseStruct,
+  dataFilterHandler,
+  drawFlagLine,
+  drawLines,
+  drawLoading,
+  drawSelection,
+  drawWakeUp,
+  Render,
+  RequestMessage,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
 export class EmptyRender extends Render {
-    renderMainThread(req: any, row: TraceRow<any>) {
-        req.context.beginPath();
-        req.context.closePath();
+  renderMainThread(req: any, row: TraceRow<any>) {
+    req.context.beginPath();
+    req.context.closePath();
+  }
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (req.canvas) {
+      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+      req.context.beginPath();
+      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      drawSelection(req.context, req.params);
+      req.context.closePath();
+      drawFlagLine(
+        req.context,
+        req.flagMoveInfo,
+        req.flagSelectedInfo,
+        req.startNS,
+        req.endNS,
+        req.totalNS,
+        req.frame,
+        req.slicesTime
+      );
     }
-    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-        if (req.canvas) {
-            req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-            req.context.beginPath();
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-            drawSelection(req.context, req.params);
-            req.context.closePath();
-            drawFlagLine(
-                req.context,
-                req.flagMoveInfo,
-                req.flagSelectedInfo,
-                req.startNS,
-                req.endNS,
-                req.totalNS,
-                req.frame,
-                req.slicesTime
-            );
-        }
-        // @ts-ignore
-        self.postMessage({
-            id: req.id,
-            type: req.type,
-            results: req.canvas ? undefined : filter,
-            hover: null,
-        });
-    }
+    // @ts-ignore
+    self.postMessage({
+      id: req.id,
+      type: req.type,
+      results: req.canvas ? undefined : filter,
+      hover: null,
+    });
+  }
 }
 
 export class CpuRender {
-    renderMainThread(
-        req: {
-            context: CanvasRenderingContext2D;
-            useCache: boolean;
-            type: string;
-            translateY: number;
-        },
-        row: TraceRow<CpuStruct>
-    ) {
-        let list = row.dataList;
-        let filter = row.dataListCache;
-        dataFilterHandler(list, filter, {
-            startKey: 'startTime',
-            durKey: 'dur',
-            startNS: TraceRow.range?.startNS ?? 0,
-            endNS: TraceRow.range?.endNS ?? 0,
-            totalNS: TraceRow.range?.totalNS ?? 0,
-            frame: row.frame,
-            paddingTop: 5,
-            useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
-        });
-        req.context.beginPath();
-        req.context.font = '11px sans-serif';
-        filter.forEach((re) => {
-            re.translateY = req.translateY;
-            CpuStruct.draw(req.context, re, req.translateY);
-        });
-        req.context.closePath();
-        let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-        drawWakeUp(
-            req.context,
-            CpuStruct.wakeupBean,
-            TraceRow.range!.startNS,
-            TraceRow.range!.endNS,
-            TraceRow.range!.totalNS,
-            row.frame,
-            req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}`
-                ? CpuStruct.selectCpuStruct
-                : undefined,
-            currentCpu
+  renderMainThread(
+    req: {
+      context: CanvasRenderingContext2D;
+      useCache: boolean;
+      type: string;
+      translateY: number;
+    },
+    row: TraceRow<CpuStruct>
+  ) {
+    let list = row.dataList;
+    let filter = row.dataListCache;
+    dataFilterHandler(list, filter, {
+      startKey: 'startTime',
+      durKey: 'dur',
+      startNS: TraceRow.range?.startNS ?? 0,
+      endNS: TraceRow.range?.endNS ?? 0,
+      totalNS: TraceRow.range?.totalNS ?? 0,
+      frame: row.frame,
+      paddingTop: 5,
+      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+    });
+    req.context.beginPath();
+    req.context.font = '11px sans-serif';
+    filter.forEach((re) => {
+      re.translateY = req.translateY;
+      CpuStruct.draw(req.context, re, req.translateY);
+    });
+    req.context.closePath();
+    let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
+    drawWakeUp(
+      req.context,
+      CpuStruct.wakeupBean,
+      TraceRow.range!.startNS,
+      TraceRow.range!.endNS,
+      TraceRow.range!.totalNS,
+      row.frame,
+      req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined,
+      currentCpu
+    );
+  }
+
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>, translateY: number) {
+    if (req.lazyRefresh) {
+      this.cpu(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+    } else {
+      if (!req.useCache) {
+        this.cpu(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      }
+    }
+    if (req.canvas) {
+      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+      let arr = filter;
+      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+        drawLoading(
+          req.context,
+          req.startNS,
+          req.endNS,
+          req.totalNS,
+          req.frame,
+          arr[0].startTime,
+          arr[arr.length - 1].startTime + arr[arr.length - 1].dur
         );
+      }
+      req.context.beginPath();
+      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      CpuStruct.hoverCpuStruct = undefined;
+      if (req.isHover) {
+        for (let re of filter) {
+          if (
+            re.frame &&
+            req.hoverX >= re.frame.x &&
+            req.hoverX <= re.frame.x + re.frame.width &&
+            req.hoverY >= re.frame.y &&
+            req.hoverY <= re.frame.y + re.frame.height
+          ) {
+            CpuStruct.hoverCpuStruct = re;
+            break;
+          }
+        }
+      } else {
+        CpuStruct.hoverCpuStruct = req.params.hoverCpuStruct;
+      }
+      CpuStruct.selectCpuStruct = req.params.selectCpuStruct;
+      req.context.font = '11px sans-serif';
+      for (let re of filter) {
+        CpuStruct.draw(req.context, re, translateY);
+      }
+      drawSelection(req.context, req.params);
+      req.context.closePath();
+      drawFlagLine(
+        req.context,
+        req.flagMoveInfo,
+        req.flagSelectedInfo,
+        req.startNS,
+        req.endNS,
+        req.totalNS,
+        req.frame,
+        req.slicesTime
+      );
+      let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
+      drawWakeUp(
+        req.context,
+        req.wakeupBean,
+        req.startNS,
+        req.endNS,
+        req.totalNS,
+        req.frame,
+        req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined,
+        currentCpu
+      );
     }
+    // @ts-ignore
+    self.postMessage({
+      id: req.id,
+      type: req.type,
+      results: req.canvas ? undefined : filter,
+      hover: CpuStruct.hoverCpuStruct,
+    });
+  }
 
-    render(
-        req: RequestMessage,
-        list: Array<any>,
-        filter: Array<any>,
-        translateY: number
-    ) {
-        if (req.lazyRefresh) {
-            this.cpu(
-                list,
-                filter,
-                req.startNS,
-                req.endNS,
-                req.totalNS,
-                req.frame,
-                req.useCache || !req.range.refresh
-            );
+  cpu(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+    if (use && res.length > 0) {
+      let pns = (endNS - startNS) / frame.width;
+      let y = frame.y + 5;
+      let height = frame.height - 10;
+      for (let i = 0, len = res.length; i < len; i++) {
+        let it = res[i];
+        if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
+          if (!res[i].frame) {
+            res[i].frame = {};
+            res[i].frame.y = y;
+            res[i].frame.height = height;
+          }
+          CpuStruct.setCpuFrame(res[i], pns, startNS, endNS, frame);
         } else {
-            if (!req.useCache) {
-                this.cpu(
-                    list,
-                    filter,
-                    req.startNS,
-                    req.endNS,
-                    req.totalNS,
-                    req.frame,
-                    false
-                );
-            }
+          res[i].frame = null;
         }
-        if (req.canvas) {
-            req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-            let arr = filter;
-            if (
-                arr.length > 0 &&
-                !req.range.refresh &&
-                !req.useCache &&
-                req.lazyRefresh
-            ) {
-                drawLoading(
-                    req.context,
-                    req.startNS,
-                    req.endNS,
-                    req.totalNS,
-                    req.frame,
-                    arr[0].startTime,
-                    arr[arr.length - 1].startTime + arr[arr.length - 1].dur
-                );
-            }
-            req.context.beginPath();
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-            CpuStruct.hoverCpuStruct = undefined;
-            if (req.isHover) {
-                for (let re of filter) {
-                    if (
-                        re.frame &&
-                        req.hoverX >= re.frame.x &&
-                        req.hoverX <= re.frame.x + re.frame.width &&
-                        req.hoverY >= re.frame.y &&
-                        req.hoverY <= re.frame.y + re.frame.height
-                    ) {
-                        CpuStruct.hoverCpuStruct = re;
-                        break;
-                    }
-                }
+      }
+      return;
+    }
+    if (list) {
+      res.length = 0;
+      let pns = (endNS - startNS) / frame.width; //每个像素多少ns
+      let y = frame.y + 5;
+      let height = frame.height - 10;
+      let left = 0,
+        right = 0;
+      for (let i = 0, j = list.length - 1, ib = true, jb = true; i < list.length, j >= 0; i++, j--) {
+        if (list[j].startTime <= endNS && jb) {
+          right = j;
+          jb = false;
+        }
+        if (list[i].startTime + list[i].dur >= startNS && ib) {
+          left = i;
+          ib = false;
+        }
+        if (!ib && !jb) {
+          break;
+        }
+      }
+      let slice = list.slice(left, right + 1);
+      let sum = 0;
+      for (let i = 0; i < slice.length; i++) {
+        if (!slice[i].frame) {
+          slice[i].frame = {};
+          slice[i].frame.y = y;
+          slice[i].frame.height = height;
+        }
+        if (slice[i].dur >= pns) {
+          slice[i].v = true;
+          CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
+        } else {
+          if (i > 0) {
+            let c = slice[i].startTime - slice[i - 1].startTime - slice[i - 1].dur;
+            if (c < pns && sum < pns) {
+              sum += c + slice[i - 1].dur;
+              slice[i].v = false;
             } else {
-                CpuStruct.hoverCpuStruct = req.params.hoverCpuStruct;
+              slice[i].v = true;
+              CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
+              sum = 0;
             }
-            CpuStruct.selectCpuStruct = req.params.selectCpuStruct;
-            req.context.font = '11px sans-serif';
-            for (let re of filter) {
-                CpuStruct.draw(req.context, re, translateY);
-            }
-            drawSelection(req.context, req.params);
-            req.context.closePath();
-            drawFlagLine(
-                req.context,
-                req.flagMoveInfo,
-                req.flagSelectedInfo,
-                req.startNS,
-                req.endNS,
-                req.totalNS,
-                req.frame,
-                req.slicesTime
-            );
-            let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-            drawWakeUp(
-                req.context,
-                req.wakeupBean,
-                req.startNS,
-                req.endNS,
-                req.totalNS,
-                req.frame,
-                req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}`
-                    ? CpuStruct.selectCpuStruct
-                    : undefined,
-                currentCpu
-            );
+          }
         }
-        // @ts-ignore
-        self.postMessage({
-            id: req.id,
-            type: req.type,
-            results: req.canvas ? undefined : filter,
-            hover: CpuStruct.hoverCpuStruct,
-        });
+      }
+      res.push(...slice.filter((it) => it.v));
     }
-
-    cpu(
-        list: Array<any>,
-        res: Array<any>,
-        startNS: number,
-        endNS: number,
-        totalNS: number,
-        frame: any,
-        use: boolean
-    ) {
-        if (use && res.length > 0) {
-            let pns = (endNS - startNS) / frame.width;
-            let y = frame.y + 5;
-            let height = frame.height - 10;
-            for (let i = 0, len = res.length; i < len; i++) {
-                let it = res[i];
-                if (
-                    (it.startTime || 0) + (it.dur || 0) > startNS &&
-                    (it.startTime || 0) < endNS
-                ) {
-                    if (!res[i].frame) {
-                        res[i].frame = {};
-                        res[i].frame.y = y;
-                        res[i].frame.height = height;
-                    }
-                    CpuStruct.setCpuFrame(res[i], pns, startNS, endNS, frame);
-                } else {
-                    res[i].frame = null;
-                }
-            }
-            return;
-        }
-        if (list) {
-            res.length = 0;
-            let pns = (endNS - startNS) / frame.width; //每个像素多少ns
-            let y = frame.y + 5;
-            let height = frame.height - 10;
-            let left = 0,
-                right = 0;
-            for (
-                let i = 0, j = list.length - 1, ib = true, jb = true;
-                i < list.length, j >= 0;
-                i++, j--
-            ) {
-                if (list[j].startTime <= endNS && jb) {
-                    right = j;
-                    jb = false;
-                }
-                if (list[i].startTime + list[i].dur >= startNS && ib) {
-                    left = i;
-                    ib = false;
-                }
-                if (!ib && !jb) {
-                    break;
-                }
-            }
-            let slice = list.slice(left, right + 1);
-            let sum = 0;
-            for (let i = 0; i < slice.length; i++) {
-                if (!slice[i].frame) {
-                    slice[i].frame = {};
-                    slice[i].frame.y = y;
-                    slice[i].frame.height = height;
-                }
-                if (slice[i].dur >= pns) {
-                    slice[i].v = true;
-                    CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
-                } else {
-                    if (i > 0) {
-                        let c =
-                            slice[i].startTime -
-                            slice[i - 1].startTime -
-                            slice[i - 1].dur;
-                        if (c < pns && sum < pns) {
-                            sum += c + slice[i - 1].dur;
-                            slice[i].v = false;
-                        } else {
-                            slice[i].v = true;
-                            CpuStruct.setCpuFrame(
-                                slice[i],
-                                pns,
-                                startNS,
-                                endNS,
-                                frame
-                            );
-                            sum = 0;
-                        }
-                    }
-                }
-            }
-            res.push(...slice.filter((it) => it.v));
-        }
-    }
+  }
 }
 
 export class CpuStruct extends BaseStruct {
-    static cpuCount: number = 1; //最大cpu数量
-    static hoverCpuStruct: CpuStruct | undefined;
-    static selectCpuStruct: CpuStruct | undefined;
-    static wakeupBean: WakeupBean | null | undefined = null;
-    cpu: number | undefined;
-    dur: number | undefined;
-    end_state: string | undefined;
-    id: number | undefined;
-    name: string | undefined;
-    priority: number | undefined;
-    processCmdLine: string | undefined;
-    processId: number | undefined;
-    processName: string | undefined;
-    displayProcess:string|undefined;
-    displayThread:string|undefined;
-    measurePWidth:number = 0;
-    measureTWidth:number = 0;
-    startTime: number | undefined;
-    tid: number | undefined;
-    argSetID: number | undefined;
-    type: string | undefined;
-    v: boolean = false;
-    nofinish: boolean = false;
-    static draw(
-        ctx: CanvasRenderingContext2D,
-        data: CpuStruct,
-        translateY: number
-    ) {
-        if (data.frame) {
-            let width = data.frame.width || 0;
-            if (
-                data.tid === CpuStruct.hoverCpuStruct?.tid ||
-                !CpuStruct.hoverCpuStruct
-            ) {
-                ctx.globalAlpha = 1;
-                ctx.fillStyle = ColorUtils.colorForTid(
-                    (data.processId || 0) > 0
-                        ? data.processId || 0
-                        : data.tid || 0
-                );
-            } else if (data.processId === CpuStruct.hoverCpuStruct?.processId) {
-                ctx.globalAlpha = 0.6;
-                ctx.fillStyle = ColorUtils.colorForTid(
-                    (data.processId || 0) > 0
-                        ? data.processId || 0
-                        : data.tid || 0
-                );
+  static cpuCount: number = 1; //最大cpu数量
+  static hoverCpuStruct: CpuStruct | undefined;
+  static selectCpuStruct: CpuStruct | undefined;
+  static wakeupBean: WakeupBean | null | undefined = null;
+  cpu: number | undefined;
+  dur: number | undefined;
+  end_state: string | undefined;
+  id: number | undefined;
+  name: string | undefined;
+  priority: number | undefined;
+  processCmdLine: string | undefined;
+  processId: number | undefined;
+  processName: string | undefined;
+  displayProcess: string | undefined;
+  displayThread: string | undefined;
+  measurePWidth: number = 0;
+  measureTWidth: number = 0;
+  startTime: number | undefined;
+  tid: number | undefined;
+  argSetID: number | undefined;
+  type: string | undefined;
+  v: boolean = false;
+  nofinish: boolean = false;
+  static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number) {
+    if (data.frame) {
+      let width = data.frame.width || 0;
+      if (data.tid === CpuStruct.hoverCpuStruct?.tid || !CpuStruct.hoverCpuStruct) {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = ColorUtils.colorForTid((data.processId || 0) > 0 ? data.processId || 0 : data.tid || 0);
+      } else if (data.processId === CpuStruct.hoverCpuStruct?.processId) {
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = ColorUtils.colorForTid((data.processId || 0) > 0 ? data.processId || 0 : data.tid || 0);
+      } else {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#e0e0e0';
+      }
+      ctx.fillRect(data.frame.x, data.frame.y, width, data.frame.height);
+      ctx.globalAlpha = 1;
+      let textFillWidth = width - textPadding * 2;
+      if (textFillWidth > 3) {
+        if (data.displayProcess === undefined) {
+          data.displayProcess = `${data.processName || 'Process'} [${data.processId}]`;
+          data.measurePWidth = ctx.measureText(data.displayProcess).width;
+        }
+        if (data.displayThread === undefined) {
+          data.displayThread = `${data.name || 'Thread'} [${data.tid}] [Prio:${data.priority || 0}]`;
+          data.measureTWidth = ctx.measureText(data.displayThread).width;
+        }
+        let processCharWidth = Math.round(data.measurePWidth / data.displayProcess.length);
+        let threadCharWidth = Math.round(data.measureTWidth / data.displayThread.length);
+        ctx.fillStyle = '#ffffff';
+        let y = data.frame.height / 2 + data.frame.y;
+        if (data.measurePWidth < textFillWidth) {
+          let x1 = Math.floor(width / 2 - data.measurePWidth / 2 + data.frame.x + textPadding);
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(data.displayProcess, x1, y, textFillWidth);
+        } else {
+          if (textFillWidth >= processCharWidth) {
+            let chatNum = textFillWidth / processCharWidth;
+            let x1 = data.frame.x + textPadding;
+            ctx.textBaseline = 'bottom';
+            if (chatNum < 2) {
+              ctx.fillText(data.displayProcess.substring(0, 1), x1, y, textFillWidth);
             } else {
-                ctx.globalAlpha = 1;
-                ctx.fillStyle = '#e0e0e0';
+              ctx.fillText(data.displayProcess.substring(0, chatNum - 1) + '...', x1, y, textFillWidth);
             }
-            ctx.fillRect(data.frame.x, data.frame.y, width, data.frame.height);
-            ctx.globalAlpha = 1;
-            let textFillWidth = width - textPadding * 2;
-            if (textFillWidth > 3) {
-                if(data.displayProcess === undefined){
-                    data.displayProcess = `${(data.processName || 'Process')} [${
-                        data.processId
-                    }]`;
-                    data.measurePWidth = ctx.measureText(data.displayProcess).width;
-                }
-                if(data.displayThread === undefined){
-                    data.displayThread = `${data.name || 'Thread'} [${data.tid}] [Prio:${
-                        data.priority || 0
-                    }]`;
-                    data.measureTWidth = ctx.measureText(data.displayThread).width;
-                }
-                let processCharWidth = Math.round(
-                    data.measurePWidth / data.displayProcess.length
-                );
-                let threadCharWidth = Math.round(
-                    data.measureTWidth / data.displayThread.length
-                );
-                ctx.fillStyle = '#ffffff';
-                let y = data.frame.height / 2 + data.frame.y;
-                if (data.measurePWidth < textFillWidth) {
-                    let x1 = Math.floor(
-                        width / 2 -
-                        data.measurePWidth / 2 +
-                        data.frame.x +
-                        textPadding);
-                    ctx.textBaseline = 'bottom';
-                    ctx.fillText(data.displayProcess, x1, y, textFillWidth);
-                } else {
-                    if (textFillWidth >= processCharWidth) {
-                        let chatNum = textFillWidth / processCharWidth;
-                        let x1 = data.frame.x + textPadding;
-                        ctx.textBaseline = 'bottom';
-                        if (chatNum < 2) {
-                            ctx.fillText(
-                                data.displayProcess.substring(0, 1),
-                                x1,
-                                y,
-                                textFillWidth
-                            );
-                        } else {
-                            ctx.fillText(
-                                data.displayProcess.substring(0, chatNum - 1) + '...',
-                                x1,
-                                y,
-                                textFillWidth
-                            );
-                        }
-                    }
-                }
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '9px sans-serif';
-                if (data.measureTWidth < textFillWidth) {
-                    ctx.textBaseline = 'top';
-                    let x2 = Math.floor(
-                        width / 2 -
-                        data.measureTWidth / 2 +
-                        data.frame.x +
-                        textPadding
-                    );
-                    ctx.fillText(data.displayThread, x2, y + 2, textFillWidth);
-                } else {
-                    if (textFillWidth >= threadCharWidth) {
-                        let chatNum = textFillWidth / threadCharWidth;
-                        let x1 = data.frame.x + textPadding;
-                        ctx.textBaseline = 'top';
-                        if (chatNum < 2) {
-                            ctx.fillText(
-                                data.displayThread.substring(0, 1),
-                                x1,
-                                y + 2,
-                                textFillWidth
-                            );
-                        } else {
-                            ctx.fillText(
-                                data.displayThread.substring(0, chatNum - 1) + '...',
-                                x1,
-                                y + 2,
-                                textFillWidth
-                            );
-                        }
-                    }
-                }
-            }
-            if (data.nofinish && width > 4) {
-                ctx.fillStyle = '#FFFFFF';
-                let ruptureWidth = 4;
-                let ruptureNode = 8;
-                ctx.moveTo(data.frame.x + data.frame.width - 1, data.frame.y);
-                for (let i = 1; i <= ruptureNode; i++) {
-                    ctx.lineTo(
-                        data.frame.x +
-                            data.frame.width -
-                            1 -
-                            (i % 2 == 0 ? 0 : ruptureWidth),
-                        data.frame.y + (data.frame.height / ruptureNode) * i
-                    );
-                }
-                ctx.closePath();
-                ctx.fill();
-            }
-            if (
-                CpuStruct.selectCpuStruct &&
-                CpuStruct.equals(CpuStruct.selectCpuStruct, data)
-            ) {
-                ctx.strokeStyle = '#232c5d';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(
-                    data.frame.x,
-                    data.frame.y,
-                    width - 2,
-                    data.frame.height
-                );
-            }
+          }
         }
-    }
-
-    static setCpuFrame(
-        node: any,
-        pns: number,
-        startNS: number,
-        endNS: number,
-        frame: any
-    ) {
-        if ((node.startTime || 0) < startNS) {
-            node.frame.x = 0;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '9px sans-serif';
+        if (data.measureTWidth < textFillWidth) {
+          ctx.textBaseline = 'top';
+          let x2 = Math.floor(width / 2 - data.measureTWidth / 2 + data.frame.x + textPadding);
+          ctx.fillText(data.displayThread, x2, y + 2, textFillWidth);
         } else {
-            node.frame.x = Math.floor(((node.startTime || 0) - startNS) / pns);
+          if (textFillWidth >= threadCharWidth) {
+            let chatNum = textFillWidth / threadCharWidth;
+            let x1 = data.frame.x + textPadding;
+            ctx.textBaseline = 'top';
+            if (chatNum < 2) {
+              ctx.fillText(data.displayThread.substring(0, 1), x1, y + 2, textFillWidth);
+            } else {
+              ctx.fillText(data.displayThread.substring(0, chatNum - 1) + '...', x1, y + 2, textFillWidth);
+            }
+          }
         }
-        if ((node.startTime || 0) + (node.dur || 0) > endNS) {
-            node.frame.width = frame.width - node.frame.x;
-        } else {
-            node.frame.width = Math.ceil(
-                ((node.startTime || 0) + (node.dur || 0) - startNS) / pns -
-                    node.frame.x
-            );
+      }
+      if (data.nofinish && width > 4) {
+        ctx.fillStyle = '#FFFFFF';
+        let ruptureWidth = 4;
+        let ruptureNode = 8;
+        ctx.moveTo(data.frame.x + data.frame.width - 1, data.frame.y);
+        for (let i = 1; i <= ruptureNode; i++) {
+          ctx.lineTo(
+            data.frame.x + data.frame.width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
+            data.frame.y + (data.frame.height / ruptureNode) * i
+          );
         }
-        if (node.frame.width < 1) {
-            node.frame.width = 1;
-        }
+        ctx.closePath();
+        ctx.fill();
+      }
+      if (CpuStruct.selectCpuStruct && CpuStruct.equals(CpuStruct.selectCpuStruct, data)) {
+        ctx.strokeStyle = '#232c5d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(data.frame.x, data.frame.y, width - 2, data.frame.height);
+      }
     }
+  }
 
-    static equals(d1: CpuStruct, d2: CpuStruct): boolean {
-        return (
-            d1 &&
-            d2 &&
-            d1.cpu == d2.cpu &&
-            d1.tid == d2.tid &&
-            d1.processId == d2.processId &&
-            d1.startTime == d2.startTime &&
-            d1.dur == d2.dur
-        );
+  static setCpuFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+    if ((node.startTime || 0) < startNS) {
+      node.frame.x = 0;
+    } else {
+      node.frame.x = Math.floor(((node.startTime || 0) - startNS) / pns);
     }
+    if ((node.startTime || 0) + (node.dur || 0) > endNS) {
+      node.frame.width = frame.width - node.frame.x;
+    } else {
+      node.frame.width = Math.ceil(((node.startTime || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+    }
+    if (node.frame.width < 1) {
+      node.frame.width = 1;
+    }
+  }
+
+  static equals(d1: CpuStruct, d2: CpuStruct): boolean {
+    return (
+      d1 &&
+      d2 &&
+      d1.cpu == d2.cpu &&
+      d1.tid == d2.tid &&
+      d1.processId == d2.processId &&
+      d1.startTime == d2.startTime &&
+      d1.dur == d2.dur
+    );
+  }
 }
 
 export class WakeupBean {
-    wakeupTime: number | undefined;
-    cpu: number | undefined;
-    process: string | undefined;
-    pid: number | undefined;
-    thread: string | undefined;
-    tid: number | undefined;
-    schedulingLatency: number | undefined;
-    schedulingDesc: string | undefined;
+  wakeupTime: number | undefined;
+  cpu: number | undefined;
+  process: string | undefined;
+  pid: number | undefined;
+  thread: string | undefined;
+  tid: number | undefined;
+  schedulingLatency: number | undefined;
+  schedulingDesc: string | undefined;
 }
 
 const textPadding = 2;

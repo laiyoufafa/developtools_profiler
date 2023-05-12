@@ -17,41 +17,41 @@
 import { CpuUsage, Freq } from '../../../dist/trace/bean/CpuUsage.js';
 
 describe('CpuUsage Test', () => {
-    let cpuUsage = new CpuUsage();
-    let freq = new Freq();
+  let cpuUsage = new CpuUsage();
+  let freq = new Freq();
 
-    it('CpuUsageTest01', function () {
-        cpuUsage = {
-            cpu: 0,
-            usage: 0,
-            usageStr: '',
-            top1: 0,
-            top2: 0,
-            top3: 0,
-            top1Percent: 0,
-            top1PercentStr: '',
-            top2Percent: 0,
-            top2PercentStr: '',
-            top3Percent: 0,
-            top3PercentStr: '',
-        };
-        expect(cpuUsage).not.toBeUndefined();
-        expect(cpuUsage).toMatchInlineSnapshot(
-            {
-                cpu: expect.any(Number),
-                usage: expect.any(Number),
-                usageStr: expect.any(String),
-                top1: expect.any(Number),
-                top2: expect.any(Number),
-                top3: expect.any(Number),
-                top1Percent: expect.any(Number),
-                top1PercentStr: expect.any(String),
-                top2Percent: expect.any(Number),
-                top2PercentStr: expect.any(String),
-                top3Percent: expect.any(Number),
-                top3PercentStr: expect.any(String),
-            },
-            `
+  it('CpuUsageTest01', function () {
+    cpuUsage = {
+      cpu: 0,
+      usage: 0,
+      usageStr: '',
+      top1: 0,
+      top2: 0,
+      top3: 0,
+      top1Percent: 0,
+      top1PercentStr: '',
+      top2Percent: 0,
+      top2PercentStr: '',
+      top3Percent: 0,
+      top3PercentStr: '',
+    };
+    expect(cpuUsage).not.toBeUndefined();
+    expect(cpuUsage).toMatchInlineSnapshot(
+      {
+        cpu: expect.any(Number),
+        usage: expect.any(Number),
+        usageStr: expect.any(String),
+        top1: expect.any(Number),
+        top2: expect.any(Number),
+        top3: expect.any(Number),
+        top1Percent: expect.any(Number),
+        top1PercentStr: expect.any(String),
+        top2Percent: expect.any(Number),
+        top2PercentStr: expect.any(String),
+        top3Percent: expect.any(Number),
+        top3PercentStr: expect.any(String),
+      },
+      `
 Object {
   "cpu": Any<Number>,
   "top1": Any<Number>,
@@ -67,25 +67,25 @@ Object {
   "usageStr": Any<String>,
 }
 `
-        );
-    });
+    );
+  });
 
-    it('CpuUsageTest02', function () {
-        cpuUsage = {
-            cpu: 0,
-            value: 0,
-            startNs: 0,
-            dur: 0,
-        };
-        expect(freq).not.toBeUndefined();
-        expect(cpuUsage).toMatchInlineSnapshot(
-            {
-                cpu: expect.any(Number),
-                value: expect.any(Number),
-                startNs: expect.any(Number),
-                dur: expect.any(Number),
-            },
-            `
+  it('CpuUsageTest02', function () {
+    cpuUsage = {
+      cpu: 0,
+      value: 0,
+      startNs: 0,
+      dur: 0,
+    };
+    expect(freq).not.toBeUndefined();
+    expect(cpuUsage).toMatchInlineSnapshot(
+      {
+        cpu: expect.any(Number),
+        value: expect.any(Number),
+        startNs: expect.any(Number),
+        dur: expect.any(Number),
+      },
+      `
 Object {
   "cpu": Any<Number>,
   "dur": Any<Number>,
@@ -93,6 +93,6 @@ Object {
   "value": Any<Number>,
 }
 `
-        );
-    });
+    );
+  });
 });

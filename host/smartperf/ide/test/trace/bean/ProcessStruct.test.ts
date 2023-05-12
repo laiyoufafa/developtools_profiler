@@ -14,29 +14,29 @@
  */
 
 jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
-    return {};
+  return {};
 });
 
 // @ts-ignore
 import { ProcessStruct } from '../../../dist/trace/bean/ProcessStruct.js';
 
 describe('ProcessStruct Test', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
 
-    const data = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100,
-        },
-        startNS: 200,
-        value: 50,
-    };
-    it('ProcessStructTest01', function () {
-        expect(ProcessStruct.draw(ctx, data)).toBeUndefined();
-    });
+  const data = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    startNS: 200,
+    value: 50,
+  };
+  it('ProcessStructTest01', function () {
+    expect(ProcessStruct.draw(ctx, data)).toBeUndefined();
+  });
 });

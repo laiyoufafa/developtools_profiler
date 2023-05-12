@@ -28,333 +28,261 @@ import { LitSlider } from '../../../base-ui/slider/LitSlider';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
-    private processId: LitAllocationSelect | null | undefined;
-    private unwindEL: HTMLInputElement | null | undefined;
-    private shareMemory: HTMLInputElement | null | undefined;
-    private shareMemoryUnit: HTMLSelectElement | null | undefined;
-    private filterMemory: HTMLInputElement | null | undefined;
-    private filterMemoryUnit: HTMLSelectElement | null | undefined;
-    private fpUnWind: LitSwitch | null | undefined;
+  private processId: LitAllocationSelect | null | undefined;
+  private unwindEL: HTMLInputElement | null | undefined;
+  private shareMemory: HTMLInputElement | null | undefined;
+  private shareMemoryUnit: HTMLSelectElement | null | undefined;
+  private filterMemory: HTMLInputElement | null | undefined;
+  private filterMemoryUnit: HTMLSelectElement | null | undefined;
+  private fpUnWind: LitSwitch | null | undefined;
 
-    private recordAccurately: LitSwitch | null | undefined;
-    private offlineSymbol: LitSwitch | null | undefined;
-    private recordStatisticsResult: HTMLDivElement | null | undefined;
+  private recordAccurately: LitSwitch | null | undefined;
+  private offlineSymbol: LitSwitch | null | undefined;
+  private recordStatisticsResult: HTMLDivElement | null | undefined;
 
-    get appProcess(): string {
-        return this.processId!.value || '';
+  get appProcess(): string {
+    return this.processId!.value || '';
+  }
+
+  get unwind(): number {
+    log('unwind value is :' + this.unwindEL!.value);
+    return Number(this.unwindEL!.value);
+  }
+
+  get shared(): number {
+    let value = this.shareMemory?.value || '';
+    log('shareMemory value is :' + value);
+    if (value != '') {
+      let unit = Number(this.shareMemory?.value) || 16384;
+      return unit;
     }
+    return 16384;
+  }
 
-    get unwind(): number {
-        log('unwind value is :' + this.unwindEL!.value);
-        return Number(this.unwindEL!.value);
+  get filter(): number {
+    let value = this.filterMemory?.value || '';
+    log('filter value is :' + value);
+    if (value != '') {
+      return Number(value);
     }
+    return 4096;
+  }
 
-    get shared(): number {
-        let value = this.shareMemory?.value || '';
-        log('shareMemory value is :' + value);
-        if (value != '') {
-            let unit = Number(this.shareMemory?.value) || 16384;
-            return unit;
-        }
-        return 16384;
+  get fp_unwind(): boolean {
+    let value = this.fpUnWind?.checked;
+    if (value != undefined) {
+      return value;
     }
+    return true;
+  }
 
-    get filter(): number {
-        let value = this.filterMemory?.value || '';
-        log('filter value is :' + value);
-        if (value != '') {
-            return Number(value);
-        }
-        return 4096;
+  get record_accurately(): boolean {
+    let value = this.recordAccurately?.checked;
+    if (value != undefined) {
+      return value;
     }
+    return true;
+  }
 
-    get fp_unwind(): boolean {
-        let value = this.fpUnWind?.checked;
-        if (value != undefined) {
-            return value;
-        }
-        return true;
+  get offline_symbolization(): boolean {
+    let value = this.offlineSymbol?.checked;
+    if (value != undefined) {
+      return value;
     }
+    return true;
+  }
 
-    get record_accurately(): boolean {
-        let value = this.recordAccurately?.checked;
-        if (value != undefined) {
-            return value;
-        }
-        return true;
+  get record_statistics(): boolean {
+    if (this.recordStatisticsResult?.hasAttribute('percent')) {
+      let value = Number(this.recordStatisticsResult?.getAttribute('percent'));
+      return value > 0;
     }
+    return true;
+  }
 
-    get offline_symbolization(): boolean {
-        let value = this.offlineSymbol?.checked;
-        if (value != undefined) {
-            return value;
-        }
-        return true;
+  get statistics_interval(): number {
+    if (this.recordStatisticsResult?.hasAttribute('percentValue')) {
+      return Number(this.recordStatisticsResult?.getAttribute('percentValue'));
     }
+    return 3600;
+  }
 
-    get record_statistics(): boolean {
-        if (this.recordStatisticsResult?.hasAttribute('percent')) {
-            let value = Number(this.recordStatisticsResult?.getAttribute('percent'));
-            return value > 0;
-        }
-        return true;
-    }
-
-    get statistics_interval(): number {
-        if (this.recordStatisticsResult?.hasAttribute('percentValue')) {
-            return Number(this.recordStatisticsResult?.getAttribute('percentValue'));
-        }
-        return 3600;
-    }
-
-    initElements(): void {
-        this.processId = this.shadowRoot?.getElementById(
-            'pid'
-        ) as LitAllocationSelect;
-        let input = this.processId.shadowRoot?.querySelector(
-            '.multipleSelect'
-        ) as HTMLDivElement;
-        let sp = document.querySelector('sp-application') as SpApplication;
-        let litSearch = sp?.shadowRoot?.querySelector(
-            '#lit-search'
-        ) as LitSearch;
-        let processData: Array<string> = [];
-        input.addEventListener('mousedown', (ev) => {
-            if (SpRecordTrace.serialNumber == '') {
-                this.processId!.processData = [];
+  initElements(): void {
+    this.processId = this.shadowRoot?.getElementById('pid') as LitAllocationSelect;
+    let input = this.processId.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    let sp = document.querySelector('sp-application') as SpApplication;
+    let litSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
+    let processData: Array<string> = [];
+    input.addEventListener('mousedown', (ev) => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.processId!.processData = [];
+      }
+    });
+    input.addEventListener('valuable', (ev) => {
+      this.dispatchEvent(new CustomEvent('addProbe', {}));
+    });
+    input.addEventListener('inputClick', () => {
+      processData = [];
+      if (SpRecordTrace.serialNumber != '') {
+        if (SpRecordTrace.isVscode) {
+          let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
+          Cmd.execHdcCmd(cmd, (res: string) => {
+            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of lineValues) {
+              if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                continue;
+              }
+              let process: string[] = lineVal.trim().split(' ');
+              if (process.length == 2) {
+                let processId = process[0];
+                let processName = process[1];
+                processData.push(processName + '(' + processId + ')');
+              }
             }
-        });
-        input.addEventListener('valuable', (ev) => {
-            this.dispatchEvent(new CustomEvent('addProbe', {}));
-        });
-        input.addEventListener('inputClick', () => {
-            processData = [];
-            if (SpRecordTrace.serialNumber != '') {
-                if (SpRecordTrace.isVscode) {
-                    let cmd = Cmd.formatString(
-                        CmdConstant.CMD_GET_PROCESS_DEVICES,
-                        [SpRecordTrace.serialNumber]
-                    );
-                    Cmd.execHdcCmd(cmd, (res: string) => {
-                        let lineValues: string[] = res
-                            .replace(/\r\n/g, '\r')
-                            .replace(/\n/g, '\r')
-                            .split(/\r/);
-                        for (let lineVal of lineValues) {
-                            if (
-                                lineVal.indexOf('__progname') != -1 ||
-                                lineVal.indexOf('PID CMD') != -1
-                            ) {
-                                continue;
-                            }
-                            let process: string[] = lineVal.trim().split(' ');
-                            if (process.length == 2) {
-                                let processId = process[0];
-                                let processName = process[1];
-                                processData.push(
-                                    processName + '(' + processId + ')'
-                                );
-                            }
-                        }
-                        this.processId!.processData = processData;
-                        this.processId!.initData();
-                    });
-                } else {
-                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(
-                        (rr) => {
-                            if (sp.search) {
-                                sp.search = false;
-                                litSearch.clear();
-                            }
-                            if (rr) {
-                                HdcDeviceManager.shellResultAsString(
-                                    CmdConstant.CMD_GET_PROCESS,
-                                    false
-                                ).then((res) => {
-                                    if (res) {
-                                        let lineValues: string[] = res
-                                            .replace(/\r\n/g, '\r')
-                                            .replace(/\n/g, '\r')
-                                            .split(/\r/);
-                                        for (let lineVal of lineValues) {
-                                            if (
-                                                lineVal.indexOf('__progname') !=
-                                                -1 ||
-                                                lineVal.indexOf('PID CMD') != -1
-                                            ) {
-                                                continue;
-                                            }
-                                            let process: string[] = lineVal
-                                                .trim()
-                                                .split(' ');
-                                            if (process.length == 2) {
-                                                let processId = process[0];
-                                                let processName = process[1];
-                                                processData.push(
-                                                    processName +
-                                                    '(' +
-                                                    processId +
-                                                    ')'
-                                                );
-                                            }
-                                        }
-                                    }
-                                    this.processId!.processData = processData;
-                                    this.processId!.initData();
-                                });
-                            } else {
-                                sp.search = true;
-                                litSearch.clear();
-                                litSearch.setPercent(
-                                    'please kill other hdc-server! ',
-                                    -2
-                                );
-                            }
-                        }
-                    );
+            this.processId!.processData = processData;
+            this.processId!.initData();
+          });
+        } else {
+          HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((rr) => {
+            if (sp.search) {
+              sp.search = false;
+              litSearch.clear();
+            }
+            if (rr) {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
+                if (res) {
+                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of lineValues) {
+                    if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                      continue;
+                    }
+                    let process: string[] = lineVal.trim().split(' ');
+                    if (process.length == 2) {
+                      let processId = process[0];
+                      let processName = process[1];
+                      processData.push(processName + '(' + processId + ')');
+                    }
+                  }
                 }
-            }
-        });
-        this.unwindEL = this.shadowRoot?.getElementById(
-            'unwind'
-        ) as HTMLInputElement;
-        this.shareMemory = this.shadowRoot?.getElementById(
-            'shareMemory'
-        ) as HTMLInputElement;
-        this.shareMemoryUnit = this.shadowRoot?.getElementById(
-            'shareMemoryUnit'
-        ) as HTMLSelectElement;
-        this.filterMemory = this.shadowRoot?.getElementById(
-            'filterSized'
-        ) as HTMLInputElement;
-        this.filterMemoryUnit = this.shadowRoot?.getElementById(
-            'filterSizedUnit'
-        ) as HTMLSelectElement;
-        this.fpUnWind = this.shadowRoot?.getElementById(
-            'use_fp_unwind'
-        ) as LitSwitch;
-        this.recordAccurately = this.shadowRoot?.getElementById(
-            'use_record_accurately'
-        ) as LitSwitch;
-        this.offlineSymbol = this.shadowRoot?.getElementById(
-            'use_offline_symbolization'
-        ) as LitSwitch;
-        let stepValue = [0, 1, 10, 30, 60, 300, 600, 1800, 3600];
-        let statisticsSlider = this.shadowRoot?.querySelector<LitSlider>(
-            '#interval-slider'
-        ) as LitSlider;
-
-        this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>(
-            '.record-statistics-result'
-        ) as HTMLDivElement;
-        statisticsSlider.sliderStyle = {
-            minRange: 0,
-            maxRange: 3600,
-            defaultValue: '3600',
-            resultUnit: 'S',
-            stepSize: 450,
-            lineColor: 'var(--dark-color3,#46B1E3)',
-            buttonColor: '#999999',
-        };
-        let parentElement = statisticsSlider!.parentNode as Element;
-        let intervalResultInput = this.shadowRoot?.querySelector(
-            '.interval-result'
-        ) as HTMLInputElement;
-        intervalResultInput.value = statisticsSlider.sliderStyle.defaultValue;
-        statisticsSlider.addEventListener('input', (evt) => {
-            statisticsSlider!.sliderStyle = {
-                minRange: 0,
-                maxRange: 3600,
-                defaultValue: this.recordStatisticsResult!.getAttribute('percent') + '',
-                resultUnit: 'S',
-                stepSize: 450,
-                lineColor: 'var(--dark-color3,#46B1E3)',
-                buttonColor: '#999999',
-            };
-            if (this.recordStatisticsResult!.hasAttribute('percent')) {
-                let step = Number(this.recordStatisticsResult!.getAttribute('percent')) / 450;
-                this.recordStatisticsResult!.setAttribute('percentValue', stepValue[step] + '');
-                intervalResultInput.value = stepValue[step] + '';
-            }
-        });
-        parentElement.setAttribute('percent', '3600');
-        intervalResultInput.style.color = 'var(--dark-color1,#000000)';
-        intervalResultInput.addEventListener('input', (ev) => {
-            if (this.recordStatisticsResult!.hasAttribute('percent')) {
-                this.recordStatisticsResult!.removeAttribute('percent');
-            }
-            intervalResultInput.style.color = 'var(--dark-color1,#000000)';
-            intervalResultInput.parentElement!.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            intervalResultInput.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            if (intervalResultInput.value.trim() == '') {
-                intervalResultInput.style.color = 'red';
-                parentElement.setAttribute('percent', '3600');
-                return;
-            }
-            let memorySize = Number(intervalResultInput.value);
-            if (
-                !memorySize ||
-                memorySize < statisticsSlider!.sliderStyle.minRange ||
-                memorySize > statisticsSlider!.sliderStyle.maxRange
-            ) {
-                intervalResultInput.style.color = 'red';
-                parentElement.setAttribute('percent', '3600');
+                this.processId!.processData = processData;
+                this.processId!.initData();
+              });
             } else {
-                statisticsSlider!.percent = intervalResultInput.value;
-                let htmlInputElement =
-                    statisticsSlider!.shadowRoot?.querySelector(
-                        '#slider'
-                    ) as HTMLInputElement;
-                htmlInputElement.value = intervalResultInput.value;
-                statisticsSlider!.sliderStyle = {
-                    minRange: 0,
-                    maxRange: 3600,
-                    defaultValue: intervalResultInput.value,
-                    resultUnit: 'S',
-                    stepSize: 1,
-                    lineColor: 'var(--dark-color3,#46B1E3)',
-                    buttonColor: '#999999',
-                };
-                parentElement.setAttribute('percent', intervalResultInput.value);
-                parentElement.setAttribute('percentValue', intervalResultInput.value);
+              sp.search = true;
+              litSearch.clear();
+              litSearch.setPercent('please kill other hdc-server! ', -2);
             }
-        });
+          });
+        }
+      }
+    });
+    this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
+    this.shareMemory = this.shadowRoot?.getElementById('shareMemory') as HTMLInputElement;
+    this.shareMemoryUnit = this.shadowRoot?.getElementById('shareMemoryUnit') as HTMLSelectElement;
+    this.filterMemory = this.shadowRoot?.getElementById('filterSized') as HTMLInputElement;
+    this.filterMemoryUnit = this.shadowRoot?.getElementById('filterSizedUnit') as HTMLSelectElement;
+    this.fpUnWind = this.shadowRoot?.getElementById('use_fp_unwind') as LitSwitch;
+    this.recordAccurately = this.shadowRoot?.getElementById('use_record_accurately') as LitSwitch;
+    this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
+    let stepValue = [0, 1, 10, 30, 60, 300, 600, 1800, 3600];
+    let statisticsSlider = this.shadowRoot?.querySelector<LitSlider>('#interval-slider') as LitSlider;
 
-        intervalResultInput.addEventListener('focusout', (ev) => {
-            if (intervalResultInput.value.trim() == '') {
-                parentElement.setAttribute('percent', '3600');
-                intervalResultInput.value = '3600';
-                intervalResultInput.style.color = 'var(--dark-color,#6a6f77)';
-                parentElement.setAttribute('percent', intervalResultInput.value);
-                parentElement.setAttribute('percentValue', intervalResultInput.value);
-                statisticsSlider!.percent = intervalResultInput.value;
-                let htmlInputElement = statisticsSlider!.shadowRoot?.querySelector(
-                    '#slider'
-                ) as HTMLInputElement;
-                htmlInputElement.value = intervalResultInput.value;
-            }
-        });
-        statisticsSlider.shadowRoot
-            ?.querySelector<HTMLElement>('#slider')!
-            .addEventListener('mouseup', (ev) => {
-                setTimeout(() => {
-                    let percentValue =
-                        this.recordStatisticsResult!.getAttribute('percent');
-                    let index = Number(percentValue) / 450;
-                    index = index < 1 ? 0 : index;
-                    intervalResultInput.value = stepValue[index] + '';
-                    this.recordStatisticsResult!.setAttribute(
-                        'percentValue',
-                        stepValue[index] + ''
-                    );
-                });
-            });
-    }
+    this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>(
+      '.record-statistics-result'
+    ) as HTMLDivElement;
+    statisticsSlider.sliderStyle = {
+      minRange: 0,
+      maxRange: 3600,
+      defaultValue: '3600',
+      resultUnit: 'S',
+      stepSize: 450,
+      lineColor: 'var(--dark-color3,#46B1E3)',
+      buttonColor: '#999999',
+    };
+    let parentElement = statisticsSlider!.parentNode as Element;
+    let intervalResultInput = this.shadowRoot?.querySelector('.interval-result') as HTMLInputElement;
+    intervalResultInput.value = statisticsSlider.sliderStyle.defaultValue;
+    statisticsSlider.addEventListener('input', (evt) => {
+      statisticsSlider!.sliderStyle = {
+        minRange: 0,
+        maxRange: 3600,
+        defaultValue: this.recordStatisticsResult!.getAttribute('percent') + '',
+        resultUnit: 'S',
+        stepSize: 450,
+        lineColor: 'var(--dark-color3,#46B1E3)',
+        buttonColor: '#999999',
+      };
+      if (this.recordStatisticsResult!.hasAttribute('percent')) {
+        let step = Number(this.recordStatisticsResult!.getAttribute('percent')) / 450;
+        this.recordStatisticsResult!.setAttribute('percentValue', stepValue[step] + '');
+        intervalResultInput.value = stepValue[step] + '';
+      }
+    });
+    parentElement.setAttribute('percent', '3600');
+    intervalResultInput.style.color = 'var(--dark-color1,#000000)';
+    intervalResultInput.addEventListener('input', (ev) => {
+      if (this.recordStatisticsResult!.hasAttribute('percent')) {
+        this.recordStatisticsResult!.removeAttribute('percent');
+      }
+      intervalResultInput.style.color = 'var(--dark-color1,#000000)';
+      intervalResultInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      intervalResultInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      if (intervalResultInput.value.trim() == '') {
+        intervalResultInput.style.color = 'red';
+        parentElement.setAttribute('percent', '3600');
+        return;
+      }
+      let memorySize = Number(intervalResultInput.value);
+      if (
+        !memorySize ||
+        memorySize < statisticsSlider!.sliderStyle.minRange ||
+        memorySize > statisticsSlider!.sliderStyle.maxRange
+      ) {
+        intervalResultInput.style.color = 'red';
+        parentElement.setAttribute('percent', '3600');
+      } else {
+        statisticsSlider!.percent = intervalResultInput.value;
+        let htmlInputElement = statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        htmlInputElement.value = intervalResultInput.value;
+        statisticsSlider!.sliderStyle = {
+          minRange: 0,
+          maxRange: 3600,
+          defaultValue: intervalResultInput.value,
+          resultUnit: 'S',
+          stepSize: 1,
+          lineColor: 'var(--dark-color3,#46B1E3)',
+          buttonColor: '#999999',
+        };
+        parentElement.setAttribute('percent', intervalResultInput.value);
+        parentElement.setAttribute('percentValue', intervalResultInput.value);
+      }
+    });
 
-    initHtml(): string {
-        return `
+    intervalResultInput.addEventListener('focusout', (ev) => {
+      if (intervalResultInput.value.trim() == '') {
+        parentElement.setAttribute('percent', '3600');
+        intervalResultInput.value = '3600';
+        intervalResultInput.style.color = 'var(--dark-color,#6a6f77)';
+        parentElement.setAttribute('percent', intervalResultInput.value);
+        parentElement.setAttribute('percentValue', intervalResultInput.value);
+        statisticsSlider!.percent = intervalResultInput.value;
+        let htmlInputElement = statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        htmlInputElement.value = intervalResultInput.value;
+      }
+    });
+    statisticsSlider.shadowRoot?.querySelector<HTMLElement>('#slider')!.addEventListener('mouseup', (ev) => {
+      setTimeout(() => {
+        let percentValue = this.recordStatisticsResult!.getAttribute('percent');
+        let index = Number(percentValue) / 450;
+        index = index < 1 ? 0 : index;
+        intervalResultInput.value = stepValue[index] + '';
+        this.recordStatisticsResult!.setAttribute('percentValue', stepValue[index] + '');
+      });
+    });
+  }
+
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: block;
@@ -579,24 +507,24 @@ export class SpAllocations extends BaseElement {
           </div>
         </div>
         `;
-    }
+  }
 
-    private convertToValue(input: string, unit: string): number {
-        let value: number;
-        switch (unit) {
-            case 'MB':
-                value = Number(input) * 1024 * 1024;
-                break;
-            case 'KB':
-                value = Number(input) * 1024;
-                break;
-            default:
-                value = 0;
-        }
-        let number = value / 4096;
-        if (number > 0 && number < 1) {
-            return 16384;
-        }
-        return parseInt(String(number));
+  private convertToValue(input: string, unit: string): number {
+    let value: number;
+    switch (unit) {
+      case 'MB':
+        value = Number(input) * 1024 * 1024;
+        break;
+      case 'KB':
+        value = Number(input) * 1024;
+        break;
+      default:
+        value = 0;
     }
+    let number = value / 4096;
+    if (number > 0 && number < 1) {
+      return 16384;
+    }
+    return parseInt(String(number));
+  }
 }

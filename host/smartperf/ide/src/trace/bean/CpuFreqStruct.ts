@@ -17,76 +17,49 @@ import { ColorUtils } from '../component/trace/base/ColorUtils.js';
 import { BaseStruct } from './BaseStruct.js';
 
 export class CpuFreqStruct extends BaseStruct {
-    static maxFreq: number = 0;
-    static maxFreqName: string = '0 GHz';
-    static hoverCpuFreqStruct: CpuFreqStruct | undefined;
-    static selectCpuFreqStruct: CpuFreqStruct | undefined;
-    cpu: number | undefined;
-    value: number | undefined;
-    startNS: number | undefined;
-    dur: number | undefined; // Self-supplementing, the database is not returned
+  static maxFreq: number = 0;
+  static maxFreqName: string = '0 GHz';
+  static hoverCpuFreqStruct: CpuFreqStruct | undefined;
+  static selectCpuFreqStruct: CpuFreqStruct | undefined;
+  cpu: number | undefined;
+  value: number | undefined;
+  startNS: number | undefined;
+  dur: number | undefined; // Self-supplementing, the database is not returned
 
-    static draw(ctx: any, data: CpuFreqStruct) {
-        if (data.frame) {
-            let width = data.frame.width || 0;
-            let index = data.cpu || 0;
-            index += 2;
-            ctx.fillStyle = ColorUtils.colorForTid(index);
-            ctx.strokeStyle = ColorUtils.colorForTid(index);
-            if (data.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
-                ctx.lineWidth = 1;
-                ctx.globalAlpha = 0.6;
-                let drawHeight: number = Math.floor(
-                    ((data.value || 0) * (data.frame.height || 0) * 1.0) /
-                        CpuFreqStruct.maxFreq
-                );
-                ctx.fillRect(
-                    data.frame.x,
-                    data.frame.y + data.frame.height - drawHeight,
-                    width,
-                    drawHeight
-                );
-                ctx.beginPath();
-                ctx.arc(
-                    data.frame.x,
-                    data.frame.y + data.frame.height - drawHeight,
-                    3,
-                    0,
-                    2 * Math.PI,
-                    true
-                );
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(
-                    data.frame.x + 3,
-                    data.frame.y + data.frame.height - drawHeight
-                );
-                ctx.lineWidth = 3;
-                ctx.lineTo(
-                    data.frame.x + width,
-                    data.frame.y + data.frame.height - drawHeight
-                );
-                ctx.stroke();
-            } else {
-                ctx.globalAlpha = 0.6;
-                ctx.lineWidth = 1;
-                let drawHeight: number = Math.floor(
-                    ((data.value || 0) * (data.frame.height || 0)) /
-                        CpuFreqStruct.maxFreq
-                );
-                ctx.fillRect(
-                    data.frame.x,
-                    data.frame.y + data.frame.height - drawHeight,
-                    width,
-                    drawHeight
-                );
-            }
-        }
-        ctx.globalAlpha = 1.0;
+  static draw(ctx: any, data: CpuFreqStruct) {
+    if (data.frame) {
+      let width = data.frame.width || 0;
+      let index = data.cpu || 0;
+      index += 2;
+      ctx.fillStyle = ColorUtils.colorForTid(index);
+      ctx.strokeStyle = ColorUtils.colorForTid(index);
+      if (data.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
         ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6;
+        let drawHeight: number = Math.floor(
+          ((data.value || 0) * (data.frame.height || 0) * 1.0) / CpuFreqStruct.maxFreq
+        );
+        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        ctx.beginPath();
+        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+        ctx.lineWidth = 3;
+        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
+        ctx.stroke();
+      } else {
+        ctx.globalAlpha = 0.6;
+        ctx.lineWidth = 1;
+        let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / CpuFreqStruct.maxFreq);
+        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+      }
     }
+    ctx.globalAlpha = 1.0;
+    ctx.lineWidth = 1;
+  }
 }
 
 const textPadding = 2;

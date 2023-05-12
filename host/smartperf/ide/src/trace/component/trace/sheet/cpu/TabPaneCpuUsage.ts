@@ -21,183 +21,157 @@ import { CpuUsage, Freq } from '../../../../bean/CpuUsage.js';
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private range: HTMLLabelElement | null | undefined;
-    private orderByOldList: any[] = [];
+  private tbl: LitTable | null | undefined;
+  private range: HTMLLabelElement | null | undefined;
+  private orderByOldList: any[] = [];
 
-    set data(val: SelectionParam | any) {
+  set data(val: SelectionParam | any) {
+    // @ts-ignore
+    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.range!.textContent =
+      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    Promise.all([
+      getTabCpuUsage(val.cpus, val.leftNs, val.rightNs),
+      getTabCpuFreq(val.cpus, val.leftNs, val.rightNs),
+    ]).then((result) => {
+      let usages = result[0];
+      let freqMap = this.groupByCpuToMap(result[1]);
+      let data = [];
+      let range = val.rightNs - val.leftNs;
+      for (let cpu of val.cpus) {
+        let usage = new CpuUsage();
+        usage.cpu = cpu;
+        let u = usages.find((e) => e.cpu == cpu);
+        if (u != undefined && u != null) {
+          usage.usage = u.usage;
+        } else {
+          usage.usage = 0;
+        }
+        if (usage.usage > 1) {
+          usage.usage = 1;
+        }
+        usage.usageStr = (usage.usage * 100.0).toFixed(2) + '%';
+        let arr = [];
+        if (freqMap.has(usage.cpu)) {
+          let freqList = freqMap.get(usage.cpu);
+          let list = [];
+          for (let i = 0; i < freqList!.length; i++) {
+            let freq = freqList![i];
+            if (i == freqList!.length - 1) {
+              freq.dur = val.rightNs - freq.startNs;
+            } else {
+              freq.dur = freqList![i + 1].startNs - freq.startNs;
+            }
+            if (freq.startNs + freq.dur > val.leftNs) {
+              list.push(freq);
+            }
+          }
+          if (list.length > 0) {
+            if (list[0].startNs < val.leftNs) {
+              list[0].dur = list[0].startNs + list[0].dur - val.leftNs;
+              list[0].startNs = val.leftNs;
+            }
+          }
+          arr = this.sortFreq(list);
+          this.getFreqTop3(usage, arr[0], arr[1], arr[2], range);
+        }
+        data.push(usage);
+      }
+      this.tbl!.recycleDataSource = data;
+      this.orderByOldList = [...data];
+    });
+  }
+
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-usage');
+    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.tbl?.addEventListener('column-click', (event) => {
+      // @ts-ignore
+      let orderType = event.detail;
+      if (orderType.sort == 1) {
+        //倒序   注意  sort会改变原数组，需要传入table上的数组 不能传入缓存排序数组
+        this.sortTable(this.tbl!.recycleDataSource, orderType.key, false);
+      } else if (orderType.sort == 2) {
+        //正序
+        this.sortTable(this.tbl!.recycleDataSource, orderType.key, true);
+      } else {
+        //默认排序
+        this.tbl!.recycleDataSource = [...this.orderByOldList];
+      }
+    });
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
         this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.range!.textContent =
-            'Selected range: ' +
-            parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) +
-            ' ms';
-        Promise.all([
-            getTabCpuUsage(val.cpus, val.leftNs, val.rightNs),
-            getTabCpuFreq(val.cpus, val.leftNs, val.rightNs),
-        ]).then((result) => {
-            let usages = result[0];
-            let freqMap = this.groupByCpuToMap(result[1]);
-            let data = [];
-            let range = val.rightNs - val.leftNs;
-            for (let cpu of val.cpus) {
-                let usage = new CpuUsage();
-                usage.cpu = cpu;
-                let u = usages.find((e) => e.cpu == cpu);
-                if (u != undefined && u != null) {
-                    usage.usage = u.usage;
-                } else {
-                    usage.usage = 0;
-                }
-                if (usage.usage > 1) {
-                    usage.usage = 1;
-                }
-                usage.usageStr = (usage.usage * 100.0).toFixed(2) + '%';
-                let arr = [];
-                if (freqMap.has(usage.cpu)) {
-                    let freqList = freqMap.get(usage.cpu);
-                    let list = [];
-                    for (let i = 0; i < freqList!.length; i++) {
-                        let freq = freqList![i];
-                        if (i == freqList!.length - 1) {
-                            freq.dur = val.rightNs - freq.startNs;
-                        } else {
-                            freq.dur = freqList![i + 1].startNs - freq.startNs;
-                        }
-                        if (freq.startNs + freq.dur > val.leftNs) {
-                            list.push(freq);
-                        }
-                    }
-                    if (list.length > 0) {
-                        if (list[0].startNs < val.leftNs) {
-                            list[0].dur =
-                                list[0].startNs + list[0].dur - val.leftNs;
-                            list[0].startNs = val.leftNs;
-                        }
-                    }
-                    arr = this.sortFreq(list);
-                    this.getFreqTop3(usage, arr[0], arr[1], arr[2], range);
-                }
-                data.push(usage);
-            }
-            this.tbl!.recycleDataSource = data;
-            this.orderByOldList = [...data];
-        });
-    }
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
 
-    initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-usage');
-        this.range = this.shadowRoot?.querySelector('#time-range');
-        this.tbl?.addEventListener('column-click', (event) => {
-            // @ts-ignore
-            let orderType = event.detail;
-            if (orderType.sort == 1) {
-                //倒序   注意  sort会改变原数组，需要传入table上的数组 不能传入缓存排序数组
-                this.sortTable(
-                    this.tbl!.recycleDataSource,
-                    orderType.key,
-                    false
-                );
-            } else if (orderType.sort == 2) {
-                //正序
-                this.sortTable(
-                    this.tbl!.recycleDataSource,
-                    orderType.key,
-                    true
-                );
-            } else {
-                //默认排序
-                this.tbl!.recycleDataSource = [...this.orderByOldList];
-            }
-        });
-    }
+  sortTable(arr: any[], key: string, sort: boolean) {
+    this.tbl!.recycleDataSource = arr.sort((item1, item2) => {
+      let value1 = Number(item1[key].toString().replace('%', ''));
+      let value2 = Number(item2[key].toString().replace('%', ''));
+      if (value1 > value2) {
+        return sort ? -1 : 1;
+      } else if (value1 < value2) {
+        return sort ? 1 : -1;
+      } else {
+        return 0;
+      }
+    });
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
+  sortFreq(arr: Array<Freq>): Array<Array<number>> {
+    let map = new Map<number, number>();
+    for (let freq of arr) {
+      if (map.has(freq.value)) {
+        let sumDur = map.get(freq.value)! + freq.dur;
+        map.set(freq.value, sumDur);
+      } else {
+        map.set(freq.value, freq.dur);
+      }
     }
+    let array = Array.from(map);
+    array.sort((a, b) => b[1] - a[1]);
+    return array;
+  }
 
-    sortTable(arr: any[], key: string, sort: boolean) {
-        this.tbl!.recycleDataSource = arr.sort((item1, item2) => {
-            let value1 = Number(item1[key].toString().replace('%', ''));
-            let value2 = Number(item2[key].toString().replace('%', ''));
-            if (value1 > value2) {
-                return sort ? -1 : 1;
-            } else if (value1 < value2) {
-                return sort ? 1 : -1;
-            } else {
-                return 0;
-            }
-        });
+  getFreqTop3(usage: CpuUsage, top1: Array<number>, top2: Array<number>, top3: Array<number>, range: number) {
+    // @ts-ignore
+    usage.top1 = top1 == undefined ? '-' : top1[0];
+    usage.top1Percent = top1 == undefined ? 0 : (top1[1] * 1.0) / range;
+    usage.top1PercentStr = top1 == undefined ? '-' : (usage.top1Percent * 100).toFixed(2) + '%';
+    // @ts-ignore
+    usage.top2 = top2 == undefined ? '-' : top2[0];
+    usage.top2Percent = top2 == undefined ? 0 : (top2[1] * 1.0) / range;
+    usage.top2PercentStr = top2 == undefined ? '-' : (usage.top2Percent * 100).toFixed(2) + '%';
+    // @ts-ignore
+    usage.top3 = top3 == undefined ? '-' : top3[0];
+    usage.top3Percent = top3 == undefined ? 0 : (top3[1] * 1.0) / range;
+    usage.top3PercentStr = top3 == undefined ? '-' : (usage.top3Percent * 100).toFixed(2) + '%';
+  }
+
+  groupByCpuToMap(arr: Array<Freq>): Map<number, Array<Freq>> {
+    let map = new Map<number, Array<Freq>>();
+    for (let spt of arr) {
+      if (map.has(spt.cpu)) {
+        map.get(spt.cpu)!.push(spt);
+      } else {
+        let list: Array<Freq> = [];
+        list.push(spt);
+        map.set(spt.cpu, list);
+      }
     }
+    return map;
+  }
 
-    sortFreq(arr: Array<Freq>): Array<Array<number>> {
-        let map = new Map<number, number>();
-        for (let freq of arr) {
-            if (map.has(freq.value)) {
-                let sumDur = map.get(freq.value)! + freq.dur;
-                map.set(freq.value, sumDur);
-            } else {
-                map.set(freq.value, freq.dur);
-            }
-        }
-        let array = Array.from(map);
-        array.sort((a, b) => b[1] - a[1]);
-        return array;
-    }
-
-    getFreqTop3(
-        usage: CpuUsage,
-        top1: Array<number>,
-        top2: Array<number>,
-        top3: Array<number>,
-        range: number
-    ) {
-        // @ts-ignore
-        usage.top1 = top1 == undefined ? '-' : top1[0];
-        usage.top1Percent = top1 == undefined ? 0 : (top1[1] * 1.0) / range;
-        usage.top1PercentStr =
-            top1 == undefined
-                ? '-'
-                : (usage.top1Percent * 100).toFixed(2) + '%';
-        // @ts-ignore
-        usage.top2 = top2 == undefined ? '-' : top2[0];
-        usage.top2Percent = top2 == undefined ? 0 : (top2[1] * 1.0) / range;
-        usage.top2PercentStr =
-            top2 == undefined
-                ? '-'
-                : (usage.top2Percent * 100).toFixed(2) + '%';
-        // @ts-ignore
-        usage.top3 = top3 == undefined ? '-' : top3[0];
-        usage.top3Percent = top3 == undefined ? 0 : (top3[1] * 1.0) / range;
-        usage.top3PercentStr =
-            top3 == undefined
-                ? '-'
-                : (usage.top3Percent * 100).toFixed(2) + '%';
-    }
-
-    groupByCpuToMap(arr: Array<Freq>): Map<number, Array<Freq>> {
-        let map = new Map<number, Array<Freq>>();
-        for (let spt of arr) {
-            if (map.has(spt.cpu)) {
-                map.get(spt.cpu)!.push(spt);
-            } else {
-                let list: Array<Freq> = [];
-                list.push(spt);
-                map.set(spt.cpu, list);
-            }
-        }
-        return map;
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -225,5 +199,5 @@ export class TabPaneCpuUsage extends BaseElement {
             </lit-table-column>
         </lit-table>
         `;
-    }
+  }
 }

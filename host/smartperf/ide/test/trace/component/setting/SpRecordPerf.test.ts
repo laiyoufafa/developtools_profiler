@@ -17,45 +17,45 @@
 import { SpRecordPerf } from '../../../../dist/trace/component/setting/SpRecordPerf.js';
 
 describe('SpRecordPerf Test', () => {
-    let spRecordPerf = new SpRecordPerf();
-    it('SpRecordPerfTest01', function () {
-        expect(spRecordPerf).not.toBeUndefined();
-    });
+  let spRecordPerf = new SpRecordPerf();
+  it('SpRecordPerfTest01', function () {
+    expect(spRecordPerf).not.toBeUndefined();
+  });
 
-    it('SpRecordPerfTest02', function () {
-        expect(spRecordPerf.show).toBeFalsy();
-    });
+  it('SpRecordPerfTest02', function () {
+    expect(spRecordPerf.show).toBeFalsy();
+  });
 
-    it('SpRecordPerfTest03', function () {
-        spRecordPerf.show = true;
-        expect(spRecordPerf.show).toBeTruthy();
-    });
+  it('SpRecordPerfTest03', function () {
+    spRecordPerf.show = true;
+    expect(spRecordPerf.show).toBeTruthy();
+  });
 
-    it('SpRecordPerfTest08', function () {
-        spRecordPerf.show = false;
-        expect(spRecordPerf.show).toBeFalsy();
-    });
+  it('SpRecordPerfTest08', function () {
+    spRecordPerf.show = false;
+    expect(spRecordPerf.show).toBeFalsy();
+  });
 
-    it('SpRecordPerfTest09', function () {
-        expect(spRecordPerf.startSamp).toBeFalsy();
-    });
+  it('SpRecordPerfTest09', function () {
+    expect(spRecordPerf.startSamp).toBeFalsy();
+  });
 
-    it('SpRecordPerfTest10', function () {
-        spRecordPerf.startSamp = true;
-        expect(spRecordPerf.startSamp).toBeTruthy();
-    });
+  it('SpRecordPerfTest10', function () {
+    spRecordPerf.startSamp = true;
+    expect(spRecordPerf.startSamp).toBeTruthy();
+  });
 
-    it('SpRecordPerfTest11', function () {
-        spRecordPerf.startSamp = false;
-        expect(spRecordPerf.startSamp).toBeFalsy();
-    });
+  it('SpRecordPerfTest11', function () {
+    spRecordPerf.startSamp = false;
+    expect(spRecordPerf.startSamp).toBeFalsy();
+  });
 
-    it('SpRecordPerfTest05', function () {
-        expect(spRecordPerf.unDisable()).toBeUndefined();
-    });
+  it('SpRecordPerfTest05', function () {
+    expect(spRecordPerf.unDisable()).toBeUndefined();
+  });
 
-    it('SpRecordPerfTest04', function () {
-        expect(spRecordPerf.initHtml()).toMatchInlineSnapshot(`
+  it('SpRecordPerfTest04', function () {
+    expect(spRecordPerf.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -203,14 +203,14 @@ describe('SpRecordPerf Test', () => {
         </div>
         "
 `);
-    });
+  });
 
-    it('SpRecordPerfTest06', function () {
-        expect(spRecordPerf.startSamp).toBeFalsy();
-    });
+  it('SpRecordPerfTest06', function () {
+    expect(spRecordPerf.startSamp).toBeFalsy();
+  });
 
-    it('SpRecordPerfTest07', function () {
-        spRecordPerf.startSamp = true;
-        expect(spRecordPerf.startSamp).toBeTruthy();
-    });
+  it('SpRecordPerfTest07', function () {
+    spRecordPerf.startSamp = true;
+    expect(spRecordPerf.startSamp).toBeTruthy();
+  });
 });

@@ -23,298 +23,241 @@ import { HdcCommand } from './hdcclient/HdcCommand.js';
 import { SpRecordTrace } from '../trace/component/SpRecordTrace.js';
 
 export class HdcDeviceManager {
-    private static clientList: Map<string, HdcClient> = new Map();
-    private static currentHdcClient: HdcClient;
-    private static FILE_RECV_PREFIX_STRING = 'hdc file recv -cwd C:\\ ';
+  private static clientList: Map<string, HdcClient> = new Map();
+  private static currentHdcClient: HdcClient;
+  private static FILE_RECV_PREFIX_STRING = 'hdc file recv -cwd C:\\ ';
 
-    /**
-     * getDevices
-     */
-	// @ts-ignore
-    public static async getDevices(): Promise<USBDevice[]> {
-		// @ts-ignore
-        return navigator.usb.getDevices();
+  /**
+   * getDevices
+   */
+  // @ts-ignore
+  public static async getDevices(): Promise<USBDevice[]> {
+    // @ts-ignore
+    return navigator.usb.getDevices();
+  }
+
+  /**
+   * findDevice
+   */
+  public static findDevice() {
+    if (!('usb' in navigator)) {
+      throw new Error('WebUSB not supported by the browser (requires HTTPS)');
     }
+    // @ts-ignore
+    return navigator.usb.requestDevice({ filters: HDC_DEVICE_FILTERS });
+  }
 
-    /**
-     * findDevice
-     */
-    public static findDevice() {
-        if (!('usb' in navigator)) {
-            throw new Error(
-                'WebUSB not supported by the browser (requires HTTPS)'
-            );
+  /**
+   * connect by serialNumber
+   *
+   * @param serialNumber serialNumber
+   */
+  public static async connect(serialNumber: string): Promise<boolean> {
+    let client = this.clientList.get(serialNumber);
+    if (client) {
+      if (client.usbDevice!.opened) {
+        log('device Usb is Open');
+        return true;
+      } else {
+        if (SpRecordTrace.serialNumber == serialNumber) {
+          SpRecordTrace.serialNumber = '';
         }
-		// @ts-ignore
-        return navigator.usb.requestDevice({ filters: HDC_DEVICE_FILTERS });
-    }
-
-    /**
-     * connect by serialNumber
-     *
-     * @param serialNumber serialNumber
-     */
-    public static async connect(serialNumber: string): Promise<boolean> {
-        let client = this.clientList.get(serialNumber);
-        if (client) {
-            if (client.usbDevice!.opened) {
-                log('device Usb is Open');
-                return true;
-            } else {
-                if (SpRecordTrace.serialNumber == serialNumber) {
-                    SpRecordTrace.serialNumber = '';
-                }
-                log('device Usb not Open');
-                return false;
-            }
-        } else {
-            let connectDevice = await this.getDeviceBySerialNumber(
-                serialNumber
-            );
-            let usbChannel = await UsbTransmissionChannel.openHdcDevice(
-                connectDevice
-            );
-            if (usbChannel) {
-                let hdcClient = new HdcClient(usbChannel, connectDevice);
-                let connected = await hdcClient.connectDevice();
-                if (connected) {
-                    this.currentHdcClient = hdcClient;
-                    this.clientList.set(serialNumber, hdcClient);
-                }
-                log('device Usb connected : ' + connected);
-                return connected;
-            } else {
-                log('device Usb connected failed: ');
-                return false;
-            }
+        log('device Usb not Open');
+        return false;
+      }
+    } else {
+      let connectDevice = await this.getDeviceBySerialNumber(serialNumber);
+      let usbChannel = await UsbTransmissionChannel.openHdcDevice(connectDevice);
+      if (usbChannel) {
+        let hdcClient = new HdcClient(usbChannel, connectDevice);
+        let connected = await hdcClient.connectDevice();
+        if (connected) {
+          this.currentHdcClient = hdcClient;
+          this.clientList.set(serialNumber, hdcClient);
         }
+        log('device Usb connected : ' + connected);
+        return connected;
+      } else {
+        log('device Usb connected failed: ');
+        return false;
+      }
     }
+  }
 
-	// @ts-ignore
-    public static async getDeviceBySerialNumber(serialNumber: string): Promise<USBDevice> {
-		// @ts-ignore
-        const devices = await navigator.usb.getDevices();
-        // @ts-ignore
-        return devices.find((dev) => dev.serialNumber === serialNumber);
+  // @ts-ignore
+  public static async getDeviceBySerialNumber(serialNumber: string): Promise<USBDevice> {
+    // @ts-ignore
+    const devices = await navigator.usb.getDevices();
+    // @ts-ignore
+    return devices.find((dev) => dev.serialNumber === serialNumber);
+  }
+
+  /**
+   * disConnect by serialNumber
+   *
+   * @param serialNumber
+   */
+  public static async disConnect(serialNumber: string): Promise<boolean> {
+    let hdcClient = this.clientList.get(serialNumber);
+    if (hdcClient) {
+      await hdcClient.disconnect();
+      this.clientList.delete(serialNumber);
+      return true;
+    } else {
+      return true;
     }
+  }
 
-    /**
-     * disConnect by serialNumber
-     *
-     * @param serialNumber
-     */
-    public static async disConnect(serialNumber: string): Promise<boolean> {
-        let hdcClient = this.clientList.get(serialNumber);
-        if (hdcClient) {
-            await hdcClient.disconnect();
-            this.clientList.delete(serialNumber);
-            return true;
-        } else {
-            return true;
+  /**
+   * Execute shell on the currently connected device and return the result as a string
+   *
+   * @param cmd cmd
+   */
+  public static async shellResultAsString(cmd: string, isSkipResult: boolean): Promise<string> {
+    if (this.currentHdcClient) {
+      let hdcStream = new HdcStream(this.currentHdcClient, false);
+      await hdcStream.DoCommand(cmd);
+      let result: string = '';
+      while (true) {
+        let dataMessage = await hdcStream.getMessage();
+        if (dataMessage.channelClose || isSkipResult) {
+          result += dataMessage.getDataToString();
+          await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '0', false));
+          log('result is end, close');
+          break;
         }
-    }
-
-    /**
-     * Execute shell on the currently connected device and return the result as a string
-     *
-     * @param cmd cmd
-     */
-    public static async shellResultAsString(
-        cmd: string,
-        isSkipResult: boolean
-    ): Promise<string> {
-        if (this.currentHdcClient) {
-            let hdcStream = new HdcStream(this.currentHdcClient, false);
-            await hdcStream.DoCommand(cmd);
-            let result: string = '';
-            while (true) {
-                let dataMessage = await hdcStream.getMessage();
-                if (dataMessage.channelClose || isSkipResult) {
-                    result += dataMessage.getDataToString();
-                    await hdcStream.DoCommandRemote(
-                        new FormatCommand(
-                            HdcCommand.CMD_KERNEL_CHANNEL_CLOSE,
-                            '0',
-                            false
-                        )
-                    );
-                    log('result is end, close');
-                    break;
-                }
-                if (dataMessage.usbHead.sessionId == -1) {
-                    return Promise.resolve('The device is abnormal');
-                }
-                result += dataMessage.getDataToString();
-            }
-            await hdcStream.closeStream();
-            await hdcStream.DoCommandRemote(
-                new FormatCommand(
-                    HdcCommand.CMD_KERNEL_CHANNEL_CLOSE,
-                    '0',
-                    false
-                )
-            );
-            return Promise.resolve(result);
+        if (dataMessage.usbHead.sessionId == -1) {
+          return Promise.resolve('The device is abnormal');
         }
-        return Promise.reject('not select device');
+        result += dataMessage.getDataToString();
+      }
+      await hdcStream.closeStream();
+      await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '0', false));
+      return Promise.resolve(result);
     }
+    return Promise.reject('not select device');
+  }
 
-    /**
-     * Execute shell on the currently connected device and return the result as a string
-     *
-     * @param cmd cmd
-     */
-    public static async stopHiprofiler(
-        cmd: string,
-        isSkipResult: boolean
-    ): Promise<string> {
-        if (this.currentHdcClient) {
-            let hdcStream = new HdcStream(this.currentHdcClient, true);
-            await hdcStream.DoCommand(cmd);
-            let result: string = '';
-            while (true) {
-                let dataMessage = await hdcStream.getMessage();
-                if (dataMessage.channelClose || isSkipResult) {
-                    await hdcStream.DoCommandRemote(
-                        new FormatCommand(
-                            HdcCommand.CMD_KERNEL_CHANNEL_CLOSE,
-                            '0',
-                            false
-                        )
-                    );
-                    log('result is end, close');
-                    break;
-                }
-                result += dataMessage.getDataToString();
-            }
-            await hdcStream.closeStopStream();
-            await hdcStream.DoCommandRemote(
-                new FormatCommand(
-                    HdcCommand.CMD_KERNEL_CHANNEL_CLOSE,
-                    '0',
-                    false
-                )
-            );
-            return Promise.resolve(result);
+  /**
+   * Execute shell on the currently connected device and return the result as a string
+   *
+   * @param cmd cmd
+   */
+  public static async stopHiprofiler(cmd: string, isSkipResult: boolean): Promise<string> {
+    if (this.currentHdcClient) {
+      let hdcStream = new HdcStream(this.currentHdcClient, true);
+      await hdcStream.DoCommand(cmd);
+      let result: string = '';
+      while (true) {
+        let dataMessage = await hdcStream.getMessage();
+        if (dataMessage.channelClose || isSkipResult) {
+          await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '0', false));
+          log('result is end, close');
+          break;
         }
-        return Promise.reject('not select device');
+        result += dataMessage.getDataToString();
+      }
+      await hdcStream.closeStopStream();
+      await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '0', false));
+      return Promise.resolve(result);
     }
+    return Promise.reject('not select device');
+  }
 
-    /**
-     * Execute shell on the currently connected device, the result is returned as Blob
-     *
-     * @param cmd cmd
-     */
-    public static async shellResultAsBlob(
-        cmd: string,
-        isSkipResult: boolean
-    ): Promise<Blob> {
-        if (this.currentHdcClient) {
-            let hdcStream = new HdcStream(this.currentHdcClient, false);
-            log('cmd is ' + cmd);
-            await hdcStream.DoCommand(cmd);
-            let finalBuffer;
-            while (true) {
-                let dataMessage = await hdcStream.getMessage();
-                if (dataMessage.channelClose || isSkipResult) {
-                    log('result is end, close');
-                    break;
-                }
-                let res = dataMessage.getData();
-                if (res) {
-                    if (!finalBuffer) {
-                        finalBuffer = new Uint8Array(res);
-                    } else {
-                        finalBuffer = HdcDeviceManager.appendBuffer(
-                            finalBuffer,
-                            new Uint8Array(res)
-                        );
-                    }
-                }
-            }
-            await hdcStream.closeStream();
-            if (finalBuffer) {
-                return Promise.resolve(new Blob([finalBuffer]));
-            }
-            return Promise.resolve(new Blob());
+  /**
+   * Execute shell on the currently connected device, the result is returned as Blob
+   *
+   * @param cmd cmd
+   */
+  public static async shellResultAsBlob(cmd: string, isSkipResult: boolean): Promise<Blob> {
+    if (this.currentHdcClient) {
+      let hdcStream = new HdcStream(this.currentHdcClient, false);
+      log('cmd is ' + cmd);
+      await hdcStream.DoCommand(cmd);
+      let finalBuffer;
+      while (true) {
+        let dataMessage = await hdcStream.getMessage();
+        if (dataMessage.channelClose || isSkipResult) {
+          log('result is end, close');
+          break;
         }
-        return Promise.reject('not select device');
+        let res = dataMessage.getData();
+        if (res) {
+          if (!finalBuffer) {
+            finalBuffer = new Uint8Array(res);
+          } else {
+            finalBuffer = HdcDeviceManager.appendBuffer(finalBuffer, new Uint8Array(res));
+          }
+        }
+      }
+      await hdcStream.closeStream();
+      if (finalBuffer) {
+        return Promise.resolve(new Blob([finalBuffer]));
+      }
+      return Promise.resolve(new Blob());
     }
+    return Promise.reject('not select device');
+  }
 
-    /**
-     * appendBuffer
-     *
-     * @param buffer1 firstBuffer
-     * @param buffer2 secondBuffer
-     * @private
-     */
-    private static appendBuffer(buffer1: Uint8Array, buffer2: Uint8Array) {
-        let tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-        tmp.set(buffer1, 0);
-        tmp.set(buffer2, buffer1.byteLength);
-        return tmp;
-    }
+  /**
+   * appendBuffer
+   *
+   * @param buffer1 firstBuffer
+   * @param buffer2 secondBuffer
+   * @private
+   */
+  private static appendBuffer(buffer1: Uint8Array, buffer2: Uint8Array) {
+    let tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+    tmp.set(buffer1, 0);
+    tmp.set(buffer2, buffer1.byteLength);
+    return tmp;
+  }
 
-    /**
-     * Pull the corresponding file from the device side
-     *
-     * @param filename filename
-     */
-    public static async fileRecv(
-        filename: string,
-        callBack: Function
-    ): Promise<Blob> {
-        let finalBuffer;
-        if (this.currentHdcClient) {
-            let hdcStream = new HdcStream(this.currentHdcClient, false);
-            await hdcStream.DoCommand(
-                HdcDeviceManager.FILE_RECV_PREFIX_STRING + filename + ' ./'
-            );
-            if (!finalBuffer && hdcStream.fileSize > 0) {
-                finalBuffer = new Uint8Array(hdcStream.fileSize);
-                log('Uint8Array size is ' + finalBuffer.byteLength);
-            }
-            let offset = 0;
-            while (true) {
-                let dataMessage = await hdcStream.getMessage();
-                if (dataMessage.channelClose) {
-                    log('result is end, close');
-                    break;
-                }
-                if (dataMessage.commandFlag == HdcCommand.CMD_FILE_FINISH) {
-                    await hdcStream.DoCommandRemote(
-                        new FormatCommand(
-                            HdcCommand.CMD_KERNEL_CHANNEL_CLOSE,
-                            '',
-                            false
-                        )
-                    );
-                    log('CMD_FILE_FINISH is end, close');
-                    break;
-                }
-                let res = dataMessage.getData();
-                if (res) {
-                    let resRS: ArrayBuffer = res.slice(64);
-                    if (finalBuffer) {
-                        finalBuffer.set(new Uint8Array(resRS), offset);
-                        offset += resRS.byteLength;
-                        callBack(
-                            ((offset / hdcStream.fileSize) * 100).toFixed(3)
-                        );
-                    }
-                }
-                if (hdcStream.fileSize != -1 && offset >= hdcStream.fileSize) {
-                    callBack(100);
-                    await hdcStream.DoCommandRemote(
-                        new FormatCommand(HdcCommand.CMD_FILE_FINISH, '', false)
-                    );
-                }
-            }
+  /**
+   * Pull the corresponding file from the device side
+   *
+   * @param filename filename
+   */
+  public static async fileRecv(filename: string, callBack: Function): Promise<Blob> {
+    let finalBuffer;
+    if (this.currentHdcClient) {
+      let hdcStream = new HdcStream(this.currentHdcClient, false);
+      await hdcStream.DoCommand(HdcDeviceManager.FILE_RECV_PREFIX_STRING + filename + ' ./');
+      if (!finalBuffer && hdcStream.fileSize > 0) {
+        finalBuffer = new Uint8Array(hdcStream.fileSize);
+        log('Uint8Array size is ' + finalBuffer.byteLength);
+      }
+      let offset = 0;
+      while (true) {
+        let dataMessage = await hdcStream.getMessage();
+        if (dataMessage.channelClose) {
+          log('result is end, close');
+          break;
         }
-        if (finalBuffer) {
-            return Promise.resolve(new Blob([finalBuffer]));
-        } else {
-            return Promise.resolve(new Blob([]));
+        if (dataMessage.commandFlag == HdcCommand.CMD_FILE_FINISH) {
+          await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '', false));
+          log('CMD_FILE_FINISH is end, close');
+          break;
         }
+        let res = dataMessage.getData();
+        if (res) {
+          let resRS: ArrayBuffer = res.slice(64);
+          if (finalBuffer) {
+            finalBuffer.set(new Uint8Array(resRS), offset);
+            offset += resRS.byteLength;
+            callBack(((offset / hdcStream.fileSize) * 100).toFixed(3));
+          }
+        }
+        if (hdcStream.fileSize != -1 && offset >= hdcStream.fileSize) {
+          callBack(100);
+          await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_FILE_FINISH, '', false));
+        }
+      }
     }
+    if (finalBuffer) {
+      return Promise.resolve(new Blob([finalBuffer]));
+    } else {
+      return Promise.resolve(new Blob([]));
+    }
+  }
 }

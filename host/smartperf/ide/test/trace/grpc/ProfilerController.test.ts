@@ -14,45 +14,42 @@
  */
 
 // @ts-ignore
-import {
-    ClientContainer,
-    SettingRegistry,
-} from '../../../dist/trace/grpc/ProfilerController.js';
+import { ClientContainer, SettingRegistry } from '../../../dist/trace/grpc/ProfilerController.js';
 
 describe('HiProfilerClient Test', () => {
-    let profilerController = new ClientContainer();
+  let profilerController = new ClientContainer();
 
-    it('ProfilerClientTest01', function () {
-        expect(profilerController.port).toBeUndefined();
-    });
+  it('ProfilerClientTest01', function () {
+    expect(profilerController.port).toBeUndefined();
+  });
 
-    it('ProfilerClientTest02', function () {
-        profilerController.port = true;
-        expect(profilerController.port).toBeTruthy();
-    });
+  it('ProfilerClientTest02', function () {
+    profilerController.port = true;
+    expect(profilerController.port).toBeTruthy();
+  });
 
-    it('ProfilerClientTest03', function () {
-        expect(profilerController.host).toBeUndefined();
-    });
+  it('ProfilerClientTest03', function () {
+    expect(profilerController.host).toBeUndefined();
+  });
 
-    it('ProfilerClientTest04', function () {
-        profilerController.host = true;
-        expect(profilerController.host).toBeTruthy();
-    });
+  it('ProfilerClientTest04', function () {
+    profilerController.host = true;
+    expect(profilerController.host).toBeTruthy();
+  });
 
-    it('ProfilerClientTest06', function () {
-        profilerController.loadSettings = jest.fn(() => true);
-        expect(profilerController.start()).toBeUndefined();
-    });
+  it('ProfilerClientTest06', function () {
+    profilerController.loadSettings = jest.fn(() => true);
+    expect(profilerController.start()).toBeUndefined();
+  });
 
-    it('ProfilerClientTest07', function () {
-        profilerController.loadSettings = jest.fn(() => true);
-        expect(profilerController.loadSettings()).toBeTruthy();
-    });
-    it('ProfilerClientTest08', function () {
-        expect(profilerController.registryClient()).toBeUndefined();
-    });
-    it('ProfilerClientTest09', function () {
-        expect(SettingRegistry.registry()).toBeUndefined();
-    });
+  it('ProfilerClientTest07', function () {
+    profilerController.loadSettings = jest.fn(() => true);
+    expect(profilerController.loadSettings()).toBeTruthy();
+  });
+  it('ProfilerClientTest08', function () {
+    expect(profilerController.registryClient()).toBeUndefined();
+  });
+  it('ProfilerClientTest09', function () {
+    expect(SettingRegistry.registry()).toBeUndefined();
+  });
 });

@@ -17,38 +17,34 @@ import { element } from '../BaseElement.js';
 
 @element('lit-table-group')
 export class LitTableGroup extends HTMLElement {
-    constructor() {
-        super();
-        const shadowRoot = this.attachShadow({ mode: 'open' });
-        shadowRoot.innerHTML = `
+  constructor() {
+    super();
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    shadowRoot.innerHTML = `
         <style>
         :host{ }
         </style>
         <slot id="sl"></slot>
         `;
-    }
+  }
 
-    static get observedAttributes() {
-        return ['title'];
-    }
+  static get observedAttributes() {
+    return ['title'];
+  }
 
-    get title() {
-        return this.getAttribute('title') || '';
-    }
+  get title() {
+    return this.getAttribute('title') || '';
+  }
 
-    set title(value: string) {
-        this.setAttribute('title', value);
-    }
+  set title(value: string) {
+    this.setAttribute('title', value);
+  }
 
-    connectedCallback() {}
+  connectedCallback() {}
 
-    disconnectedCallback() {}
+  disconnectedCallback() {}
 
-    adoptedCallback() {}
+  adoptedCallback() {}
 
-    attributeChangedCallback(
-        name: string,
-        oldValue: string,
-        newValue: string
-    ) {}
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {}
 }

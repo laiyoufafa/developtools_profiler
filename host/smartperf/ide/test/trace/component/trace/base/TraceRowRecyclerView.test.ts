@@ -17,78 +17,78 @@
 import { TraceRowRecyclerView } from '../../../../../dist/trace/component/trace/base/TraceRowRecyclerView.js';
 
 describe('TraceRow Test', () => {
-    beforeAll(() => {});
+  beforeAll(() => {});
 
-    it('Utils Test01', () => {
-        let traceRow = new TraceRowRecyclerView();
-        expect(traceRow);
-    });
+  it('Utils Test01', () => {
+    let traceRow = new TraceRowRecyclerView();
+    expect(traceRow);
+  });
 
-    it('Test02', function () {
-        let traceRow = new TraceRowRecyclerView();
-        expect(traceRow.dataSource).toBeTruthy();
-    });
+  it('Test02', function () {
+    let traceRow = new TraceRowRecyclerView();
+    expect(traceRow.dataSource).toBeTruthy();
+  });
 
-    it('Test03', function () {
-        let traceRow = new TraceRowRecyclerView();
-        traceRow.measureHeight = jest.fn(() => true);
-        traceRow.dataSource = true;
-        expect(traceRow.dataSource).toBeTruthy();
-    });
+  it('Test03', function () {
+    let traceRow = new TraceRowRecyclerView();
+    traceRow.measureHeight = jest.fn(() => true);
+    traceRow.dataSource = true;
+    expect(traceRow.dataSource).toBeTruthy();
+  });
 
-    it('Test04', function () {
-        let traceRow = new TraceRowRecyclerView();
-        expect(traceRow.renderType).toBeTruthy();
-    });
+  it('Test04', function () {
+    let traceRow = new TraceRowRecyclerView();
+    expect(traceRow.renderType).toBeTruthy();
+  });
 
-    it('Test05', function () {
-        let traceRow = new TraceRowRecyclerView();
-        traceRow.renderType = false;
-        expect(traceRow.renderType).toBeFalsy();
-    });
+  it('Test05', function () {
+    let traceRow = new TraceRowRecyclerView();
+    traceRow.renderType = false;
+    expect(traceRow.renderType).toBeFalsy();
+  });
 
-    it('Test06', function () {
-        let traceRow = new TraceRowRecyclerView();
-        const obj = {
-            folder: false,
-            top: 0,
-            name: '',
-            children: false,
-            rowId: '',
-            rowType: '',
-            rowParentId: '1',
-            expansion: false,
-            rowHidden: false,
-            rowHeight: 40,
-        };
-        const el = {
-            obj: undefined,
-            style: { top: 1, visibility: 'visible' },
-            name: '',
-            rowId: '',
-            rowType: '',
-            rowParentId: '1',
-            expansion: false,
-            rowHidden: false,
-            setAttribute: '',
-            removeAttribute: '',
-        };
-        expect(traceRow.refreshRow(el, !obj)).toBeUndefined();
-    });
+  it('Test06', function () {
+    let traceRow = new TraceRowRecyclerView();
+    const obj = {
+      folder: false,
+      top: 0,
+      name: '',
+      children: false,
+      rowId: '',
+      rowType: '',
+      rowParentId: '1',
+      expansion: false,
+      rowHidden: false,
+      rowHeight: 40,
+    };
+    const el = {
+      obj: undefined,
+      style: { top: 1, visibility: 'visible' },
+      name: '',
+      rowId: '',
+      rowType: '',
+      rowParentId: '1',
+      expansion: false,
+      rowHidden: false,
+      setAttribute: '',
+      removeAttribute: '',
+    };
+    expect(traceRow.refreshRow(el, !obj)).toBeUndefined();
+  });
 
-    it('Test08', function () {
-        let traceRow = new TraceRowRecyclerView();
-        expect(traceRow.initUI()).toBeUndefined();
-    });
+  it('Test08', function () {
+    let traceRow = new TraceRowRecyclerView();
+    expect(traceRow.initUI()).toBeUndefined();
+  });
 
-    it('Test09', function () {
-        let traceRow = new TraceRowRecyclerView();
-        expect(traceRow.initUI()).toBeUndefined();
-    });
+  it('Test09', function () {
+    let traceRow = new TraceRowRecyclerView();
+    expect(traceRow.initUI()).toBeUndefined();
+  });
 
-    it('Test09', function () {
-        let traceRow = new TraceRowRecyclerView();
-        expect(traceRow.initHtml()).toMatchInlineSnapshot(`
+  it('Test09', function () {
+    let traceRow = new TraceRowRecyclerView();
+    expect(traceRow.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -127,5 +127,5 @@ describe('TraceRow Test', () => {
 
         "
 `);
-    });
+  });
 });

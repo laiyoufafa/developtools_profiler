@@ -19,118 +19,117 @@ const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneNMCallInfo Test', () => {
-    document.body.innerHTML =
-        '<tabpane-native-callinfo id="ddd"></tabpane-native-callinfo>';
-    let tabPaneNMCallInfo = document.querySelector<TabPaneNMCallInfo>('#ddd');
+  document.body.innerHTML = '<tabpane-native-callinfo id="ddd"></tabpane-native-callinfo>';
+  let tabPaneNMCallInfo = document.querySelector<TabPaneNMCallInfo>('#ddd');
 
-    let nativeHookData = [
-        {
-            eventId: 0,
-            eventType: '',
-            subType: '',
-            heapSize: 0,
-            addr: '',
-            startTs: 0,
-            endTs: 0,
-            sumHeapSize: 0,
-            max: 0,
-            count: 0,
-            tid: 0,
-            isSelected: false,
-        },
-        {
-            eventId: 0,
-            eventType: '',
-            subType: '',
-            heapSize: 0,
-            addr: '',
-            startTs: 0,
-            endTs: 0,
-            sumHeapSize: 0,
-            max: 0,
-            count: 0,
-            tid: 0,
-            isSelected: false,
-        },
-    ];
+  let nativeHookData = [
+    {
+      eventId: 0,
+      eventType: '',
+      subType: '',
+      heapSize: 0,
+      addr: '',
+      startTs: 0,
+      endTs: 0,
+      sumHeapSize: 0,
+      max: 0,
+      count: 0,
+      tid: 0,
+      isSelected: false,
+    },
+    {
+      eventId: 0,
+      eventType: '',
+      subType: '',
+      heapSize: 0,
+      addr: '',
+      startTs: 0,
+      endTs: 0,
+      sumHeapSize: 0,
+      max: 0,
+      count: 0,
+      tid: 0,
+      isSelected: false,
+    },
+  ];
 
-    tabPaneNMCallInfo.currentSelection = jest.fn(() => true);
-    TabPaneNMCallInfo.data = {
-        cpus: [],
-        threadIds: [],
-        trackIds: [],
-        funTids: [],
-        heapIds: [],
-        nativeMemory: [],
-        leftNs: 0,
-        rightNs: 0,
-        hasFps: false,
-        statisticsSelectData: undefined,
+  tabPaneNMCallInfo.currentSelection = jest.fn(() => true);
+  TabPaneNMCallInfo.data = {
+    cpus: [],
+    threadIds: [],
+    trackIds: [],
+    funTids: [],
+    heapIds: [],
+    nativeMemory: [],
+    leftNs: 0,
+    rightNs: 0,
+    hasFps: false,
+    statisticsSelectData: undefined,
+  };
+
+  it('TabPaneNMCallInfoTest08', function () {
+    let hookLeft = {
+      id: '',
+      pid: '',
+      library: '',
+      title: '',
+      count: 0,
+      children: [],
+      depth: 0,
+      frame: undefined,
+      isHover: false,
+      parent: undefined,
+      size: 2,
+      symbol: '',
+      type: 0,
+      heapSize: 0,
+      heapSizeStr: '',
+      eventId: 0,
+      threadId: 0,
+    };
+    let groupByWithTid = tabPaneNMCallInfo.setRightTableData(hookLeft);
+    expect(groupByWithTid).toBeUndefined();
+  });
+
+  it('TabPaneNMCallInfoTest10', function () {
+    expect(tabPaneNMCallInfo.sortTreeByColumn()).toBeUndefined();
+  });
+
+  it('TabPaneNMCallInfoTest11', function () {
+    let tab = new TabPaneNMCallInfo();
+    let MockqueryNativeHookEventTid = sqlit.queryNativeHookEventTid;
+    MockqueryNativeHookEventTid.mockResolvedValue([
+      {
+        eventId: 0,
+        eventType: 'AllocEvent',
+        heap_size: 2,
+        addr: 'addr',
+        startTs: 0,
+        endTs: 500,
+        tid: 2,
+        threadName: 'threadName',
+      },
+    ]);
+    tab.data = {
+      leftNs: 0,
+      rightNs: 500,
+      nativeMemory: 'All Heap & Anonymous VM',
     };
 
-    it('TabPaneNMCallInfoTest08', function () {
-        let hookLeft = {
-            id: '',
-            pid: '',
-            library: '',
-            title: '',
-            count: 0,
-            children: [],
-            depth: 0,
-            frame: undefined,
-            isHover: false,
-            parent: undefined,
-            size: 2,
-            symbol: '',
-            type: 0,
-            heapSize: 0,
-            heapSizeStr: '',
-            eventId: 0,
-            threadId: 0,
-        };
-        let groupByWithTid = tabPaneNMCallInfo.setRightTableData(hookLeft);
-        expect(groupByWithTid).toBeUndefined();
-    });
+    tab.startWorker = jest.fn(() => true);
+    expect(tab.data).toBeUndefined();
+  });
 
-    it('TabPaneNMCallInfoTest10', function () {
-        expect(tabPaneNMCallInfo.sortTreeByColumn()).toBeUndefined();
-    });
-
-    it('TabPaneNMCallInfoTest11', function () {
-        let tab = new TabPaneNMCallInfo();
-        let MockqueryNativeHookEventTid = sqlit.queryNativeHookEventTid;
-        MockqueryNativeHookEventTid.mockResolvedValue([
-            {
-                eventId: 0,
-                eventType: 'AllocEvent',
-                heap_size: 2,
-                addr: 'addr',
-                startTs: 0,
-                endTs: 500,
-                tid: 2,
-                threadName: 'threadName',
-            },
-        ]);
-        tab.data = {
-            leftNs: 0,
-            rightNs: 500,
-            nativeMemory: 'All Heap & Anonymous VM',
-        };
-
-        tab.startWorker = jest.fn(() => true);
-        expect(tab.data).toBeUndefined();
-    });
-
-    it('TabPaneNMCallInfoTest12', function () {
-        expect(tabPaneNMCallInfo.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneNMCallInfoTest12', function () {
+    expect(tabPaneNMCallInfo.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -215,35 +214,31 @@ describe('TabPaneNMCallInfo Test', () => {
         </div>
         "
 `);
-    });
-    it('TabPaneNMCallInfoTest04', function () {
-        TabPaneNMCallInfo.getParentTree = jest.fn(() => true);
-        let hook = {
-            id: '1',
-            dur: 1,
-            children: [],
-        };
-        let id = '1';
-        expect(
-            tabPaneNMCallInfo.getParentTree([hook], { id }, [])
-        ).not.toBeUndefined();
-    });
-    it('TabPaneNMCallInfoTest05', function () {
-        TabPaneNMCallInfo.getChildTree = jest.fn(() => true);
-        let hook = {
-            eventId: '1',
-            dur: 1,
-            children: [],
-        };
-        expect(
-            tabPaneNMCallInfo.getChildTree([hook], '1', [])
-        ).not.toBeUndefined();
-    });
-    it('TabPaneNMCallInfoTest13', function () {
-        expect(tabPaneNMCallInfo.showButtomMenu()).toBeUndefined();
-    });
-    it('TabPaneNMCallInfoTest14', function () {
-        let isShow = 1;
-        expect(tabPaneNMCallInfo.showButtomMenu(isShow)).toBeUndefined();
-    });
+  });
+  it('TabPaneNMCallInfoTest04', function () {
+    TabPaneNMCallInfo.getParentTree = jest.fn(() => true);
+    let hook = {
+      id: '1',
+      dur: 1,
+      children: [],
+    };
+    let id = '1';
+    expect(tabPaneNMCallInfo.getParentTree([hook], { id }, [])).not.toBeUndefined();
+  });
+  it('TabPaneNMCallInfoTest05', function () {
+    TabPaneNMCallInfo.getChildTree = jest.fn(() => true);
+    let hook = {
+      eventId: '1',
+      dur: 1,
+      children: [],
+    };
+    expect(tabPaneNMCallInfo.getChildTree([hook], '1', [])).not.toBeUndefined();
+  });
+  it('TabPaneNMCallInfoTest13', function () {
+    expect(tabPaneNMCallInfo.showButtomMenu()).toBeUndefined();
+  });
+  it('TabPaneNMCallInfoTest14', function () {
+    let isShow = 1;
+    expect(tabPaneNMCallInfo.showButtomMenu(isShow)).toBeUndefined();
+  });
 });

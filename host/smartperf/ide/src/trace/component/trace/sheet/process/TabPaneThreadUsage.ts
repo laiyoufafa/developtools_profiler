@@ -15,10 +15,7 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import {
-    SelectionData,
-    SelectionParam,
-} from '../../../../bean/BoxSelection.js';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import '../../../StackBar.js';
 import { getTabThreadStatesCpu } from '../../../../database/SqlLite.js';
 import { StackBar } from '../../../StackBar.js';
@@ -29,12 +26,12 @@ import { CpuStruct } from '../../../../database/ui-worker/ProcedureWorkerCPU.js'
 
 @element('tabpane-thread-usage')
 export class TabPaneThreadUsage extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private range: HTMLLabelElement | null | undefined;
-    private stackBar: StackBar | null | undefined;
-    private source: Array<SelectionData> = [];
-    private cpuCount = 0;
-    private pubColumns = `
+  private tbl: LitTable | null | undefined;
+  private range: HTMLLabelElement | null | undefined;
+  private stackBar: StackBar | null | undefined;
+  private source: Array<SelectionData> = [];
+  private cpuCount = 0;
+  private pubColumns = `
             <lit-table-column width="200px" title="Process" data-index="process" key="process"  align="flex-start" order>
             </lit-table-column>
             <lit-table-column width="100px" title="PID" data-index="pid" key="pid"  align="flex-start" order >
@@ -47,114 +44,95 @@ export class TabPaneThreadUsage extends BaseElement {
             </lit-table-column>
     `;
 
-    set data(val: SelectionParam | any) {
-        if (this.cpuCount !== CpuStruct.cpuCount) {
-            this.cpuCount = CpuStruct.cpuCount;
-            this.tbl!.innerHTML = this.getTableColumns();
-        }
-        //@ts-ignore
-        this.tbl?.shadowRoot?.querySelector('.table')?.style?.height =
-            this.parentElement!.clientHeight - 45 + 'px';
-        // // @ts-ignore
-        this.range!.textContent =
-            'Selected range: ' +
-            ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) +
-            ' ms';
-        getTabThreadStatesCpu(val.threadIds, val.leftNs, val.rightNs).then(
-            (result) => {
-                if (result != null && result.length > 0) {
-                    log('getTabThreadStates result size : ' + result.length);
-                    let map: Map<number, any> = new Map<number, any>();
-                    for (let e of result) {
-                        if (map.has(e.tid)) {
-                            map.get(e.tid)[`cpu${e.cpu}`] = e.wallDuration || 0;
-                            map.get(e.tid)[`cpu${e.cpu}TimeStr`] =
-                                getProbablyTime(e.wallDuration || 0);
-                            map.get(e.tid)[`cpu${e.cpu}Ratio`] = (
-                                (100.0 * (e.wallDuration || 0)) /
-                                (val.rightNs - val.leftNs)
-                            ).toFixed(2);
-                            map.get(e.tid)[`wallDuration`] =
-                                map.get(e.tid)[`wallDuration`] +
-                                (e.wallDuration || 0);
-                            map.get(e.tid)[`wallDurationTimeStr`] =
-                                getProbablyTime(map.get(e.tid)[`wallDuration`]);
-                        } else {
-                            let process = Utils.PROCESS_MAP.get(e.pid);
-                            let thread = Utils.THREAD_MAP.get(e.tid);
-                            let obj: any = {
-                                tid: e.tid,
-                                pid: e.pid,
-                                thread: thread || 'null',
-                                process: process || 'null',
-                                wallDuration: e.wallDuration || 0,
-                                wallDurationTimeStr: getProbablyTime(
-                                    e.wallDuration || 0
-                                ),
-                            };
-                            for (let i = 0; i < this.cpuCount; i++) {
-                                obj[`cpu${i}`] = 0;
-                                obj[`cpu${i}TimeStr`] = '0';
-                                obj[`cpu${i}Ratio`] = '0';
-                            }
-                            obj[`cpu${e.cpu}`] = e.wallDuration || 0;
-                            obj[`cpu${e.cpu}TimeStr`] = getProbablyTime(
-                                e.wallDuration || 0
-                            );
-                            obj[`cpu${e.cpu}Ratio`] = (
-                                (100.0 * (e.wallDuration || 0)) /
-                                (val.rightNs - val.leftNs)
-                            ).toFixed(2);
-                            map.set(e.tid, obj);
-                        }
-                    }
-                    this.source = Array.from(map.values());
-                    this.tbl!.recycleDataSource = this.source;
-                } else {
-                    this.source = [];
-                    this.tbl!.recycleDataSource = [];
-                }
-            }
-        );
+  set data(val: SelectionParam | any) {
+    if (this.cpuCount !== CpuStruct.cpuCount) {
+      this.cpuCount = CpuStruct.cpuCount;
+      this.tbl!.innerHTML = this.getTableColumns();
     }
+    //@ts-ignore
+    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    // // @ts-ignore
+    this.range!.textContent = 'Selected range: ' + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    getTabThreadStatesCpu(val.threadIds, val.leftNs, val.rightNs).then((result) => {
+      if (result != null && result.length > 0) {
+        log('getTabThreadStates result size : ' + result.length);
+        let map: Map<number, any> = new Map<number, any>();
+        for (let e of result) {
+          if (map.has(e.tid)) {
+            map.get(e.tid)[`cpu${e.cpu}`] = e.wallDuration || 0;
+            map.get(e.tid)[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
+            map.get(e.tid)[`cpu${e.cpu}Ratio`] = ((100.0 * (e.wallDuration || 0)) / (val.rightNs - val.leftNs)).toFixed(
+              2
+            );
+            map.get(e.tid)[`wallDuration`] = map.get(e.tid)[`wallDuration`] + (e.wallDuration || 0);
+            map.get(e.tid)[`wallDurationTimeStr`] = getProbablyTime(map.get(e.tid)[`wallDuration`]);
+          } else {
+            let process = Utils.PROCESS_MAP.get(e.pid);
+            let thread = Utils.THREAD_MAP.get(e.tid);
+            let obj: any = {
+              tid: e.tid,
+              pid: e.pid,
+              thread: thread || 'null',
+              process: process || 'null',
+              wallDuration: e.wallDuration || 0,
+              wallDurationTimeStr: getProbablyTime(e.wallDuration || 0),
+            };
+            for (let i = 0; i < this.cpuCount; i++) {
+              obj[`cpu${i}`] = 0;
+              obj[`cpu${i}TimeStr`] = '0';
+              obj[`cpu${i}Ratio`] = '0';
+            }
+            obj[`cpu${e.cpu}`] = e.wallDuration || 0;
+            obj[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
+            obj[`cpu${e.cpu}Ratio`] = ((100.0 * (e.wallDuration || 0)) / (val.rightNs - val.leftNs)).toFixed(2);
+            map.set(e.tid, obj);
+          }
+        }
+        this.source = Array.from(map.values());
+        this.tbl!.recycleDataSource = this.source;
+      } else {
+        this.source = [];
+        this.tbl!.recycleDataSource = [];
+      }
+    });
+  }
 
-    getTableColumns() {
-        let col = `${this.pubColumns}`;
-        let cpuCount = CpuStruct.cpuCount;
-        for (let i = 0; i < cpuCount; i++) {
-            col = `${col}
+  getTableColumns() {
+    let col = `${this.pubColumns}`;
+    let cpuCount = CpuStruct.cpuCount;
+    for (let i = 0; i < cpuCount; i++) {
+      col = `${col}
             <lit-table-column width="100px" title="cpu${i}" data-index="cpu${i}TimeStr" key="cpu${i}TimeStr"  align="flex-start" order>
             </lit-table-column>
             <lit-table-column width="100px" title="%" data-index="cpu${i}Ratio" key="cpu${i}Ratio"  align="flex-start" order>
             </lit-table-column>
             `;
-        }
-        return col;
     }
+    return col;
+  }
 
-    initElements(): void {
-        this.tbl =
-            this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
-        this.range = this.shadowRoot?.querySelector('#time-range');
-        this.stackBar = this.shadowRoot?.querySelector('#stack-bar');
-        this.tbl!.addEventListener('column-click', (evt: any) => {
-            this.sortByColumn(evt.detail);
-        });
-    }
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
+    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.stackBar = this.shadowRoot?.querySelector('#stack-bar');
+    this.tbl!.addEventListener('column-click', (evt: any) => {
+      this.sortByColumn(evt.detail);
+    });
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
-    }
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -170,45 +148,35 @@ export class TabPaneThreadUsage extends BaseElement {
             <lit-table id="tb-thread-states" style="height: auto"></lit-table>
         </div>
         `;
-    }
+  }
 
-    sortByColumn(detail: any) {
-        function compare(property: any, sort: any, type: any) {
-            return function (a: SelectionData | any, b: SelectionData | any) {
-                if (a.process == ' ' || b.process == ' ') {
-                    return 0;
-                }
-                if (type === 'number') {
-                    return sort === 2
-                        ? parseFloat(b[property]) - parseFloat(a[property])
-                        : parseFloat(a[property]) - parseFloat(b[property]);
-                } else {
-                    if (b[property] > a[property]) {
-                        return sort === 2 ? 1 : -1;
-                    } else if (b[property] == a[property]) {
-                        return 0;
-                    } else {
-                        return sort === 2 ? -1 : 1;
-                    }
-                }
-            };
+  sortByColumn(detail: any) {
+    function compare(property: any, sort: any, type: any) {
+      return function (a: SelectionData | any, b: SelectionData | any) {
+        if (a.process == ' ' || b.process == ' ') {
+          return 0;
         }
-
-        if (
-            detail.key === 'process' ||
-            detail.key === 'thread' ||
-            (detail.key as string).includes('Ratio')
-        ) {
-            this.source.sort(compare(detail.key, detail.sort, 'string'));
+        if (type === 'number') {
+          return sort === 2
+            ? parseFloat(b[property]) - parseFloat(a[property])
+            : parseFloat(a[property]) - parseFloat(b[property]);
         } else {
-            this.source.sort(
-                compare(
-                    (detail.key as string).replace('TimeStr', ''),
-                    detail.sort,
-                    'number'
-                )
-            );
+          if (b[property] > a[property]) {
+            return sort === 2 ? 1 : -1;
+          } else if (b[property] == a[property]) {
+            return 0;
+          } else {
+            return sort === 2 ? -1 : 1;
+          }
         }
-        this.tbl!.recycleDataSource = this.source;
+      };
     }
+
+    if (detail.key === 'process' || detail.key === 'thread' || (detail.key as string).includes('Ratio')) {
+      this.source.sort(compare(detail.key, detail.sort, 'string'));
+    } else {
+      this.source.sort(compare((detail.key as string).replace('TimeStr', ''), detail.sort, 'number'));
+    }
+    this.tbl!.recycleDataSource = this.source;
+  }
 }

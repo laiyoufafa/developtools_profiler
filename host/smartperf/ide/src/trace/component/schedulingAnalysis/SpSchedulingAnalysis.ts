@@ -25,54 +25,43 @@ import { procedurePool } from '../../database/Procedure.js';
 
 @element('sp-scheduling-analysis')
 export class SpSchedulingAnalysis extends BaseElement {
-    static traceChange: boolean = false;
-    static cpuCount: number = 0;
-    static startTs: number = 0;
-    static endTs: number = 0;
-    static totalDur: number = 0;
-    private tabs: LitTabs | null | undefined;
-    private tabCpuAnalysis: TabCpuAnalysis | null | undefined;
-    private tabThreadAnalysis: TabThreadAnalysis | null | undefined;
+  static traceChange: boolean = false;
+  static cpuCount: number = 0;
+  static startTs: number = 0;
+  static endTs: number = 0;
+  static totalDur: number = 0;
+  private tabs: LitTabs | null | undefined;
+  private tabCpuAnalysis: TabCpuAnalysis | null | undefined;
+  private tabThreadAnalysis: TabThreadAnalysis | null | undefined;
 
-    initElements(): void {
-        this.tabs = this.shadowRoot?.querySelector<LitTabs>('#tabs');
-        this.tabCpuAnalysis =
-            this.shadowRoot?.querySelector<TabCpuAnalysis>('#cpu-analysis');
-        this.tabThreadAnalysis =
-            this.shadowRoot?.querySelector<TabThreadAnalysis>(
-                '#thread-analysis'
-            );
+  initElements(): void {
+    this.tabs = this.shadowRoot?.querySelector<LitTabs>('#tabs');
+    this.tabCpuAnalysis = this.shadowRoot?.querySelector<TabCpuAnalysis>('#cpu-analysis');
+    this.tabThreadAnalysis = this.shadowRoot?.querySelector<TabThreadAnalysis>('#thread-analysis');
+  }
+
+  static resetCpu() {
+    SpSchedulingAnalysis.traceChange = true;
+    CheckCpuSetting.resetCpuSettings();
+    Top20FrequencyThread.threads = undefined;
+    procedurePool.submitWithName('logic1', 'scheduling-clearData', {}, undefined, (res: any) => {});
+  }
+
+  init() {
+    if (SpSchedulingAnalysis.traceChange) {
+      SpSchedulingAnalysis.traceChange = false;
+      this.tabs!.activekey = '1';
+      SpSchedulingAnalysis.startTs = (window as any).recordStartNS;
+      SpSchedulingAnalysis.endTs = (window as any).recordEndNS;
+      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs;
+      SpSchedulingAnalysis.cpuCount = (window as any).cpuCount;
+      this.tabCpuAnalysis?.init();
+      this.tabThreadAnalysis?.init();
     }
+  }
 
-    static resetCpu() {
-        SpSchedulingAnalysis.traceChange = true;
-        CheckCpuSetting.resetCpuSettings();
-        Top20FrequencyThread.threads = undefined;
-        procedurePool.submitWithName(
-            'logic1',
-            'scheduling-clearData',
-            {},
-            undefined,
-            (res: any) => {}
-        );
-    }
-
-    init() {
-        if (SpSchedulingAnalysis.traceChange) {
-            SpSchedulingAnalysis.traceChange = false;
-            this.tabs!.activekey = '1';
-            SpSchedulingAnalysis.startTs = (window as any).recordStartNS;
-            SpSchedulingAnalysis.endTs = (window as any).recordEndNS;
-            SpSchedulingAnalysis.totalDur =
-                SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs;
-            SpSchedulingAnalysis.cpuCount = (window as any).cpuCount;
-            this.tabCpuAnalysis?.init();
-            this.tabThreadAnalysis?.init();
-        }
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host {
             width: 100%;
@@ -114,5 +103,5 @@ export class SpSchedulingAnalysis extends BaseElement {
             </lit-tabs>
         </div>
         `;
-    }
+  }
 }

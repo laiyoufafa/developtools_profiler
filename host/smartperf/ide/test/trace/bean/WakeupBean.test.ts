@@ -17,33 +17,33 @@
 import { WakeupBean } from '../../../dist/trace/bean/WakeupBean.js';
 
 describe('WakeupBean Test', () => {
-    let wakeUpBean = new WakeupBean();
-    it('wakeUpBean', function () {
-        wakeUpBean = {
-            wakeupTime: 0,
-            cpu: 0,
-            process: '',
-            pid: 0,
-            thread: '',
-            tid: 0,
-            schedulingLatency: 0,
-            schedulingDesc: '',
-            ts: 0,
-        };
-        expect(wakeUpBean).not.toBeUndefined();
-        expect(wakeUpBean).toMatchInlineSnapshot(
-            {
-                wakeupTime: expect.any(Number),
-                cpu: expect.any(Number),
-                process: expect.any(String),
-                pid: expect.any(Number),
-                thread: expect.any(String),
-                tid: expect.any(Number),
-                schedulingLatency: expect.any(Number),
-                schedulingDesc: expect.any(String),
-                ts: expect.any(Number),
-            },
-            `
+  let wakeUpBean = new WakeupBean();
+  it('wakeUpBean', function () {
+    wakeUpBean = {
+      wakeupTime: 0,
+      cpu: 0,
+      process: '',
+      pid: 0,
+      thread: '',
+      tid: 0,
+      schedulingLatency: 0,
+      schedulingDesc: '',
+      ts: 0,
+    };
+    expect(wakeUpBean).not.toBeUndefined();
+    expect(wakeUpBean).toMatchInlineSnapshot(
+      {
+        wakeupTime: expect.any(Number),
+        cpu: expect.any(Number),
+        process: expect.any(String),
+        pid: expect.any(Number),
+        thread: expect.any(String),
+        tid: expect.any(Number),
+        schedulingLatency: expect.any(Number),
+        schedulingDesc: expect.any(String),
+        ts: expect.any(Number),
+      },
+      `
 Object {
   "cpu": Any<Number>,
   "pid": Any<Number>,
@@ -56,6 +56,6 @@ Object {
   "wakeupTime": Any<Number>,
 }
 `
-        );
-    });
+    );
+  });
 });

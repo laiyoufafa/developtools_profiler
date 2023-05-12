@@ -16,25 +16,25 @@
 import { BaseStruct } from './BaseStruct.js';
 
 export class SdkSliceStruct extends BaseStruct {
-    static maxSdkSlice: number = 0;
-    static maxSdkSliceName: string = '';
-    static hoverSdkSliceStruct: SdkSliceStruct | undefined;
-    static selectSdkSliceStruct: SdkSliceStruct | undefined;
-    static sdkName: number = 0;
+  static maxSdkSlice: number = 0;
+  static maxSdkSliceName: string = '';
+  static hoverSdkSliceStruct: SdkSliceStruct | undefined;
+  static selectSdkSliceStruct: SdkSliceStruct | undefined;
+  static sdkName: number = 0;
 
-    value: number | undefined;
-    start_ts: number | undefined;
-    end_ts: number | undefined;
-    slice_message: string | undefined;
+  value: number | undefined;
+  start_ts: number | undefined;
+  end_ts: number | undefined;
+  slice_message: string | undefined;
 }
 
 export class CounterStruct extends BaseStruct {
-    static maxCounter: number = 0;
-    static maxCounterName: string = '';
-    static hoverCounterStruct: CounterStruct | undefined;
-    static selectCounterStruct: CounterStruct | undefined;
+  static maxCounter: number = 0;
+  static maxCounterName: string = '';
+  static hoverCounterStruct: CounterStruct | undefined;
+  static selectCounterStruct: CounterStruct | undefined;
 
-    value: number | undefined;
-    ts: number | undefined;
-    counter_id: number | undefined;
+  value: number | undefined;
+  ts: number | undefined;
+  counter_id: number | undefined;
 }

@@ -48,131 +48,123 @@ import { SpSchedulingAnalysis } from './component/schedulingAnalysis/SpSchedulin
 import './component/trace/base/TraceRowConfig.js';
 import { TraceRowConfig } from './component/trace/base/TraceRowConfig.js';
 import { ColorUtils } from './component/trace/base/ColorUtils.js';
-import {SpStatisticsHttpUtil} from "../statistics/util/SpStatisticsHttpUtil.js";
+import { SpStatisticsHttpUtil } from '../statistics/util/SpStatisticsHttpUtil.js';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
-    private static loadingProgress: number = 0;
-    private static progressStep: number = 2;
-    static skinChange: Function | null | undefined = null;
-    static skinChange2: Function | null | undefined = null;
-    skinChangeArray: Array<Function> = [];
-    private icon: HTMLDivElement | undefined | null;
-    private rootEL: HTMLDivElement | undefined | null;
-    private spHelp: SpHelp | undefined | null;
-    private keyCodeMap = {
-        61: true,
-        107: true,
-        109: true,
-        173: true,
-        187: true,
-        189: true,
-    };
-    colorTransiton: any;
+  private static loadingProgress: number = 0;
+  private static progressStep: number = 2;
+  static skinChange: Function | null | undefined = null;
+  static skinChange2: Function | null | undefined = null;
+  skinChangeArray: Array<Function> = [];
+  private icon: HTMLDivElement | undefined | null;
+  private rootEL: HTMLDivElement | undefined | null;
+  private spHelp: SpHelp | undefined | null;
+  private keyCodeMap = {
+    61: true,
+    107: true,
+    109: true,
+    173: true,
+    187: true,
+    189: true,
+  };
+  colorTransiton: any;
 
-    static get observedAttributes() {
-        return [
-            'server',
-            'sqlite',
-            'wasm',
-            'dark',
-            'vs',
-            'query-sql',
-            'subsection',
-        ];
+  static get observedAttributes() {
+    return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
+  }
+
+  get dark() {
+    return this.hasAttribute('dark');
+  }
+
+  set dark(value) {
+    if (value) {
+      this.rootEL!.classList.add('dark');
+      this.setAttribute('dark', '');
+    } else {
+      this.rootEL!.classList.remove('dark');
+      this.removeAttribute('dark');
+    }
+    if (this.skinChangeArray.length > 0) {
+      this.skinChangeArray.forEach((item) => item(value));
+    }
+    if (SpApplication.skinChange) {
+      SpApplication.skinChange(value);
+    }
+    if (SpApplication.skinChange2) {
+      SpApplication.skinChange2(value);
     }
 
-    get dark() {
-        return this.hasAttribute('dark');
+    if (this.spHelp) {
+      this.spHelp.dark = value;
     }
+  }
 
-    set dark(value) {
-        if (value) {
-            this.rootEL!.classList.add('dark');
-            this.setAttribute('dark', '');
-        } else {
-            this.rootEL!.classList.remove('dark');
-            this.removeAttribute('dark');
-        }
-        if (this.skinChangeArray.length > 0) {
-            this.skinChangeArray.forEach((item) => item(value));
-        }
-        if (SpApplication.skinChange) {
-            SpApplication.skinChange(value);
-        }
-        if (SpApplication.skinChange2) {
-            SpApplication.skinChange2(value);
-        }
+  get vs(): boolean {
+    return this.hasAttribute('vs');
+  }
 
-        if (this.spHelp) {
-            this.spHelp.dark = value;
-        }
+  set vs(isVs: boolean) {
+    if (isVs) {
+      this.setAttribute('vs', '');
     }
+  }
 
-    get vs(): boolean {
-        return this.hasAttribute('vs');
+  get sqlite(): boolean {
+    return this.hasAttribute('sqlite');
+  }
+
+  get wasm(): boolean {
+    return this.hasAttribute('wasm');
+  }
+
+  get server(): boolean {
+    return this.hasAttribute('server');
+  }
+
+  set server(s: boolean) {
+    if (s) {
+      this.setAttribute('server', '');
+    } else {
+      this.removeAttribute('server');
     }
+  }
 
-    set vs(isVs: boolean) {
-        if (isVs) {
-            this.setAttribute('vs', '');
-        }
+  get querySql(): boolean {
+    return this.hasAttribute('query-sql');
+  }
+
+  set querySql(isShowMetric) {
+    if (isShowMetric) {
+      this.setAttribute('query-sql', '');
+    } else {
+      this.removeAttribute('query-sql');
     }
+  }
 
-    get sqlite(): boolean {
-        return this.hasAttribute('sqlite');
+  set search(search: boolean) {
+    if (search) {
+      this.setAttribute('search', '');
+    } else {
+      this.removeAttribute('search');
     }
+  }
 
-    get wasm(): boolean {
-        return this.hasAttribute('wasm');
-    }
+  get search(): boolean {
+    return this.hasAttribute('search');
+  }
 
-    get server(): boolean {
-        return this.hasAttribute('server');
-    }
+  addSkinListener(handler: Function) {
+    this.skinChangeArray.push(handler);
+  }
 
-    set server(s: boolean) {
-        if (s) {
-            this.setAttribute('server', '');
-        } else {
-            this.removeAttribute('server');
-        }
-    }
+  removeSkinListener(handler: Function) {
+    this.skinChangeArray.splice(this.skinChangeArray.indexOf(handler), 1);
+  }
 
-    get querySql(): boolean {
-        return this.hasAttribute('query-sql');
-    }
-
-    set querySql(isShowMetric) {
-        if (isShowMetric) {
-            this.setAttribute('query-sql', '');
-        } else {
-            this.removeAttribute('query-sql');
-        }
-    }
-
-    set search(search: boolean) {
-        if (search) {
-            this.setAttribute('search', '');
-        } else {
-            this.removeAttribute('search');
-        }
-    }
-
-    get search(): boolean {
-        return this.hasAttribute('search');
-    }
-
-    addSkinListener(handler: Function) {
-        this.skinChangeArray.push(handler);
-    }
-
-    removeSkinListener(handler: Function) {
-        this.skinChangeArray.splice(this.skinChangeArray.indexOf(handler), 1);
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
 
@@ -395,1326 +387,1026 @@ export class SpApplication extends BaseElement {
             </div>
         </div>
         `;
+  }
+
+  initElements() {
+    SpStatisticsHttpUtil.initStatisticsServerConfig();
+    SpStatisticsHttpUtil.addUserVisitAction('visit');
+    let that = this;
+    this.querySql = true;
+    this.rootEL = this.shadowRoot!.querySelector<HTMLDivElement>('.root');
+    let spWelcomePage = this.shadowRoot!.querySelector('#sp-welcome') as SpWelcomePage;
+    let spMetrics = this.shadowRoot!.querySelector<SpMetrics>('#sp-metrics') as SpMetrics; // new SpMetrics();
+    let spQuerySQL = this.shadowRoot!.querySelector<SpQuerySQL>('#sp-query-sql') as SpQuerySQL; // new SpQuerySQL();
+    let spInfoAndStats = this.shadowRoot!.querySelector<SpInfoAndStats>('#sp-info-and-stats') as SpInfoAndStats; // new SpInfoAndStats();
+    let spSystemTrace = this.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
+    this.spHelp = this.shadowRoot!.querySelector<SpHelp>('#sp-help');
+    let spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-trace');
+    let spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-template');
+    let spSchedulingAnalysis = this.shadowRoot!.querySelector<SpSchedulingAnalysis>(
+      '#sp-scheduling-analysis'
+    ) as SpSchedulingAnalysis;
+    let appContent = this.shadowRoot?.querySelector('#app-content') as HTMLDivElement;
+    let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
+    let menu = mainMenu.shadowRoot?.querySelector('.menu-button') as HTMLDivElement;
+    let progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
+    let litSearch = this.shadowRoot?.querySelector('#lit-search') as LitSearch;
+    let search = this.shadowRoot?.querySelector('.search-container') as HTMLElement;
+    let sidebarButton: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button');
+    let childNodes = [
+      spSystemTrace,
+      spRecordTrace,
+      spWelcomePage,
+      spMetrics,
+      spQuerySQL,
+      spSchedulingAnalysis,
+      spInfoAndStats,
+      this.spHelp,
+      spRecordTemplate,
+    ];
+    let sideColor = mainMenu.shadowRoot?.querySelector('.color') as HTMLDivElement;
+    //修改侧边导航栏配色
+    sideColor!.onclick = (e) => {
+      let backgroundColor = sessionStorage.getItem('backgroundColor');
+      let menu: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#main-menu');
+      let menuGroup = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+      let menuItem = menu!.shadowRoot?.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+      if (backgroundColor == 'white' || !backgroundColor) {
+        menu!.style.backgroundColor = '#262f3c';
+        menu!.style.transition = '1s';
+        menuGroup!.forEach((item) => {
+          let groupName = item!.shadowRoot!.querySelector('.group-name') as LitMainMenuGroup;
+          let groupDescribe = item!.shadowRoot!.querySelector('.group-describe') as LitMainMenuGroup;
+          groupName.style.color = 'white';
+          groupDescribe.style.color = 'white';
+        });
+        menuItem!.forEach((item) => {
+          item.style.color = 'white';
+        });
+        ColorUtils.MD_PALETTE = ColorUtils.MD_PALETTE_A;
+        ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_A;
+      } else {
+        menu!.style.backgroundColor = 'white';
+        menu!.style.transition = '1s';
+        menuGroup!.forEach((item) => {
+          let groupName = item!.shadowRoot!.querySelector('.group-name') as LitMainMenuGroup;
+          let groupDescribe = item!.shadowRoot!.querySelector('.group-describe') as LitMainMenuGroup;
+          groupName.style.color = 'black';
+          groupDescribe.style.color = '#92959b';
+        });
+        menuItem!.forEach((item) => {
+          item.style.color = 'var(--dark-color,rgba(0,0,0,0.6))';
+        });
+        ColorUtils.MD_PALETTE = ColorUtils.MD_PALETTE_B;
+        ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_B;
+      }
+
+      sessionStorage.setItem('backgroundColor', menu!.style.backgroundColor);
+      if (this.colorTransiton) {
+        clearTimeout(this.colorTransiton);
+      }
+      this.colorTransiton = setTimeout(() => {
+        menu!.style.transition = '0s';
+      }, 1000);
+    };
+
+    window.subscribe(window.SmartEvent.UI.MenuTrace, () => showContent(spSystemTrace!));
+    litSearch.addEventListener('focus', () => {
+      window.publish(window.SmartEvent.UI.KeyboardEnable, {
+        enable: false,
+      });
+    });
+    litSearch.addEventListener('blur', () => {
+      window.publish(window.SmartEvent.UI.KeyboardEnable, {
+        enable: true,
+      });
+    });
+    litSearch.addEventListener('previous-data', (ev: any) => {
+      litSearch.index = spSystemTrace!.showStruct(true, litSearch.index, litSearch.list);
+      litSearch.blur();
+    });
+    litSearch.addEventListener('next-data', (ev: any) => {
+      litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
+      litSearch.blur();
+    });
+    litSearch.valueChangeHandler = (value: string) => {
+      if (value.length > 0) {
+        let list = spSystemTrace!.searchCPU(value);
+        spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
+          if (litSearch.searchValue != '') {
+            litSearch.list = spSystemTrace!.searchSdk(mixedResults, value);
+          }
+        });
+      } else {
+        litSearch.list = [];
+        spSystemTrace?.visibleRows.forEach((it) => {
+          it.highlight = false;
+          it.draw();
+        });
+        spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+      }
+    };
+    spSystemTrace?.addEventListener('previous-data', (ev: any) => {
+      litSearch.index = spSystemTrace!.showStruct(true, litSearch.index, litSearch.list);
+    });
+    spSystemTrace?.addEventListener('next-data', (ev: any) => {
+      litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
+    });
+
+    let filterConfig = this.shadowRoot?.querySelector('.filter-config') as LitIcon;
+    let configClose = this.shadowRoot
+      ?.querySelector<HTMLElement>('.chart-filter')!
+      .shadowRoot?.querySelector<LitIcon>('.config-close');
+    filterConfig.addEventListener('click', (ev) => {
+      if (this!.hasAttribute('chart_filter')) {
+        this!.removeAttribute('chart_filter');
+      } else {
+        this!.setAttribute('chart_filter', '');
+      }
+    });
+    configClose!.addEventListener('click', (ev) => {
+      if (this.hasAttribute('chart_filter')) {
+        this!.removeAttribute('chart_filter');
+      }
+    });
+
+    //打开侧边栏
+    sidebarButton!.onclick = (e) => {
+      let menu: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#main-menu');
+      let menuButton: HTMLElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button');
+      if (menu) {
+        menu.style.width = `248px`;
+        // @ts-ignore
+        menu.style.zIndex = 2000;
+        menu.style.display = `flex`;
+      }
+      if (menuButton) {
+        menuButton.style.width = `0px`;
+      }
+    };
+    let icon: HTMLDivElement | undefined | null = this.shadowRoot
+      ?.querySelector('#main-menu')
+      ?.shadowRoot?.querySelector('div.header > div');
+    icon!.style.pointerEvents = 'none';
+    icon!.onclick = (e) => {
+      let menu: HTMLElement | undefined | null = this.shadowRoot?.querySelector('#main-menu');
+      let menuButton: HTMLElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button');
+      if (menu) {
+        menu.style.width = `0px`;
+        menu.style.display = `flex`;
+        // @ts-ignore
+        menu.style.zIndex = 0;
+      }
+      if (menuButton) {
+        menuButton.style.width = `48px`;
+      }
+    };
+
+    function showContent(showNode: HTMLElement) {
+      if (showNode === spSystemTrace) {
+        menu!.style.pointerEvents = 'auto';
+        sidebarButton!.style.pointerEvents = 'auto';
+        that.search = true;
+        litSearch.setPercent('', 101);
+        litSearch.clear();
+        window.publish(window.SmartEvent.UI.KeyboardEnable, {
+          enable: true,
+        });
+        filterConfig.style.visibility = 'visible';
+      } else {
+        menu!.style.pointerEvents = 'none';
+        sidebarButton!.style.pointerEvents = 'none';
+        that.search = litSearch.isLoading;
+        window.publish(window.SmartEvent.UI.KeyboardEnable, {
+          enable: false,
+        });
+        filterConfig.style.visibility = 'hidden';
+      }
+      log('show pages' + showNode.id);
+      childNodes.forEach((node) => {
+        if (that.hasAttribute('chart_filter')) {
+          that!.removeAttribute('chart_filter');
+        }
+        if (node === showNode) {
+          showNode.style.visibility = 'visible';
+        } else {
+          node!.style.visibility = 'hidden';
+        }
+      });
     }
 
-    initElements() {
-        SpStatisticsHttpUtil.initStatisticsServerConfig();
-        SpStatisticsHttpUtil.addUserVisitAction('visit');
-        let that = this;
-        this.querySql = true;
-        this.rootEL = this.shadowRoot!.querySelector<HTMLDivElement>('.root');
-        let spWelcomePage = this.shadowRoot!.querySelector(
-            '#sp-welcome'
-        ) as SpWelcomePage;
-        let spMetrics = this.shadowRoot!.querySelector<SpMetrics>(
-            '#sp-metrics'
-        ) as SpMetrics; // new SpMetrics();
-        let spQuerySQL = this.shadowRoot!.querySelector<SpQuerySQL>(
-            '#sp-query-sql'
-        ) as SpQuerySQL; // new SpQuerySQL();
-        let spInfoAndStats = this.shadowRoot!.querySelector<SpInfoAndStats>(
-            '#sp-info-and-stats'
-        ) as SpInfoAndStats; // new SpInfoAndStats();
-        let spSystemTrace =
-            this.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-        this.spHelp = this.shadowRoot!.querySelector<SpHelp>('#sp-help');
-        let spRecordTrace =
-            this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-trace');
-        let spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>(
-            '#sp-record-template'
-        );
-        let spSchedulingAnalysis =
-            this.shadowRoot!.querySelector<SpSchedulingAnalysis>(
-                '#sp-scheduling-analysis'
-            ) as SpSchedulingAnalysis;
-        let appContent = this.shadowRoot?.querySelector(
-            '#app-content'
-        ) as HTMLDivElement;
-        let mainMenu = this.shadowRoot?.querySelector(
-            '#main-menu'
-        ) as LitMainMenu;
-        let menu = mainMenu.shadowRoot?.querySelector(
-            '.menu-button'
-        ) as HTMLDivElement;
-        let progressEL = this.shadowRoot?.querySelector(
-            '.progress'
-        ) as LitProgressBar;
-        let litSearch = this.shadowRoot?.querySelector(
-            '#lit-search'
-        ) as LitSearch;
-        let search = this.shadowRoot?.querySelector(
-            '.search-container'
-        ) as HTMLElement;
-        let sidebarButton: HTMLDivElement | undefined | null =
-            this.shadowRoot?.querySelector('.sidebar-button');
-        let childNodes = [
-            spSystemTrace,
-            spRecordTrace,
-            spWelcomePage,
-            spMetrics,
-            spQuerySQL,
-            spSchedulingAnalysis,
-            spInfoAndStats,
-            this.spHelp,
-            spRecordTemplate,
-        ];
-        let sideColor = mainMenu.shadowRoot?.querySelector(
-            '.color'
-        ) as HTMLDivElement;
-        //修改侧边导航栏配色
-        sideColor!.onclick = (e) => {
-            let backgroundColor = sessionStorage.getItem('backgroundColor');
-            let menu: HTMLDivElement | undefined | null =
-                this.shadowRoot?.querySelector('#main-menu');
-            let menuGroup =
-                mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                    'lit-main-menu-group'
-                );
-            let menuItem =
-                menu!.shadowRoot?.querySelectorAll<LitMainMenuItem>(
-                    'lit-main-menu-item'
-                );
-            if (backgroundColor == 'white' || !backgroundColor) {
-                menu!.style.backgroundColor = '#262f3c';
-                menu!.style.transition = '1s';
-                menuGroup!.forEach((item) => {
-                    let groupName = item!.shadowRoot!.querySelector(
-                        '.group-name'
-                    ) as LitMainMenuGroup;
-                    let groupDescribe = item!.shadowRoot!.querySelector(
-                        '.group-describe'
-                    ) as LitMainMenuGroup;
-                    groupName.style.color = 'white';
-                    groupDescribe.style.color = 'white';
-                });
-                menuItem!.forEach((item) => {
-                    item.style.color = 'white';
-                });
-                ColorUtils.MD_PALETTE = ColorUtils.MD_PALETTE_A;
-                ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_A;
-            } else {
-                menu!.style.backgroundColor = 'white';
-                menu!.style.transition = '1s';
-                menuGroup!.forEach((item) => {
-                    let groupName = item!.shadowRoot!.querySelector(
-                        '.group-name'
-                    ) as LitMainMenuGroup;
-                    let groupDescribe = item!.shadowRoot!.querySelector(
-                        '.group-describe'
-                    ) as LitMainMenuGroup;
-                    groupName.style.color = 'black';
-                    groupDescribe.style.color = '#92959b';
-                });
-                menuItem!.forEach((item) => {
-                    item.style.color = 'var(--dark-color,rgba(0,0,0,0.6))';
-                });
-                ColorUtils.MD_PALETTE = ColorUtils.MD_PALETTE_B;
-                ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_B;
-            }
+    function postLog(filename: string, fileSize: string) {
+      log('postLog filename is: ' + filename + ' fileSize: ' + fileSize);
+      fetch(`https://${window.location.host.split(':')[0]}:9000/logger`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: filename,
+          fileSize: fileSize,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {})
+        .catch((error) => {});
+    }
 
-            sessionStorage.setItem(
-                'backgroundColor',
-                menu!.style.backgroundColor
-            );
-            if (this.colorTransiton) {
-                clearTimeout(this.colorTransiton);
-            }
-            this.colorTransiton = setTimeout(() => {
-                menu!.style.transition = '0s';
-            }, 1000);
-        };
-
-        window.subscribe(window.SmartEvent.UI.MenuTrace, () =>
-            showContent(spSystemTrace!)
-        );
-        litSearch.addEventListener('focus', () => {
-            window.publish(window.SmartEvent.UI.KeyboardEnable, {
-                enable: false,
-            });
-        });
-        litSearch.addEventListener('blur', () => {
-            window.publish(window.SmartEvent.UI.KeyboardEnable, {
-                enable: true,
-            });
-        });
-        litSearch.addEventListener('previous-data', (ev: any) => {
-            litSearch.index = spSystemTrace!.showStruct(
-                true,
-                litSearch.index,
-                litSearch.list
-            );
-            litSearch.blur();
-        });
-        litSearch.addEventListener('next-data', (ev: any) => {
-            litSearch.index = spSystemTrace!.showStruct(
-                false,
-                litSearch.index,
-                litSearch.list
-            );
-            litSearch.blur();
-        });
-        litSearch.valueChangeHandler = (value: string) => {
-            if (value.length > 0) {
-                let list = spSystemTrace!.searchCPU(value);
-                spSystemTrace!
-                    .searchFunction(list, value)
-                    .then((mixedResults) => {
-                        if (litSearch.searchValue != '') {
-                            litSearch.list = spSystemTrace!.searchSdk(
-                                mixedResults,
-                                value
-                            );
-                        }
-                    });
-            } else {
-                litSearch.list = [];
-                spSystemTrace?.visibleRows.forEach((it) => {
-                    it.highlight = false;
-                    it.draw();
-                });
-                spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
-            }
-        };
-        spSystemTrace?.addEventListener('previous-data', (ev: any) => {
-            litSearch.index = spSystemTrace!.showStruct(
-                true,
-                litSearch.index,
-                litSearch.list
-            );
-        });
-        spSystemTrace?.addEventListener('next-data', (ev: any) => {
-            litSearch.index = spSystemTrace!.showStruct(
-                false,
-                litSearch.index,
-                litSearch.list
-            );
-        });
-
-        let filterConfig = this.shadowRoot?.querySelector(
-            '.filter-config'
-        ) as LitIcon;
-        let configClose = this.shadowRoot
-            ?.querySelector<HTMLElement>('.chart-filter')!
-            .shadowRoot?.querySelector<LitIcon>('.config-close');
-        filterConfig.addEventListener('click', (ev) => {
-            if (this!.hasAttribute('chart_filter')) {
-                this!.removeAttribute('chart_filter');
-            } else {
-                this!.setAttribute('chart_filter', '');
-            }
-        });
-        configClose!.addEventListener('click', (ev) => {
-            if (this.hasAttribute('chart_filter')) {
-                this!.removeAttribute('chart_filter');
-            }
-        });
-
-        //打开侧边栏
-        sidebarButton!.onclick = (e) => {
-            let menu: HTMLDivElement | undefined | null =
-                this.shadowRoot?.querySelector('#main-menu');
-            let menuButton: HTMLElement | undefined | null =
-                this.shadowRoot?.querySelector('.sidebar-button');
-            if (menu) {
-                menu.style.width = `248px`;
-                // @ts-ignore
-                menu.style.zIndex = 2000;
-                menu.style.display = `flex`;
-            }
-            if (menuButton) {
-                menuButton.style.width = `0px`;
-            }
-        };
-        let icon: HTMLDivElement | undefined | null = this.shadowRoot
-            ?.querySelector('#main-menu')
-            ?.shadowRoot?.querySelector('div.header > div');
-        icon!.style.pointerEvents = 'none';
-        icon!.onclick = (e) => {
-            let menu: HTMLElement | undefined | null =
-                this.shadowRoot?.querySelector('#main-menu');
-            let menuButton: HTMLElement | undefined | null =
-                this.shadowRoot?.querySelector('.sidebar-button');
-            if (menu) {
-                menu.style.width = `0px`;
-                menu.style.display = `flex`;
-                // @ts-ignore
-                menu.style.zIndex = 0;
-            }
-            if (menuButton) {
-                menuButton.style.width = `48px`;
-            }
-        };
-
-        function showContent(showNode: HTMLElement) {
-            if (showNode === spSystemTrace) {
-                menu!.style.pointerEvents = 'auto';
-                sidebarButton!.style.pointerEvents = 'auto';
-                that.search = true;
-                litSearch.setPercent('', 101);
-                litSearch.clear();
-                window.publish(window.SmartEvent.UI.KeyboardEnable, {
-                    enable: true,
-                });
-                filterConfig.style.visibility = 'visible';
-            } else {
-                menu!.style.pointerEvents = 'none';
-                sidebarButton!.style.pointerEvents = 'none';
-                that.search = litSearch.isLoading;
-                window.publish(window.SmartEvent.UI.KeyboardEnable, {
-                    enable: false,
-                });
-                filterConfig.style.visibility = 'hidden';
-            }
-            log('show pages' + showNode.id);
-            childNodes.forEach((node) => {
-                if (that.hasAttribute('chart_filter')) {
-                    that!.removeAttribute('chart_filter');
-                }
-                if (node === showNode) {
-                    showNode.style.visibility = 'visible';
-                } else {
-                    node!.style.visibility = 'hidden';
-                }
-            });
-        }
-
-        function postLog(filename: string, fileSize: string) {
-            log('postLog filename is: ' + filename + ' fileSize: ' + fileSize);
-            fetch(`https://${window.location.host.split(':')[0]}:9000/logger`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    fileName: filename,
-                    fileSize: fileSize,
-                }),
-            })
-                .then((response) => response.json())
-                .then((data) => {})
-                .catch((error) => {});
-        }
-
-        function getTraceOptionMenus(
-            showFileName: string,
-            fileSize: string,
-            fileName: string,
-            isServer: boolean,
-            dbName?: string
-        ) {
-            let menus = [
-                {
-                    title: `${showFileName} (${fileSize}M)`,
-                    icon: 'file-fill',
-                    clickHandler: function () {
-                        that.search = true;
-                        showContent(spSystemTrace!);
-                    },
-                },
-                {
-                    title: 'Scheduling Analysis',
-                    icon: 'piechart-circle-fil',
-                    clickHandler: function () {
-                        SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                            event: 'Scheduling Analysis',
-                            action: 'scheduling_analysis',
-                        });
-                        showContent(spSchedulingAnalysis!);
-                        spSchedulingAnalysis.init();
-                    },
-                },
-                {
-                    title: 'Download File',
-                    icon: 'download',
-                    clickHandler: function () {
-                        if (that.vs) {
-                            that.vsDownload(
-                                mainMenu,
-                                fileName,
-                                isServer,
-                                dbName
-                            );
-                        } else {
-                            that.download(mainMenu, fileName, isServer, dbName);
-                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                                event: 'download',
-                                action: 'download',
-                            });
-                        }
-                    },
-                },
-                {
-                    title: 'Download Database',
-                    icon: 'download',
-                    clickHandler: function () {
-                        if (that.vs) {
-                            that.vsDownloadDB(mainMenu, fileName);
-                        } else {
-                            that.downloadDB(mainMenu, fileName);
-                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                                event: 'download_db',
-                                action: 'download',
-                            });
-                        }
-                    },
-                },
-            ];
-            if (that.querySql) {
-                if (spQuerySQL) {
-                    spQuerySQL.reset();
-                    menus.push({
-                        title: 'Query (SQL)',
-                        icon: 'filesearch',
-                        clickHandler: () => {
-                            showContent(spQuerySQL);
-                        },
-                    });
-                }
-
-                if (spMetrics) {
-                    spMetrics.reset();
-                    menus.push({
-                        title: 'Metrics',
-                        icon: 'metric',
-                        clickHandler: () => {
-                            showContent(spMetrics);
-                        },
-                    });
-                }
-
-                if (spInfoAndStats) {
-                    menus.push({
-                        title: 'Info and stats',
-                        icon: 'info',
-                        clickHandler: () => {
-                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                                event: 'info',
-                                action: 'info_stats',
-                            });
-                            showContent(spInfoAndStats);
-                        },
-                    });
-                }
-            }
-            if ((window as any).cpuCount === 0) {
-                //if cpu count > 1 then show Scheduling-Analysis menu else hide it
-                menus.splice(1, 1);
-            }
-            return menus;
-        }
-
-        function setProgress(command: string) {
-            if (
-                command == 'database ready' &&
-                SpApplication.loadingProgress < 50
-            ) {
-                SpApplication.progressStep = 6;
-            }
-            if (command == 'process' && SpApplication.loadingProgress < 92) {
-                SpApplication.loadingProgress =
-                    92 + Math.round(Math.random() * SpApplication.progressStep);
-            } else {
-                SpApplication.loadingProgress += Math.round(
-                    Math.random() * SpApplication.progressStep + Math.random()
-                );
-            }
-            if (SpApplication.loadingProgress > 99) {
-                SpApplication.loadingProgress = 99;
-            }
-            info(
-                'setPercent ：' +
-                    command +
-                    'percent :' +
-                    SpApplication.loadingProgress
-            );
-            litSearch.setPercent(command + '  ', SpApplication.loadingProgress);
-        }
-
-        function handleServerMode(
-            ev: any,
-            showFileName: string,
-            fileSize: string,
-            fileName: string,
-            isClickHandle?: boolean
-        ) {
-            threadPool.init('server').then(() => {
-                info('init server ok');
-                litSearch.setPercent('parse trace', 1);
-                // Load the trace file and send it to the background parse to return the db file path
-                const fd = new FormData();
-                if (that.vs && isClickHandle) {
-                    fd.append('convertType', 'vsUpload');
-                    fd.append('filePath', ev as any);
-                } else {
-                    fd.append('file', ev as any);
-                }
-                let uploadPath = `https://${
-                    window.location.host.split(':')[0]
-                }:9000/upload`;
-                if (that.vs) {
-                    uploadPath = `http://${
-                        window.location.host.split(':')[0]
-                    }:${window.location.port}/upload`;
-                }
-                info('upload trace');
-                let dbName = '';
-                fetch(uploadPath, {
-                    method: 'POST',
-                    body: fd,
-                })
-                    .then((res) => {
-                        litSearch.setPercent('load database', 5);
-                        if (res.ok) {
-                            info(' server Parse trace file success');
-                            return res.text();
-                        } else {
-                            if (res.status == 404) {
-                                info(' server Parse trace file failed');
-                                litSearch.setPercent(
-                                    'This File is not supported!',
-                                    -1
-                                );
-                                progressEL.loading = false;
-                                that.freshMenuDisable(false);
-                                return Promise.reject();
-                            }
-                        }
-                    })
-                    .then((res) => {
-                        if (res != undefined) {
-                            dbName = res;
-                            info('get trace db');
-                            let loadPath = `https://${
-                                window.location.host.split(':')[0]
-                            }:9000`;
-                            if (that.vs) {
-                                loadPath = `http://${
-                                    window.location.host.split(':')[0]
-                                }:${window.location.port}`;
-                            }
-                            SpApplication.loadingProgress = 0;
-                            SpApplication.progressStep = 3;
-                            spSystemTrace!.loadDatabaseUrl(
-                                loadPath + res,
-                                (command: string, percent: number) => {
-                                    setProgress(command);
-                                },
-                                (res) => {
-                                    info('loadDatabaseUrl success');
-                                    mainMenu.menus!.splice(
-                                        1,
-                                        mainMenu.menus!.length > 2 ? 1 : 0,
-                                        {
-                                            collapsed: false,
-                                            title: 'Current Trace',
-                                            describe:
-                                                'Actions on the current trace',
-                                            children: getTraceOptionMenus(
-                                                showFileName,
-                                                fileSize,
-                                                fileName,
-                                                true,
-                                                dbName
-                                            ),
-                                        }
-                                    );
-                                    litSearch.setPercent('', 101);
-                                    progressEL.loading = false;
-                                    that.freshMenuDisable(false);
-                                }
-                            );
-                        } else {
-                            litSearch.setPercent('', 101);
-                            progressEL.loading = false;
-                            that.freshMenuDisable(false);
-                        }
-                        spInfoAndStats.initInfoAndStatsData();
-                    });
-            });
-        }
-
-        function handleWasmMode(
-            ev: any,
-            showFileName: string,
-            fileSize: string,
-            fileName: string
-        ) {
-            litSearch.setPercent('', 1);
-            threadPool.init('wasm').then((res) => {
-                let reader = new FileReader();
-                reader.readAsArrayBuffer(ev as any);
-                reader.onloadend = function (ev) {
-                    info('read file onloadend');
-                    litSearch.setPercent('ArrayBuffer loaded  ', 2);
-                    let wasmUrl = `https://${
-                        window.location.host.split(':')[0]
-                    }:${window.location.port}/application/wasm.json`;
-                    if (that.vs) {
-                        wasmUrl = `http://${
-                            window.location.host.split(':')[0]
-                        }:${window.location.port}/wasm.json`;
-                    }
-                    SpApplication.loadingProgress = 0;
-                    SpApplication.progressStep = 3;
-                    spSystemTrace!.loadDatabaseArrayBuffer(
-                        this.result as ArrayBuffer,
-                        wasmUrl,
-                        (command: string, percent: number) => {
-                            setProgress(command);
-                        },
-                        (res) => {
-                            mainMenu.menus!.splice(2, 1, {
-                                collapsed: false,
-                                title: 'Support',
-                                describe: 'Support',
-                                children: [
-                                    {
-                                        title: "Help Documents",
-                                        icon: "smart-help",
-                                        clickHandler: function (item: MenuItem) {
-                                            that.search = false
-                                            that.spHelp!.dark = that.dark
-                                            showContent(that.spHelp!)
-                                        }
-                                    },
-                                ]
-                            })
-                            if (res.status) {
-                                info('loadDatabaseArrayBuffer success');
-                                mainMenu.menus!.splice(
-                                    1,
-                                    mainMenu.menus!.length > 2 ? 1 : 0,
-                                    {
-                                        collapsed: false,
-                                        title: 'Current Trace',
-                                        describe:
-                                            'Actions on the current trace',
-                                        children: getTraceOptionMenus(
-                                            showFileName,
-                                            fileSize,
-                                            fileName,
-                                            false
-                                        ),
-                                    }
-                                );
-                                showContent(spSystemTrace!);
-                                litSearch.setPercent('', 101);
-                                progressEL.loading = false;
-                                that.freshMenuDisable(false);
-                            } else {
-                                info('loadDatabaseArrayBuffer failed');
-                                litSearch.setPercent(
-                                    res.msg || 'This File is not supported!',
-                                    -1
-                                );
-                                progressEL.loading = false;
-                                that.freshMenuDisable(false);
-                                mainMenu.menus!.splice(1, 1);
-                                mainMenu.menus = mainMenu.menus!;
-                            }
-                            spInfoAndStats.initInfoAndStatsData();
-                        }
-                    );
-                };
-            });
-        }
-
-        let openFileInit = () => {
+    function getTraceOptionMenus(
+      showFileName: string,
+      fileSize: string,
+      fileName: string,
+      isServer: boolean,
+      dbName?: string
+    ) {
+      let menus = [
+        {
+          title: `${showFileName} (${fileSize}M)`,
+          icon: 'file-fill',
+          clickHandler: function () {
+            that.search = true;
+            showContent(spSystemTrace!);
+          },
+        },
+        {
+          title: 'Scheduling Analysis',
+          icon: 'piechart-circle-fil',
+          clickHandler: function () {
             SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'open_trace',
-                action: 'open_trace',
+              event: 'Scheduling Analysis',
+              action: 'scheduling_analysis',
             });
-            info('openTraceFile');
-            spSystemTrace!.clearPointPair();
-            window.clearTraceRowComplete();
-            that.freshMenuDisable(true);
-            SpSchedulingAnalysis.resetCpu();
-            if (mainMenu.menus!.length > 2) {
-                mainMenu.menus!.splice(1, 1);
-                mainMenu.menus = mainMenu.menus!;
-            }
-        };
-
-        function openTraceFile(ev: any, isClickHandle?: boolean) {
-            openFileInit();
-            if (that.vs && isClickHandle) {
-                Cmd.openFileDialog().then((res: string) => {
-                    if (res != '') {
-                        litSearch.clear();
-                        showContent(spSystemTrace!);
-                        that.search = true;
-                        progressEL.loading = true;
-                        let openResult = JSON.parse(res);
-                        let fileName = openResult.fileName;
-                        let fileSize = (openResult.fileSize / 1048576).toFixed(
-                            1
-                        );
-                        let showFileName =
-                            fileName.lastIndexOf('.') == -1
-                                ? fileName
-                                : fileName.substring(
-                                      0,
-                                      fileName.lastIndexOf('.')
-                                  );
-                        document.title = `${showFileName} (${fileSize}M)`;
-                        TraceRow.rangeSelectObject = undefined;
-                        if (that.server) {
-                            info('Parse trace using server mode ');
-                            handleServerMode(
-                                openResult.filePath,
-                                showFileName,
-                                fileSize,
-                                fileName,
-                                isClickHandle
-                            );
-                            return;
-                        }
-                        if (that.wasm) {
-                            info('Parse trace using wasm mode ');
-                            const vsUpload = new FormData();
-                            vsUpload.append('convertType', 'vsUpload');
-                            vsUpload.append('isTransform', '');
-                            vsUpload.append('filePath', openResult.filePath);
-                            info('openResult.filePath   ', openResult.filePath);
-                            litSearch.setPercent('upload file ', 1);
-                            Cmd.uploadFile(vsUpload, (response: Response) => {
-                                if (response.ok) {
-                                    response.text().then((traceFile) => {
-                                        let traceFilePath =
-                                            `http://${
-                                                window.location.host.split(
-                                                    ':'
-                                                )[0]
-                                            }:${window.location.port}` +
-                                            traceFile;
-                                        fetch(traceFilePath).then((res) => {
-                                            res.arrayBuffer().then(
-                                                (arrayBuf) => {
-                                                    handleWasmMode(
-                                                        new File(
-                                                            [arrayBuf],
-                                                            fileName
-                                                        ),
-                                                        showFileName,
-                                                        fileSize,
-                                                        fileName
-                                                    );
-                                                }
-                                            );
-                                        });
-                                    });
-                                }
-                            });
-                            return;
-                        }
-                    } else {
-                        return;
-                    }
-                });
+            showContent(spSchedulingAnalysis!);
+            spSchedulingAnalysis.init();
+          },
+        },
+        {
+          title: 'Download File',
+          icon: 'download',
+          clickHandler: function () {
+            if (that.vs) {
+              that.vsDownload(mainMenu, fileName, isServer, dbName);
             } else {
-                litSearch.clear();
-                showContent(spSystemTrace!);
-                that.search = true;
-                progressEL.loading = true;
-                let fileName = (ev as any).name;
-                let fileSize = ((ev as any).size / 1048576).toFixed(1);
-                postLog(fileName, fileSize);
-                let showFileName =
-                    fileName.lastIndexOf('.') == -1
-                        ? fileName
-                        : fileName.substring(0, fileName.lastIndexOf('.'));
-                document.title = `${showFileName} (${fileSize}M)`;
-                TraceRow.rangeSelectObject = undefined;
-                if (that.server) {
-                    info('Parse trace using server mode ');
-                    handleServerMode(ev, showFileName, fileSize, fileName);
-                    return;
-                }
-                if (that.sqlite) {
-                    info('Parse trace using sql mode');
-                    litSearch.setPercent('', 0);
-                    threadPool.init('sqlite').then((res) => {
-                        let reader = new FileReader();
-                        reader.readAsArrayBuffer(ev as any);
-                        reader.onloadend = function (ev) {
-                            SpApplication.loadingProgress = 0;
-                            SpApplication.progressStep = 3;
-                            spSystemTrace!.loadDatabaseArrayBuffer(
-                                this.result as ArrayBuffer,
-                                '',
-                                (command: string, percent: number) => {
-                                    setProgress(command);
-                                },
-                                () => {
-                                    mainMenu.menus!.splice(
-                                        1,
-                                        mainMenu.menus!.length > 2 ? 1 : 0,
-                                        {
-                                            collapsed: false,
-                                            title: 'Current Trace',
-                                            describe:
-                                                'Actions on the current trace',
-                                            children: getTraceOptionMenus(
-                                                showFileName,
-                                                fileSize,
-                                                fileName,
-                                                false
-                                            ),
-                                        }
-                                    );
-                                    litSearch.setPercent('', 101);
-                                    progressEL.loading = false;
-                                    that.freshMenuDisable(false);
-                                }
-                            );
-                        };
-                    });
-                    return;
-                }
-                if (that.wasm) {
-                    info('Parse trace using wasm mode ');
-                    handleWasmMode(ev, showFileName, fileSize, fileName);
-                    return;
-                }
+              that.download(mainMenu, fileName, isServer, dbName);
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'download',
+                action: 'download',
+              });
             }
+          },
+        },
+        {
+          title: 'Download Database',
+          icon: 'download',
+          clickHandler: function () {
+            if (that.vs) {
+              that.vsDownloadDB(mainMenu, fileName);
+            } else {
+              that.downloadDB(mainMenu, fileName);
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'download_db',
+                action: 'download',
+              });
+            }
+          },
+        },
+      ];
+      if (that.querySql) {
+        if (spQuerySQL) {
+          spQuerySQL.reset();
+          menus.push({
+            title: 'Query (SQL)',
+            icon: 'filesearch',
+            clickHandler: () => {
+              showContent(spQuerySQL);
+            },
+          });
         }
 
-        mainMenu.menus = [
-            {
-                collapsed: false,
-                title: 'Navigation',
-                describe: 'Open or record a new trace',
-                children: [
-                    {
-                        title: 'Open trace file',
-                        icon: 'folder',
-                        fileChoose: !that.vs,
-                        fileHandler: function (ev: InputEvent) {
-                            openTraceFile(ev.detail as any);
-                        },
-                        clickHandler: function (hand: any) {
-                            openTraceFile(hand, true);
-                        },
-                    },
-                    {
-                        title: 'Record new trace',
-                        icon: 'copyhovered',
-                        clickHandler: function (item: MenuItem) {
-                            if (that.vs) {
-                                spRecordTrace!.vs = true;
-                                spRecordTrace!.startRefreshDeviceList();
-                            }
-                            spRecordTrace!.synchronizeDeviceList();
-                            showContent(spRecordTrace!);
-                        },
-                    },
-                    {
-                        title: 'Record template',
-                        icon: 'copyhovered',
-                        clickHandler: function (item: MenuItem) {
-                            if (that.vs) {
-                                spRecordTemplate!.vs = true;
-                                spRecordTemplate!.startRefreshDeviceList();
-                            }
-                            spRecordTemplate!.synchronizeDeviceList();
-                            showContent(spRecordTemplate!);
-                        },
-                    },
-                ],
+        if (spMetrics) {
+          spMetrics.reset();
+          menus.push({
+            title: 'Metrics',
+            icon: 'metric',
+            clickHandler: () => {
+              showContent(spMetrics);
             },
-            {
+          });
+        }
+
+        if (spInfoAndStats) {
+          menus.push({
+            title: 'Info and stats',
+            icon: 'info',
+            clickHandler: () => {
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'info',
+                action: 'info_stats',
+              });
+              showContent(spInfoAndStats);
+            },
+          });
+        }
+      }
+      if ((window as any).cpuCount === 0) {
+        //if cpu count > 1 then show Scheduling-Analysis menu else hide it
+        menus.splice(1, 1);
+      }
+      return menus;
+    }
+
+    function setProgress(command: string) {
+      if (command == 'database ready' && SpApplication.loadingProgress < 50) {
+        SpApplication.progressStep = 6;
+      }
+      if (command == 'process' && SpApplication.loadingProgress < 92) {
+        SpApplication.loadingProgress = 92 + Math.round(Math.random() * SpApplication.progressStep);
+      } else {
+        SpApplication.loadingProgress += Math.round(Math.random() * SpApplication.progressStep + Math.random());
+      }
+      if (SpApplication.loadingProgress > 99) {
+        SpApplication.loadingProgress = 99;
+      }
+      info('setPercent ：' + command + 'percent :' + SpApplication.loadingProgress);
+      litSearch.setPercent(command + '  ', SpApplication.loadingProgress);
+    }
+
+    function handleServerMode(
+      ev: any,
+      showFileName: string,
+      fileSize: string,
+      fileName: string,
+      isClickHandle?: boolean
+    ) {
+      threadPool.init('server').then(() => {
+        info('init server ok');
+        litSearch.setPercent('parse trace', 1);
+        // Load the trace file and send it to the background parse to return the db file path
+        const fd = new FormData();
+        if (that.vs && isClickHandle) {
+          fd.append('convertType', 'vsUpload');
+          fd.append('filePath', ev as any);
+        } else {
+          fd.append('file', ev as any);
+        }
+        let uploadPath = `https://${window.location.host.split(':')[0]}:9000/upload`;
+        if (that.vs) {
+          uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`;
+        }
+        info('upload trace');
+        let dbName = '';
+        fetch(uploadPath, {
+          method: 'POST',
+          body: fd,
+        })
+          .then((res) => {
+            litSearch.setPercent('load database', 5);
+            if (res.ok) {
+              info(' server Parse trace file success');
+              return res.text();
+            } else {
+              if (res.status == 404) {
+                info(' server Parse trace file failed');
+                litSearch.setPercent('This File is not supported!', -1);
+                progressEL.loading = false;
+                that.freshMenuDisable(false);
+                return Promise.reject();
+              }
+            }
+          })
+          .then((res) => {
+            if (res != undefined) {
+              dbName = res;
+              info('get trace db');
+              let loadPath = `https://${window.location.host.split(':')[0]}:9000`;
+              if (that.vs) {
+                loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`;
+              }
+              SpApplication.loadingProgress = 0;
+              SpApplication.progressStep = 3;
+              spSystemTrace!.loadDatabaseUrl(
+                loadPath + res,
+                (command: string, percent: number) => {
+                  setProgress(command);
+                },
+                (res) => {
+                  info('loadDatabaseUrl success');
+                  mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
+                    collapsed: false,
+                    title: 'Current Trace',
+                    describe: 'Actions on the current trace',
+                    children: getTraceOptionMenus(showFileName, fileSize, fileName, true, dbName),
+                  });
+                  litSearch.setPercent('', 101);
+                  progressEL.loading = false;
+                  that.freshMenuDisable(false);
+                }
+              );
+            } else {
+              litSearch.setPercent('', 101);
+              progressEL.loading = false;
+              that.freshMenuDisable(false);
+            }
+            spInfoAndStats.initInfoAndStatsData();
+          });
+      });
+    }
+
+    function handleWasmMode(ev: any, showFileName: string, fileSize: string, fileName: string) {
+      litSearch.setPercent('', 1);
+      threadPool.init('wasm').then((res) => {
+        let reader = new FileReader();
+        reader.readAsArrayBuffer(ev as any);
+        reader.onloadend = function (ev) {
+          info('read file onloadend');
+          litSearch.setPercent('ArrayBuffer loaded  ', 2);
+          let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
+          if (that.vs) {
+            wasmUrl = `http://${window.location.host.split(':')[0]}:${window.location.port}/wasm.json`;
+          }
+          SpApplication.loadingProgress = 0;
+          SpApplication.progressStep = 3;
+          spSystemTrace!.loadDatabaseArrayBuffer(
+            this.result as ArrayBuffer,
+            wasmUrl,
+            (command: string, percent: number) => {
+              setProgress(command);
+            },
+            (res) => {
+              mainMenu.menus!.splice(2, 1, {
                 collapsed: false,
                 title: 'Support',
                 describe: 'Support',
                 children: [
-                    {
-                        title: 'Help Documents',
-                        icon: 'smart-help',
-                        clickHandler: function (item: MenuItem) {
-                            SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                                event: 'help_page',
-                                action: 'help_doc',
-                            });
-                            that.search = false;
-                            that.spHelp!.dark = that.dark;
-                            showContent(that.spHelp!);
-                        },
+                  {
+                    title: 'Help Documents',
+                    icon: 'smart-help',
+                    clickHandler: function (item: MenuItem) {
+                      that.search = false;
+                      that.spHelp!.dark = that.dark;
+                      showContent(that.spHelp!);
                     },
+                  },
                 ],
-            },
-        ];
-
-        let body = document.querySelector('body');
-        body!.addEventListener(
-            'dragover',
-            (e: any) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (
-                    e.dataTransfer.items.length > 0 &&
-                    e.dataTransfer.items[0].kind === 'file'
-                ) {
-                    e.dataTransfer.dropEffect = 'copy';
-                    if (!this.rootEL!.classList.contains('filedrag')) {
-                        this.rootEL!.classList.add('filedrag');
-                    }
-                }
-            },
-            false
-        );
-        body!.addEventListener(
-            'dragleave',
-            (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (this.rootEL!.classList.contains('filedrag')) {
-                    this.rootEL!.classList.remove('filedrag');
-                }
-            },
-            false
-        );
-        body!.addEventListener(
-            'drop',
-            (e: any) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (this.rootEL!.classList.contains('filedrag')) {
-                    this.rootEL!.classList.remove('filedrag');
-                }
-                if (
-                    e.dataTransfer.items !== undefined &&
-                    e.dataTransfer.items.length > 0
-                ) {
-                    let item = e.dataTransfer.items[0];
-                    if (item.webkitGetAsEntry()?.isFile) {
-                        openTraceFile(item.getAsFile());
-                    } else if (item.webkitGetAsEntry()?.isDirectory) {
-                        litSearch.setPercent('This File is not supported!', -1);
-                        progressEL.loading = false;
-                        that.freshMenuDisable(false);
-                        mainMenu.menus!.splice(1, 1);
-                        mainMenu.menus = mainMenu.menus!;
-                        spSystemTrace!.reset(null);
-                    }
-                }
-            },
-            false
-        );
-        document.addEventListener('keydown', (event) => {
-            const e = event || window.event;
-            const ctrlKey = e.ctrlKey || e.metaKey;
-            if (ctrlKey && (this.keyCodeMap as any)[e.keyCode]) {
-                e.preventDefault();
-            } else if (e.detail) {
-                // Firefox
-                event.returnValue = false;
+              });
+              if (res.status) {
+                info('loadDatabaseArrayBuffer success');
+                mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
+                  collapsed: false,
+                  title: 'Current Trace',
+                  describe: 'Actions on the current trace',
+                  children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
+                });
+                showContent(spSystemTrace!);
+                litSearch.setPercent('', 101);
+                progressEL.loading = false;
+                that.freshMenuDisable(false);
+              } else {
+                info('loadDatabaseArrayBuffer failed');
+                litSearch.setPercent(res.msg || 'This File is not supported!', -1);
+                progressEL.loading = false;
+                that.freshMenuDisable(false);
+                mainMenu.menus!.splice(1, 1);
+                mainMenu.menus = mainMenu.menus!;
+              }
+              spInfoAndStats.initInfoAndStatsData();
             }
-        });
-        document.body.addEventListener(
-            'wheel',
-            (e) => {
-                if (e.ctrlKey) {
-                    if (e.deltaY < 0) {
-                        e.preventDefault();
-                        return false;
-                    }
-                    if (e.deltaY > 0) {
-                        e.preventDefault();
-                        return false;
-                    }
-                }
-            },
-            { passive: false }
-        );
+          );
+        };
+      });
+    }
 
-        let urlParams = this.getUrlParams(window.location.href);
-        if (urlParams && urlParams.trace && urlParams.link) {
-            openFileInit();
+    let openFileInit = () => {
+      SpStatisticsHttpUtil.addOrdinaryVisitAction({
+        event: 'open_trace',
+        action: 'open_trace',
+      });
+      info('openTraceFile');
+      spSystemTrace!.clearPointPair();
+      window.clearTraceRowComplete();
+      that.freshMenuDisable(true);
+      SpSchedulingAnalysis.resetCpu();
+      if (mainMenu.menus!.length > 2) {
+        mainMenu.menus!.splice(1, 1);
+        mainMenu.menus = mainMenu.menus!;
+      }
+    };
+
+    function openTraceFile(ev: any, isClickHandle?: boolean) {
+      openFileInit();
+      if (that.vs && isClickHandle) {
+        Cmd.openFileDialog().then((res: string) => {
+          if (res != '') {
             litSearch.clear();
             showContent(spSystemTrace!);
             that.search = true;
             progressEL.loading = true;
-            setProgress('download trace file');
-            this.downloadOnLineFile(urlParams.trace, (localPath) => {
-                let path = urlParams.trace as string;
-                let fileName = path.split('/').reverse()[0];
-                let showFileName =
-                    fileName.lastIndexOf('.') == -1
-                        ? fileName
-                        : fileName.substring(0, fileName.lastIndexOf('.'));
-                TraceRow.rangeSelectObject = undefined;
-                let localUrl = `${window.location.origin}${localPath}`
-                fetch(localUrl).then((res) => {
-                    res.arrayBuffer().then((arrayBuf) => {
-                        let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
-                        postLog(fileName, fileSize);
-                        document.title = `${showFileName} (${fileSize}M)`;
-                        info('Parse trace using wasm mode ');
-                        handleWasmMode(
-                            new File([arrayBuf], fileName),
-                            showFileName,
-                            fileSize,
-                            fileName
-                        );
-                    });
-                });
-            });
-        }
-    }
-
-    private downloadOnLineFile(url: string, openFileHandler: (path: string) => void){
-        let api = `${window.location.origin}/download-file`;
-        fetch(api,{
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                url:url
-            })
-        })
-            .then(response => response.json())
-            .then(res => {
-                if (res.code === 0 && res.success) {
-                    let resultUrl = res.data.url;
-                    if (resultUrl) {
-                        openFileHandler(resultUrl.toString().replace(/\\/g,'/'))
-                    }
-                }
-            });
-    }
-
-    private getUrlParams(url: string) {
-        const _url = url || window.location.href;
-        const _urlParams = _url.match(/([?&])(.+?=[^&]+)/gim);
-        return _urlParams
-            ? _urlParams.reduce((a: any, b) => {
-                  const value = b.slice(1).split('=');
-                  a[`${value[0]}`] = decodeURIComponent(value[1]);
-                  return a;
-              }, {})
-            : {};
-    }
-
-    private downloadDB(
-        mainMenu: LitMainMenu,
-        fileDbName: string
-    ) {
-        let fileName =
-            fileDbName?.substring(0, fileDbName?.lastIndexOf('.')) +
-            '.db';
-        threadPool.submit(
-            'download-db',
-            '',
-            {},
-            (reqBufferDB: any) => {
-                let a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob([reqBufferDB]));
-                a.download = fileName;
-                a.click();
-                let querySelectorAll =
-                    mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                        'lit-main-menu-group'
-                    );
-                querySelectorAll!.forEach((menuGroup) => {
-                    let attribute = menuGroup.getAttribute('title');
-                    if (attribute === 'Current Trace') {
-                        let querySelectors =
-                            menuGroup.querySelectorAll<LitMainMenuItem>(
-                                'lit-main-menu-item'
-                            );
-                        querySelectors.forEach((item) => {
-                            if (
-                                item.getAttribute('title') ==
-                                'Download Database'
-                            ) {
-                                item!.setAttribute('icon', 'convert-loading');
-                                let querySelector1 =
-                                    item!.shadowRoot?.querySelector(
-                                        '.icon'
-                                    ) as LitIcon;
-                                querySelector1.setAttribute('spin', '');
-                            }
-                        });
-                    }
-                });
-                window.URL.revokeObjectURL(a.href);
-                let timer = setInterval(function () {
-                    let querySelectorAll =
-                        mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                            'lit-main-menu-group'
-                        );
-                    querySelectorAll!.forEach((menuGroup) => {
-                        let attribute = menuGroup.getAttribute('title');
-                        if (attribute === 'Current Trace') {
-                            let querySelectors =
-                                menuGroup.querySelectorAll<LitMainMenuItem>(
-                                    'lit-main-menu-item'
-                                );
-                            querySelectors.forEach((item) => {
-                                if (
-                                    item.getAttribute('title') ==
-                                    'Download Database'
-                                ) {
-                                    item!.setAttribute('icon', 'download');
-                                    let querySelector1 =
-                                        item!.shadowRoot?.querySelector(
-                                            '.icon'
-                                        ) as LitIcon;
-                                    querySelector1.removeAttribute('spin');
-                                }
-                            });
-                            clearInterval(timer);
-                        }
-                    });
-                }, 4000);
-            },
-            'download-db'
-        );
-    }
-
-    private download(
-        mainMenu: LitMainMenu,
-        fileName: string,
-        isServer: boolean,
-        dbName?: string
-    ) {
-        let a = document.createElement('a');
-        if (isServer) {
-            if (dbName != '') {
-                let file =
-                    dbName?.substring(0, dbName?.lastIndexOf('.')) +
-                    fileName.substring(fileName.lastIndexOf('.'));
-                a.href =
-                    `https://${window.location.host.split(':')[0]}:9000` + file;
-            } else {
-                return;
+            let openResult = JSON.parse(res);
+            let fileName = openResult.fileName;
+            let fileSize = (openResult.fileSize / 1048576).toFixed(1);
+            let showFileName =
+              fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+            document.title = `${showFileName} (${fileSize}M)`;
+            TraceRow.rangeSelectObject = undefined;
+            if (that.server) {
+              info('Parse trace using server mode ');
+              handleServerMode(openResult.filePath, showFileName, fileSize, fileName, isClickHandle);
+              return;
             }
-        } else {
-            a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+            if (that.wasm) {
+              info('Parse trace using wasm mode ');
+              const vsUpload = new FormData();
+              vsUpload.append('convertType', 'vsUpload');
+              vsUpload.append('isTransform', '');
+              vsUpload.append('filePath', openResult.filePath);
+              info('openResult.filePath   ', openResult.filePath);
+              litSearch.setPercent('upload file ', 1);
+              Cmd.uploadFile(vsUpload, (response: Response) => {
+                if (response.ok) {
+                  response.text().then((traceFile) => {
+                    let traceFilePath =
+                      `http://${window.location.host.split(':')[0]}:${window.location.port}` + traceFile;
+                    fetch(traceFilePath).then((res) => {
+                      res.arrayBuffer().then((arrayBuf) => {
+                        handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
+                      });
+                    });
+                  });
+                }
+              });
+              return;
+            }
+          } else {
+            return;
+          }
+        });
+      } else {
+        litSearch.clear();
+        showContent(spSystemTrace!);
+        that.search = true;
+        progressEL.loading = true;
+        let fileName = (ev as any).name;
+        let fileSize = ((ev as any).size / 1048576).toFixed(1);
+        postLog(fileName, fileSize);
+        let showFileName =
+          fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+        document.title = `${showFileName} (${fileSize}M)`;
+        TraceRow.rangeSelectObject = undefined;
+        if (that.server) {
+          info('Parse trace using server mode ');
+          handleServerMode(ev, showFileName, fileSize, fileName);
+          return;
         }
+        if (that.sqlite) {
+          info('Parse trace using sql mode');
+          litSearch.setPercent('', 0);
+          threadPool.init('sqlite').then((res) => {
+            let reader = new FileReader();
+            reader.readAsArrayBuffer(ev as any);
+            reader.onloadend = function (ev) {
+              SpApplication.loadingProgress = 0;
+              SpApplication.progressStep = 3;
+              spSystemTrace!.loadDatabaseArrayBuffer(
+                this.result as ArrayBuffer,
+                '',
+                (command: string, percent: number) => {
+                  setProgress(command);
+                },
+                () => {
+                  mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
+                    collapsed: false,
+                    title: 'Current Trace',
+                    describe: 'Actions on the current trace',
+                    children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
+                  });
+                  litSearch.setPercent('', 101);
+                  progressEL.loading = false;
+                  that.freshMenuDisable(false);
+                }
+              );
+            };
+          });
+          return;
+        }
+        if (that.wasm) {
+          info('Parse trace using wasm mode ');
+          handleWasmMode(ev, showFileName, fileSize, fileName);
+          return;
+        }
+      }
+    }
+
+    mainMenu.menus = [
+      {
+        collapsed: false,
+        title: 'Navigation',
+        describe: 'Open or record a new trace',
+        children: [
+          {
+            title: 'Open trace file',
+            icon: 'folder',
+            fileChoose: !that.vs,
+            fileHandler: function (ev: InputEvent) {
+              openTraceFile(ev.detail as any);
+            },
+            clickHandler: function (hand: any) {
+              openTraceFile(hand, true);
+            },
+          },
+          {
+            title: 'Record new trace',
+            icon: 'copyhovered',
+            clickHandler: function (item: MenuItem) {
+              if (that.vs) {
+                spRecordTrace!.vs = true;
+                spRecordTrace!.startRefreshDeviceList();
+              }
+              spRecordTrace!.synchronizeDeviceList();
+              showContent(spRecordTrace!);
+            },
+          },
+          {
+            title: 'Record template',
+            icon: 'copyhovered',
+            clickHandler: function (item: MenuItem) {
+              if (that.vs) {
+                spRecordTemplate!.vs = true;
+                spRecordTemplate!.startRefreshDeviceList();
+              }
+              spRecordTemplate!.synchronizeDeviceList();
+              showContent(spRecordTemplate!);
+            },
+          },
+        ],
+      },
+      {
+        collapsed: false,
+        title: 'Support',
+        describe: 'Support',
+        children: [
+          {
+            title: 'Help Documents',
+            icon: 'smart-help',
+            clickHandler: function (item: MenuItem) {
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'help_page',
+                action: 'help_doc',
+              });
+              that.search = false;
+              that.spHelp!.dark = that.dark;
+              showContent(that.spHelp!);
+            },
+          },
+        ],
+      },
+    ];
+
+    let body = document.querySelector('body');
+    body!.addEventListener(
+      'dragover',
+      (e: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer.items.length > 0 && e.dataTransfer.items[0].kind === 'file') {
+          e.dataTransfer.dropEffect = 'copy';
+          if (!this.rootEL!.classList.contains('filedrag')) {
+            this.rootEL!.classList.add('filedrag');
+          }
+        }
+      },
+      false
+    );
+    body!.addEventListener(
+      'dragleave',
+      (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (this.rootEL!.classList.contains('filedrag')) {
+          this.rootEL!.classList.remove('filedrag');
+        }
+      },
+      false
+    );
+    body!.addEventListener(
+      'drop',
+      (e: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.rootEL!.classList.contains('filedrag')) {
+          this.rootEL!.classList.remove('filedrag');
+        }
+        if (e.dataTransfer.items !== undefined && e.dataTransfer.items.length > 0) {
+          let item = e.dataTransfer.items[0];
+          if (item.webkitGetAsEntry()?.isFile) {
+            openTraceFile(item.getAsFile());
+          } else if (item.webkitGetAsEntry()?.isDirectory) {
+            litSearch.setPercent('This File is not supported!', -1);
+            progressEL.loading = false;
+            that.freshMenuDisable(false);
+            mainMenu.menus!.splice(1, 1);
+            mainMenu.menus = mainMenu.menus!;
+            spSystemTrace!.reset(null);
+          }
+        }
+      },
+      false
+    );
+    document.addEventListener('keydown', (event) => {
+      const e = event || window.event;
+      const ctrlKey = e.ctrlKey || e.metaKey;
+      if (ctrlKey && (this.keyCodeMap as any)[e.keyCode]) {
+        e.preventDefault();
+      } else if (e.detail) {
+        // Firefox
+        event.returnValue = false;
+      }
+    });
+    document.body.addEventListener(
+      'wheel',
+      (e) => {
+        if (e.ctrlKey) {
+          if (e.deltaY < 0) {
+            e.preventDefault();
+            return false;
+          }
+          if (e.deltaY > 0) {
+            e.preventDefault();
+            return false;
+          }
+        }
+      },
+      { passive: false }
+    );
+
+    let urlParams = this.getUrlParams(window.location.href);
+    if (urlParams && urlParams.trace && urlParams.link) {
+      openFileInit();
+      litSearch.clear();
+      showContent(spSystemTrace!);
+      that.search = true;
+      progressEL.loading = true;
+      setProgress('download trace file');
+      this.downloadOnLineFile(urlParams.trace, (localPath) => {
+        let path = urlParams.trace as string;
+        let fileName = path.split('/').reverse()[0];
+        let showFileName =
+          fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+        TraceRow.rangeSelectObject = undefined;
+        let localUrl = `${window.location.origin}${localPath}`;
+        fetch(localUrl).then((res) => {
+          res.arrayBuffer().then((arrayBuf) => {
+            let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
+            postLog(fileName, fileSize);
+            document.title = `${showFileName} (${fileSize}M)`;
+            info('Parse trace using wasm mode ');
+            handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
+          });
+        });
+      });
+    }
+  }
+
+  private downloadOnLineFile(url: string, openFileHandler: (path: string) => void) {
+    let api = `${window.location.origin}/download-file`;
+    fetch(api, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        url: url,
+      }),
+    })
+      .then((response) => response.json())
+      .then((res) => {
+        if (res.code === 0 && res.success) {
+          let resultUrl = res.data.url;
+          if (resultUrl) {
+            openFileHandler(resultUrl.toString().replace(/\\/g, '/'));
+          }
+        }
+      });
+  }
+
+  private getUrlParams(url: string) {
+    const _url = url || window.location.href;
+    const _urlParams = _url.match(/([?&])(.+?=[^&]+)/gim);
+    return _urlParams
+      ? _urlParams.reduce((a: any, b) => {
+          const value = b.slice(1).split('=');
+          a[`${value[0]}`] = decodeURIComponent(value[1]);
+          return a;
+        }, {})
+      : {};
+  }
+
+  private downloadDB(mainMenu: LitMainMenu, fileDbName: string) {
+    let fileName = fileDbName?.substring(0, fileDbName?.lastIndexOf('.')) + '.db';
+    threadPool.submit(
+      'download-db',
+      '',
+      {},
+      (reqBufferDB: any) => {
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([reqBufferDB]));
         a.download = fileName;
         a.click();
-        let querySelectorAll =
-            mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                'lit-main-menu-group'
-            );
+        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
         querySelectorAll!.forEach((menuGroup) => {
-            let attribute = menuGroup.getAttribute('title');
-            if (attribute === 'Current Trace') {
-                let querySelectors =
-                    menuGroup.querySelectorAll<LitMainMenuItem>(
-                        'lit-main-menu-item'
-                    );
-                querySelectors.forEach((item) => {
-                    if (item.getAttribute('title') == 'Download File') {
-                        item!.setAttribute('icon', 'convert-loading');
-                        let querySelector1 = item!.shadowRoot?.querySelector(
-                            '.icon'
-                        ) as LitIcon;
-                        querySelector1.setAttribute('spin', '');
-                    }
-                });
-            }
+          let attribute = menuGroup.getAttribute('title');
+          if (attribute === 'Current Trace') {
+            let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+            querySelectors.forEach((item) => {
+              if (item.getAttribute('title') == 'Download Database') {
+                item!.setAttribute('icon', 'convert-loading');
+                let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+                querySelector1.setAttribute('spin', '');
+              }
+            });
+          }
         });
         window.URL.revokeObjectURL(a.href);
         let timer = setInterval(function () {
-            let querySelectorAll =
-                mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                    'lit-main-menu-group'
-                );
-            querySelectorAll!.forEach((menuGroup) => {
-                let attribute = menuGroup.getAttribute('title');
-                if (attribute === 'Current Trace') {
-                    let querySelectors =
-                        menuGroup.querySelectorAll<LitMainMenuItem>(
-                            'lit-main-menu-item'
-                        );
-                    querySelectors.forEach((item) => {
-                        if (item.getAttribute('title') == 'Download File') {
-                            item!.setAttribute('icon', 'download');
-                            let querySelector1 =
-                                item!.shadowRoot?.querySelector(
-                                    '.icon'
-                                ) as LitIcon;
-                            querySelector1.removeAttribute('spin');
-                        }
-                    });
-                    clearInterval(timer);
-                }
-            });
-        }, 4000);
-    }
-
-    private vsDownloadDB(
-        mainMenu: LitMainMenu,
-        fileDbName: string
-    ) {
-        let fileName =
-            fileDbName?.substring(0, fileDbName?.lastIndexOf('.')) + '.db';
-        threadPool.submit(
-            'download-db',
-            '',
-            {},
-            (reqBufferDB: any) => {
-                Cmd.showSaveFile((filePath: string) => {
-                    if (filePath != '') {
-                        let querySelectorAll =
-                            mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                                'lit-main-menu-group'
-                            );
-                        querySelectorAll!.forEach((menuGroup) => {
-                            let attribute = menuGroup.getAttribute('title');
-                            if (attribute === 'Current Trace') {
-                                let querySelectors =
-                                    menuGroup.querySelectorAll<LitMainMenuItem>(
-                                        'lit-main-menu-item'
-                                    );
-                                querySelectors.forEach((item) => {
-                                    if (
-                                        item.getAttribute('title') ==
-                                        'Download Database'
-                                    ) {
-                                        item!.setAttribute(
-                                            'icon',
-                                            'convert-loading'
-                                        );
-                                        let querySelector1 =
-                                            item!.shadowRoot?.querySelector(
-                                                '.icon'
-                                            ) as LitIcon;
-                                        querySelector1.setAttribute('spin', '');
-                                    }
-                                });
-                            }
-                        });
-                        const fd = new FormData();
-                        fd.append('convertType', 'download');
-                        fd.append('filePath', filePath);
-                        fd.append('file', new File([reqBufferDB], fileName));
-                        Cmd.uploadFile(fd, (res: Response) => {
-                            if (res.ok) {
-                                this.stopDownLoading(
-                                    mainMenu,
-                                    'Download Database'
-                                );
-                            }
-                        });
-                    }
-                });
-            },
-            'download-db'
-        );
-    }
-
-    private vsDownload(
-        mainMenu: LitMainMenu,
-        fileName: string,
-        isServer: boolean,
-        dbName?: string
-    ) {
-        Cmd.showSaveFile((filePath: string) => {
-            if (filePath != '') {
-                let querySelectorAll =
-                    mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                        'lit-main-menu-group'
-                    );
-                querySelectorAll!.forEach((menuGroup) => {
-                    let attribute = menuGroup.getAttribute('title');
-                    if (attribute === 'Current Trace') {
-                        let querySelectors =
-                            menuGroup.querySelectorAll<LitMainMenuItem>(
-                                'lit-main-menu-item'
-                            );
-                        querySelectors.forEach((item) => {
-                            if (item.getAttribute('title') == 'DownLoad') {
-                                item!.setAttribute('icon', 'convert-loading');
-                                let querySelector1 =
-                                    item!.shadowRoot?.querySelector(
-                                        '.icon'
-                                    ) as LitIcon;
-                                querySelector1.setAttribute('spin', '');
-                            }
-                        });
-                    }
-                });
-                if (isServer) {
-                    if (dbName != '') {
-                        let file =
-                            dbName?.substring(0, dbName?.lastIndexOf('.')) +
-                            fileName.substring(fileName.lastIndexOf('.'));
-                        Cmd.copyFile(file, filePath, (res: Response) => {
-                            this.stopDownLoading(mainMenu);
-                        });
-                    }
-                } else {
-                    const fd = new FormData();
-                    fd.append('convertType', 'download');
-                    fd.append('filePath', filePath);
-                    fd.append(
-                        'file',
-                        new File([DbPool.sharedBuffer!], fileName)
-                    );
-                    Cmd.uploadFile(fd, (res: Response) => {
-                        if (res.ok) {
-                            this.stopDownLoading(mainMenu);
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    private stopDownLoading(
-        mainMenu: LitMainMenu,
-        title: string = 'Download File'
-    ) {
-        let querySelectorAll =
-            mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>(
-                'lit-main-menu-group'
-            );
-        querySelectorAll!.forEach((menuGroup) => {
+          let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+          querySelectorAll!.forEach((menuGroup) => {
             let attribute = menuGroup.getAttribute('title');
             if (attribute === 'Current Trace') {
-                let querySelectors =
-                    menuGroup.querySelectorAll<LitMainMenuItem>(
-                        'lit-main-menu-item'
-                    );
-                querySelectors.forEach((item) => {
-                    if (item.getAttribute('title') == title) {
-                        item!.setAttribute('icon', 'download');
-                        let querySelector1 = item!.shadowRoot?.querySelector(
-                            '.icon'
-                        ) as LitIcon;
-                        querySelector1.removeAttribute('spin');
-                    }
-                });
+              let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+              querySelectors.forEach((item) => {
+                if (item.getAttribute('title') == 'Download Database') {
+                  item!.setAttribute('icon', 'download');
+                  let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+                  querySelector1.removeAttribute('spin');
+                }
+              });
+              clearInterval(timer);
             }
-        });
-    }
+          });
+        }, 4000);
+      },
+      'download-db'
+    );
+  }
 
-    freshMenuDisable(disable: boolean) {
-        let mainMenu = this.shadowRoot?.querySelector(
-            '#main-menu'
-        ) as LitMainMenu;
-        // @ts-ignore
-        mainMenu.menus[0].children[0].disabled = disable;
-        if (mainMenu.menus!.length > 2) {
-            // @ts-ignore
-            mainMenu.menus[1].children.map((it) => (it.disabled = disable));
-        }
-        mainMenu.menus = mainMenu.menus;
-        let litIcon = this.shadowRoot?.querySelector(
-            '.filter-config'
-        ) as LitIcon;
-        if (disable) {
-            litIcon.style.visibility = 'hidden';
-        } else {
-            litIcon.style.visibility = 'visible';
-            let chartFilter = this.shadowRoot?.querySelector(
-                '.chart-filter'
-            ) as TraceRowConfig;
-            chartFilter!.setAttribute('mode', '');
-        }
+  private download(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
+    let a = document.createElement('a');
+    if (isServer) {
+      if (dbName != '') {
+        let file = dbName?.substring(0, dbName?.lastIndexOf('.')) + fileName.substring(fileName.lastIndexOf('.'));
+        a.href = `https://${window.location.host.split(':')[0]}:9000` + file;
+      } else {
+        return;
+      }
+    } else {
+      a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
     }
+    a.download = fileName;
+    a.click();
+    let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+    querySelectorAll!.forEach((menuGroup) => {
+      let attribute = menuGroup.getAttribute('title');
+      if (attribute === 'Current Trace') {
+        let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+        querySelectors.forEach((item) => {
+          if (item.getAttribute('title') == 'Download File') {
+            item!.setAttribute('icon', 'convert-loading');
+            let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+            querySelector1.setAttribute('spin', '');
+          }
+        });
+      }
+    });
+    window.URL.revokeObjectURL(a.href);
+    let timer = setInterval(function () {
+      let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+      querySelectorAll!.forEach((menuGroup) => {
+        let attribute = menuGroup.getAttribute('title');
+        if (attribute === 'Current Trace') {
+          let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+          querySelectors.forEach((item) => {
+            if (item.getAttribute('title') == 'Download File') {
+              item!.setAttribute('icon', 'download');
+              let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+              querySelector1.removeAttribute('spin');
+            }
+          });
+          clearInterval(timer);
+        }
+      });
+    }, 4000);
+  }
+
+  private vsDownloadDB(mainMenu: LitMainMenu, fileDbName: string) {
+    let fileName = fileDbName?.substring(0, fileDbName?.lastIndexOf('.')) + '.db';
+    threadPool.submit(
+      'download-db',
+      '',
+      {},
+      (reqBufferDB: any) => {
+        Cmd.showSaveFile((filePath: string) => {
+          if (filePath != '') {
+            let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+            querySelectorAll!.forEach((menuGroup) => {
+              let attribute = menuGroup.getAttribute('title');
+              if (attribute === 'Current Trace') {
+                let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+                querySelectors.forEach((item) => {
+                  if (item.getAttribute('title') == 'Download Database') {
+                    item!.setAttribute('icon', 'convert-loading');
+                    let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+                    querySelector1.setAttribute('spin', '');
+                  }
+                });
+              }
+            });
+            const fd = new FormData();
+            fd.append('convertType', 'download');
+            fd.append('filePath', filePath);
+            fd.append('file', new File([reqBufferDB], fileName));
+            Cmd.uploadFile(fd, (res: Response) => {
+              if (res.ok) {
+                this.stopDownLoading(mainMenu, 'Download Database');
+              }
+            });
+          }
+        });
+      },
+      'download-db'
+    );
+  }
+
+  private vsDownload(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
+    Cmd.showSaveFile((filePath: string) => {
+      if (filePath != '') {
+        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+        querySelectorAll!.forEach((menuGroup) => {
+          let attribute = menuGroup.getAttribute('title');
+          if (attribute === 'Current Trace') {
+            let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+            querySelectors.forEach((item) => {
+              if (item.getAttribute('title') == 'DownLoad') {
+                item!.setAttribute('icon', 'convert-loading');
+                let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+                querySelector1.setAttribute('spin', '');
+              }
+            });
+          }
+        });
+        if (isServer) {
+          if (dbName != '') {
+            let file = dbName?.substring(0, dbName?.lastIndexOf('.')) + fileName.substring(fileName.lastIndexOf('.'));
+            Cmd.copyFile(file, filePath, (res: Response) => {
+              this.stopDownLoading(mainMenu);
+            });
+          }
+        } else {
+          const fd = new FormData();
+          fd.append('convertType', 'download');
+          fd.append('filePath', filePath);
+          fd.append('file', new File([DbPool.sharedBuffer!], fileName));
+          Cmd.uploadFile(fd, (res: Response) => {
+            if (res.ok) {
+              this.stopDownLoading(mainMenu);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  private stopDownLoading(mainMenu: LitMainMenu, title: string = 'Download File') {
+    let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+    querySelectorAll!.forEach((menuGroup) => {
+      let attribute = menuGroup.getAttribute('title');
+      if (attribute === 'Current Trace') {
+        let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+        querySelectors.forEach((item) => {
+          if (item.getAttribute('title') == title) {
+            item!.setAttribute('icon', 'download');
+            let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+            querySelector1.removeAttribute('spin');
+          }
+        });
+      }
+    });
+  }
+
+  freshMenuDisable(disable: boolean) {
+    let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
+    // @ts-ignore
+    mainMenu.menus[0].children[0].disabled = disable;
+    if (mainMenu.menus!.length > 2) {
+      // @ts-ignore
+      mainMenu.menus[1].children.map((it) => (it.disabled = disable));
+    }
+    mainMenu.menus = mainMenu.menus;
+    let litIcon = this.shadowRoot?.querySelector('.filter-config') as LitIcon;
+    if (disable) {
+      litIcon.style.visibility = 'hidden';
+    } else {
+      litIcon.style.visibility = 'visible';
+      let chartFilter = this.shadowRoot?.querySelector('.chart-filter') as TraceRowConfig;
+      chartFilter!.setAttribute('mode', '');
+    }
+  }
 }

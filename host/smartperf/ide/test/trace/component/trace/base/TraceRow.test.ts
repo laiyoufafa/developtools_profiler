@@ -19,627 +19,623 @@ import { TraceRow } from '../../../../../dist/trace/component/trace/base/TraceRo
 import { Sptext } from '../../../../../dist/trace/component/Sptext.js';
 
 describe('TraceRow Test', () => {
-    beforeAll(() => {});
-    const ctx = {
-        lineWidth: 1,
-        strokeStyle: true,
+  beforeAll(() => {});
+  const ctx = {
+    lineWidth: 1,
+    strokeStyle: true,
+  };
+  it('TraceRow Test01', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(traceRow).not.toBeUndefined();
+  });
+
+  it('TraceRow Test02', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(traceRow.sleeping).toBeFalsy();
+  });
+
+  it('TraceRow Test03', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    traceRow.sleeping = true;
+    expect(traceRow.sleeping).toBeTruthy();
+  });
+
+  it('TraceRow Test04', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    traceRow.sleeping = false;
+    expect(traceRow.sleeping).toBeFalsy();
+  });
+
+  it('TraceRow Test05', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(traceRow.rangeSelect).toBeFalsy();
+  });
+
+  it('TraceRow Test06', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    traceRow.rangeSelect = true;
+    expect(traceRow.rangeSelect).toBeTruthy();
+  });
+
+  it('TraceRow Test10', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    traceRow.dataList = {
+      supplier: true,
+      isLoading: false,
     };
-    it('TraceRow Test01', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow).not.toBeUndefined();
-    });
+    traceRow.supplier = true;
+    traceRow.isLoading = false;
+    traceRow.name = '111';
+    traceRow.height = 20;
+    traceRow.height = 30;
+    expect(traceRow.clearCanvas(ctx)).toBeUndefined();
+  });
 
-    it('TraceRow Test02', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.sleeping).toBeFalsy();
+  it('TraceRow Test11', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.dataList = {
+      supplier: true,
+      isLoading: false,
+    };
+    traceRow.supplier = true;
+    traceRow.isLoading = false;
+    traceRow.name = '111';
+    traceRow.height = 20;
+    traceRow.height = 30;
+    expect(traceRow.drawLines(ctx)).toBeUndefined();
+  });
 
-    it('TraceRow Test03', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.sleeping = true;
-        expect(traceRow.sleeping).toBeTruthy();
+  it('TraceRow Test12', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.dataList = {
+      supplier: true,
+      isLoading: false,
+    };
+    traceRow.supplier = true;
+    traceRow.isLoading = false;
+    traceRow.name = '111';
+    traceRow.height = 20;
+    traceRow.height = 30;
+    expect(traceRow.drawSelection(ctx)).toBeUndefined();
+  });
 
-    it('TraceRow Test04', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.sleeping = false;
-        expect(traceRow.sleeping).toBeFalsy();
+  it('TraceRow Test13', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.collect).toBeFalsy();
+  });
 
-    it('TraceRow Test05', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.rangeSelect).toBeFalsy();
+  it('TraceRow Test14', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.collect = true;
+    expect(traceRow.collect).toBeTruthy();
+  });
 
-    it('TraceRow Test06', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rangeSelect = true;
-        expect(traceRow.rangeSelect).toBeTruthy();
+  it('TraceRow Test15', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.rowType).toBeFalsy();
+  });
 
-    it('TraceRow Test10', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.dataList = {
-            supplier: true,
-            isLoading: false,
-        };
-        traceRow.supplier = true;
-        traceRow.isLoading = false;
-        traceRow.name = '111';
-        traceRow.height = 20;
-        traceRow.height = 30;
-        expect(traceRow.clearCanvas(ctx)).toBeUndefined();
+  it('TraceRow Test16', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.rowType = true;
+    expect(traceRow.rowType).toBeTruthy();
+  });
 
-    it('TraceRow Test11', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.dataList = {
-            supplier: true,
-            isLoading: false,
-        };
-        traceRow.supplier = true;
-        traceRow.isLoading = false;
-        traceRow.name = '111';
-        traceRow.height = 20;
-        traceRow.height = 30;
-        expect(traceRow.drawLines(ctx)).toBeUndefined();
+  it('TraceRow Test17', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.rowId).toBeFalsy();
+  });
 
-    it('TraceRow Test12', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.dataList = {
-            supplier: true,
-            isLoading: false,
-        };
-        traceRow.supplier = true;
-        traceRow.isLoading = false;
-        traceRow.name = '111';
-        traceRow.height = 20;
-        traceRow.height = 30;
-        expect(traceRow.drawSelection(ctx)).toBeUndefined();
+  it('TraceRow Test18', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.rowId = true;
+    expect(traceRow.rowId).toBeTruthy();
+  });
 
-    it('TraceRow Test13', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.collect).toBeFalsy();
+  it('TraceRow Test19', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.rowParentId).toBeFalsy();
+  });
 
-    it('TraceRow Test14', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.collect = true;
-        expect(traceRow.collect).toBeTruthy();
+  it('TraceRow Test20', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.rowParentId = true;
+    expect(traceRow.rowParentId).toBeTruthy();
+  });
 
-    it('TraceRow Test15', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.rowType).toBeFalsy();
+  it('TraceRow Test21', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.rowHidden = true;
+    expect(traceRow.rowHidden).toBeUndefined();
+  });
 
-    it('TraceRow Test16', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowType = true;
-        expect(traceRow.rowType).toBeTruthy();
+  it('TraceRow Test22', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.name).toBeFalsy();
+  });
 
-    it('TraceRow Test17', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.rowId).toBeFalsy();
+  it('TraceRow Test23', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.folder = false;
+    expect(traceRow.folder).toBeFalsy();
+  });
 
-    it('TraceRow Test18', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowId = true;
-        expect(traceRow.rowId).toBeTruthy();
+  it('TraceRow Test24', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.folder = true;
+    expect(traceRow.folder).toBeTruthy();
+  });
 
-    it('TraceRow Test19', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.rowParentId).toBeFalsy();
+  it('TraceRow Test25', () => {
+    // let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+    // traceRow.expansion = false;
+    // expect(traceRow.expansion).toBeFalsy();
+  });
+
+  it('TraceRow Test26', () => {
+    // let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+    // traceRow.parentNode = jest.fn(()=>true);
+    // traceRow.parentNode.lastChild = jest.fn(()=>true);
+    // traceRow.expansion = true;
+    // expect(traceRow.expansion).toBeTruthy();
+  });
+
+  it('TraceRow Test27', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.tip = true;
+    expect(traceRow.tip).toBeUndefined();
+  });
 
-    it('TraceRow Test20', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowParentId = true;
-        expect(traceRow.rowParentId).toBeTruthy();
+  it('TraceRow Test28', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.frame).not.toBeUndefined();
+  });
 
-    it('TraceRow Test21', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowHidden = true;
-        expect(traceRow.rowHidden).toBeUndefined();
+  it('TraceRow Test29', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.frame = [0, 0, 0];
+    expect(traceRow.frame).toBeTruthy();
+  });
 
-    it('TraceRow Test22', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.name).toBeFalsy();
+  it('TraceRow Test60', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.disabledCheck).not.toBeUndefined();
+  });
 
-    it('TraceRow Test23', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.folder = false;
-        expect(traceRow.folder).toBeFalsy();
+  it('TraceRow Test61', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.disabledCheck = true;
+    expect(traceRow.disabledCheck).toBeTruthy();
+  });
 
-    it('TraceRow Test24', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.folder = true;
-        expect(traceRow.folder).toBeTruthy();
+  it('TraceRow Test62', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.folderPaddingLeft).toBeUndefined();
+  });
 
-    it('TraceRow Test25', () => {
-        // let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
-        // traceRow.expansion = false;
-        // expect(traceRow.expansion).toBeFalsy();
+  it('TraceRow Test30', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.checkType).not.toBeUndefined();
+  });
 
-    it('TraceRow Test26', () => {
-        // let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
-        // traceRow.parentNode = jest.fn(()=>true);
-        // traceRow.parentNode.lastChild = jest.fn(()=>true);
-        // traceRow.expansion = true;
-        // expect(traceRow.expansion).toBeTruthy();
+  it('TraceRow Test31', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.checkType = '-1';
+    expect(traceRow.checkType).toBeTruthy();
+  });
 
-    it('TraceRow Test27', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.tip = true;
-        expect(traceRow.tip).toBeUndefined();
+  it('TraceRow Test32', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.drawType).toBe(0);
+  });
 
-    it('TraceRow Test28', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.frame).not.toBeUndefined();
+  it('TraceRow Test33', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.drawType = true;
+    expect(traceRow.drawType).toBeTruthy();
+  });
 
-    it('TraceRow Test29', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.frame = [0, 0, 0];
-        expect(traceRow.frame).toBeTruthy();
+  it('TraceRow Test34', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.args = jest.fn(() => true);
+    traceRow.args.isOffScreen = jest.fn(() => null);
+    expect(traceRow.updateWidth(1)).toBeUndefined();
+  });
 
-    it('TraceRow Test60', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.disabledCheck).not.toBeUndefined();
+  it('TraceRow Test36', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.onMouseHover()).toBeFalsy();
+  });
 
-    it('TraceRow Test61', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.disabledCheck = true;
-        expect(traceRow.disabledCheck).toBeTruthy();
+  it('TraceRow Test37', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.setTipLeft(1, null)).toBeFalsy();
+  });
 
-    it('TraceRow Test62', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.folderPaddingLeft).toBeUndefined();
+  it('TraceRow Test38', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.onMouseLeave(1, 1)).toBeFalsy();
+  });
 
-    it('TraceRow Test30', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.checkType).not.toBeUndefined();
+  it('TraceRow Test39', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.draw(false)).toBeFalsy();
+  });
 
-    it('TraceRow Test31', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.checkType = '-1';
-        expect(traceRow.checkType).toBeTruthy();
+  it('TraceRow Test40', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.collect = 1;
+    expect(traceRow.collect).toBeTruthy();
+  });
 
-    it('TraceRow Test32', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.drawType).toBe(0);
+  it('TraceRow Test41', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.collect = 0;
+    expect(traceRow.collect).toBeFalsy();
+  });
 
-    it('TraceRow Test33', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.drawType = true;
-        expect(traceRow.drawType).toBeTruthy();
+  it('TraceRow Test42', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.checkType = '0';
+    expect(traceRow.checkType).toBe('0');
+  });
 
-    it('TraceRow Test34', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.args = jest.fn(() => true);
-        traceRow.args.isOffScreen = jest.fn(() => null);
-        expect(traceRow.updateWidth(1)).toBeUndefined();
+  it('TraceRow Test43', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.checkType = '1';
+    expect(traceRow.checkType).toBe('1');
+  });
 
-    it('TraceRow Test36', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.onMouseHover()).toBeFalsy();
+  it('TraceRow Test44', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.checkType = '2';
+    expect(traceRow.checkType).toBe('2');
+  });
 
-    it('TraceRow Test37', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.setTipLeft(1, null)).toBeFalsy();
+  it('TraceRow Test45', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.checkType = 0;
+    expect(traceRow.checkType).toBe('');
+  });
 
-    it('TraceRow Test38', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.onMouseLeave(1, 1)).toBeFalsy();
+  it('TraceRow Test46', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.rowHidden = false;
+    expect(traceRow.rowHidden).toBeUndefined();
+  });
 
-    it('TraceRow Test39', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.draw(false)).toBeFalsy();
+  it('TraceRow Test47', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.highlight = false;
+    expect(traceRow.highlight).toBeFalsy();
+  });
 
-    it('TraceRow Test40', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.collect = 1;
-        expect(traceRow.collect).toBeTruthy();
+  it('TraceRow Test48', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.highlight = true;
+    expect(traceRow.highlight).toBeFalsy();
+  });
 
-    it('TraceRow Test41', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.collect = 0;
-        expect(traceRow.collect).toBeFalsy();
+  it('TraceRow Test49', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.setCheckBox = true;
+    expect(traceRow.highlight).toBeFalsy();
+  });
 
-    it('TraceRow Test42', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.checkType = '0';
-        expect(traceRow.checkType).toBe('0');
+  it('TraceRow Test50', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    traceRow.initCanvas = jest.fn(() => null);
+    expect(traceRow.connectedCallback()).toBeUndefined();
+  });
 
-    it('TraceRow Test43', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.checkType = '1';
-        expect(traceRow.checkType).toBe('1');
+  it('TraceRow Test51', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.isInTimeRange()).toBe(false);
+  });
 
-    it('TraceRow Test44', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.checkType = '2';
-        expect(traceRow.checkType).toBe('2');
+  it('TraceRow Test52', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    expect(traceRow.getLineColor()).toBe('');
+  });
 
-    it('TraceRow Test45', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.checkType = 0;
-        expect(traceRow.checkType).toBe('');
+  it('TraceRow Test53', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    let value = traceRow.attributeChangedCallback('name');
+    expect(value).toBe(undefined);
+  });
 
-    it('TraceRow Test46', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowHidden = false;
-        expect(traceRow.rowHidden).toBeUndefined();
+  it('TraceRow Test54', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    let value = traceRow.attributeChangedCallback('height', '1', '2');
+    expect(value).toBe(undefined);
+  });
 
-    it('TraceRow Test47', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.highlight = false;
-        expect(traceRow.highlight).toBeFalsy();
+  it('TraceRow Test55', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
+    let value = traceRow.attributeChangedCallback('check-type', '1', 'check');
+    expect(value).toBe(undefined);
+  });
 
-    it('TraceRow Test48', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.highlight = true;
-        expect(traceRow.highlight).toBeFalsy();
+  it('TraceRow Test56', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-
-    it('TraceRow Test49', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.setCheckBox = true;
-        expect(traceRow.highlight).toBeFalsy();
-    });
-
-    it('TraceRow Test50', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.initCanvas = jest.fn(() => null);
-        expect(traceRow.connectedCallback()).toBeUndefined();
-    });
-
-    it('TraceRow Test51', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.isInTimeRange()).toBe(false);
-    });
-
-    it('TraceRow Test52', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.getLineColor()).toBe('');
-    });
-
-    it('TraceRow Test53', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        let value = traceRow.attributeChangedCallback('name');
-        expect(value).toBe(undefined);
-    });
-
-    it('TraceRow Test54', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        let value = traceRow.attributeChangedCallback('height', '1', '2');
-        expect(value).toBe(undefined);
-    });
-
-    it('TraceRow Test55', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        let value = traceRow.attributeChangedCallback(
-            'check-type',
-            '1',
-            'check'
-        );
-        expect(value).toBe(undefined);
-    });
-
-    it('TraceRow Test56', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.initHtml()).toMatchInlineSnapshot(`
+    expect(traceRow.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         *{
@@ -881,63 +877,63 @@ describe('TraceRow Test', () => {
         </div>
         "
 `);
+  });
+  it('TraceRow Test57', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-    it('TraceRow Test57', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.rowDiscard).toBeFalsy();
+    expect(traceRow.rowDiscard).toBeFalsy();
+  });
+  it('TraceRow Test58', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-    it('TraceRow Test58', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowDiscard = true;
-        expect(traceRow.rowDiscard).toBeTruthy();
+    traceRow.rowDiscard = true;
+    expect(traceRow.rowDiscard).toBeTruthy();
+  });
+  it('TraceRow Test58', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-    it('TraceRow Test58', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.rowDiscard = false;
-        expect(traceRow.rowDiscard).toBeFalsy();
+    traceRow.rowDiscard = false;
+    expect(traceRow.rowDiscard).toBeFalsy();
+  });
+  it('TraceRow Test59', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-    it('TraceRow Test59', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.disabledCheck = false;
-        expect(traceRow.disabledCheck).toBeFalsy();
+    traceRow.disabledCheck = false;
+    expect(traceRow.disabledCheck).toBeFalsy();
+  });
+  it('TraceRow Test64', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-    it('TraceRow Test64', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        traceRow.folderPaddingLeft = 1;
-        expect(traceRow.folderPaddingLeft).toBeUndefined();
+    traceRow.folderPaddingLeft = 1;
+    expect(traceRow.folderPaddingLeft).toBeUndefined();
+  });
+  it('TraceRow Test65', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
     });
-    it('TraceRow Test65', () => {
-        let traceRow = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: true,
-        });
-        expect(traceRow.getTransferArray()).toStrictEqual([undefined]);
-    });
+    expect(traceRow.getTransferArray()).toStrictEqual([undefined]);
+  });
 });

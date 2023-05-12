@@ -16,124 +16,120 @@
 import { SpSdkConfig } from '../../../../dist/trace/component/setting/SpSdkConfig.js';
 
 describe('spSdkConfig Test', () => {
-    let spSdkConfig = new SpSdkConfig();
-    it('spSdkConfigTest01', function () {
-        spSdkConfig.show = true;
-        expect(spSdkConfig.show).toBeTruthy();
-    });
+  let spSdkConfig = new SpSdkConfig();
+  it('spSdkConfigTest01', function () {
+    spSdkConfig.show = true;
+    expect(spSdkConfig.show).toBeTruthy();
+  });
 
-    it('spSdkConfigTest02', function () {
-        spSdkConfig.show = false;
-        expect(spSdkConfig.show).toBeFalsy();
-    });
+  it('spSdkConfigTest02', function () {
+    spSdkConfig.show = false;
+    expect(spSdkConfig.show).toBeFalsy();
+  });
 
-    it('spSdkConfigTest03', function () {
-        spSdkConfig.startSamp = true;
-        expect(spSdkConfig.startSamp).toBeTruthy();
-    });
+  it('spSdkConfigTest03', function () {
+    spSdkConfig.startSamp = true;
+    expect(spSdkConfig.startSamp).toBeTruthy();
+  });
 
-    it('spSdkConfigTest04', function () {
-        spSdkConfig.startSamp = false;
-        expect(spSdkConfig.startSamp).toBeFalsy();
-    });
+  it('spSdkConfigTest04', function () {
+    spSdkConfig.startSamp = false;
+    expect(spSdkConfig.startSamp).toBeFalsy();
+  });
 
-    it('spSdkConfigTest05', function () {
-        spSdkConfig.configName = '';
-        expect(spSdkConfig.configName).toBeDefined();
-    });
+  it('spSdkConfigTest05', function () {
+    spSdkConfig.configName = '';
+    expect(spSdkConfig.configName).toBeDefined();
+  });
 
-    it('spSdkConfigTest06', function () {
-        spSdkConfig.configName = 'configName';
-        expect(spSdkConfig.configName).toBeDefined();
-    });
+  it('spSdkConfigTest06', function () {
+    spSdkConfig.configName = 'configName';
+    expect(spSdkConfig.configName).toBeDefined();
+  });
 
-    it('spSdkConfigTest07', function () {
-        spSdkConfig.type = '';
-        expect(spSdkConfig.type).toBeDefined();
-    });
+  it('spSdkConfigTest07', function () {
+    spSdkConfig.type = '';
+    expect(spSdkConfig.type).toBeDefined();
+  });
 
-    it('spSdkConfigTest08', function () {
-        spSdkConfig.type = 'configName';
-        expect(spSdkConfig.type).toBeDefined();
-    });
+  it('spSdkConfigTest08', function () {
+    spSdkConfig.type = 'configName';
+    expect(spSdkConfig.type).toBeDefined();
+  });
 
-    it('spSdkConfigTest09', function () {
-        expect(spSdkConfig.getPlugName()).not.toBeUndefined();
-    });
+  it('spSdkConfigTest09', function () {
+    expect(spSdkConfig.getPlugName()).not.toBeUndefined();
+  });
 
-    it('spSdkConfigTest10', function () {
-        expect(spSdkConfig.getSampleInterval()).not.toBeUndefined();
-    });
+  it('spSdkConfigTest10', function () {
+    expect(spSdkConfig.getSampleInterval()).not.toBeUndefined();
+  });
 
-    it('spSdkConfigTest11', function () {
-        expect(spSdkConfig.getGpuConfig()).not.toBeUndefined();
-    });
+  it('spSdkConfigTest11', function () {
+    expect(spSdkConfig.getGpuConfig()).not.toBeUndefined();
+  });
 
-    it('spSdkConfigTest12', function () {
-        expect(spSdkConfig.checkIntegerInput('')).not.toBeUndefined();
-    });
+  it('spSdkConfigTest12', function () {
+    expect(spSdkConfig.checkIntegerInput('')).not.toBeUndefined();
+  });
 
-    it('spSdkConfigTest13', function () {
-        expect(
-            spSdkConfig.checkIntegerInput('checkIntegerInput')
-        ).not.toBeUndefined();
-    });
+  it('spSdkConfigTest13', function () {
+    expect(spSdkConfig.checkIntegerInput('checkIntegerInput')).not.toBeUndefined();
+  });
 
-    it('spSdkConfigTest14', function () {
-        expect(
-            spSdkConfig.checkFloatInput('checkFloatInput')
-        ).not.toBeUndefined();
-    });
+  it('spSdkConfigTest14', function () {
+    expect(spSdkConfig.checkFloatInput('checkFloatInput')).not.toBeUndefined();
+  });
 
-    it('spSdkConfigTest15', function () {
-        expect(spSdkConfig.isAbleShowConfig(false)).toBeUndefined();
-    });
+  it('spSdkConfigTest15', function () {
+    expect(spSdkConfig.isAbleShowConfig(false)).toBeUndefined();
+  });
 
-    it('spSdkConfigTest16', function () {
-        expect(spSdkConfig.isAbleShowConfig(true)).toBeUndefined();
-    });
+  it('spSdkConfigTest16', function () {
+    expect(spSdkConfig.isAbleShowConfig(true)).toBeUndefined();
+  });
 
-    it('spSdkConfigTest17', function () {
-        expect(spSdkConfig.initConfigList()).toBeUndefined();
+  it('spSdkConfigTest17', function () {
+    expect(spSdkConfig.initConfigList()).toBeUndefined();
+  });
+  it('spSdkConfigTest18', function () {
+    spSdkConfig.configList = {
+      name: '',
+      configuration: {
+        ss: {
+          type: 'string',
+          default: 'strsadsa',
+          description: 'xxxx',
+        },
+        aa: {
+          type: 'string',
+          default: '11',
+          enum: ['consistent', '11', 'delegated'],
+        },
+        cc: {
+          type: 'number',
+          description: 'number1111',
+        },
+        ee: {
+          type: 'integer',
+          default: '12',
+          description: 'integer1222',
+        },
+        ff: {
+          type: 'boolean',
+          description: 'switchhh',
+        },
+      },
+    };
+    expect(spSdkConfig.initConfig()).toBeUndefined();
+  });
+  it('spSdkConfigTest19', function () {
+    expect(spSdkConfig.getGpuConfig()).toStrictEqual({
+      aa: '11',
+      cc: 0,
+      ee: 12,
+      ff: false,
+      ss: 'strsadsa',
     });
-    it('spSdkConfigTest18', function () {
-        spSdkConfig.configList = {
-            name: '',
-            configuration: {
-                ss: {
-                    type: 'string',
-                    default: 'strsadsa',
-                    description: 'xxxx',
-                },
-                aa: {
-                    type: 'string',
-                    default: '11',
-                    enum: ['consistent', '11', 'delegated'],
-                },
-                cc: {
-                    type: 'number',
-                    description: 'number1111',
-                },
-                ee: {
-                    type: 'integer',
-                    default: '12',
-                    description: 'integer1222',
-                },
-                ff: {
-                    type: 'boolean',
-                    description: 'switchhh',
-                },
-            },
-        };
-        expect(spSdkConfig.initConfig()).toBeUndefined();
-    });
-    it('spSdkConfigTest19', function () {
-        expect(spSdkConfig.getGpuConfig()).toStrictEqual({
-            aa: '11',
-            cc: 0,
-            ee: 12,
-            ff: false,
-            ss: 'strsadsa',
-        });
-    });
+  });
 });

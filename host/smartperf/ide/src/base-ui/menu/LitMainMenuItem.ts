@@ -18,98 +18,98 @@ let textColor = '';
 
 @element('lit-main-menu-item')
 export class LitMainMenuItem extends BaseElement {
-    private titleEl: HTMLElement | null | undefined;
-    private rootEL: HTMLElement | null | undefined;
-    private iconEl: HTMLElement | null | undefined;
-    private fileEL: HTMLInputElement | undefined | null;
+  private titleEl: HTMLElement | null | undefined;
+  private rootEL: HTMLElement | null | undefined;
+  private iconEl: HTMLElement | null | undefined;
+  private fileEL: HTMLInputElement | undefined | null;
 
-    static get observedAttributes() {
-        return ['title', 'icon', 'file', 'disabled'];
+  static get observedAttributes() {
+    return ['title', 'icon', 'file', 'disabled'];
+  }
+
+  get title(): string {
+    return this.getAttribute('title') || '';
+  }
+
+  set title(val: string) {
+    this.setAttribute('title', val);
+  }
+
+  get disabled(): boolean {
+    return this.hasAttribute('disabled');
+  }
+
+  set disabled(val: boolean) {
+    if (val) {
+      this.setAttribute('disabled', val.toString());
+      this.fileEL?.setAttribute('disabled', val.toString());
+    } else {
+      this.removeAttribute('disabled');
+      this.fileEL?.removeAttribute('disabled');
     }
+  }
 
-    get title(): string {
-        return this.getAttribute('title') || '';
+  get back(): boolean {
+    return this.hasAttribute('back');
+  }
+
+  set back(isShowBack: boolean) {
+    if (isShowBack) {
+      this.setAttribute('back', '');
+    } else {
+      this.removeAttribute('back');
     }
+  }
 
-    set title(val: string) {
-        this.setAttribute('title', val);
+  initElements(): void {
+    this.rootEL = this.shadowRoot?.querySelector('.root');
+    this.titleEl = this.shadowRoot?.querySelector('.name');
+    this.iconEl = this.shadowRoot?.querySelector('.icon');
+    this.fileEL = this.shadowRoot?.querySelector('.file');
+    let backgroundColor = sessionStorage.getItem('backgroundColor');
+    if (backgroundColor == 'rgb(38, 47, 60)') {
+      textColor = 'white';
+      this.style.color = 'white';
+    } else {
+      textColor = 'black';
+      this.style.color = 'black';
     }
+  }
 
-    get disabled(): boolean {
-        return this.hasAttribute('disabled');
+  isFile(): boolean {
+    if (this.hasAttribute('file')) {
+      if (this.fileEL) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    set disabled(val: boolean) {
-        if (val) {
-            this.setAttribute('disabled', val.toString());
-            this.fileEL?.setAttribute('disabled', val.toString());
-        } else {
-            this.removeAttribute('disabled');
-            this.fileEL?.removeAttribute('disabled');
-        }
-    }
-
-    get back(): boolean {
-        return this.hasAttribute('back');
-    }
-
-    set back(isShowBack: boolean) {
-        if (isShowBack) {
-            this.setAttribute('back', '');
-        } else {
-            this.removeAttribute('back');
-        }
-    }
-
-    initElements(): void {
-        this.rootEL = this.shadowRoot?.querySelector('.root');
-        this.titleEl = this.shadowRoot?.querySelector('.name');
-        this.iconEl = this.shadowRoot?.querySelector('.icon');
-        this.fileEL = this.shadowRoot?.querySelector('.file');
-        let backgroundColor = sessionStorage.getItem('backgroundColor');
-        if (backgroundColor == 'rgb(38, 47, 60)') {
-            textColor = 'white';
-            this.style.color = 'white';
-        } else {
-            textColor = 'black';
-            this.style.color = 'black';
-        }
-    }
-
-    isFile(): boolean {
-        if (this.hasAttribute('file')) {
-            if (this.fileEL) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    connectedCallback() {
-        if (this.hasAttribute('file')) {
-            if (this.fileEL) {
-                this.fileEL.addEventListener('change', () => {
-                    let files = this.fileEL!.files;
-                    if (files && files.length > 0) {
-                        this.dispatchEvent(
-                            new CustomEvent('file-change', {
-                                // @ts-ignore
-                                target: this,
-                                detail: files[0],
-                            })
-                        );
-                        if (this.fileEL) this.fileEL.value = '';
-                    }
-                });
-            }
-        }
-        this.addEventListener('click', (e) => {
-            e.stopPropagation();
+  connectedCallback() {
+    if (this.hasAttribute('file')) {
+      if (this.fileEL) {
+        this.fileEL.addEventListener('change', () => {
+          let files = this.fileEL!.files;
+          if (files && files.length > 0) {
+            this.dispatchEvent(
+              new CustomEvent('file-change', {
+                // @ts-ignore
+                target: this,
+                detail: files[0],
+              })
+            );
+            if (this.fileEL) this.fileEL.value = '';
+          }
         });
+      }
     }
+    this.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
             :host{
                 user-select: none;
@@ -181,16 +181,16 @@ export class LitMainMenuItem extends BaseElement {
             <label class="name"></label>
         </label>
         `;
-    }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        switch (name) {
-            case 'title':
-                if (this.titleEl) this.titleEl.textContent = newValue;
-                break;
-            case 'icon':
-                if (this.iconEl) this.iconEl.setAttribute('name', newValue);
-                break;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    switch (name) {
+      case 'title':
+        if (this.titleEl) this.titleEl.textContent = newValue;
+        break;
+      case 'icon':
+        if (this.iconEl) this.iconEl.setAttribute('name', newValue);
+        break;
     }
+  }
 }

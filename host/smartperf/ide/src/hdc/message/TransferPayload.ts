@@ -14,71 +14,66 @@
  */
 
 export class TransferPayload extends Object {
-    private _index: number; // uint64_t
-    private _compressType: number; // uint8_t;
-    private _compressSize: number; // uint32_t
-    private _uncompressSize: number; //uint32_t
+  private _index: number; // uint64_t
+  private _compressType: number; // uint8_t;
+  private _compressSize: number; // uint32_t
+  private _uncompressSize: number; //uint32_t
 
-    constructor(
-        index: number,
-        compressType: number,
-        compressSize: number,
-        uncompressSize: number
-    ) {
-        super();
-        this._index = index;
-        this._compressType = compressType;
-        this._compressSize = compressSize;
-        this._uncompressSize = uncompressSize;
-    }
+  constructor(index: number, compressType: number, compressSize: number, uncompressSize: number) {
+    super();
+    this._index = index;
+    this._compressType = compressType;
+    this._compressSize = compressSize;
+    this._uncompressSize = uncompressSize;
+  }
 
-    getDataView(): DataView {
-        const view = new DataView(new ArrayBuffer(24));
-        return view;
-    }
+  getDataView(): DataView {
+    const view = new DataView(new ArrayBuffer(24));
+    return view;
+  }
 
-    get index(): number {
-        return this._index;
-    }
+  get index(): number {
+    return this._index;
+  }
 
-    set index(value: number) {
-        this._index = value;
-    }
+  set index(value: number) {
+    this._index = value;
+  }
 
-    get compressType(): number {
-        return this._compressType;
-    }
+  get compressType(): number {
+    return this._compressType;
+  }
 
-    set compressType(value: number) {
-        this._compressType = value;
-    }
+  set compressType(value: number) {
+    this._compressType = value;
+  }
 
-    get compressSize(): number {
-        return this._compressSize;
-    }
+  get compressSize(): number {
+    return this._compressSize;
+  }
 
-    set compressSize(value: number) {
-        this._compressSize = value;
-    }
+  set compressSize(value: number) {
+    this._compressSize = value;
+  }
 
-    get uncompressSize(): number {
-        return this._uncompressSize;
-    }
+  get uncompressSize(): number {
+    return this._uncompressSize;
+  }
 
-    set uncompressSize(value: number) {
-        this._uncompressSize = value;
-    }
+  set uncompressSize(value: number) {
+    this._uncompressSize = value;
+  }
 
-    toString(): string {
-        return (
-            'index: ' +
-            this._index +
-            ' compressType: ' +
-            this._compressType +
-            ' compressSize: ' +
-            this._compressSize +
-            ' uncompressSize: ' +
-            this._uncompressSize
-        );
-    }
+  toString(): string {
+    return (
+      'index: ' +
+      this._index +
+      ' compressType: ' +
+      this._compressType +
+      ' compressSize: ' +
+      this._compressSize +
+      ' uncompressSize: ' +
+      this._uncompressSize
+    );
+  }
 }

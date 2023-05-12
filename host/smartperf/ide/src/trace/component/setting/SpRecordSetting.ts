@@ -23,325 +23,251 @@ import { info } from '../../../log/Log.js';
 
 @element('record-setting')
 export class SpRecordSetting extends BaseElement {
-    private memoryBufferSlider: LitSlider | undefined;
-    private maxDurationSliders: LitSlider | undefined;
-    private radioBox: LitRadioBox | undefined;
-    private bufferNumber: HTMLElement | undefined;
-    private durationNumber: HTMLElement | undefined;
-    private outputPath: HTMLInputElement | undefined;
-    private lastMemoryValue: string | undefined;
-    private lastDurationValue: string | undefined;
+  private memoryBufferSlider: LitSlider | undefined;
+  private maxDurationSliders: LitSlider | undefined;
+  private radioBox: LitRadioBox | undefined;
+  private bufferNumber: HTMLElement | undefined;
+  private durationNumber: HTMLElement | undefined;
+  private outputPath: HTMLInputElement | undefined;
+  private lastMemoryValue: string | undefined;
+  private lastDurationValue: string | undefined;
 
-    get recordMod(): boolean {
-        if (this.radioBox) {
-            return this.radioBox.checked;
-        }
-        return false;
+  get recordMod(): boolean {
+    if (this.radioBox) {
+      return this.radioBox.checked;
+    }
+    return false;
+  }
+
+  get output(): string {
+    if (this.outputPath && this.outputPath.value != '') {
+      return '/data/local/tmp/' + this.outputPath.value;
+    }
+    return '/data/local/tmp/hiprofiler_data.htrace';
+  }
+
+  get bufferSize(): number {
+    if (this.bufferNumber?.hasAttribute('percent')) {
+      info('bufferSize  is : ', this.bufferNumber!.getAttribute('percent'));
+      return Number(this.bufferNumber!.getAttribute('percent'));
+    }
+    return 64;
+  }
+
+  get maxDur(): number {
+    if (this.durationNumber?.hasAttribute('percent')) {
+      info('maxDur  is : ', this.durationNumber!.getAttribute('percent'));
+      return Number(this.durationNumber!.getAttribute('percent'));
+    }
+    return 30;
+  }
+
+  resetValue(): void {
+    let bufferInput = this.shadowRoot?.querySelector('.memory_buffer_result') as HTMLInputElement;
+    let parentElement = this.memoryBufferSlider!.parentNode as Element;
+    if (bufferInput.style.color != 'var(--dark-color1,#000000)' && this.lastMemoryValue) {
+      bufferInput.value = this.lastMemoryValue + '';
+      this.memoryBufferSlider!.percent = this.lastMemoryValue + '';
+      this.memoryBufferSlider!.sliderStyle = {
+        minRange: 4,
+        maxRange: 512,
+        defaultValue: this.lastMemoryValue + '',
+        resultUnit: 'MB',
+        stepSize: 2,
+        lineColor: 'var(--dark-color3,#46B1E3)',
+        buttonColor: '#999999',
+      };
+      parentElement.setAttribute('percent', this.lastMemoryValue + '');
+      this.lastMemoryValue = this.lastMemoryValue + '';
+      bufferInput.style.color = 'var(--dark-color1,#000000)';
     }
 
-    get output(): string {
-        if (this.outputPath && this.outputPath.value != '') {
-            return '/data/local/tmp/' + this.outputPath.value;
-        }
-        return '/data/local/tmp/hiprofiler_data.htrace';
+    let durationInput = this.shadowRoot?.querySelector('.max_duration_result') as HTMLInputElement;
+    let durationEl = this.maxDurationSliders!.parentNode as Element;
+    if (durationInput.style.color != 'var(--dark-color1,#000000)' && this.lastDurationValue) {
+      durationInput.style.color = 'var(--dark-color1,#000000)';
+      let durationList = this.lastDurationValue.split(':');
+      let resultDuration = Number(durationList[0]) * 3600 + Number(durationList[1]) * 60 + Number(durationList[2]);
+
+      durationInput.value = this.lastDurationValue;
+      this.maxDurationSliders!.sliderStyle = {
+        minRange: 10,
+        maxRange: 3600,
+        defaultValue: this.lastDurationValue!,
+        resultUnit: 'h:m:s',
+        stepSize: 1,
+        lineColor: 'var(--dark-color4,#61CFBE)',
+        buttonColor: '#999999',
+      };
+      durationEl.setAttribute('percent', resultDuration.toString());
     }
+  }
 
-    get bufferSize(): number {
-        if (this.bufferNumber?.hasAttribute('percent')) {
-            info(
-                'bufferSize  is : ',
-                this.bufferNumber!.getAttribute('percent')
-            );
-            return Number(this.bufferNumber!.getAttribute('percent'));
-        }
-        return 64;
-    }
+  initElements(): void {
+    this.bufferNumber = this.shadowRoot?.querySelector('.buffer-size') as HTMLElement;
+    this.durationNumber = this.shadowRoot?.querySelector('.max-duration') as HTMLElement;
+    let bu = this.shadowRoot?.querySelector('.record') as HTMLDivElement;
+    this.shadowRoot?.querySelectorAll<HTMLButtonElement>('.MenuButton').forEach((button) => {
+      button!.addEventListener('mouseenter', (e) => {
+        button.style.backgroundColor = '#EFEFEF';
+      });
 
-    get maxDur(): number {
-        if (this.durationNumber?.hasAttribute('percent')) {
-            info('maxDur  is : ', this.durationNumber!.getAttribute('percent'));
-            return Number(this.durationNumber!.getAttribute('percent'));
-        }
-        return 30;
-    }
+      button!.addEventListener('mouseout', (e) => {
+        button.style.backgroundColor = '#E4E3E9';
+      });
+    });
 
-    resetValue(): void {
-        let bufferInput = this.shadowRoot?.querySelector(
-            '.memory_buffer_result'
-        ) as HTMLInputElement;
-        let parentElement = this.memoryBufferSlider!.parentNode as Element;
-        if (
-            bufferInput.style.color != 'var(--dark-color1,#000000)' &&
-            this.lastMemoryValue
-        ) {
-            bufferInput.value = this.lastMemoryValue + '';
-            this.memoryBufferSlider!.percent = this.lastMemoryValue + '';
-            this.memoryBufferSlider!.sliderStyle = {
-                minRange: 4,
-                maxRange: 512,
-                defaultValue: this.lastMemoryValue + '',
-                resultUnit: 'MB',
-                stepSize: 2,
-                lineColor: 'var(--dark-color3,#46B1E3)',
-                buttonColor: '#999999',
-            };
-            parentElement.setAttribute('percent', this.lastMemoryValue + '');
-            this.lastMemoryValue = this.lastMemoryValue + '';
-            bufferInput.style.color = 'var(--dark-color1,#000000)';
-        }
+    this.radioBox = this.shadowRoot?.querySelector('#litradio') as LitRadioBox;
+    this.outputPath = this.shadowRoot?.querySelector<HTMLInputElement>('#trace_path') as HTMLInputElement;
 
-        let durationInput = this.shadowRoot?.querySelector(
-            '.max_duration_result'
-        ) as HTMLInputElement;
-        let durationEl = this.maxDurationSliders!.parentNode as Element;
-        if (
-            durationInput.style.color != 'var(--dark-color1,#000000)' &&
-            this.lastDurationValue
-        ) {
-            durationInput.style.color = 'var(--dark-color1,#000000)';
-            let durationList = this.lastDurationValue.split(':');
-            let resultDuration =
-                Number(durationList[0]) * 3600 +
-                Number(durationList[1]) * 60 +
-                Number(durationList[2]);
+    this.initLitSlider();
+  }
 
-            durationInput.value = this.lastDurationValue;
-            this.maxDurationSliders!.sliderStyle = {
-                minRange: 10,
-                maxRange: 3600,
-                defaultValue: this.lastDurationValue!,
-                resultUnit: 'h:m:s',
-                stepSize: 1,
-                lineColor: 'var(--dark-color4,#61CFBE)',
-                buttonColor: '#999999',
-            };
-            durationEl.setAttribute('percent', resultDuration.toString());
-        }
-    }
-
-    initElements(): void {
-        this.bufferNumber = this.shadowRoot?.querySelector(
-            '.buffer-size'
-        ) as HTMLElement;
-        this.durationNumber = this.shadowRoot?.querySelector(
-            '.max-duration'
-        ) as HTMLElement;
-        let bu = this.shadowRoot?.querySelector('.record') as HTMLDivElement;
-        this.shadowRoot
-            ?.querySelectorAll<HTMLButtonElement>('.MenuButton')
-            .forEach((button) => {
-                button!.addEventListener('mouseenter', (e) => {
-                    button.style.backgroundColor = '#EFEFEF';
-                });
-
-                button!.addEventListener('mouseout', (e) => {
-                    button.style.backgroundColor = '#E4E3E9';
-                });
-            });
-
-        this.radioBox = this.shadowRoot?.querySelector(
-            '#litradio'
-        ) as LitRadioBox;
-        this.outputPath = this.shadowRoot?.querySelector<HTMLInputElement>(
-            '#trace_path'
-        ) as HTMLInputElement;
-
-        this.initLitSlider();
-    }
-
-    initLitSlider() {
-        this.memoryBufferSlider = this.shadowRoot?.querySelector<LitSlider>(
-            '#memory-buffer'
-        ) as LitSlider;
-        this.memoryBufferSlider.sliderStyle = {
-            minRange: 4,
-            maxRange: 512,
-            defaultValue: '64',
-            resultUnit: 'MB',
-            stepSize: 2,
-            lineColor: 'var(--dark-color3,#46B1E3)',
-            buttonColor: '#999999',
-        };
-        this.lastMemoryValue = '64';
-        let parentElement = this.memoryBufferSlider!.parentNode as Element;
-        let bufferInput = this.shadowRoot?.querySelector(
-            '.memory_buffer_result'
-        ) as HTMLInputElement;
-        bufferInput.value = this.memoryBufferSlider.sliderStyle.defaultValue;
-        this.memoryBufferSlider.addEventListener('input', (evt) => {
-            bufferInput.value = this.bufferSize.toString();
-        });
+  initLitSlider() {
+    this.memoryBufferSlider = this.shadowRoot?.querySelector<LitSlider>('#memory-buffer') as LitSlider;
+    this.memoryBufferSlider.sliderStyle = {
+      minRange: 4,
+      maxRange: 512,
+      defaultValue: '64',
+      resultUnit: 'MB',
+      stepSize: 2,
+      lineColor: 'var(--dark-color3,#46B1E3)',
+      buttonColor: '#999999',
+    };
+    this.lastMemoryValue = '64';
+    let parentElement = this.memoryBufferSlider!.parentNode as Element;
+    let bufferInput = this.shadowRoot?.querySelector('.memory_buffer_result') as HTMLInputElement;
+    bufferInput.value = this.memoryBufferSlider.sliderStyle.defaultValue;
+    this.memoryBufferSlider.addEventListener('input', (evt) => {
+      bufferInput.value = this.bufferSize.toString();
+    });
+    parentElement.setAttribute('percent', '64');
+    bufferInput.style.color = 'var(--dark-color1,#000000)';
+    bufferInput.addEventListener('input', (ev) => {
+      if (this.bufferNumber!.hasAttribute('percent')) {
+        this.bufferNumber!.removeAttribute('percent');
+      }
+      bufferInput.style.color = 'var(--dark-color1,#000000)';
+      bufferInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      bufferInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      if (bufferInput.value.trim() == '') {
+        bufferInput.style.color = 'red';
         parentElement.setAttribute('percent', '64');
-        bufferInput.style.color = 'var(--dark-color1,#000000)';
-        bufferInput.addEventListener('input', (ev) => {
-            if (this.bufferNumber!.hasAttribute('percent')) {
-                this.bufferNumber!.removeAttribute('percent');
-            }
-            bufferInput.style.color = 'var(--dark-color1,#000000)';
-            bufferInput.parentElement!.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            bufferInput.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            if (bufferInput.value.trim() == '') {
-                bufferInput.style.color = 'red';
-                parentElement.setAttribute('percent', '64');
-                return;
-            }
-            let memorySize = Number(bufferInput.value);
-            if (
-                !memorySize ||
-                memorySize < this.memoryBufferSlider!.sliderStyle.minRange ||
-                memorySize > this.memoryBufferSlider!.sliderStyle.maxRange
-            ) {
-                bufferInput.style.color = 'red';
-                parentElement.setAttribute('percent', '64');
-            } else {
-                this.memoryBufferSlider!.percent = bufferInput.value;
-                let htmlInputElement =
-                    this.memoryBufferSlider!.shadowRoot?.querySelector(
-                        '#slider'
-                    ) as HTMLInputElement;
-                htmlInputElement.value = bufferInput.value;
-                this.memoryBufferSlider!.sliderStyle = {
-                    minRange: 4,
-                    maxRange: 512,
-                    defaultValue: bufferInput.value,
-                    resultUnit: 'MB',
-                    stepSize: 2,
-                    lineColor: 'var(--dark-color3,#46B1E3)',
-                    buttonColor: '#999999',
-                };
-                parentElement.setAttribute('percent', bufferInput.value);
-                this.lastMemoryValue = bufferInput.value;
-            }
-        });
+        return;
+      }
+      let memorySize = Number(bufferInput.value);
+      if (
+        !memorySize ||
+        memorySize < this.memoryBufferSlider!.sliderStyle.minRange ||
+        memorySize > this.memoryBufferSlider!.sliderStyle.maxRange
+      ) {
+        bufferInput.style.color = 'red';
+        parentElement.setAttribute('percent', '64');
+      } else {
+        this.memoryBufferSlider!.percent = bufferInput.value;
+        let htmlInputElement = this.memoryBufferSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        htmlInputElement.value = bufferInput.value;
+        this.memoryBufferSlider!.sliderStyle = {
+          minRange: 4,
+          maxRange: 512,
+          defaultValue: bufferInput.value,
+          resultUnit: 'MB',
+          stepSize: 2,
+          lineColor: 'var(--dark-color3,#46B1E3)',
+          buttonColor: '#999999',
+        };
+        parentElement.setAttribute('percent', bufferInput.value);
+        this.lastMemoryValue = bufferInput.value;
+      }
+    });
 
-        let memoryBufferInput =
-            this.memoryBufferSlider!.shadowRoot?.querySelector(
-                '#slider'
-            ) as HTMLInputElement;
+    let memoryBufferInput = this.memoryBufferSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
 
-        memoryBufferInput.addEventListener('input', (ev) => {
-            bufferInput.style.color = 'var(--dark-color1,#000000)';
-            bufferInput.parentElement!.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            bufferInput.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-        });
+    memoryBufferInput.addEventListener('input', (ev) => {
+      bufferInput.style.color = 'var(--dark-color1,#000000)';
+      bufferInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      bufferInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    });
 
-        this.maxDurationSliders = this.shadowRoot?.querySelector<LitSlider>(
-            '#max-duration'
-        ) as LitSlider;
-        this.maxDurationSliders.sliderStyle = {
+    this.maxDurationSliders = this.shadowRoot?.querySelector<LitSlider>('#max-duration') as LitSlider;
+    this.maxDurationSliders.sliderStyle = {
+      minRange: 10,
+      maxRange: 3600,
+      defaultValue: '00:00:30',
+      resultUnit: 'h:m:s',
+      stepSize: 1,
+      lineColor: 'var(--dark-color4,#61CFBE)',
+      buttonColor: '#999999',
+    };
+    this.lastDurationValue = '00:00:30';
+    let durationParentElement = this.maxDurationSliders!.parentNode as Element;
+    let durationInput = this.shadowRoot?.querySelector('.max_duration_result') as HTMLInputElement;
+    durationInput.value = this.maxDurationSliders.sliderStyle.defaultValue;
+    this.maxDurationSliders.addEventListener('input', (evt) => {
+      durationInput.value = this.maxDurationSliders!.formatSeconds(this.maxDur.toString());
+    });
+
+    durationInput.style.color = 'var(--dark-color1,#000000)';
+    durationInput.addEventListener('input', (ev) => {
+      if (this.durationNumber!.hasAttribute('percent')) {
+        this.durationNumber!.removeAttribute('percent');
+      }
+      durationInput.style.color = 'var(--dark-color1,#000000)';
+      durationInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      durationInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      let regExpMatchArray = durationInput.value.trim();
+      if (regExpMatchArray == '') {
+        durationInput.style.color = 'red';
+        durationParentElement.setAttribute('percent', '30');
+        return;
+      }
+      let regExpMatch = durationInput.value.trim().match(`^\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}$`);
+      if (regExpMatch) {
+        let durationList = regExpMatchArray.split(':');
+        let resultDuration = Number(durationList[0]) * 3600 + Number(durationList[1]) * 60 + Number(durationList[2]);
+        if (
+          Number(durationList[0]) > 60 ||
+          Number(durationList[1]) > 60 ||
+          Number(durationList[2]) > 60 ||
+          resultDuration > this.maxDurationSliders!.sliderStyle.maxRange ||
+          resultDuration < this.maxDurationSliders!.sliderStyle.minRange
+        ) {
+          durationInput.style.color = 'red';
+          durationParentElement.setAttribute('percent', '30');
+        } else {
+          durationInput.style.color = 'var(--dark-color1,#000000)';
+          durationInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+          durationInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+          let htmlInputElement = this.maxDurationSliders!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+          htmlInputElement.value = resultDuration + '';
+          this.maxDurationSliders!.sliderStyle = {
             minRange: 10,
             maxRange: 3600,
-            defaultValue: '00:00:30',
+            defaultValue: Number(durationList[0]) + ':' + Number(durationList[1]) + ':' + Number(durationList[2]),
             resultUnit: 'h:m:s',
             stepSize: 1,
             lineColor: 'var(--dark-color4,#61CFBE)',
             buttonColor: '#999999',
-        };
-        this.lastDurationValue = '00:00:30';
-        let durationParentElement = this.maxDurationSliders!
-            .parentNode as Element;
-        let durationInput = this.shadowRoot?.querySelector(
-            '.max_duration_result'
-        ) as HTMLInputElement;
-        durationInput.value = this.maxDurationSliders.sliderStyle.defaultValue;
-        this.maxDurationSliders.addEventListener('input', (evt) => {
-            durationInput.value = this.maxDurationSliders!.formatSeconds(
-                this.maxDur.toString()
-            );
-        });
+          };
+          durationParentElement.setAttribute('percent', resultDuration.toString());
+          this.lastDurationValue = regExpMatchArray;
+        }
+      } else {
+        durationInput.style.color = 'red';
+        durationParentElement.setAttribute('percent', '30');
+      }
+    });
 
-        durationInput.style.color = 'var(--dark-color1,#000000)';
-        durationInput.addEventListener('input', (ev) => {
-            if (this.durationNumber!.hasAttribute('percent')) {
-                this.durationNumber!.removeAttribute('percent');
-            }
-            durationInput.style.color = 'var(--dark-color1,#000000)';
-            durationInput.parentElement!.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            durationInput.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            let regExpMatchArray = durationInput.value.trim();
-            if (regExpMatchArray == '') {
-                durationInput.style.color = 'red';
-                durationParentElement.setAttribute('percent', '30');
-                return;
-            }
-            let regExpMatch = durationInput.value
-                .trim()
-                .match(`^\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}$`);
-            if (regExpMatch) {
-                let durationList = regExpMatchArray.split(':');
-                let resultDuration =
-                    Number(durationList[0]) * 3600 +
-                    Number(durationList[1]) * 60 +
-                    Number(durationList[2]);
-                if (
-                    Number(durationList[0]) > 60 ||
-                    Number(durationList[1]) > 60 ||
-                    Number(durationList[2]) > 60 ||
-                    resultDuration >
-                        this.maxDurationSliders!.sliderStyle.maxRange ||
-                    resultDuration <
-                        this.maxDurationSliders!.sliderStyle.minRange
-                ) {
-                    durationInput.style.color = 'red';
-                    durationParentElement.setAttribute('percent', '30');
-                } else {
-                    durationInput.style.color = 'var(--dark-color1,#000000)';
-                    durationInput.parentElement!.style.backgroundColor =
-                        'var(--dark-background5,#F2F2F2)';
-                    durationInput.style.backgroundColor =
-                        'var(--dark-background5,#F2F2F2)';
-                    let htmlInputElement =
-                        this.maxDurationSliders!.shadowRoot?.querySelector(
-                            '#slider'
-                        ) as HTMLInputElement;
-                    htmlInputElement.value = resultDuration + '';
-                    this.maxDurationSliders!.sliderStyle = {
-                        minRange: 10,
-                        maxRange: 3600,
-                        defaultValue:
-                            Number(durationList[0]) +
-                            ':' +
-                            Number(durationList[1]) +
-                            ':' +
-                            Number(durationList[2]),
-                        resultUnit: 'h:m:s',
-                        stepSize: 1,
-                        lineColor: 'var(--dark-color4,#61CFBE)',
-                        buttonColor: '#999999',
-                    };
-                    durationParentElement.setAttribute(
-                        'percent',
-                        resultDuration.toString()
-                    );
-                    this.lastDurationValue = regExpMatchArray;
-                }
-            } else {
-                durationInput.style.color = 'red';
-                durationParentElement.setAttribute('percent', '30');
-            }
-        });
+    let maxDurationInput = this.maxDurationSliders!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+    maxDurationInput.addEventListener('input', (ev) => {
+      durationInput.style.color = 'var(--dark-color1,#000000)';
+      durationInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      durationInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    });
+  }
 
-        let maxDurationInput =
-            this.maxDurationSliders!.shadowRoot?.querySelector(
-                '#slider'
-            ) as HTMLInputElement;
-        maxDurationInput.addEventListener('input', (ev) => {
-            durationInput.style.color = 'var(--dark-color1,#000000)';
-            durationInput.parentElement!.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-            durationInput.style.backgroundColor =
-                'var(--dark-background5,#F2F2F2)';
-        });
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: block;
@@ -529,5 +455,5 @@ export class SpRecordSetting extends BaseElement {
           </div>
         </div>
         `;
-    }
+  }
 }

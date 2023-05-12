@@ -17,30 +17,30 @@
 import exp from 'constants';
 
 export class SearchFuncBean {
-    depth: number | undefined; // 0
-    dur: number | undefined; // 570000
-    funName: string | undefined; //"binder transaction"
-    id: number | undefined; // 92749
-    startTime: number | undefined; // 9729867000
-    tid: number | undefined; //
-    pid: number | undefined; // 2785
-    type: string | undefined;
+  depth: number | undefined; // 0
+  dur: number | undefined; // 570000
+  funName: string | undefined; //"binder transaction"
+  id: number | undefined; // 92749
+  startTime: number | undefined; // 9729867000
+  tid: number | undefined; //
+  pid: number | undefined; // 2785
+  type: string | undefined;
 }
 
 export class SearchThreadProcessBean {
-    type: string | undefined;
-    rowId: string | undefined | null;
-    name: string | undefined;
-    rowType: string | undefined | null;
-    rowParentId: string | undefined | null;
+  type: string | undefined;
+  rowId: string | undefined | null;
+  name: string | undefined;
+  rowType: string | undefined | null;
+  rowParentId: string | undefined | null;
 }
 
 export class SearchSdkBean {
-    type: string | undefined;
-    rowId: string | undefined | null;
-    startTime: number | undefined;
-    dur: number | undefined;
-    name: string | undefined;
-    rowType: string | undefined | null;
-    rowParentId: string | undefined | null;
+  type: string | undefined;
+  rowId: string | undefined | null;
+  startTime: number | undefined;
+  dur: number | undefined;
+  name: string | undefined;
+  rowType: string | undefined | null;
+  rowParentId: string | undefined | null;
 }

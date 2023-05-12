@@ -26,196 +26,166 @@ import { LitSelect } from '../../../base-ui/select/LitSelect';
 import '../../../base-ui/progress-bar/LitProgressBar.js';
 import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
 import { pieChartColors } from '../../../base-ui/chart/pie/LitChartPieData.js';
-import { SpStatisticsHttpUtil } from "../../../statistics/util/SpStatisticsHttpUtil.js";
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil.js';
 
 @element('tab-cpu-analysis')
 export class TabCpuAnalysis extends BaseElement {
-    private cpuUsageGrid: HTMLDivElement | undefined;
-    private cpuUsageChart: HTMLDivElement | undefined;
-    private drawer: LitDrawer | undefined | null;
-    private cpuPieMap: Map<number, LitChartPie> = new Map<
-        number,
-        LitChartPie
-    >();
-    private schedulingSelect: LitSelect | undefined | null;
-    private drawerCpuTabs: DrawerCpuTabs | undefined | null;
-    private progress: LitProgressBar | null | undefined;
-    private loadingUsage: boolean = false;
-    private loadingPieData: boolean = false;
+  private cpuUsageGrid: HTMLDivElement | undefined;
+  private cpuUsageChart: HTMLDivElement | undefined;
+  private drawer: LitDrawer | undefined | null;
+  private cpuPieMap: Map<number, LitChartPie> = new Map<number, LitChartPie>();
+  private schedulingSelect: LitSelect | undefined | null;
+  private drawerCpuTabs: DrawerCpuTabs | undefined | null;
+  private progress: LitProgressBar | null | undefined;
+  private loadingUsage: boolean = false;
+  private loadingPieData: boolean = false;
 
-    initElements(): void {
-        this.progress =
-            this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-        this.cpuUsageGrid = this.shadowRoot?.querySelector(
-            '#cpu_usage_table'
-        ) as HTMLDivElement;
-        this.cpuUsageChart = this.shadowRoot?.querySelector(
-            '#cpu_usage_chart'
-        ) as HTMLDivElement;
-        this.schedulingSelect =
-            this.shadowRoot?.querySelector<LitSelect>('#scheduling_select');
-        this.drawer =
-            this.shadowRoot!.querySelector<LitDrawer>('#drawer-right');
-        this.drawerCpuTabs =
-            this.shadowRoot?.querySelector<DrawerCpuTabs>('#drawer-cpu-tabs');
-        this.schedulingSelect!.onchange = (e) => {
-            this.loadingPieData = true;
-            this.progress!.loading = this.loadingUsage || this.loadingPieData;
-            this.queryPieChartDataByType((e as any).detail.text);
-        };
-        this.drawer!.onClose = (e: any) => {
-            this.drawerCpuTabs!.clearData();
-        };
+  initElements(): void {
+    this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+    this.cpuUsageGrid = this.shadowRoot?.querySelector('#cpu_usage_table') as HTMLDivElement;
+    this.cpuUsageChart = this.shadowRoot?.querySelector('#cpu_usage_chart') as HTMLDivElement;
+    this.schedulingSelect = this.shadowRoot?.querySelector<LitSelect>('#scheduling_select');
+    this.drawer = this.shadowRoot!.querySelector<LitDrawer>('#drawer-right');
+    this.drawerCpuTabs = this.shadowRoot?.querySelector<DrawerCpuTabs>('#drawer-cpu-tabs');
+    this.schedulingSelect!.onchange = (e) => {
+      this.loadingPieData = true;
+      this.progress!.loading = this.loadingUsage || this.loadingPieData;
+      this.queryPieChartDataByType((e as any).detail.text);
+    };
+    this.drawer!.onClose = (e: any) => {
+      this.drawerCpuTabs!.clearData();
+    };
+  }
+
+  init() {
+    this.cpuPieMap.clear();
+    this.cpuUsageGrid!.innerHTML = '';
+    this.cpuUsageChart!.innerHTML = '';
+    this.schedulingSelect!.value = '1';
+    this.cpuUsageGrid!.append(this.createUsageItem('usage', '%'));
+    for (let i = 0; i < SpSchedulingAnalysis.cpuCount; i++) {
+      let cpuPie = new LitChartPie();
+      cpuPie.className = 'pie-chart';
+      this.cpuPieMap.set(i, cpuPie);
+      this.cpuUsageGrid!.append(this.createUsageItem(`CPU: ${i}`, 0));
+      this.cpuUsageChart!.append(this.createUsageChartItem(i, cpuPie));
     }
-
-    init() {
-        this.cpuPieMap.clear();
+    this.loadingUsage = true;
+    this.loadingPieData = true;
+    this.progress!.loading = this.loadingUsage || this.loadingPieData;
+    this.queryLogicWorker('scheduling-getCpuUsage', 'query Cpu Usage Time:', (res) => {
+      if (res && res.length > 0) {
         this.cpuUsageGrid!.innerHTML = '';
-        this.cpuUsageChart!.innerHTML = '';
-        this.schedulingSelect!.value = '1';
         this.cpuUsageGrid!.append(this.createUsageItem('usage', '%'));
-        for (let i = 0; i < SpSchedulingAnalysis.cpuCount; i++) {
-            let cpuPie = new LitChartPie();
-            cpuPie.className = 'pie-chart';
-            this.cpuPieMap.set(i, cpuPie);
-            this.cpuUsageGrid!.append(this.createUsageItem(`CPU: ${i}`, 0));
-            this.cpuUsageChart!.append(this.createUsageChartItem(i, cpuPie));
+        if (res instanceof Array) {
+          for (let re of res) {
+            this.cpuUsageGrid!.append(this.createUsageItem(`CPU: ${re.cpu}`, ((re.usage || 0) * 100).toFixed(2)));
+          }
         }
-        this.loadingUsage = true;
-        this.loadingPieData = true;
-        this.progress!.loading = this.loadingUsage || this.loadingPieData;
-        this.queryLogicWorker(
-            'scheduling-getCpuUsage',
-            'query Cpu Usage Time:',
-            (res) => {
-                if (res && res.length > 0) {
-                    this.cpuUsageGrid!.innerHTML = '';
-                    this.cpuUsageGrid!.append(
-                        this.createUsageItem('usage', '%')
-                    );
-                    if (res instanceof Array) {
-                        for (let re of res) {
-                            this.cpuUsageGrid!.append(
-                                this.createUsageItem(
-                                    `CPU: ${re.cpu}`,
-                                    ((re.usage || 0) * 100).toFixed(2)
-                                )
-                            );
-                        }
-                    }
-                }
-                this.loadingUsage = false;
-                this.progress!.loading =
-                    this.loadingUsage || this.loadingPieData;
-            }
-        );
-        this.queryPieChartDataByType('CPU Idle');
-        SpStatisticsHttpUtil.addOrdinaryVisitAction({
-            event: 'CPU Data',
-            action: 'trace_tab',
-        });
-    }
+      }
+      this.loadingUsage = false;
+      this.progress!.loading = this.loadingUsage || this.loadingPieData;
+    });
+    this.queryPieChartDataByType('CPU Idle');
+    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+      event: 'CPU Data',
+      action: 'trace_tab',
+    });
+  }
 
-    queryPieChartDataByType(type: string) {
-        SpStatisticsHttpUtil.addOrdinaryVisitAction({
-            event: 'Analysis ' + type,
-            action: 'scheduling_analysis',
-        });
-        let tip = '';
-        if (type === 'CPU Frequency') {
-            tip = 'freq:';
-        } else if (type === 'CPU Idle') {
-            tip = 'idle:';
-        } else {
-            tip = 'irq:';
-        }
-        this.queryLogicWorker(
-            `scheduling-${type}`,
-            `query ${type} Analysis Time:`,
-            (res) => {
-                for (let key of this.cpuPieMap.keys()) {
-                    this.cpuPieMap.get(key)!.config = {
-                        appendPadding: 10,
-                        data: res.get(key) || [],
-                        angleField: 'sum',
-                        colorField: 'value',
-                        radius: 0.8,
-                        tip: (obj) => {
-                            return `<div>
+  queryPieChartDataByType(type: string) {
+    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+      event: 'Analysis ' + type,
+      action: 'scheduling_analysis',
+    });
+    let tip = '';
+    if (type === 'CPU Frequency') {
+      tip = 'freq:';
+    } else if (type === 'CPU Idle') {
+      tip = 'idle:';
+    } else {
+      tip = 'irq:';
+    }
+    this.queryLogicWorker(`scheduling-${type}`, `query ${type} Analysis Time:`, (res) => {
+      for (let key of this.cpuPieMap.keys()) {
+        this.cpuPieMap.get(key)!.config = {
+          appendPadding: 10,
+          data: res.get(key) || [],
+          angleField: 'sum',
+          colorField: 'value',
+          radius: 0.8,
+          tip: (obj) => {
+            return `<div>
                                     <div>${tip}${obj.obj.value}</div> 
                                     <div>ratio:${obj.obj.ratio}%</div>
                                 </div>
                                 `;
-                        },
-                        label: {
-                            type: 'outer',
-                            color:
-                                type !== 'CPU Idle'
-                                    ? undefined
-                                    : (it) => {
-                                          return pieChartColors[
-                                              (it as any).value
-                                          ];
-                                      },
-                        },
-                        interactions: [
-                            {
-                                type: 'element-active',
-                            },
-                        ],
-                    };
-                }
-                this.loadingPieData = false;
-                this.progress!.loading =
-                    this.loadingUsage || this.loadingPieData;
-            }
-        );
-    }
-
-    queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
-        let time = new Date().getTime();
-        procedurePool.submitWithName(
-            'logic1',
-            option,
+          },
+          label: {
+            type: 'outer',
+            color:
+              type !== 'CPU Idle'
+                ? undefined
+                : (it) => {
+                    return pieChartColors[(it as any).value];
+                  },
+          },
+          interactions: [
             {
-                endTs: SpSchedulingAnalysis.endTs,
-                total: SpSchedulingAnalysis.totalDur,
+              type: 'element-active',
             },
-            undefined,
-            handler
-        );
-        let durTime = new Date().getTime() - time;
-        info(log, durTime);
-    }
+          ],
+        };
+      }
+      this.loadingPieData = false;
+      this.progress!.loading = this.loadingUsage || this.loadingPieData;
+    });
+  }
 
-    createUsageItem(name: string, value: any) {
-        let div = document.createElement('div');
-        div.className = 'usage_item_box';
-        div.innerHTML = `<div class="usage_item">${name}</div><div class="usage_item">${value}</div>`;
-        return div;
-    }
+  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+    let time = new Date().getTime();
+    procedurePool.submitWithName(
+      'logic1',
+      option,
+      {
+        endTs: SpSchedulingAnalysis.endTs,
+        total: SpSchedulingAnalysis.totalDur,
+      },
+      undefined,
+      handler
+    );
+    let durTime = new Date().getTime() - time;
+    info(log, durTime);
+  }
 
-    createUsageChartItem(cpu: number, pie: LitChartPie) {
-        let div = document.createElement('div');
-        div.className = 'usage_chart';
-        div.style.cursor = 'pointer';
-        div.innerHTML = `
+  createUsageItem(name: string, value: any) {
+    let div = document.createElement('div');
+    div.className = 'usage_item_box';
+    div.innerHTML = `<div class="usage_item">${name}</div><div class="usage_item">${value}</div>`;
+    return div;
+  }
+
+  createUsageChartItem(cpu: number, pie: LitChartPie) {
+    let div = document.createElement('div');
+    div.className = 'usage_chart';
+    div.style.cursor = 'pointer';
+    div.innerHTML = `
             <div style="height: 40px;line-height: 40px;margin-left: 10px">CPU: ${cpu}</div>
         `;
-        div.append(pie);
-        div.addEventListener('click', (event) => {
-            if (this.loadingUsage || this.loadingPieData) {
-                return;
-            }
-            this.drawer!.title = `CPU: ${cpu}`;
-            this.drawer!.visible = true;
-            this.drawerCpuTabs!.init(cpu, this.schedulingSelect!.value);
-        });
-        return div;
-    }
+    div.append(pie);
+    div.addEventListener('click', (event) => {
+      if (this.loadingUsage || this.loadingPieData) {
+        return;
+      }
+      this.drawer!.title = `CPU: ${cpu}`;
+      this.drawer!.visible = true;
+      this.drawerCpuTabs!.init(cpu, this.schedulingSelect!.value);
+    });
+    return div;
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host {
             width: 100%;
@@ -286,5 +256,5 @@ export class TabCpuAnalysis extends BaseElement {
             <drawer-cpu-tabs id="drawer-cpu-tabs"></drawer-cpu-tabs>
         </lit-drawer>
         `;
-    }
+  }
 }

@@ -15,247 +15,206 @@
 
 import { SpSystemTrace } from '../SpSystemTrace.js';
 import {
-    queryBootTime,
-    queryHeapGroupByEvent,
-    queryNativeHookProcess,
-    queryNativeHookStatisticsCount,
-    queryNativeMemoryRealTime,
+  queryBootTime,
+  queryHeapGroupByEvent,
+  queryNativeHookProcess,
+  queryNativeHookStatisticsCount,
+  queryNativeMemoryRealTime,
 } from '../../database/SqlLite.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
 import { info } from '../../../log/Log.js';
 import { procedurePool } from '../../database/Procedure.js';
 import { NativeEventHeap } from '../../bean/NativeHook.js';
-import {
-    HeapRender,
-    HeapStruct,
-} from '../../database/ui-worker/ProcedureWorkerHeap.js';
+import { HeapRender, HeapStruct } from '../../database/ui-worker/ProcedureWorkerHeap.js';
 import { Utils } from '../trace/base/Utils.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 
 export class SpNativeMemoryChart {
-    static EVENT_HEAP: Array<NativeEventHeap> = [];
-    static REAL_TIME_DIF: number = 0;
-    private trace: SpSystemTrace;
+  static EVENT_HEAP: Array<NativeEventHeap> = [];
+  static REAL_TIME_DIF: number = 0;
+  private trace: SpSystemTrace;
 
-    constructor(trace: SpSystemTrace) {
-        this.trace = trace;
+  constructor(trace: SpSystemTrace) {
+    this.trace = trace;
+  }
+
+  initChart = async () => {
+    let time = new Date().getTime();
+    let nativeMemoryType = 'native_hook';
+    let nmsCount = await queryNativeHookStatisticsCount();
+    if (nmsCount && nmsCount[0] && (nmsCount[0] as any).num > 0) {
+      nativeMemoryType = 'native_hook_statistic';
     }
-
-    initChart = async () => {
-        let time = new Date().getTime();
-        let nativeMemoryType = 'native_hook';
-        let nmsCount = await queryNativeHookStatisticsCount();
-        if (nmsCount && nmsCount[0] && (nmsCount[0] as any).num > 0) {
-            nativeMemoryType = 'native_hook_statistic';
-        }
-        let nativeProcess = await queryNativeHookProcess(nativeMemoryType);
-        info('NativeHook Process data size is: ', nativeProcess!.length);
-        if (nativeProcess.length == 0) {
-            return;
-        }
-        SpNativeMemoryChart.EVENT_HEAP = await queryHeapGroupByEvent(
-            nativeMemoryType
+    let nativeProcess = await queryNativeHookProcess(nativeMemoryType);
+    info('NativeHook Process data size is: ', nativeProcess!.length);
+    if (nativeProcess.length == 0) {
+      return;
+    }
+    SpNativeMemoryChart.EVENT_HEAP = await queryHeapGroupByEvent(nativeMemoryType);
+    let nativeRow = TraceRow.skeleton();
+    let process = '';
+    if (nativeProcess.length > 0) {
+      process = ` ${nativeProcess[0].pid}`;
+    }
+    nativeRow.rowId = `native-memory`;
+    nativeRow.index = 0;
+    nativeRow.rowType = TraceRow.ROW_TYPE_NATIVE_MEMORY;
+    nativeRow.drawType = 0;
+    nativeRow.style.height = '40px';
+    nativeRow.rowParentId = '';
+    nativeRow.folder = true;
+    nativeRow.name = `Native Memory` + process;
+    nativeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    nativeRow.selectChangeHandler = this.trace.selectChangeHandler;
+    nativeRow.onDrawTypeChangeHandler = (type) => {
+      this.trace.rowsEL?.querySelectorAll<TraceRow<any>>(`trace-row[row-type='heap']`).forEach((it) => {
+        it.drawType = type;
+        this.trace.refreshCanvas(false);
+      });
+      this.trace.favoriteRowsEL?.querySelectorAll<TraceRow<any>>(`trace-row[row-type='heap']`).forEach((it) => {
+        it.drawType = type;
+      });
+    };
+    nativeRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    nativeRow.onThreadHandler = (useCache) => {
+      nativeRow.canvasSave(this.trace.canvasPanelCtx!);
+      if (nativeRow.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, nativeRow.frame.width, nativeRow.frame.height);
+      } else {
+        (renders['empty'] as EmptyRender).renderMainThread(
+          {
+            context: this.trace.canvasPanelCtx,
+            useCache: useCache,
+            type: ``,
+          },
+          nativeRow
         );
-        let nativeRow = TraceRow.skeleton();
-        let process = '';
-        if (nativeProcess.length > 0) {
-            process = ` ${nativeProcess[0].pid}`;
-        }
-        nativeRow.rowId = `native-memory`;
-        nativeRow.index = 0;
-        nativeRow.rowType = TraceRow.ROW_TYPE_NATIVE_MEMORY;
-        nativeRow.drawType = 0;
-        nativeRow.style.height = '40px';
-        nativeRow.rowParentId = '';
-        nativeRow.folder = true;
-        nativeRow.name = `Native Memory` + process;
-        nativeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        nativeRow.selectChangeHandler = this.trace.selectChangeHandler;
-        nativeRow.onDrawTypeChangeHandler = (type) => {
-            this.trace.rowsEL
-                ?.querySelectorAll<TraceRow<any>>(`trace-row[row-type='heap']`)
-                .forEach((it) => {
-                    it.drawType = type;
-                    this.trace.refreshCanvas(false);
-                });
-            this.trace.favoriteRowsEL
-                ?.querySelectorAll<TraceRow<any>>(`trace-row[row-type='heap']`)
-                .forEach((it) => {
-                    it.drawType = type;
-                });
-        };
-        nativeRow.supplier = () =>
-            new Promise<Array<any>>((resolve) => resolve([]));
-        nativeRow.onThreadHandler = (useCache) => {
-            nativeRow.canvasSave(this.trace.canvasPanelCtx!);
-            if (nativeRow.expansion) {
-                this.trace.canvasPanelCtx?.clearRect(
-                    0,
-                    0,
-                    nativeRow.frame.width,
-                    nativeRow.frame.height
-                );
-            } else {
-                (renders['empty'] as EmptyRender).renderMainThread(
-                    {
-                        context: this.trace.canvasPanelCtx,
-                        useCache: useCache,
-                        type: ``,
-                    },
-                    nativeRow
-                );
-            }
-            nativeRow.canvasRestore(this.trace.canvasPanelCtx!);
-        };
-        this.trace.rowsEL?.appendChild(nativeRow);
-        /**
-         * 添加heap信息
-         */
-        let native_memory = [
-            'All Heap & Anonymous VM',
-            'All Heap',
-            'All Anonymous VM',
-        ];
-        for (let i = 0; i < native_memory.length; i++) {
-            let nm = native_memory[i];
-            let allHeapRow = TraceRow.skeleton<HeapStruct>();
-            allHeapRow.index = i;
-            allHeapRow.rowParentId = `native-memory`;
-            allHeapRow.rowHidden = !nativeRow.expansion;
-            allHeapRow.style.height = '40px';
-            allHeapRow.name = nm;
-            allHeapRow.rowId = nm;
-            allHeapRow.drawType = 0;
-            allHeapRow.isHover = true;
-            allHeapRow.folder = false;
-            allHeapRow.rowType = TraceRow.ROW_TYPE_HEAP;
-            allHeapRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-            allHeapRow.selectChangeHandler = this.trace.selectChangeHandler;
-            allHeapRow.setAttribute('heap-type', nativeMemoryType);
-            allHeapRow.setAttribute('children', '');
-            allHeapRow.focusHandler = () => {
-                let tip = '';
-                if (HeapStruct.hoverHeapStruct) {
-                    if (allHeapRow.drawType === 1) {
-                        tip = `<span>${HeapStruct.hoverHeapStruct.density}</span>`;
-                    } else {
-                        tip = `<span>${Utils.getByteWithUnit(
-                            HeapStruct.hoverHeapStruct.heapsize!
-                        )}</span>`;
-                    }
-                }
-                this.trace?.displayTip(
-                    allHeapRow,
-                    HeapStruct.hoverHeapStruct,
-                    tip
-                );
-            };
-            allHeapRow.supplier = () => {
-                return nativeMemoryType === 'native_hook'
-                    ? this.getNativeMemoryDataByChartType(
-                          i,
-                          allHeapRow.drawType
-                      )
-                    : this.getNativeMemoryStatisticByChartType(i - 1);
-            };
-            allHeapRow.onThreadHandler = (useCache) => {
-                let context = allHeapRow.collect
-                    ? this.trace.canvasFavoritePanelCtx!
-                    : this.trace.canvasPanelCtx!;
-                allHeapRow.canvasSave(context);
-                (renders['heap'] as HeapRender).renderMainThread(
-                    {
-                        context: context,
-                        useCache: useCache,
-                        type: `heap`,
-                    },
-                    allHeapRow
-                );
-                allHeapRow.canvasRestore(context);
-            };
-            this.trace.rowsEL?.appendChild(allHeapRow);
-        }
-        let durTime = new Date().getTime() - time;
-        info('The time to load the Native Memory data is: ', durTime);
+      }
+      nativeRow.canvasRestore(this.trace.canvasPanelCtx!);
     };
+    this.trace.rowsEL?.appendChild(nativeRow);
+    /**
+     * 添加heap信息
+     */
+    let native_memory = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
+    for (let i = 0; i < native_memory.length; i++) {
+      let nm = native_memory[i];
+      let allHeapRow = TraceRow.skeleton<HeapStruct>();
+      allHeapRow.index = i;
+      allHeapRow.rowParentId = `native-memory`;
+      allHeapRow.rowHidden = !nativeRow.expansion;
+      allHeapRow.style.height = '40px';
+      allHeapRow.name = nm;
+      allHeapRow.rowId = nm;
+      allHeapRow.drawType = 0;
+      allHeapRow.isHover = true;
+      allHeapRow.folder = false;
+      allHeapRow.rowType = TraceRow.ROW_TYPE_HEAP;
+      allHeapRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      allHeapRow.selectChangeHandler = this.trace.selectChangeHandler;
+      allHeapRow.setAttribute('heap-type', nativeMemoryType);
+      allHeapRow.setAttribute('children', '');
+      allHeapRow.focusHandler = () => {
+        let tip = '';
+        if (HeapStruct.hoverHeapStruct) {
+          if (allHeapRow.drawType === 1) {
+            tip = `<span>${HeapStruct.hoverHeapStruct.density}</span>`;
+          } else {
+            tip = `<span>${Utils.getByteWithUnit(HeapStruct.hoverHeapStruct.heapsize!)}</span>`;
+          }
+        }
+        this.trace?.displayTip(allHeapRow, HeapStruct.hoverHeapStruct, tip);
+      };
+      allHeapRow.supplier = () => {
+        return nativeMemoryType === 'native_hook'
+          ? this.getNativeMemoryDataByChartType(i, allHeapRow.drawType)
+          : this.getNativeMemoryStatisticByChartType(i - 1);
+      };
+      allHeapRow.onThreadHandler = (useCache) => {
+        let context = allHeapRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        allHeapRow.canvasSave(context);
+        (renders['heap'] as HeapRender).renderMainThread(
+          {
+            context: context,
+            useCache: useCache,
+            type: `heap`,
+          },
+          allHeapRow
+        );
+        allHeapRow.canvasRestore(context);
+      };
+      this.trace.rowsEL?.appendChild(allHeapRow);
+    }
+    let durTime = new Date().getTime() - time;
+    info('The time to load the Native Memory data is: ', durTime);
+  };
 
-    getNativeMemoryStatisticByChartType = async (
-        chartType: number
-    ): Promise<Array<HeapStruct>> => {
-        let arr: Array<HeapStruct> = [];
-        await new Promise<Array<HeapStruct>>((resolve, reject) => {
-            procedurePool.submitWithName(
-                'logic1',
-                'native-memory-queryNativeHookStatistic',
-                { type: chartType, totalNS: TraceRow.range?.totalNS! },
-                undefined,
-                (res: any) => {
-                    arr = arr.concat(res.data);
-                    res.data = null;
-                    if (res.tag == 'end') {
-                        resolve(arr);
-                    }
-                }
-            );
-        });
-        return arr;
-    };
-
-    getNativeMemoryDataByChartType = async (
-        nativeMemoryType: number,
-        chartType: number
-    ): Promise<Array<HeapStruct>> => {
-        let args = new Map<string, any>();
-        args.set('nativeMemoryType', nativeMemoryType);
-        args.set('chartType', chartType);
-        args.set('totalNS', TraceRow.range?.totalNS!);
-        args.set('actionType', 'memory-chart');
-        let arr: Array<HeapStruct> = [];
-        await new Promise<Array<HeapStruct>>((resolve, reject) => {
-            procedurePool.submitWithName(
-                'logic1',
-                'native-memory-chart-action',
-                args,
-                undefined,
-                (res: any) => {
-                    arr = arr.concat(res.data);
-                    res.data = null;
-                    if (res.tag == 'end') {
-                        resolve(arr);
-                    }
-                }
-            );
-        });
-        return arr;
-    };
-
-    initNativeMemory = async () => {
-        let time = new Date().getTime();
-        let isRealtime = false;
-        let realTimeDif = 0;
-        SpNativeMemoryChart.REAL_TIME_DIF = 0;
-        let queryTime = await queryNativeMemoryRealTime();
-        let bootTime = await queryBootTime();
-        if (queryTime.length > 0) {
-            isRealtime = queryTime[0].clock_name == 'realtime';
+  getNativeMemoryStatisticByChartType = async (chartType: number): Promise<Array<HeapStruct>> => {
+    let arr: Array<HeapStruct> = [];
+    await new Promise<Array<HeapStruct>>((resolve, reject) => {
+      procedurePool.submitWithName(
+        'logic1',
+        'native-memory-queryNativeHookStatistic',
+        { type: chartType, totalNS: TraceRow.range?.totalNS! },
+        undefined,
+        (res: any) => {
+          arr = arr.concat(res.data);
+          res.data = null;
+          if (res.tag == 'end') {
+            resolve(arr);
+          }
         }
-        if (bootTime.length > 0 && isRealtime) {
-            realTimeDif = queryTime[0].ts - bootTime[0].ts;
-            SpNativeMemoryChart.REAL_TIME_DIF = realTimeDif;
+      );
+    });
+    return arr;
+  };
+
+  getNativeMemoryDataByChartType = async (nativeMemoryType: number, chartType: number): Promise<Array<HeapStruct>> => {
+    let args = new Map<string, any>();
+    args.set('nativeMemoryType', nativeMemoryType);
+    args.set('chartType', chartType);
+    args.set('totalNS', TraceRow.range?.totalNS!);
+    args.set('actionType', 'memory-chart');
+    let arr: Array<HeapStruct> = [];
+    await new Promise<Array<HeapStruct>>((resolve, reject) => {
+      procedurePool.submitWithName('logic1', 'native-memory-chart-action', args, undefined, (res: any) => {
+        arr = arr.concat(res.data);
+        res.data = null;
+        if (res.tag == 'end') {
+          resolve(arr);
         }
-        await new Promise<any>((resolve, reject) => {
-            procedurePool.submitWithName(
-                'logic1',
-                'native-memory-init',
-                { isRealtime, realTimeDif },
-                undefined,
-                (res: any) => {
-                    resolve(res);
-                }
-            );
-        });
-        let durTime = new Date().getTime() - time;
-        info('The time to init the native memory data is: ', durTime);
-    };
+      });
+    });
+    return arr;
+  };
+
+  initNativeMemory = async () => {
+    let time = new Date().getTime();
+    let isRealtime = false;
+    let realTimeDif = 0;
+    SpNativeMemoryChart.REAL_TIME_DIF = 0;
+    let queryTime = await queryNativeMemoryRealTime();
+    let bootTime = await queryBootTime();
+    if (queryTime.length > 0) {
+      isRealtime = queryTime[0].clock_name == 'realtime';
+    }
+    if (bootTime.length > 0 && isRealtime) {
+      realTimeDif = queryTime[0].ts - bootTime[0].ts;
+      SpNativeMemoryChart.REAL_TIME_DIF = realTimeDif;
+    }
+    await new Promise<any>((resolve, reject) => {
+      procedurePool.submitWithName(
+        'logic1',
+        'native-memory-init',
+        { isRealtime, realTimeDif },
+        undefined,
+        (res: any) => {
+          resolve(res);
+        }
+      );
+    });
+    let durTime = new Date().getTime() - time;
+    info('The time to init the native memory data is: ', durTime);
+  };
 }

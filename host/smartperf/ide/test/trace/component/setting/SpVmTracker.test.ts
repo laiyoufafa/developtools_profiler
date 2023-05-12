@@ -17,14 +17,14 @@
 import { SpVmTracker } from '../../../../dist/trace/component/setting/SpVmTracker.js';
 
 describe('SpVmTracker Test', () => {
-    let spVmTracker = new SpVmTracker();
-    it('SpVmTrackerTest01', function () {
-        spVmTracker.startSamp = true;
-        expect(spVmTracker.startSamp).toBeTruthy();
-    });
+  let spVmTracker = new SpVmTracker();
+  it('SpVmTrackerTest01', function () {
+    spVmTracker.startSamp = true;
+    expect(spVmTracker.startSamp).toBeTruthy();
+  });
 
-    it('SpVmTrackerTest02', function () {
-        spVmTracker.startSamp = false;
-        expect(spVmTracker.startSamp).toBeFalsy();
-    });
+  it('SpVmTrackerTest02', function () {
+    spVmTracker.startSamp = false;
+    expect(spVmTracker.startSamp).toBeFalsy();
+  });
 });

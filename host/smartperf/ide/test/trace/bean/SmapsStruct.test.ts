@@ -17,53 +17,53 @@
 import { Smaps, SmapsTreeObj } from '../../../dist/trace/bean/SmapsStruct.js';
 
 describe('SmapsStruct Test', () => {
-    it('SmapsStructTest01', function () {
-        let sMaps = new Smaps();
-        sMaps = {
-            tsNS: -1,
-            start_addr: 'start_addr',
-            end_addr: 'end_addr',
-            permission: 'permission',
-            path: 'path',
-            size: 0,
-            rss: 0,
-            pss: 0,
-            reside: 0,
-            dirty: 0,
-            swapper: 0,
-            address: 'address',
-            type: 'type',
-            dirtyStr: 'dirtyStr',
-            swapperStr: 'swapperStr',
-            rssStr: 'rssStr',
-            pssStr: 'pssStr',
-            sizeStr: 'sizeStr',
-            resideStr: 'resideStr',
-        };
-        expect(sMaps).not.toBeUndefined();
-        expect(sMaps).toMatchInlineSnapshot(
-            {
-                tsNS: expect.any(Number),
-                start_addr: expect.any(String),
-                end_addr: expect.any(String),
-                permission: expect.any(String),
-                path: expect.any(String),
-                size: expect.any(Number),
-                rss: expect.any(Number),
-                pss: expect.any(Number),
-                reside: expect.any(Number),
-                dirty: expect.any(Number),
-                swapper: expect.any(Number),
-                address: expect.any(String),
-                type: expect.any(String),
-                dirtyStr: expect.any(String),
-                swapperStr: expect.any(String),
-                rssStr: expect.any(String),
-                pssStr: expect.any(String),
-                sizeStr: expect.any(String),
-                resideStr: expect.any(String),
-            },
-            `
+  it('SmapsStructTest01', function () {
+    let sMaps = new Smaps();
+    sMaps = {
+      tsNS: -1,
+      start_addr: 'start_addr',
+      end_addr: 'end_addr',
+      permission: 'permission',
+      path: 'path',
+      size: 0,
+      rss: 0,
+      pss: 0,
+      reside: 0,
+      dirty: 0,
+      swapper: 0,
+      address: 'address',
+      type: 'type',
+      dirtyStr: 'dirtyStr',
+      swapperStr: 'swapperStr',
+      rssStr: 'rssStr',
+      pssStr: 'pssStr',
+      sizeStr: 'sizeStr',
+      resideStr: 'resideStr',
+    };
+    expect(sMaps).not.toBeUndefined();
+    expect(sMaps).toMatchInlineSnapshot(
+      {
+        tsNS: expect.any(Number),
+        start_addr: expect.any(String),
+        end_addr: expect.any(String),
+        permission: expect.any(String),
+        path: expect.any(String),
+        size: expect.any(Number),
+        rss: expect.any(Number),
+        pss: expect.any(Number),
+        reside: expect.any(Number),
+        dirty: expect.any(Number),
+        swapper: expect.any(Number),
+        address: expect.any(String),
+        type: expect.any(String),
+        dirtyStr: expect.any(String),
+        swapperStr: expect.any(String),
+        rssStr: expect.any(String),
+        pssStr: expect.any(String),
+        sizeStr: expect.any(String),
+        resideStr: expect.any(String),
+      },
+      `
 Object {
   "address": Any<String>,
   "dirty": Any<Number>,
@@ -86,60 +86,60 @@ Object {
   "type": Any<String>,
 }
 `
-        );
-    });
+    );
+  });
 
-    it('SmapsStructTest02', function () {
-        let sMapsTreeObj = new SmapsTreeObj();
-        sMapsTreeObj = {
-            id: 'id',
-            pid: 'pid',
-            rsspro: 0,
-            rssproStr: 'rssproStr',
-            type: 'type',
-            reg: 0,
-            regStr: 'regStr',
-            path: 'path',
-            rss: 0,
-            rssStr: 'rssStr',
-            dirty: 0,
-            dirtyStr: 'dirtyStr',
-            swapper: 0,
-            swapperStr: 'swapperStr',
-            pss: 0,
-            pssStr: 'pssStr',
-            size: 0,
-            sizeStr: 'sizeStr',
-            respro: 0,
-            resproStr: 'resproStr',
-            children: [],
-        };
-        expect(sMapsTreeObj).not.toBeUndefined();
-        expect(sMapsTreeObj).toMatchInlineSnapshot(
-            {
-                id: expect.any(String),
-                pid: expect.any(String),
-                rsspro: expect.any(Number),
-                rssproStr: expect.any(String),
-                type: expect.any(String),
-                reg: expect.any(Number),
-                regStr: expect.any(String),
-                path: expect.any(String),
-                rss: expect.any(Number),
-                rssStr: expect.any(String),
-                dirty: expect.any(Number),
-                dirtyStr: expect.any(String),
-                swapper: expect.any(Number),
-                swapperStr: expect.any(String),
-                pss: expect.any(Number),
-                pssStr: expect.any(String),
-                size: expect.any(Number),
-                sizeStr: expect.any(String),
-                respro: expect.any(Number),
-                resproStr: expect.any(String),
-                children: expect.any(Array),
-            },
-            `
+  it('SmapsStructTest02', function () {
+    let sMapsTreeObj = new SmapsTreeObj();
+    sMapsTreeObj = {
+      id: 'id',
+      pid: 'pid',
+      rsspro: 0,
+      rssproStr: 'rssproStr',
+      type: 'type',
+      reg: 0,
+      regStr: 'regStr',
+      path: 'path',
+      rss: 0,
+      rssStr: 'rssStr',
+      dirty: 0,
+      dirtyStr: 'dirtyStr',
+      swapper: 0,
+      swapperStr: 'swapperStr',
+      pss: 0,
+      pssStr: 'pssStr',
+      size: 0,
+      sizeStr: 'sizeStr',
+      respro: 0,
+      resproStr: 'resproStr',
+      children: [],
+    };
+    expect(sMapsTreeObj).not.toBeUndefined();
+    expect(sMapsTreeObj).toMatchInlineSnapshot(
+      {
+        id: expect.any(String),
+        pid: expect.any(String),
+        rsspro: expect.any(Number),
+        rssproStr: expect.any(String),
+        type: expect.any(String),
+        reg: expect.any(Number),
+        regStr: expect.any(String),
+        path: expect.any(String),
+        rss: expect.any(Number),
+        rssStr: expect.any(String),
+        dirty: expect.any(Number),
+        dirtyStr: expect.any(String),
+        swapper: expect.any(Number),
+        swapperStr: expect.any(String),
+        pss: expect.any(Number),
+        pssStr: expect.any(String),
+        size: expect.any(Number),
+        sizeStr: expect.any(String),
+        respro: expect.any(Number),
+        resproStr: expect.any(String),
+        children: expect.any(Array),
+      },
+      `
 Object {
   "children": Any<Array>,
   "dirty": Any<Number>,
@@ -164,6 +164,6 @@ Object {
   "type": Any<String>,
 }
 `
-        );
-    });
+    );
+  });
 });

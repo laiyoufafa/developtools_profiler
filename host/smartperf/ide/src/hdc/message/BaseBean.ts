@@ -14,5 +14,5 @@
  */
 
 export interface BaseBean {
-    getDataView(): DataView;
+  getDataView(): DataView;
 }

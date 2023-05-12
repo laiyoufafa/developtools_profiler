@@ -21,28 +21,28 @@ const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('SpFileSystemChart Test', () => {
-    let hasFileSysData = sqlit.hasFileSysData;
-    hasFileSysData.mockResolvedValue([
-        {
-            fsCount: 2,
-            vmCount: 2,
-            ioCount: 0,
-        },
-    ]);
+  let hasFileSysData = sqlit.hasFileSysData;
+  hasFileSysData.mockResolvedValue([
+    {
+      fsCount: 2,
+      vmCount: 2,
+      ioCount: 0,
+    },
+  ]);
 
-    let ss = new SpChartManager();
-    let spFileSystemChart = new SpFileSystemChart(ss);
-    spFileSystemChart.initFileCallchain = jest.fn(() => true);
-    it('SpMpsChart01', function () {
-        spFileSystemChart.init();
-        expect(spFileSystemChart).toBeDefined();
-    });
+  let ss = new SpChartManager();
+  let spFileSystemChart = new SpFileSystemChart(ss);
+  spFileSystemChart.initFileCallchain = jest.fn(() => true);
+  it('SpMpsChart01', function () {
+    spFileSystemChart.init();
+    expect(spFileSystemChart).toBeDefined();
+  });
 });

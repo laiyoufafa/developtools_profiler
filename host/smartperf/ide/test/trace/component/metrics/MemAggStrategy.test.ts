@@ -16,68 +16,68 @@
 import { initMemoryAggStrategy } from '../../../../dist/trace/component/metrics/MemAggStrategy.js';
 
 describe('MemAggStrategy Test', () => {
-    it('initMemoryAggStrategyTest01', () => {
-        const metricData = [
-            {
-                length: 1,
-                processName: 'name',
-                name: 'oom_score_adj',
-                value: '',
-                ts: '',
-            },
-        ];
-        expect(initMemoryAggStrategy(metricData)).toBeTruthy();
-    });
+  it('initMemoryAggStrategyTest01', () => {
+    const metricData = [
+      {
+        length: 1,
+        processName: 'name',
+        name: 'oom_score_adj',
+        value: '',
+        ts: '',
+      },
+    ];
+    expect(initMemoryAggStrategy(metricData)).toBeTruthy();
+  });
 
-    it('initMemoryAggStrategyTest02', () => {
-        const metricData = [
-            {
-                length: 1,
-                processName: 'name',
-                name: 'mem.rss.anon',
-                value: '',
-                ts: '',
-            },
-        ];
-        expect(initMemoryAggStrategy(metricData)).toBeTruthy();
-    });
+  it('initMemoryAggStrategyTest02', () => {
+    const metricData = [
+      {
+        length: 1,
+        processName: 'name',
+        name: 'mem.rss.anon',
+        value: '',
+        ts: '',
+      },
+    ];
+    expect(initMemoryAggStrategy(metricData)).toBeTruthy();
+  });
 
-    it('initMemoryAggStrategyTest03', () => {
-        const metricData = [
-            {
-                length: 1,
-                processName: 'name',
-                name: 'mem.swap',
-                value: '',
-                ts: '',
-            },
-        ];
-        expect(initMemoryAggStrategy(metricData)).toBeTruthy();
-    });
+  it('initMemoryAggStrategyTest03', () => {
+    const metricData = [
+      {
+        length: 1,
+        processName: 'name',
+        name: 'mem.swap',
+        value: '',
+        ts: '',
+      },
+    ];
+    expect(initMemoryAggStrategy(metricData)).toBeTruthy();
+  });
 
-    it('initMemoryAggStrategyTest04', () => {
-        const metricData = [
-            {
-                length: 1,
-                processName: 'name',
-                name: 'mem.rss.file',
-                value: '',
-                ts: '',
-            },
-        ];
-        expect(initMemoryAggStrategy(metricData)).toBeTruthy();
-    });
+  it('initMemoryAggStrategyTest04', () => {
+    const metricData = [
+      {
+        length: 1,
+        processName: 'name',
+        name: 'mem.rss.file',
+        value: '',
+        ts: '',
+      },
+    ];
+    expect(initMemoryAggStrategy(metricData)).toBeTruthy();
+  });
 
-    it('initMemoryAggStrategyTest05', () => {
-        const metricData = [
-            {
-                length: 1,
-                processName: 'name',
-                name: 'oom_score_adj',
-                value: '',
-                ts: '',
-            },
-        ];
-        expect(initMemoryAggStrategy(metricData)).toBeTruthy();
-    });
+  it('initMemoryAggStrategyTest05', () => {
+    const metricData = [
+      {
+        length: 1,
+        processName: 'name',
+        name: 'oom_score_adj',
+        value: '',
+        ts: '',
+      },
+    ];
+    expect(initMemoryAggStrategy(metricData)).toBeTruthy();
+  });
 });

@@ -16,19 +16,15 @@
 import { Rect } from './Rect.js';
 
 export abstract class Graph {
-    frame: Rect;
-    c: CanvasRenderingContext2D;
-    canvas: HTMLCanvasElement | undefined | null;
+  frame: Rect;
+  c: CanvasRenderingContext2D;
+  canvas: HTMLCanvasElement | undefined | null;
 
-    protected constructor(
-        canvas: HTMLCanvasElement | undefined | null,
-        c: CanvasRenderingContext2D,
-        frame: Rect
-    ) {
-        this.canvas = canvas;
-        this.frame = frame;
-        this.c = c;
-    }
+  protected constructor(canvas: HTMLCanvasElement | undefined | null, c: CanvasRenderingContext2D, frame: Rect) {
+    this.canvas = canvas;
+    this.frame = frame;
+    this.c = c;
+  }
 
-    abstract draw(): void;
+  abstract draw(): void;
 }

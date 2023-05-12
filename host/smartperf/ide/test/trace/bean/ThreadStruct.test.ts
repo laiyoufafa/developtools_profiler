@@ -17,86 +17,77 @@
 import { ThreadStruct } from '../../../dist/trace/bean/ThreadStruct.js';
 
 describe('ThreadStruct Test', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    const dataSource = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100,
-        },
-        startNS: 200,
-        state: '',
-    };
-    const equalsData = {
-        value: 50,
-        cpu: 1,
-        tid: 1,
-        state: 1,
-        startTime: 1,
-        dur: 1,
-    };
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  const dataSource = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    startNS: 200,
+    state: '',
+  };
+  const equalsData = {
+    value: 50,
+    cpu: 1,
+    tid: 1,
+    state: 1,
+    startTime: 1,
+    dur: 1,
+  };
 
-    it('ThreadStructTest01', function () {
-        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('ThreadStructTest01', function () {
+    expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('ThreadStructTest02', function () {
-        dataSource.state = 'S';
-        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('ThreadStructTest02', function () {
+    dataSource.state = 'S';
+    expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('ThreadStructTest03', function () {
-        dataSource.state = 'R';
-        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('ThreadStructTest03', function () {
+    dataSource.state = 'R';
+    expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('ThreadStructTest04', function () {
-        dataSource.state = 'D';
-        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('ThreadStructTest04', function () {
+    dataSource.state = 'D';
+    expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('ThreadStructTest05', function () {
-        dataSource.state = 'Running';
-        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('ThreadStructTest05', function () {
+    dataSource.state = 'Running';
+    expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('ThreadStructTest11', function () {
-        dataSource.state = 'T' || 't';
-        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('ThreadStructTest11', function () {
+    dataSource.state = 'T' || 't';
+    expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('ThreadStructTest06', function () {
-        expect(
-            ThreadStruct.drawString(ctx, '', 2, dataSource.frame)
-        ).toBeUndefined();
-    });
+  it('ThreadStructTest06', function () {
+    expect(ThreadStruct.drawString(ctx, '', 2, dataSource.frame)).toBeUndefined();
+  });
 
-    it('ThreadStructTest07', function () {
-        dataSource.frame.width = 10000000000000000;
-        expect(
-            ThreadStruct.drawString(
-                ctx,
-                'ThreadStructTest07',
-                1,
-                dataSource.frame
-            )
-        ).toBeUndefined();
-    });
+  it('ThreadStructTest07', function () {
+    dataSource.frame.width = 10000000000000000;
+    expect(ThreadStruct.drawString(ctx, 'ThreadStructTest07', 1, dataSource.frame)).toBeUndefined();
+  });
 
-    it('ThreadStructTest08', function () {
-        expect(ThreadStruct.equals(equalsData, equalsData)).toBeTruthy();
-    });
+  it('ThreadStructTest08', function () {
+    expect(ThreadStruct.equals(equalsData, equalsData)).toBeTruthy();
+  });
 
-    it('ThreadStructTest09', function () {
-        expect(ThreadStruct.equals([], dataSource)).toBeFalsy();
-    });
+  it('ThreadStructTest09', function () {
+    expect(ThreadStruct.equals([], dataSource)).toBeFalsy();
+  });
 
-    it('ThreadStructTest10', function () {
-        dataSource.state = 'ThreadStructTest10';
-        expect(ThreadStruct.getEndState(1)).toBe('');
-    });
+  it('ThreadStructTest10', function () {
+    dataSource.state = 'ThreadStructTest10';
+    expect(ThreadStruct.getEndState(1)).toBe('');
+  });
 });

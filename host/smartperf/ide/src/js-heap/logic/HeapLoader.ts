@@ -623,6 +623,7 @@ export class HeapLoader {
         if (
           !childNode ||
           childNode.flag & flag ||
+		  // @ts-ignore
           [EdgeType.HIDDEN, EdgeType.INVISIBLE, EdgeType.INTERNAL, EdgeType.WEAK].includes(edge.type)
         ) {
           continue;
@@ -758,10 +759,6 @@ export class HeapLoader {
         return true;
       }
     }
-
-    // if (!hasFiler && this.allClasses) {
-    //   return this.allClasses;
-    // }
 
     let classes = new Map<string, ConstructorItem>();
     // combine node with className

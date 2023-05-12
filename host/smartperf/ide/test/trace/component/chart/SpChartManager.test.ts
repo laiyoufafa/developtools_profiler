@@ -14,19 +14,17 @@
  */
 
 const intersectionObserverMock = () => ({
-    observe: () => null,
+  observe: () => null,
 });
-window.IntersectionObserver = jest
-    .fn()
-    .mockImplementation(intersectionObserverMock);
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 // @ts-ignore
 import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
@@ -37,21 +35,20 @@ const sqlite = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 describe('SpChartManager Test', () => {
-    let chartManager = new SpChartManager(new SpSystemTrace());
+  let chartManager = new SpChartManager(new SpSystemTrace());
 
-    let queryDataDICT = sqlite.queryDataDICT;
-    let dataDICT = [
-        {
-            id: 251,
-            data: 'delay',
-        },
-        {
-            id: 251,
-            data: 'caller',
-        },
-    ];
-    queryDataDICT.mockResolvedValue(dataDICT);
+  let queryDataDICT = sqlite.queryDataDICT;
+  let dataDICT = [
+    {
+      id: 251,
+      data: 'delay',
+    },
+    {
+      id: 251,
+      data: 'caller',
+    },
+  ];
+  queryDataDICT.mockResolvedValue(dataDICT);
 
-    it('SpChartManager01', function () {
-    });
+  it('SpChartManager01', function () {});
 });

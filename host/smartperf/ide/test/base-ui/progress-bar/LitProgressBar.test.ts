@@ -17,16 +17,16 @@
 import { LitProgressBar } from '../../../dist/base-ui/progress-bar/LitProgressBar.js';
 
 describe('LitProgressBar Test', () => {
-    let litProgressBar = new LitProgressBar();
-    litProgressBar.loading = '';
-    litProgressBar.loading = 'load';
+  let litProgressBar = new LitProgressBar();
+  litProgressBar.loading = '';
+  litProgressBar.loading = 'load';
 
-    it('LitProgressBarTest01', () => {
-        expect(litProgressBar.loading).toBeTruthy();
-    });
+  it('LitProgressBarTest01', () => {
+    expect(litProgressBar.loading).toBeTruthy();
+  });
 
-    it('LitProgressBarTest02', () => {
-        expect(litProgressBar.initHtml()).toMatchInlineSnapshot(`
+  it('LitProgressBarTest02', () => {
+    expect(litProgressBar.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
             :host{
@@ -74,5 +74,5 @@ describe('LitProgressBar Test', () => {
         </div>
         "
 `);
-    });
+  });
 });

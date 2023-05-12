@@ -14,39 +14,39 @@
  */
 
 class Event {
-    map: any;
-    constructor() {
-        this.map = {};
-    }
+  map: any;
+  constructor() {
+    this.map = {};
+  }
 
-    subscribe(event: string, fn: Function) {
-        this.map[event] = this.map[event] || [];
-        this.map[event].push(fn);
-    }
-    publish(event: string, data: any) {
-        const fnList = this.map[event] || [];
-        if (!fnList || fnList.length === 0) return;
-        fnList.forEach((fn: Function) => fn.call(undefined, data));
-    }
-    unsubscribe(event: string, fn: Function) {
-        const fnList = this.map[event] || [];
-        const index = fnList.indexOf(fn);
-        if (index < 0) return;
-        fnList.splice(index, 1);
-    }
-    subscribeOnce(event: string, callback: Function) {
-        const f = (data: any) => {
-            callback(data);
-            this.unsubscribe(event, f);
-        };
-        this.subscribe(event, f);
-    }
+  subscribe(event: string, fn: Function) {
+    this.map[event] = this.map[event] || [];
+    this.map[event].push(fn);
+  }
+  publish(event: string, data: any) {
+    const fnList = this.map[event] || [];
+    if (!fnList || fnList.length === 0) return;
+    fnList.forEach((fn: Function) => fn.call(undefined, data));
+  }
+  unsubscribe(event: string, fn: Function) {
+    const fnList = this.map[event] || [];
+    const index = fnList.indexOf(fn);
+    if (index < 0) return;
+    fnList.splice(index, 1);
+  }
+  subscribeOnce(event: string, callback: Function) {
+    const f = (data: any) => {
+      callback(data);
+      this.unsubscribe(event, f);
+    };
+    this.subscribe(event, f);
+  }
 
-    clearTraceRowComplete() {
-        if (this.map[window.SmartEvent.UI.TraceRowComplete].length > 0) {
-            this.map[window.SmartEvent.UI.TraceRowComplete] = [];
-        }
+  clearTraceRowComplete() {
+    if (this.map[window.SmartEvent.UI.TraceRowComplete].length > 0) {
+      this.map[window.SmartEvent.UI.TraceRowComplete] = [];
     }
+  }
 }
 
 export const EventCenter = new Event();

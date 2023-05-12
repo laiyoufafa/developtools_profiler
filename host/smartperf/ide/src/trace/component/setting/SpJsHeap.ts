@@ -27,123 +27,123 @@ import { SpCheckDesBox } from './SpCheckDesBox.js';
 
 @element('sp-js-heap')
 export class SpJsHeap extends BaseElement {
-    private processInput: LitAllocationSelect | undefined | null;
-    private spCheckDesBox: SpCheckDesBox | undefined | null;
-    private radioBox: LitRadioBox | undefined | null;
-    private interval: HTMLInputElement | undefined | null;
+  private processInput: LitAllocationSelect | undefined | null;
+  private spCheckDesBox: SpCheckDesBox | undefined | null;
+  private radioBox: LitRadioBox | undefined | null;
+  private interval: HTMLInputElement | undefined | null;
 
-    get process(): string {
-        if (this.processInput!.value.length > 0) {
-            return this.processInput!.value;
-        }
-        return '';
+  get process(): string {
+    if (this.processInput!.value.length > 0) {
+      return this.processInput!.value;
     }
+    return '';
+  }
 
-    get radioBoxType(): number {
-        this.radioBox = this.shadowRoot?.querySelector(`lit-radio[checked]`);
-        let type = this.radioBox?.getAttribute('type');
-        return Number(type);
+  get radioBoxType(): number {
+    this.radioBox = this.shadowRoot?.querySelector(`lit-radio[checked]`);
+    let type = this.radioBox?.getAttribute('type');
+    return Number(type);
+  }
+
+  get grabNumeric(): boolean {
+    if (this.radioBoxType === 0) {
+      this.spCheckDesBox = this.shadowRoot?.querySelector('#snapshot');
+      let isChecked = this.spCheckDesBox?.getAttribute('checked');
+      return isChecked === 'true';
+    } else {
+      return false;
     }
+  }
 
-    get grabNumeric(): boolean {
-        if (this.radioBoxType === 0) {
-            this.spCheckDesBox = this.shadowRoot?.querySelector('#snapshot');
-            let isChecked = this.spCheckDesBox?.getAttribute('checked');
-            return isChecked === 'true';
-        } else {
-            return false;
-        }
+  get grabAllocations(): boolean {
+    if (this.radioBoxType === 1) {
+      this.spCheckDesBox = this.shadowRoot?.querySelector('#timeline');
+      let isChecked = this.spCheckDesBox?.getAttribute('checked');
+      return isChecked === 'true';
+    } else {
+      return false;
     }
+  }
 
-    get grabAllocations(): boolean {
-        if (this.radioBoxType === 1) {
-            this.spCheckDesBox = this.shadowRoot?.querySelector('#timeline');
-            let isChecked = this.spCheckDesBox?.getAttribute('checked');
-            return isChecked === 'true';
-        } else {
-            return false;
-        }
+  get intervalValue(): number {
+    if (this.radioBoxType === 0) {
+      return Number(this.interval!.value);
+    } else {
+      return 0;
     }
+  }
 
-    get intervalValue(): number {
-        if (this.radioBoxType === 0) {
-            return Number(this.interval!.value);
-        } else {
-            return 0;
-        }
-    }
-
-    initElements(): void {
-        this.interval = this.shadowRoot?.querySelector('#interval');
-        this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>('lit-allocation-select');
-        let processInput = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
-        let processData: Array<string> = [];
-        processInput!.addEventListener('mousedown', (ev) => {
-            if (SpRecordTrace.serialNumber == '') {
-                this.processInput!.processData = [];
-                this.processInput!.initData();
+  initElements(): void {
+    this.interval = this.shadowRoot?.querySelector('#interval');
+    this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>('lit-allocation-select');
+    let processInput = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    let processData: Array<string> = [];
+    processInput!.addEventListener('mousedown', (ev) => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.processInput!.processData = [];
+        this.processInput!.initData();
+      }
+    });
+    processInput!.addEventListener('mouseup', () => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.processInput!.processData = [];
+        this.processInput!.initData();
+      } else {
+        if (SpRecordTrace.isVscode) {
+          let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
+          Cmd.execHdcCmd(cmd, (res: string) => {
+            processData = [];
+            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of lineValues) {
+              if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                continue;
+              }
+              let process: string[] = lineVal.trim().split(' ');
+              if (process.length == 2) {
+                let processId = process[0];
+                let processName = process[1];
+                processData.push(processName + '(' + processId + ')');
+              }
             }
-        });
-        processInput!.addEventListener('mouseup', () => {
-            if (SpRecordTrace.serialNumber == '') {
-                this.processInput!.processData = [];
-                this.processInput!.initData();
-            } else {
-                if (SpRecordTrace.isVscode) {
-                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
-                    Cmd.execHdcCmd(cmd, (res: string) => {
-                        processData = [];
-                        let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                        for (let lineVal of lineValues) {
-                            if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
-                                continue;
-                            }
-                            let process: string[] = lineVal.trim().split(' ');
-                            if (process.length == 2) {
-                                let processId = process[0];
-                                let processName = process[1];
-                                processData.push(processName + '(' + processId + ')');
-                            }
-                        }
-                        this.processInput!.processData = processData;
-                        this.processInput!.initData();
-                    });
-                } else {
-                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
-                        if (conn) {
-                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
-                                processData = [];
-                                if (res) {
-                                    let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                                    for (let lineVal of lineValues) {
-                                        if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
-                                            continue;
-                                        }
-                                        let process: string[] = lineVal.trim().split(' ');
-                                        if (process.length == 2) {
-                                            let processId = process[0];
-                                            let processName = process[1];
-                                            processData.push(processName + '(' + processId + ')');
-                                        }
-                                    }
-                                }
-                                this.processInput!.processData = processData;
-                                this.processInput!.initData();
-                            });
-                        }
-                    });
+            this.processInput!.processData = processData;
+            this.processInput!.initData();
+          });
+        } else {
+          HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
+            if (conn) {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
+                processData = [];
+                if (res) {
+                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of lineValues) {
+                    if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                      continue;
+                    }
+                    let process: string[] = lineVal.trim().split(' ');
+                    if (process.length == 2) {
+                      let processId = process[0];
+                      let processName = process[1];
+                      processData.push(processName + '(' + processId + ')');
+                    }
+                  }
                 }
+                this.processInput!.processData = processData;
+                this.processInput!.initData();
+              });
             }
-        });
-        this.interval!.addEventListener('focusout', () => {
-            if (this.interval!.value === '') {
-                this.interval!.value = '10';
-            }
-        });
-    }
+          });
+        }
+      }
+    });
+    this.interval!.addEventListener('focusout', () => {
+      if (this.interval!.value === '') {
+        this.interval!.value = '10';
+      }
+    });
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: inline-block;
@@ -267,5 +267,5 @@ export class SpJsHeap extends BaseElement {
             </div>
         </div>
         `;
-    }
+  }
 }

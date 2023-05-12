@@ -16,14 +16,14 @@
 import { SpText } from '../../../dist/trace/component/Sptext.js';
 
 describe('Sptext Test', () => {
-    let sptext = new SpText();
+  let sptext = new SpText();
 
-    it('SptextTest01', function () {
-        expect(sptext.initElements()).toBeUndefined();
-    });
+  it('SptextTest01', function () {
+    expect(sptext.initElements()).toBeUndefined();
+  });
 
-    it('SptextTest01', function () {
-        expect(sptext.initHtml()).toMatchInlineSnapshot(`
+  it('SptextTest01', function () {
+    expect(sptext.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -52,5 +52,5 @@ describe('Sptext Test', () => {
         </div>
         "
 `);
-    });
+  });
 });

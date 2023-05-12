@@ -14,70 +14,68 @@
  */
 
 jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
-    return {};
+  return {};
 });
 
 // @ts-ignore
 import { FpsStruct } from '../../../dist/trace/bean/FpsStruct.js';
 
 describe('FpsStruct Test', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
 
-    const data = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100,
-        },
-        startNS: 200,
-        value: 50,
-    };
-    const node = {
-        startNS: 200,
-        frame: 2,
-        dur: 3,
-    };
-    const padding = 1;
-    const startNs = 1;
-    const endNS = 1;
-    const totalNS = 1;
-    const frame = {
-        x: 20,
-        y: 20,
-        width: 100,
-        height: 100,
-    };
-    const dataSource = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100,
-        },
-        value: 50,
-        maxFps: 50,
-    };
+  const data = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    startNS: 200,
+    value: 50,
+  };
+  const node = {
+    startNS: 200,
+    frame: 2,
+    dur: 3,
+  };
+  const padding = 1;
+  const startNs = 1;
+  const endNS = 1;
+  const totalNS = 1;
+  const frame = {
+    x: 20,
+    y: 20,
+    width: 100,
+    height: 100,
+  };
+  const dataSource = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    value: 50,
+    maxFps: 50,
+  };
 
-    it('FpsStructTest01', function () {
-        expect(FpsStruct.draw(ctx, data)).toBeUndefined();
-    });
+  it('FpsStructTest01', function () {
+    expect(FpsStruct.draw(ctx, data)).toBeUndefined();
+  });
 
-    it('FpsStructTest04 ', function () {
-        expect(FpsStruct.draw(ctx, dataSource)).toBeUndefined();
-    });
+  it('FpsStructTest04 ', function () {
+    expect(FpsStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('FpsStructTest02', function () {
-        let fpsStruct = new FpsStruct();
-        expect(fpsStruct).not.toBeUndefined();
-    });
+  it('FpsStructTest02', function () {
+    let fpsStruct = new FpsStruct();
+    expect(fpsStruct).not.toBeUndefined();
+  });
 
-    it('FpsStructTest03', function () {
-        expect(
-            FpsStruct.setFrame(node, padding, startNs, endNS, totalNS, frame)
-        ).toBeUndefined();
-    });
+  it('FpsStructTest03', function () {
+    expect(FpsStruct.setFrame(node, padding, startNs, endNS, totalNS, frame)).toBeUndefined();
+  });
 });

@@ -18,19 +18,17 @@ import { TabPaneVirtualMemoryStatistics } from '../../../../../../dist/trace/com
 import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js';
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('TabPaneVirtualMemoryStatistics Test', () => {
-    document.body.innerHTML = `<tabpane-virtual-memory-statistics  id="statistics">                      
+  document.body.innerHTML = `<tabpane-virtual-memory-statistics  id="statistics">                      
 </tabpane-virtual-memory-statistics >`;
-    let tabPaneVirtualMemoryStatistics = document.querySelector(
-        '#statistics'
-    ) as TabPaneVirtualMemoryStatistics;
-    it('TabPaneVirtualMemoryStatisticsTest01', function () {
-        expect(tabPaneVirtualMemoryStatistics).toBeDefined();
-    });
+  let tabPaneVirtualMemoryStatistics = document.querySelector('#statistics') as TabPaneVirtualMemoryStatistics;
+  it('TabPaneVirtualMemoryStatisticsTest01', function () {
+    expect(tabPaneVirtualMemoryStatistics).toBeDefined();
+  });
 });

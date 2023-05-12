@@ -15,44 +15,38 @@
 
 import { info } from '../../../log/Log.js';
 
-export const initTraceTaskStrategy = (
-    metricData: Array<any>
-): ProcessListItem => {
-    info('Trace Task Strategy data length is:', metricData.length);
-    let statListItems = [];
-    for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
-        let pidList = metricData[sqlIndex].pid;
-        let processNameList = metricData[sqlIndex].process_name;
-        let threadNameList = metricData[sqlIndex].thread_name;
-        let threadNames = [];
-        let newArr = '';
-        if (threadNameList != null) {
-            threadNames = threadNameList.split(',');
-            newArr = threadNames.reduce(
-                (prev: any, item: any) =>
-                    prev.includes(item) ? prev : prev.concat(item),
-                []
-            );
-        }
-
-        let statListItem = {
-            pid: pidList,
-            processName: processNameList,
-            threadName: newArr,
-        };
-        statListItems?.push(statListItem);
+export const initTraceTaskStrategy = (metricData: Array<any>): ProcessListItem => {
+  info('Trace Task Strategy data length is:', metricData.length);
+  let statListItems = [];
+  for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
+    let pidList = metricData[sqlIndex].pid;
+    let processNameList = metricData[sqlIndex].process_name;
+    let threadNameList = metricData[sqlIndex].thread_name;
+    let threadNames = [];
+    let newArr = '';
+    if (threadNameList != null) {
+      threadNames = threadNameList.split(',');
+      newArr = threadNames.reduce((prev: any, item: any) => (prev.includes(item) ? prev : prev.concat(item)), []);
     }
-    return {
-        process: statListItems,
+
+    let statListItem = {
+      pid: pidList,
+      processName: processNameList,
+      threadName: newArr,
     };
+    statListItems?.push(statListItem);
+  }
+  return {
+    process: statListItems,
+  };
 };
 
 export interface ProcessListItem {
-    process: Array<any>;
+  process: Array<any>;
 }
 
 export interface ProcessItem {
-    pid: string;
-    processName: string;
-    threadName: string;
+  pid: string;
+  processName: string;
+  threadName: string;
 }

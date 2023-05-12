@@ -17,26 +17,26 @@
 import { HiProfilerClient } from '../../../dist/trace/grpc/HiProfilerClient.js';
 
 describe('HiProfilerClient Test', () => {
-    let hiProfilerClient = new HiProfilerClient();
-    it('HiProfilerClientTest01', function () {
-        expect(hiProfilerClient.address).toBeUndefined();
-    });
+  let hiProfilerClient = new HiProfilerClient();
+  it('HiProfilerClientTest01', function () {
+    expect(hiProfilerClient.address).toBeUndefined();
+  });
 
-    it('HiProfilerClientTest02', function () {
-        hiProfilerClient.address = true;
-        expect(hiProfilerClient.address).toBeTruthy();
-    });
+  it('HiProfilerClientTest02', function () {
+    hiProfilerClient.address = true;
+    expect(hiProfilerClient.address).toBeTruthy();
+  });
 
-    it('HiProfilerClientTest03', function () {
-        expect(hiProfilerClient.client).toBeUndefined();
-    });
+  it('HiProfilerClientTest03', function () {
+    expect(hiProfilerClient.client).toBeUndefined();
+  });
 
-    it('HiProfilerClientTest04', function () {
-        hiProfilerClient.client = true;
-        expect(hiProfilerClient.client).toBeTruthy();
-    });
+  it('HiProfilerClientTest04', function () {
+    hiProfilerClient.client = true;
+    expect(hiProfilerClient.client).toBeTruthy();
+  });
 
-    it('HiProfilerClientTest05', function () {
-        expect(hiProfilerClient.getProfilerClient()).toBeTruthy();
-    });
+  it('HiProfilerClientTest05', function () {
+    expect(hiProfilerClient.getProfilerClient()).toBeTruthy();
+  });
 });

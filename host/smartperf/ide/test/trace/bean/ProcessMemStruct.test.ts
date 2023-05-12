@@ -17,22 +17,22 @@
 import { ProcessMemStruct } from '../../../dist/trace/bean/ProcessMemStruct.js';
 
 describe('ProcessMemStruct Test', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
 
-    const data = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100,
-        },
-        startNS: 200,
-        value: 50,
-    };
-    it('ProcessMemStructTest01', function () {
-        expect(ProcessMemStruct.draw(ctx, data)).toBeUndefined();
-    });
+  const data = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    startNS: 200,
+    value: 50,
+  };
+  it('ProcessMemStructTest01', function () {
+    expect(ProcessMemStruct.draw(ctx, data)).toBeUndefined();
+  });
 });
