@@ -68,6 +68,7 @@ public:
     bool CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd) override;
     bool ResetWriter(uint32_t pluginId) override;
     void SetCommandPoller(const std::shared_ptr<CommandPoller>& p) override;
+    void ResetStartupParam();
 
 private:
     void ReadShareMemory();
