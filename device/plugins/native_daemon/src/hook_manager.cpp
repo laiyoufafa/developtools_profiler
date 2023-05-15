@@ -288,7 +288,8 @@ void HookManager::ReadShareMemory()
 
             rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->baseStackData.get());
             rawStack->data = rawStack->baseStackData.get() + sizeof(BaseStackRawData);
-            if (rawStack->stackConext->type == MMAP_FILE_TYPE) {
+            if (rawStack->stackConext->type == MEMORY_TAG || rawStack->stackConext->type == THREAD_NAME_MSG ||
+                rawStack->stackConext->type == MMAP_FILE_TYPE) {
                 return true;
             }
             rawStack->reportFlag = true;
@@ -308,6 +309,16 @@ void HookManager::ReadShareMemory()
         });
         if (!ret) {
             break;
+        }
+        if (rawStack->stackConext->type == MEMORY_TAG) {
+            std::string tagName = reinterpret_cast<char*>(rawStack->data);
+            stackPreprocess_->SaveMemTag(rawStack->stackConext->tagId, tagName);
+            continue;
+        }
+        if (rawStack->stackConext->type == THREAD_NAME_MSG) {
+            std::string threadName = reinterpret_cast<char*>(rawStack->data);
+            stackPreprocess_->SaveThreadName(rawStack->stackConext->tid, threadName);
+            continue;
         }
         if (!stackData_->PutRawStack(rawStack, isRecordAccurately_)) {
             break;
