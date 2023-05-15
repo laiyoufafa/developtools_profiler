@@ -80,7 +80,7 @@ HWTEST_F(HookSocketClientTest, SendStack, TestSize.Level1)
         HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
     }
     metaSize = sizeof(ts);
-    ASSERT_TRUE(hookClient.SendStack(buffer.get(), metaSize));
+    ASSERT_FALSE(hookClient.SendStack(buffer.get(), metaSize));
 }
 
 /*

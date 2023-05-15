@@ -455,7 +455,7 @@ void VirtualRuntime::FillMapsCache(std::string& currentFileName, MemMapItem& mem
             curMemMaps.maps_.emplace_back(memMapItem.begin_, memMapItem.end_, memMapItem.type_,
                                           memMapItem.pageoffset_, curMemMaps.name_);
             if (memMapItem.type_ & PROT_EXEC) {
-                needReportMaps_.push_back(soBegin_);
+                offlineMapAddr_.push_back(soBegin_);
             }
         }
     }
@@ -500,7 +500,7 @@ void VirtualRuntime::HandleMapInfo(uint64_t begin, uint64_t length, uint32_t fla
             curMemMaps.maps_.back().end_ = begin;
             curMemMaps.maps_.emplace_back(begin, begin + length, (uint16_t)flags, offset, curMemMaps.name_);
             if (flags & PROT_EXEC) {
-                needReportMaps_.push_back(soBegin_);
+                offlineMapAddr_.push_back(soBegin_);
             }
         }
     }
@@ -513,16 +513,20 @@ void VirtualRuntime::RemoveMaps(uint64_t addr)
 
 std::pair<MemMaps*, uint32_t> VirtualRuntime::FindMap(uint64_t addr)
 {
-    auto iter = mapsCache_.lower_bound(addr);
-    if (iter != mapsCache_.begin()) {
-        --iter;
-        auto& curMemMaps = iter->second;
-        if (addr >= curMemMaps.soBegin_ && addr < curMemMaps.soEnd_) {
-            for (auto curMemMapItem = curMemMaps.maps_.begin();
-                curMemMapItem != curMemMaps.maps_.end(); ++curMemMapItem) {
-                if (addr >= curMemMapItem->begin_ && addr < curMemMapItem->end_) {
-                    return {&(curMemMaps), curMemMapItem - curMemMaps.maps_.begin()};
-                }
+    auto iter = mapsCache_.upper_bound(addr);
+    if (iter == mapsCache_.begin()) {
+        // have map 2 3 4 5
+        // find 1 , will return 2 (index 0, begin elem)
+        // this same as not found any thins
+        return {nullptr, 0};
+    }
+
+    auto& curMemMaps = (--iter)->second;
+    if (addr >= curMemMaps.soBegin_ && addr < curMemMaps.soEnd_) {
+        for (auto curMemMapItem = curMemMaps.maps_.begin();
+            curMemMapItem != curMemMaps.maps_.end(); ++curMemMapItem) {
+            if (addr >= curMemMapItem->begin_ && addr < curMemMapItem->end_) {
+                return {&(curMemMaps), curMemMapItem - curMemMaps.maps_.begin()};
             }
         }
     }

@@ -469,8 +469,8 @@ void VirtualThread::CreateMapItem(const std::string filename, uint64_t begin, ui
         return; // skip some memmap
     }
     MemMapItem &map = memMaps_->emplace_back(begin, begin + len, offset, filename);
-    HLOGD(" %u:%u create a new map(total %zu) at '%s' (0x%" PRIx64 "-0x%" PRIx64 ")@0x%" PRIx64 " ",
-          pid_, tid_, memMaps_->size(), map.name_.c_str(), map.begin_, map.end_, map.pageoffset_);
+    std::string tempMapName{" "};
+    virtualruntime_->FillMapsCache(tempMapName, map);
     SortMemMaps();
 }
 } // namespace NativeDaemon

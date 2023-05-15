@@ -111,11 +111,12 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
             }
             rawData->stackConext = reinterpret_cast<BaseStackRawData *>(const_cast<int8_t *>(data));
             rawData->data = const_cast<int8_t *>(data) + sizeof(BaseStackRawData);
-            if (rawData->stackConext->type == MMAP_LIB_TYPE) {
+
+            if (rawData->stackConext->type == MMAP_FILE_TYPE) {
                 BaseStackRawData* mmapRawData = rawData->stackConext;
                 std::string filePath(reinterpret_cast<char *>(rawData->data));
-                HILOG_DEBUG(LOG_CORE,
-                    "MMAP_LIB_TYPE curMmapAddr=%p, MAP_FIXED=%d, PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
+                HILOG_DEBUG(LOG_CORE, "MMAP_FILE_TYPE curMmapAddr=%p, MAP_FIXED=%d, "
+                    "PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
                     mmapRawData->addr, mmapRawData->mmapArgs.flags & MAP_FIXED,
                     mmapRawData->mmapArgs.flags & PROT_EXEC, mmapRawData->mmapArgs.offset, filePath.data());
                 g_runtimeInstance->HandleMapInfo(reinterpret_cast<uint64_t>(mmapRawData->addr), mmapRawData->mallocSize,

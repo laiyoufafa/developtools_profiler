@@ -85,14 +85,14 @@ public:
     void FillMapsCache(std::string& currentFileName, MemMapItem& memMapItem);
     void HandleMapInfo(uint64_t begin, uint64_t length, uint32_t flags, uint64_t offset, const std::string& filePath);
     void RemoveMaps(uint64_t addr);
-    std::vector<uint64_t>& GetNeedReportMaps()
+    std::vector<uint64_t>& GetOfflineMaps()
     {
-        return needReportMaps_;
+        return offlineMapAddr_;
     }
 
-    void ClearNeedReportMaps()
+    void ClearOfflineMaps()
     {
-        needReportMaps_.clear();
+        offlineMapAddr_.clear();
     }
 
     std::map<uint64_t, MemMaps>& GetMapsCache()
@@ -189,7 +189,7 @@ private:
     const NativeHookConfig hookConfig_;
     uint32_t memMapFilePathId_ = 0;
     std::map<uint64_t, MemMaps> mapsCache_; // key is memMap soBegin, value is MemMaps
-    std::vector<uint64_t> needReportMaps_; // element is memMap soBegin
+    std::vector<uint64_t> offlineMapAddr_; // element is memMap soBegin
 };
 } // namespace NativeDaemon
 } // namespace Developtools
