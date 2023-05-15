@@ -47,11 +47,11 @@ ohos_source_set("base_tables") {
   ]
   include_dirs = [
     "//third_party/sqlite/include",
-    "//src/base",
+    "../../../src/base",
     "../../parser",
-    "//src/trace_data",
-    "//src/include",
-    "//src",
+    "../../../src/trace_data",
+    "../../../src/include",
+    "../../../src",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "//third_party/protobuf/src",
   ]
