@@ -126,18 +126,5 @@ RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, clockid_t clockId, u
 
     lock.unlock();
     slotCondVar_.notify_one();
-    if (result != nullptr && during > 0 && rawDataQueueSize < SLOW_DOWN_THRESHOLD) {
-        struct timespec now = {};
-        clock_gettime(clockId, &now);
-        uint64_t curDuring = (now.tv_sec - result->stackConext->ts.tv_sec) * 1000;
-        int diff = during - curDuring;
-        if (diff > 0) {
-            HILOG_INFO(LOG_CORE, "TakeRawData sleep  diff %d, rawDataQueueSize %d", diff, rawDataQueueSize);
-            int cnt = diff / DEFAULT_SLEEP_TIME_MS;
-            while (!closed_ && cnt-- > 0) {
-                usleep(DEFAULT_SLEEP_TIME_US);
-            }
-        }
-    }
     return result;
 }
