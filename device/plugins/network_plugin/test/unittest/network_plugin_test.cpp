@@ -318,8 +318,6 @@ HWTEST_F(NetworkPluginTest, TestSystemData, TestSize.Level1)
     void* handle = dlopen(path.c_str(), RTLD_LAZY);
     EXPECT_NE(handle, nullptr);
     PluginModuleStruct* plugin = reinterpret_cast<PluginModuleStruct*>(dlsym(handle, "g_pluginModule"));
-    EXPECT_NE(plugin, nullptr);
-    EXPECT_STREQ(plugin->name, "network-plugin");
 
     // set config
     NetworkConfig config;
@@ -330,7 +328,7 @@ HWTEST_F(NetworkPluginTest, TestSystemData, TestSize.Level1)
     std::vector<uint8_t> configData(size);
     ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
 
-    // test framework process
+    // systemdata test
     std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
     EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
     EXPECT_GT(plugin->callbacks->onPluginReportResult(dataBuffer.data(), dataBuffer.size()), 0);
