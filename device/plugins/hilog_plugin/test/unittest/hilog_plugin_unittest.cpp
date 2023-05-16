@@ -1123,7 +1123,6 @@ HWTEST_F(HilogPluginTest, TestFullCmd, TestSize.Level1)
     g_proto.erase(g_proto.begin(), g_proto.end());
     // set config
     config.set_device_type(Type::HI3516);
-    config.set_need_clear(true);
     config.set_need_record(true);
 
     // test plugin process

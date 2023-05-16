@@ -29,6 +29,7 @@ ohos_source_set("hisyseventplugin_source") {
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_DIR}/device/base:hiprofiler_base",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hisysevent_data:hisysevent_data_cpp",
     "//third_party/bounds_checking_function:libsec_static",
   ]

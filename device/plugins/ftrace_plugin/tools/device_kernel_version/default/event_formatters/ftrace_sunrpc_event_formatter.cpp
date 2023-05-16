@@ -189,7 +189,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.action()) > 0) {
             functionStr = kernelSymbols[msg.action()];
         }
@@ -230,7 +230,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.action()) > 0) {
             functionStr = kernelSymbols[msg.action()];
         }
@@ -273,7 +273,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.action()) > 0) {
             functionStr = kernelSymbols[msg.action()];
         }

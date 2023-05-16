@@ -34,7 +34,7 @@ const std::string DEFAULT_TEST_PATH("/system/lib64/");
 const std::string DEFAULT_TEST_PATH("/system/lib/");
 #endif
 const int US_PER_S = 1000000;
-const int DEFAULT_WAIT = 10;
+const int DEFAULT_WAIT = 5;
 
 std::atomic<uint64_t> g_testId(1);
 
@@ -107,7 +107,7 @@ HWTEST_F(HisyseventPluginTest, TestDefaultCmd, TestSize.Level1)
     // test plugin process
     plugin.SetWriter(&writer);
     EXPECT_TRUE(PluginStart(plugin, config));
-    usleep(US_PER_S * DEFAULT_WAIT); // 10s
+    usleep(US_PER_S * DEFAULT_WAIT); // 5s
     EXPECT_EQ(plugin.Stop(), 0);
 
     // test proto data
@@ -154,7 +154,7 @@ HWTEST_F(HisyseventPluginTest, TestFramework, TestSize.Level1)
     std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
     EXPECT_EQ(plugin->callbacks->onRegisterWriterStruct(&writer), 0);
     EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
-    usleep(US_PER_S * DEFAULT_WAIT); // 10s
+    usleep(US_PER_S * DEFAULT_WAIT); // 5s
     EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
 
     // test proto data
@@ -197,10 +197,13 @@ HWTEST_F(HisyseventPluginTest, TestStartFail, TestSize.Level1)
     ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
 
     // start
-    EXPECT_NE(plugin.Start(configData.data(), 0), 0);
+    EXPECT_EQ(plugin.Start(configData.data(), 0), 0);
+    usleep(US_PER_S * DEFAULT_WAIT); // 5s
+    plugin.Stop();
+
     EXPECT_NE(plugin.Start(nullptr, configData.size()), 0);
     EXPECT_EQ(plugin.Start(configData.data(), configData.size()), 0);
-    usleep(US_PER_S * DEFAULT_WAIT); // 10s
+    usleep(US_PER_S * DEFAULT_WAIT); // 5s
     plugin.Stop();
 }
 
@@ -213,27 +216,32 @@ HWTEST_F(HisyseventPluginTest, TestCustomPopenClose, TestSize.Level1)
 {
     HisyseventConfig config;
     HisyseventPlugin plugin;
+    WriterStruct writer = {WriteFunc, FlushFunc};
+    plugin.SetWriter(&writer);
     // set config
     config.set_msg("H");
     int size = config.ByteSizeLong();
     std::vector<uint8_t> configData(size);
     config.SerializeToArray(configData.data(), configData.size());
-    plugin.Start(configData.data(), configData.size());
-    EXPECT_EQ(plugin.GetCmdline(), "hisysevent -rd ");
-    std::vector<char*> fullCmdTest;
-    fullCmdTest.push_back(const_cast<char *>("hisysevent"));
-    fullCmdTest.push_back(const_cast<char *>("-rd"));
-    fullCmdTest.push_back(nullptr);
-    EXPECT_EQ(plugin.CustomPopen(&fullCmdTest[0], nullptr), nullptr);
-    FILE* fpr = plugin.CustomPopen(&fullCmdTest[0], "r");
-    EXPECT_NE(fpr, nullptr);
-    ASSERT_GT(plugin.CustomPclose(fpr), 0);
+    EXPECT_EQ(plugin.Start(configData.data(), configData.size()), 0);
+    EXPECT_EQ(plugin.GetFullCmd(), "/bin/hisysevent hisysevent -rd");
+    std::vector<std::string> fullCmdTest;
+    fullCmdTest.push_back("/bin/hisysevent");
+    fullCmdTest.push_back("hisysevent");
+    fullCmdTest.push_back("-rd");
+    volatile pid_t childPid = -1;
+    int pipeFds[2] = {-1, -1};
+    FILE* fpr = COMMON::CustomPopen(fullCmdTest, nullptr, pipeFds, childPid, true);
+    EXPECT_EQ(fpr, nullptr);
+    EXPECT_EQ(COMMON::CustomPclose(fpr, pipeFds, childPid, true), -1);
 
-    FILE* fpw = plugin.CustomPopen(&fullCmdTest[0], "w");
+    childPid = -1;
+    pipeFds[0] = -1;
+    pipeFds[1] = -1;
+    FILE* fpw = COMMON::CustomPopen(fullCmdTest, "w", pipeFds, childPid);
     EXPECT_NE(fpw, nullptr);
-    ASSERT_GT(plugin.CustomPclose(fpw), 0);
-    usleep(US_PER_S * DEFAULT_WAIT); // 10s
+    EXPECT_EQ(COMMON::CustomPclose(fpw, pipeFds, childPid, true), -1);
+    usleep(US_PER_S * DEFAULT_WAIT); // 5s
     plugin.Stop();
 }
-
 }

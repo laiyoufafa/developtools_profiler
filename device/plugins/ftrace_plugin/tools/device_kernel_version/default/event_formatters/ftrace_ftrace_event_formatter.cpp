@@ -30,7 +30,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.ip()) > 0) {
             functionStr = kernelSymbols[msg.ip()];
         }
@@ -83,7 +83,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.func()) > 0) {
             functionStr = kernelSymbols[msg.func()];
         }
@@ -108,7 +108,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.func()) > 0) {
             functionStr = kernelSymbols[msg.func()];
         }
@@ -135,7 +135,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string functionStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.ip()) > 0) {
             functionStr = kernelSymbols[msg.ip()];
         }
@@ -160,7 +160,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string kernelSymbolsStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.caller()[0]) > 0) {
             kernelSymbolsStr = kernelSymbols[msg.caller()[0]];
         }
@@ -242,7 +242,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = 0;
         std::string kernelSymbolsStr = "";
-        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        auto& kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
         if (kernelSymbols.count(msg.caller()[0]) > 0) {
             kernelSymbolsStr = kernelSymbols[msg.caller()[0]];
         }
