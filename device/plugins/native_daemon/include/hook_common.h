@@ -59,8 +59,12 @@ enum {
     MALLOC_MSG = 0,
     FREE_MSG,
     MMAP_MSG,
+    MMAP_FILE_PAGE_MSG,
     MUNMAP_MSG,
+    MEMORY_USING_MSG,
+    MEMORY_UNUSING_MSG,
     MEMORY_TAG,
+    THREAD_NAME_MSG,
     PR_SET_VMA_MSG,
 };
 
@@ -70,7 +74,6 @@ struct alignas(8) MmapFileRawData { // 8 is 8 bit
 };
 
 struct alignas(8) BaseStackRawData { // 8 is 8 bit
-    char tname[MAX_THREAD_NAME];
     union {
         struct timespec ts;
         MmapFileRawData mmapArgs;
@@ -79,14 +82,15 @@ struct alignas(8) BaseStackRawData { // 8 is 8 bit
     size_t mallocSize;
     uint32_t pid;
     uint32_t tid;
-    uint32_t type;
+    uint16_t type;
+    uint16_t tagId;
 };
 
 struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
     union {
         char regs[MAX_REG_SIZE];
         uint64_t ip[MAX_UNWIND_DEPTH];
-        char filePath[PATH_MAX + 1] {0};
+        char name[PATH_MAX + 1] {0};
     };
 };
 

@@ -258,7 +258,20 @@ void StackPreprocess::TakeResults()
             }
         }
     }
+    ReportThreadNameMap();
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
+}
+
+inline void StackPreprocess::ReportThreadNameMap()
+{
+    BatchNativeHookData threadNameData;
+    for (auto& it : threadNameMap_) {
+        auto hookData = threadNameData.add_events();
+        auto* thread = hookData->mutable_thread_name_map();
+        thread->set_id(it.first);
+        thread->set_name(it.second);
+    }
+    FlushData(threadNameData);
 }
 
 inline void StackPreprocess::FillOfflineCallStack(std::vector<CallFrame>& callFrames, size_t idx)
@@ -415,45 +428,53 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
     if (rawStack->stackConext->type == MALLOC_MSG) {
         AllocEvent* allocEvent = hookData->mutable_alloc_event();
         allocEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
-        std::string name = rawStack->stackConext->tname;
-        if (!name.empty()) {
-            allocEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
-        }
+        allocEvent->set_thread_name_id(rawStack->stackConext->tid);
         SetEventFrame(rawStack, callFrames, batchNativeHookData, allocEvent, stackMapId);
     } else if (rawStack->stackConext->type == FREE_MSG) {
         FreeEvent* freeEvent = hookData->mutable_free_event();
-        std::string name = rawStack->stackConext->tname;
-        if (!name.empty()) {
-            freeEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
-        }
+        freeEvent->set_thread_name_id(rawStack->stackConext->tid);
         SetEventFrame(rawStack, callFrames, batchNativeHookData, freeEvent, stackMapId);
     } else if (rawStack->stackConext->type == MMAP_MSG) {
         MmapEvent* mmapEvent = hookData->mutable_mmap_event();
         mmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
-        std::string name = rawStack->stackConext->tname;
-        if (name == "ArkJs") {
-            mmapEvent->set_type("ArkJsGlobalHandle");
-        } else if (name.find("/") != std::string::npos) {
-            name.erase(0, 1); // remove first '/'
-            mmapEvent->set_type("FilePage:" + name);
-        } else if (!name.empty()) {
-            mmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
+        mmapEvent->set_thread_name_id(rawStack->stackConext->tid);
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, mmapEvent, stackMapId);
+    } else if (rawStack->stackConext->type == MMAP_FILE_PAGE_MSG) {
+        MmapEvent* mmapEvent = hookData->mutable_mmap_event();
+        mmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
+        mmapEvent->set_thread_name_id(rawStack->stackConext->tid);
+        const std::string prefix = "FilePage:";
+        std::string tagName;
+        if (GetMemTag(rawStack->stackConext->tagId, tagName)) {
+            mmapEvent->set_type(prefix + tagName);
         }
         SetEventFrame(rawStack, callFrames, batchNativeHookData, mmapEvent, stackMapId);
     } else if (rawStack->stackConext->type == MUNMAP_MSG) {
         MunmapEvent* munmapEvent = hookData->mutable_munmap_event();
         munmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
-        std::string name = rawStack->stackConext->tname;
-        if (!name.empty()) {
-            munmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
-        }
+        munmapEvent->set_thread_name_id(rawStack->stackConext->tid);
         SetEventFrame(rawStack, callFrames, batchNativeHookData, munmapEvent, stackMapId);
     } else if (rawStack->stackConext->type == PR_SET_VMA_MSG) {
         MemTagEvent* tagEvent = hookData->mutable_tag_event();
-        std::string name = "Anonymous:";
-        tagEvent->set_tag(name + rawStack->stackConext->tname);
+        const std::string prefix = "Anonymous:";
+        std::string tagName(reinterpret_cast<char*>(rawStack->data));
+        tagEvent->set_tag(prefix + tagName);
         tagEvent->set_size(rawStack->stackConext->mallocSize);
         tagEvent->set_addr((uint64_t)rawStack->stackConext->addr);
+    } else if (rawStack->stackConext->type == MEMORY_USING_MSG) {
+        MmapEvent* mmapEvent = hookData->mutable_mmap_event();
+        mmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
+        mmapEvent->set_thread_name_id(rawStack->stackConext->tid);
+        std::string tagName;
+        if (GetMemTag(rawStack->stackConext->tagId, tagName)) {
+            mmapEvent->set_type(tagName);
+        }
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, mmapEvent, stackMapId);
+    } else if (rawStack->stackConext->type == MEMORY_UNUSING_MSG) {
+        MunmapEvent* munmapEvent = hookData->mutable_munmap_event();
+        munmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext->mallocSize));
+        munmapEvent->set_thread_name_id(rawStack->stackConext->tid);
+        SetEventFrame(rawStack, callFrames, batchNativeHookData, munmapEvent, stackMapId);
     }
 }
 
@@ -500,32 +521,18 @@ inline void StackPreprocess::SetAllocStatisticsData(const RawStackPtr& rawStack,
     }
 }
 
-uint32_t StackPreprocess::GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData)
-{
-    auto it = threadMap_.find(threadName);
-    if (it != threadMap_.end()) {
-        return it->second;
-    } else {
-        auto hookData = batchNativeHookData.add_events();
-        auto* thread = hookData->mutable_thread_name_map();
-        thread->set_id(threadMap_.size() + 1);
-        thread->set_name(threadName);
-        threadMap_[threadName] = threadMap_.size() + 1;
-
-        HILOG_INFO(LOG_CORE, "threadName = %s, threadMap_.size() = %zu\n", threadName.c_str(), threadMap_.size());
-        return threadMap_.size();
-    }
-}
-
 void StackPreprocess::WriteFrames(RawStackPtr rawStack, const std::vector<CallFrame>& callFrames)
 {
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());
     if (rawStack->stackConext->type == PR_SET_VMA_MSG) {
+        const std::string prefix = "Anonymous:";
+        std::string tagName;
+        GetMemTag(rawStack->stackConext->tagId, tagName);
         fprintf(fpHookData_.get(), "prctl;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
             rawStack->stackConext->pid, rawStack->stackConext->tid,
             (int64_t)rawStack->stackConext->ts.tv_sec, rawStack->stackConext->ts.tv_nsec,
-            (uint64_t)rawStack->stackConext->addr, rawStack->stackConext->tname);
+            (uint64_t)rawStack->stackConext->addr, (prefix + tagName).c_str());
         return;
     }
     std::string tag = "";
@@ -774,4 +781,30 @@ bool StackPreprocess::FlushRecordStatistics()
     statisticsPeriodData_.clear();
 
     return true;
+}
+
+void StackPreprocess::SaveMemTag(uint32_t tagId, const std::string& tagName)
+{
+    auto it = memTagMap_.find(tagId);
+    if (it == memTagMap_.end()) {
+        memTagMap_[tagId] = tagName;
+    }
+}
+
+bool StackPreprocess::GetMemTag(uint32_t tagId, std::string& tagName)
+{
+    auto it = memTagMap_.find(tagId);
+    if (it != memTagMap_.end()) {
+        tagName = it->second;
+        return true;
+    }
+    return false;
+}
+
+void StackPreprocess::SaveThreadName(uint32_t tid, const std::string& tname)
+{
+    auto it = threadNameMap_.find(tid);
+    if (it == threadNameMap_.end()) {
+        threadNameMap_[tid] = tname;
+    }
 }
