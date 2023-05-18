@@ -39,14 +39,14 @@ public:
 };
 
 std::string g_resultTest;
-void res(const std::string result, int finish, int isConfig)
+void res(const std::string result, int32_t finish, int32_t isConfig)
 {
     TS_LOGI("%s", result.c_str());
     g_resultTest = result;
 }
 
 std::string g_reply;
-void QueryResultCallback(const std::string& jsonResult, int finish, int isConfig)
+void QueryResultCallback(const std::string& jsonResult, int32_t finish, int32_t isConfig)
 {
     g_reply = jsonResult;
 }

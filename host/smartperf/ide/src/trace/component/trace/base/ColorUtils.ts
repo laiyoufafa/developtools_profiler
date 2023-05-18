@@ -16,180 +16,161 @@
 import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
 
 export class ColorUtils {
-    public static GREY_COLOR: string = '#f0f0f0';
+  public static GREY_COLOR: string = '#f0f0f0';
 
-    public static MD_PALETTE_A: Array<string> = [
-        '#40b3e7',
-        '#606e75',
-        '#8d9171',
-        '#8f8f8f',
-        '#7a9160',
-        '#9fafc4',
-        '#8a8a8b',
-        '#9e8e00',
-        '#696e35',
-        '#5c4d21',
-        '#18a8a1',
-        '#a16a40',
-        '#a94eb9',
-        '#886EB4',
-    ];
-    public static MD_PALETTE_B: Array<string> = [
-        '#9785D3',
-        '#A27F7E',
-        '#00bdd6',
-        '#94B5F4',
-        '#B282F6',
-        '#E97978',
-        '#7AD7E6',
-        '#A1C38A',
-        '#DB8E86',
-        '#42B7A4',
-        '#AACEA0',
-        '#E69553',
-        '#7EC6BB',
-        '#C6D9F2',
-    ];
-    public static FUNC_COLOR_A: Array<string> = [
-        '#40b3e7',
-        '#606e75',
-        '#8d9171',
-        '#8f8f8f',
-        '#7a9160',
-        '#9fafc4',
-        '#8a8a8b',
-        '#9e8e00',
-        '#696e35',
-        '#5c4d21',
-        '#18a8a1',
-        '#a16a40',
-        '#a94eb9',
-        '#886EB4',
-    ];
-    public static FUNC_COLOR_B: Array<string> = [
-        '#9785D3',
-        '#A27F7E',
-        '#00bdd6',
-        '#94B5F4',
-        '#B282F6',
-        '#E97978',
-        '#7AD7E6',
-        '#A1C38A',
-        '#DB8E86',
-        '#42B7A4',
-        '#AACEA0',
-        '#E69553',
-        '#7EC6BB',
-        '#C6D9F2',
-    ];
+  public static MD_PALETTE_A: Array<string> = [
+    '#40b3e7',
+    '#606e75',
+    '#8d9171',
+    '#8f8f8f',
+    '#7a9160',
+    '#9fafc4',
+    '#8a8a8b',
+    '#9e8e00',
+    '#696e35',
+    '#5c4d21',
+    '#18a8a1',
+    '#a16a40',
+    '#a94eb9',
+    '#886EB4',
+  ];
+  public static MD_PALETTE_B: Array<string> = [
+    '#9785D3',
+    '#A27F7E',
+    '#00bdd6',
+    '#94B5F4',
+    '#B282F6',
+    '#E97978',
+    '#7AD7E6',
+    '#A1C38A',
+    '#DB8E86',
+    '#42B7A4',
+    '#AACEA0',
+    '#E69553',
+    '#7EC6BB',
+    '#C6D9F2',
+  ];
+  public static FUNC_COLOR_A: Array<string> = [
+    '#40b3e7',
+    '#606e75',
+    '#8d9171',
+    '#8f8f8f',
+    '#7a9160',
+    '#9fafc4',
+    '#8a8a8b',
+    '#9e8e00',
+    '#696e35',
+    '#5c4d21',
+    '#18a8a1',
+    '#a16a40',
+    '#a94eb9',
+    '#886EB4',
+  ];
+  public static FUNC_COLOR_B: Array<string> = [
+    '#9785D3',
+    '#A27F7E',
+    '#00bdd6',
+    '#94B5F4',
+    '#B282F6',
+    '#E97978',
+    '#7AD7E6',
+    '#A1C38A',
+    '#DB8E86',
+    '#42B7A4',
+    '#AACEA0',
+    '#E69553',
+    '#7EC6BB',
+    '#C6D9F2',
+  ];
 
-    public static JANK_COLOR: Array<string> = [
-        '#42A14D',
-        '#C0CE85',
-        '#FF651D',
-        '#FFE335',
-        '#009DFA',
-        '#E97978',
-    ];
-    public static MD_PALETTE: Array<string> = ColorUtils.MD_PALETTE_B;
-    public static FUNC_COLOR: Array<string> = ColorUtils.FUNC_COLOR_B;
+  public static JANK_COLOR: Array<string> = ['#42A14D', '#C0CE85', '#FF651D', '#FFE335', '#009DFA', '#E97978'];
+  public static MD_PALETTE: Array<string> = ColorUtils.MD_PALETTE_B;
+  public static FUNC_COLOR: Array<string> = ColorUtils.FUNC_COLOR_B;
 
-    public static hash(str: string, max: number): number {
-        let colorA: number = 0x811c9dc5;
-        let colorB: number = 0xfffffff;
-        let colorC: number = 16777619;
-        let colorD: number = 0xffffffff;
-        let hash: number = colorA & colorB;
+  public static hash(str: string, max: number): number {
+    let colorA: number = 0x811c9dc5;
+    let colorB: number = 0xfffffff;
+    let colorC: number = 16777619;
+    let colorD: number = 0xffffffff;
+    let hash: number = colorA & colorB;
 
-        for (let index: number = 0; index < str.length; index++) {
-            hash ^= str.charCodeAt(index);
-            hash = (hash * colorC) & colorD;
+    for (let index: number = 0; index < str.length; index++) {
+      hash ^= str.charCodeAt(index);
+      hash = (hash * colorC) & colorD;
+    }
+    return Math.abs(hash) % max;
+  }
+
+  public static colorForThread(thread: CpuStruct): string {
+    if (thread == null) {
+      return ColorUtils.GREY_COLOR;
+    }
+    let tid: number | undefined | null = (thread.processId || -1) >= 0 ? thread.processId : thread.tid;
+    return ColorUtils.colorForTid(tid || 0);
+  }
+
+  public static colorForTid(tid: number): string {
+    let colorIdx: number = ColorUtils.hash(`${tid}`, ColorUtils.MD_PALETTE.length);
+    return ColorUtils.MD_PALETTE[colorIdx];
+  }
+
+  public static colorForName(name: string): string {
+    let colorIdx: number = ColorUtils.hash(name, ColorUtils.MD_PALETTE.length);
+    return ColorUtils.MD_PALETTE[colorIdx];
+  }
+
+  public static formatNumberComma(str: number): string {
+    if (str === undefined || str === null) return '';
+    let unit = str >= 0 ? '' : '-';
+    let l = Math.abs(str).toString().split('').reverse();
+    let t: string = '';
+    for (let i = 0; i < l.length; i++) {
+      t += l[i] + ((i + 1) % 3 == 0 && i + 1 != l.length ? ',' : '');
+    }
+    return unit + t.split('').reverse().join('');
+  }
+
+  public static hashFunc(str: string, depth: number, max: number): number {
+    let colorA: number = 0x811c9dc5;
+    let colorB: number = 0xfffffff;
+    let colorC: number = 16777619;
+    let colorD: number = 0xffffffff;
+    let hash: number = colorA & colorB;
+    let st = str.replace(/[0-9]+/g, '');
+    for (let index: number = 0; index < st.length; index++) {
+      hash ^= st.charCodeAt(index);
+      hash = (hash * colorC) & colorD;
+    }
+    return (Math.abs(hash) + depth) % max;
+  }
+
+  public static funcTextColor(val: string) {
+    var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+    // 把颜色值变成小写
+    var color = val.toLowerCase();
+    var result = '';
+    if (reg.test(color)) {
+      if (color.length === 4) {
+        var colorNew = '#';
+        for (var i = 1; i < 4; i += 1) {
+          colorNew += color.slice(i, i + 1).concat(color.slice(i, i + 1));
         }
-        return Math.abs(hash) % max;
+        color = colorNew;
+      }
+      var colorChange = [];
+      for (var i = 1; i < 7; i += 2) {
+        colorChange.push(parseInt('0x' + color.slice(i, i + 2)));
+      }
+      var grayLevel = colorChange[0] * 0.299 + colorChange[1] * 0.587 + colorChange[2] * 0.114;
+      if (grayLevel >= 150) {
+        //浅色模式
+        return '#000';
+      } else {
+        return '#fff';
+      }
+    } else {
+      result = '无效';
+      return result;
     }
-
-    public static colorForThread(thread: CpuStruct): string {
-        if (thread == null) {
-            return ColorUtils.GREY_COLOR;
-        }
-        let tid: number | undefined | null =
-            (thread.processId || -1) >= 0 ? thread.processId : thread.tid;
-        return ColorUtils.colorForTid(tid || 0);
-    }
-
-    public static colorForTid(tid: number): string {
-        let colorIdx: number = ColorUtils.hash(
-            `${tid}`,
-            ColorUtils.MD_PALETTE.length
-        );
-        return ColorUtils.MD_PALETTE[colorIdx];
-    }
-
-    public static colorForName(name: string): string {
-        let colorIdx: number = ColorUtils.hash(
-            name,
-            ColorUtils.MD_PALETTE.length
-        );
-        return ColorUtils.MD_PALETTE[colorIdx];
-    }
-
-    public static formatNumberComma(str: number): string {
-        if (str === undefined || str === null) return '';
-        let unit = str >= 0 ? '' : '-';
-        let l = Math.abs(str).toString().split('').reverse();
-        let t: string = '';
-        for (let i = 0; i < l.length; i++) {
-            t += l[i] + ((i + 1) % 3 == 0 && i + 1 != l.length ? ',' : '');
-        }
-        return unit + t.split('').reverse().join('');
-    }
-
-    public static hashFunc(str: string, depth: number, max: number): number {
-        let colorA: number = 0x811c9dc5;
-        let colorB: number = 0xfffffff;
-        let colorC: number = 16777619;
-        let colorD: number = 0xffffffff;
-        let hash: number = colorA & colorB;
-        let st = str.replace(/[0-9]+/g, '');
-        for (let index: number = 0; index < st.length; index++) {
-            hash ^= st.charCodeAt(index);
-            hash = (hash * colorC) & colorD;
-        }
-        return (Math.abs(hash) + depth) % max;
-    }
-
-    public static funcTextColor(val: string) {
-        var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
-        // 把颜色值变成小写
-        var color = val.toLowerCase();
-        var result = '';
-        if (reg.test(color)) {
-            if (color.length === 4) {
-                var colorNew = '#';
-                for (var i = 1; i < 4; i += 1) {
-                    colorNew += color
-                        .slice(i, i + 1)
-                        .concat(color.slice(i, i + 1));
-                }
-                color = colorNew;
-            }
-            var colorChange = [];
-            for (var i = 1; i < 7; i += 2) {
-                colorChange.push(parseInt('0x' + color.slice(i, i + 2)));
-            }
-            var grayLevel =
-                colorChange[0] * 0.299 +
-                colorChange[1] * 0.587 +
-                colorChange[2] * 0.114;
-            if (grayLevel >= 150) {
-                //浅色模式
-                return '#000';
-            } else {
-                return '#fff';
-            }
-        } else {
-            result = '无效';
-            return result;
-        }
-    }
+  }
 }

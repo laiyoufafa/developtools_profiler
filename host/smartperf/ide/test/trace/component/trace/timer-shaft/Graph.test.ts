@@ -16,8 +16,8 @@
 import { Graph } from '../../../../../dist/trace/component/trace/timer-shaft/Graph.js';
 
 describe('Flag Test', () => {
-    it('FlagTest01 ', function () {
-        let graph = new Graph();
-        expect(graph).not.toBeUndefined();
-    });
+  it('FlagTest01 ', function () {
+    let graph = new Graph();
+    expect(graph).not.toBeUndefined();
+  });
 });

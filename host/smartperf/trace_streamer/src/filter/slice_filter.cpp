@@ -242,7 +242,7 @@ void SliceFilter::CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTi
 {
     auto slices = traceDataCache_->GetInternalSlicesData();
     bool incomplete = false;
-    for (int i = stack.size() - 1; i >= 0; i--) {
+    for (int32_t i = stack.size() - 1; i >= 0; i--) {
         uint32_t sliceIdx = stack[i].index;
         int64_t startTs = slices->TimeStampData()[sliceIdx];
         int64_t dur = slices->DursData()[sliceIdx];
@@ -255,7 +255,7 @@ void SliceFilter::CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTi
             if (ts <= endTs) {
                 continue;
             }
-            for (int j = stack.size() - 1; j > i; --j) {
+            for (int32_t j = stack.size() - 1; j > i; --j) {
                 uint32_t childIdx = stack[i].index;
                 slices->SetDur(childIdx, endTs - slices->TimeStampData()[childIdx]);
                 stack.pop_back();
@@ -273,7 +273,7 @@ void SliceFilter::CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTi
 int32_t SliceFilter::MatchingIncompleteSliceIndex(const SlicesStack& stack, DataIndex category, DataIndex name)
 {
     auto slices = traceDataCache_->GetInternalSlicesData();
-    for (int i = stack.size() - 1; i >= 0; i--) {
+    for (int32_t i = stack.size() - 1; i >= 0; i--) {
         uint32_t sliceIdx = stack[i].index;
         if (slices->DursData()[sliceIdx] != -1) {
             continue;
@@ -304,7 +304,7 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
         sliceStack.asyncEventCount++;
         sliceStack.asyncEventLastBeginTs = timeStamp;
         if (!stack.empty()) {
-            return INVALID_UINT32;
+            return SIZE_MAX;
         }
     }
     // keep slice of thread
@@ -316,7 +316,7 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
         sliceData.timeStamp, sliceData.duration, sliceData.internalTid, sliceData.cat,
         GetNameASCIISumNoNum(traceDataCache_->GetDataFromDict(sliceData.name)), sliceData.name, 0, parentId);
     if (depth >= std::numeric_limits<uint8_t>::max()) {
-        return INVALID_UINT32;
+        return SIZE_MAX;
     }
     slices->SetDepth(index, depth);
 
@@ -349,7 +349,7 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp, uint32_t pid, DataIndex ca
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     if (binderStackMap_.find(internalTid) == binderStackMap_.end()) {
-        return INVALID_INT32;
+        return SIZE_MAX;
     }
     auto& stackInfo = binderStackMap_[internalTid];
     SlicesStack& stack = stackInfo.sliceStack;
@@ -357,12 +357,12 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp, uint32_t pid, DataIndex ca
     if (stack.empty()) {
         TS_LOGE("a slice end do not match a slice start event");
         callEventDisMatchCount++;
-        return INVALID_INT32;
+        return SIZE_MAX;
     }
     auto stackIdx = MatchingIncompleteSliceIndex(stack, category, name);
     if (stackIdx < 0) {
         TS_LOGE("MatchingIncompleteSliceIndex failed");
-        return INVALID_INT32;
+        return SIZE_MAX;
     }
     auto lastRow = stack[stackIdx].index;
     auto slices = traceDataCache_->GetInternalSlicesData();

@@ -26,13 +26,13 @@ void sdk_plugin_init_table_name()
                      "slice_table",
                      "slice_object_table");
 }
-int sdk_plugin_data_parser(const uint8_t* data, int len)
+int32_t sdk_plugin_data_parser(const uint8_t* data, int32_t len)
 {
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
     std::copy(data, data + len, buf.get());
     MockDataArr mockDataArr;
     mockDataArr.ParseFromArray(buf.get(), len);
-    int size = mockDataArr.mockdata_size();
+    int32_t size = mockDataArr.mockdata_size();
     if (size > 1) {
         for (auto m = 0; m < size; m++) {
             auto mockData = mockDataArr.mockdata().at(m);
@@ -46,32 +46,32 @@ int sdk_plugin_data_parser(const uint8_t* data, int len)
     return 0;
 }
 
-int sdk_plugin_parser(const uint8_t* data, int len, MockData mockData)
+int32_t sdk_plugin_parser(const uint8_t* data, int32_t len, MockData mockData)
 {
-    // 解析counterObject
+    // parsercounterObject
     for (auto i = 0; i < mockData.counterobj_size(); i++) {
-        int counterId = mockData.counterobj(i).id();
+        int32_t counterId = mockData.counterobj(i).id();
         std::string counterName = mockData.counterobj(i).name();
         SDK_AppendCounterObject(counterId, counterName.c_str());
     }
 
-    // 解析counterInfo
+    // parsercounterInfo
     for (auto i = 0; i < mockData.counterinfo_size(); i++) {
         CounterInfo counterInfo;
         counterInfo = mockData.counterinfo(i);
         SDK_AppendCounter(counterInfo.key(), counterInfo.ts(), (double)counterInfo.value());
     }
 
-    // 解析SliceObj
+    // parserSliceObj
     for (auto i = 0; i < mockData.sliceobj_size(); i++) {
-        int sliceId = mockData.sliceobj(i).id();
+        int32_t sliceId = mockData.sliceobj(i).id();
         std::string sliceName = mockData.sliceobj(i).name();
         SDK_AppendSliceObject(sliceId, sliceName.c_str());
     }
 
-    // 解析SliceInfo
+    // parserSliceInfo
     for (auto i = 0; i < mockData.sliceinfo_size(); i++) {
-        int sliceKey = mockData.sliceinfo(i).id();
+        int32_t sliceKey = mockData.sliceinfo(i).id();
         double sliceValue = mockData.sliceinfo(i).value();
         uint64_t startTime = mockData.sliceinfo(i).start_time();
         uint64_t endTime = mockData.sliceinfo(i).end_time();

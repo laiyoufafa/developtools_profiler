@@ -16,80 +16,78 @@
 import { TabPaneCpuAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneCpuAbility.js';
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneCpuAbility Test', () => {
-    let tabPaneCpuAbility = new TabPaneCpuAbility();
+  let tabPaneCpuAbility = new TabPaneCpuAbility();
 
-    it('TabPaneCpuAbilityTest01', function () {
-        tabPaneCpuAbility.queryResult.length = 2;
-        expect(tabPaneCpuAbility.filterData()).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest01', function () {
+    tabPaneCpuAbility.queryResult.length = 2;
+    expect(tabPaneCpuAbility.filterData()).toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest02', function () {
-        const systemCpuSummary = {
-            startTimeStr: '',
-            durationStr: '',
-            totalLoadStr: '',
-            userLoadStr: '',
-            systemLoadStr: '',
-            threadsStr: '',
-        };
-        expect(
-            tabPaneCpuAbility.toCpuAbilityArray(systemCpuSummary)
-        ).not.toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest02', function () {
+    const systemCpuSummary = {
+      startTimeStr: '',
+      durationStr: '',
+      totalLoadStr: '',
+      userLoadStr: '',
+      systemLoadStr: '',
+      threadsStr: '',
+    };
+    expect(tabPaneCpuAbility.toCpuAbilityArray(systemCpuSummary)).not.toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest03 ', function () {
-        expect(
-            tabPaneCpuAbility.sortByColumn({
-                key: 'startTime',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest03 ', function () {
+    expect(
+      tabPaneCpuAbility.sortByColumn({
+        key: 'startTime',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest04 ', function () {
-        expect(
-            tabPaneCpuAbility.sortByColumn({
-                key: !'startTime',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest04 ', function () {
+    expect(
+      tabPaneCpuAbility.sortByColumn({
+        key: !'startTime',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest05 ', function () {
-        expect(
-            tabPaneCpuAbility.sortByColumn({
-                key: 'totalLoadStr',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest05 ', function () {
+    expect(
+      tabPaneCpuAbility.sortByColumn({
+        key: 'totalLoadStr',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest06 ', function () {
-        expect(
-            tabPaneCpuAbility.sortByColumn({
-                key: 'userLoadStr',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest06 ', function () {
+    expect(
+      tabPaneCpuAbility.sortByColumn({
+        key: 'userLoadStr',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest07 ', function () {
-        expect(
-            tabPaneCpuAbility.sortByColumn({
-                key: 'systemLoadStr',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest07 ', function () {
+    expect(
+      tabPaneCpuAbility.sortByColumn({
+        key: 'systemLoadStr',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuAbilityTest08 ', function () {
-        expect(
-            tabPaneCpuAbility.sortByColumn({
-                key: 'durationStr',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuAbilityTest08 ', function () {
+    expect(
+      tabPaneCpuAbility.sortByColumn({
+        key: 'durationStr',
+      })
+    ).toBeUndefined();
+  });
 });

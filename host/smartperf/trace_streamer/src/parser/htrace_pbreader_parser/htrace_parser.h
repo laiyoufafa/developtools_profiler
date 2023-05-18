@@ -23,6 +23,7 @@
 #include <thread>
 #include "common_types.h"
 #include "ebpf_data_parser.h"
+#include "elf_parser.h"
 #include "file.h"
 #include "htrace_clock_detail_parser.h"
 #include "htrace_cpu_detail_parser.h"
@@ -32,6 +33,7 @@
 #include "htrace_hidump_parser.h"
 #include "htrace_hilog_parser.h"
 #include "htrace_hisysevent_parser.h"
+#include "htrace_js_memory_parser.h"
 #include "htrace_mem_parser.h"
 #include "htrace_native_hook_parser.h"
 #include "htrace_network_parser.h"
@@ -51,6 +53,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
+using namespace OHOS::Developtools::HiPerf::ELF;
 #if WITH_PERF
 using namespace OHOS::Developtools::HiPerf;
 #endif
@@ -59,8 +62,12 @@ public:
     HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
     ~HtraceParser();
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size) override;
-    bool ReloadSymbolFiles(std::vector<std::string>& symbolsPaths);
+    bool ReparseSymbolFilesAndResymbolization(std::string& symbolsPath, std::vector<std::string>& symbolsPaths);
     void WaitForParserEnd();
+    void EnableFileSeparate(bool enabled);
+
+    void GetSymbols(std::unique_ptr<ElfFile> elfPtr, ElfSymbolTable& symbols, const std::string& filename);
+    bool ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths);
 
 private:
     bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
@@ -79,8 +86,10 @@ private:
     void ParseProcess(HtraceDataSegment& dataSeg);
     void ParseHisysevent(HtraceDataSegment& dataSeg);
     void ParseHisyseventConfig(HtraceDataSegment& dataSeg);
+    void ParseJSMemory(HtraceDataSegment& dataSeg);
+    void ParseJSMemoryConfig(HtraceDataSegment& dataSeg);
     void ParseThread();
-    int GetNextSegment();
+    int32_t GetNextSegment();
     void FilterThread();
     enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
     bool InitProfilerTraceFileHeader();
@@ -104,24 +113,25 @@ private:
     std::unique_ptr<HtraceDiskIOParser> diskIOParser_;
     std::unique_ptr<HtraceProcessParser> processParser_;
     std::unique_ptr<HtraceHisyseventParser> hisyseventParser_;
+    std::unique_ptr<HtraceJSMemoryParser> jsMemoryParser_;
 #if WITH_PERF
     std::unique_ptr<PerfDataParser> perfDataParser_;
 #endif
     std::unique_ptr<EbpfDataParser> ebpfDataParser_;
     std::atomic<bool> filterThreadStarted_{false};
-    const int MAX_SEG_ARRAY_SIZE = 10000;
+    const int32_t MAX_SEG_ARRAY_SIZE = 10000;
     std::shared_ptr<HtraceDataSegment[]> dataSegArray_;
-    int rawDataHead_ = 0;
+    int32_t rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
-    int filterHead_ = 0;
-    int parseHead_ = 0;
+    int32_t filterHead_ = 0;
+    int32_t parseHead_ = 0;
     size_t sizeAll_ = 0;
     size_t htraceLength_ = 1024;
-    const int sleepDur_ = 100;
+    const int32_t sleepDur_ = 100;
     bool parseThreadStarted_ = false;
-    const int maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
-    int parserThreadCount_ = 0;
+    const int32_t maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
+    int32_t parserThreadCount_ = 0;
     std::mutex dataSegMux_ = {};
     bool supportThread_ = false;
     ClockId dataSourceTypeTraceClockid_ = TS_CLOCK_UNKNOW;
@@ -134,6 +144,8 @@ private:
     ClockId dataSourceTypeCpuClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeProcessClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeHisyseventClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeJSMemoryClockid_ = TS_CLOCK_UNKNOW;
+    std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

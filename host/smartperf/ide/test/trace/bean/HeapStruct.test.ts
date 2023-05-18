@@ -13,70 +13,70 @@
  * limitations under the License.
  */
 
-jest.mock("../../../dist/trace/component/trace/base/TraceRow.js", () => {
-    return {}
+jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+  return {};
 });
 
 // @ts-ignore
-import {HeapStruct} from "../../../dist/trace/bean/HeapStruct.js"
+import { HeapStruct } from '../../../dist/trace/bean/HeapStruct.js';
 
 describe('HeapStruct Test', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
 
-    const dataSource = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100
-        },
-        value: 50,
-        maxHeapSize: 50,
-        heapsize: 10
-    }
+  const dataSource = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    value: 50,
+    maxHeapSize: 50,
+    heapsize: 10,
+  };
 
-    const reachData = {
-        frame: {
-            x: 20,
-            y: 20,
-            width: 100,
-            height: 100
-        },
-        value: 50,
-        startTime: 1
-    }
+  const reachData = {
+    frame: {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    },
+    value: 50,
+    startTime: 1,
+  };
 
-    const nodeSource = {
-        startTime: 10,
-        dur: 10,
-        endTime: 20,
-        frame: {
-            width: 20
-        }
-    }
+  const nodeSource = {
+    startTime: 10,
+    dur: 10,
+    endTime: 20,
+    frame: {
+      width: 20,
+    },
+  };
 
-    const heapStruct = new HeapStruct();
+  const heapStruct = new HeapStruct();
 
-    it('HeapStructTest01', function () {
-        expect(HeapStruct.draw(ctx, dataSource)).toBeUndefined()
-    });
+  it('HeapStructTest01', function () {
+    expect(HeapStruct.draw(ctx, dataSource)).toBeUndefined();
+  });
 
-    it('HeapStructTest02', function () {
-        expect(HeapStruct.draw(ctx, reachData)).toBeUndefined()
-    });
+  it('HeapStructTest02', function () {
+    expect(HeapStruct.draw(ctx, reachData)).toBeUndefined();
+  });
 
-    it('HeapStructTest03', function () {
-        expect(HeapStruct.setFrame(nodeSource, 1, 10, 15, 30, nodeSource.frame)).toBeUndefined()
-    });
+  it('HeapStructTest03', function () {
+    expect(HeapStruct.setFrame(nodeSource, 1, 10, 15, 30, nodeSource.frame)).toBeUndefined();
+  });
 
-    it('HeapStructTest04', function () {
-        expect(HeapStruct.setFrame(nodeSource, 1, 15, 20, 30, nodeSource.frame)).toBeUndefined()
-    });
+  it('HeapStructTest04', function () {
+    expect(HeapStruct.setFrame(nodeSource, 1, 15, 20, 30, nodeSource.frame)).toBeUndefined();
+  });
 
-    it('HeapStructTest05', function () {
-        expect(HeapStruct.setFrame(nodeSource, 1, 10, 20, 30, nodeSource.frame)).toBeUndefined()
-    });
-})
+  it('HeapStructTest05', function () {
+    expect(HeapStruct.setFrame(nodeSource, 1, 10, 20, 30, nodeSource.frame)).toBeUndefined();
+  });
+});

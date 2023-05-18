@@ -54,10 +54,14 @@ private:
     bool ReadItemEventPagedMemory(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventBIO(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventStr(const uint8_t* buffer, uint32_t size);
+    template <class T>
+    void AddSymbolsToTable(T* firstSymbolAddr, const int size, const ElfEventFixedHeader* elfAddr);
     void UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
     void ReadKernelSymAddrMap(const KernelSymbolInfoHeader* elfAddr, uint32_t size);
     void UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
 #if WITH_EBPF_HELP
+    template <class T>
+    void AppendSymbolsToTable(T* firstSymbolAddr, const int size);
     void UpdateEbpfElfSymbolTable(const ElfEventFixedHeader* elfAddr, uint32_t size);
 #endif
 public:

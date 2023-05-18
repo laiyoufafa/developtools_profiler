@@ -74,6 +74,7 @@ void ShowHelpInfo(const char* argv)
         " -e    transfer a bytrace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
         " -h    start HTTP server.\n"
+        " -s    separate js memory data, and save it in current dir with default filename.\n"
         " -p    Specify the port of HTTP server, default is 9001.\n"
         " -i    show information.\n"
         " -v    show version.",
@@ -186,6 +187,7 @@ struct TraceExportOption {
     std::string sqliteFilePath;
     bool interactiveState = false;
     bool exportMetaTable = true;
+    bool separateFile = false;
 };
 struct HttpOption {
     bool enable = false;
@@ -208,6 +210,9 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
             continue;
         } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
             PrintInformation();
+        } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
+            traceExportOption.separateFile = true;
+            continue;
         } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
             traceExportOption.exportMetaTable = false;
             continue;
@@ -230,7 +235,7 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
     }
     if ((traceExportOption.traceFilePath.empty() ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
-        !httpOption.enable) {
+        !httpOption.enable && !traceExportOption.separateFile) {
         ShowHelpInfo(argv[0]);
         return 1;
     }
@@ -263,6 +268,7 @@ int main(int argc, char** argv)
     }
     TraceStreamerSelector ts;
     ts.EnableMetaTable(tsOption.exportMetaTable);
+    ts.EnableFileSave(tsOption.separateFile);
     if (OpenAndParserFile(ts, tsOption.traceFilePath)) {
         if (!tsOption.sqliteFilePath.empty()) {
             ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
@@ -277,19 +283,22 @@ int main(int argc, char** argv)
         metaData->SetTraceDataSize(g_loadSize);
         while (1) {
             auto values = ts.SearchData();
+            std::string symbolsPath = "default";
             if (!values.empty()) {
-                ts.ReloadSymbolFiles(values);
+                ts.ReloadSymbolFiles(symbolsPath, values);
             } else {
                 return 0;
             }
         }
     }
-    if (ExportDatabase(ts, tsOption.sqliteFilePath)) {
-        ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
-        return 1;
-    }
     if (!tsOption.sqliteFilePath.empty()) {
-        ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
+        if (ExportDatabase(ts, tsOption.sqliteFilePath)) {
+            ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
+            return 1;
+        }
+        if (!tsOption.sqliteFilePath.empty()) {
+            ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
+        }
     }
     return 0;
 }

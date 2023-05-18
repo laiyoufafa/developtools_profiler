@@ -59,7 +59,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
     MemoryData tracePacket;
     SysMeminfo* mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
-    int size = tracePacket.meminfo_size();
+    int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
     mem->set_key(SysMeminfoType::PMEM_MEM_TOTAL);
     uint64_t value = random();
@@ -95,7 +95,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
     MemoryData tracePacket;
     SysMeminfo* mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
-    int size = tracePacket.meminfo_size();
+    int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
     mem->set_key(SysMeminfoType::PMEM_MEM_TOTAL);
     uint64_t value = random();
@@ -141,7 +141,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
     MemoryData tracePacket;
     SysMeminfo* mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
-    int size = tracePacket.meminfo_size();
+    int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
     mem->set_key(SysMeminfoType::PMEM_MEM_TOTAL);
     uint64_t value = random();
@@ -188,7 +188,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
     MemoryData tracePacket;
     SysMeminfo* mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
-    int size = tracePacket.meminfo_size();
+    int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
     mem->set_key(SysMeminfoType::PMEM_KERNEL_RECLAIMABLE);
     uint64_t value = random();
@@ -250,7 +250,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseWithRandomValue, TestSize.Level
         EXPECT_TRUE(mem != nullptr);
         mem->set_key(static_cast<SysMeminfoType>(i));
         mem->set_value(value);
-        int size = tracePacket.meminfo_size();
+        int32_t size = tracePacket.meminfo_size();
         EXPECT_TRUE(size == i + 1);
     }
 

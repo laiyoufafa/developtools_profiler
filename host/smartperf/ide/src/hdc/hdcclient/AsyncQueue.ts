@@ -16,59 +16,57 @@
 import { DataMessage } from '../message/DataMessage.js';
 
 export class DataMessageQueue<T> {
-    private eleArray: Array<T>;
+  private eleArray: Array<T>;
 
-    constructor() {
-        this.eleArray = new Array<T>();
-    }
+  constructor() {
+    this.eleArray = new Array<T>();
+  }
 
-    public push(entry: T): boolean {
-        if (entry == null) {
-            return false;
-        }
-        this.eleArray.unshift(entry);
-        return true;
+  public push(entry: T): boolean {
+    if (entry == null) {
+      return false;
     }
+    this.eleArray.unshift(entry);
+    return true;
+  }
 
-    public pop(): T | undefined {
-        return this.eleArray.pop();
-    }
+  public pop(): T | undefined {
+    return this.eleArray.pop();
+  }
 
-    public size(): number {
-        return this.eleArray.length;
-    }
+  public size(): number {
+    return this.eleArray.length;
+  }
 }
 
 interface Resolver {
-    (data: DataMessage): void;
+  (data: DataMessage): void;
 }
 
 export class AsyncQueue<T> {
-    private promiseQueue: DataMessageQueue<Promise<DataMessage>> =
-        new DataMessageQueue<Promise<DataMessage>>();
-    private resolverQueue: DataMessageQueue<Resolver> =
-        new DataMessageQueue<Resolver>();
+  private promiseQueue: DataMessageQueue<Promise<DataMessage>> = new DataMessageQueue<Promise<DataMessage>>();
+  private resolverQueue: DataMessageQueue<Resolver> = new DataMessageQueue<Resolver>();
 
-    add() {
-        this.promiseQueue.push(
-            new Promise((resolve) => {
-                this.resolverQueue.push(resolve);
-            })
-        );
-    }
+  add() {
+    this.promiseQueue.push(
+      new Promise((resolve) => {
+        this.resolverQueue.push(resolve);
+      })
+    );
+  }
 
-    enqueue(item: DataMessage) {
-        if (this.resolverQueue.size() == 0) {
-            this.add();
-        }
-        const resolve = this.resolverQueue.pop();
-        resolve ? resolve(item) : null;
+  enqueue(item: DataMessage) {
+    if (this.resolverQueue.size() == 0) {
+      this.add();
     }
+    const resolve = this.resolverQueue.pop();
+    resolve ? resolve(item) : null;
+  }
 
-    async dequeue(): Promise<DataMessage> {
-        if (this.promiseQueue.size() == 0) {
-            this.add();
-        }
-        return this.promiseQueue.pop() || new Promise<DataMessage>(() => {});
+  async dequeue(): Promise<DataMessage> {
+    if (this.promiseQueue.size() == 0) {
+      this.add();
     }
+    return this.promiseQueue.pop() || new Promise<DataMessage>(() => {});
+  }
 }

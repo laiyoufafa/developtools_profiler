@@ -26,237 +26,192 @@ import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
 
 @element('sp-vm-tracker')
 export class SpVmTracker extends BaseElement {
-    private processInput: LitAllocationSelect | undefined | null;
-    private selectProcess: HTMLInputElement | undefined | null;
-    private configList: Array<any> = [];
+  private processInput: LitAllocationSelect | undefined | null;
+  private selectProcess: HTMLInputElement | undefined | null;
+  private configList: Array<any> = [];
 
-    set startSamp(start: boolean) {
-        if (start) {
-            this.setAttribute('startSamp', '');
+  set startSamp(start: boolean) {
+    if (start) {
+      this.setAttribute('startSamp', '');
+    } else {
+      this.removeAttribute('startSamp');
+      let input = this.processInput?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
+      input!.value = '';
+    }
+  }
+
+  get process(): string {
+    if (this.processInput!.value.length > 0) {
+      let result = this.processInput!.value.match(/\((.+?)\)/g);
+      if (result) {
+        return result.toString().replace('(', '').replace(')', '');
+      } else {
+        return this.processInput!.value;
+      }
+    }
+    return '';
+  }
+
+  get startSamp(): boolean {
+    return this.hasAttribute('startSamp');
+  }
+
+  initElements(): void {
+    this.initConfigList();
+    let configList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
+    this.configList.forEach((config) => {
+      let div = document.createElement('div');
+      if (config.hidden) {
+        div.className = 'config-div hidden';
+      } else {
+        div.className = 'config-div';
+      }
+      let headDiv = document.createElement('div');
+      div.appendChild(headDiv);
+      let title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = config.title;
+      headDiv.appendChild(title);
+      let des = document.createElement('span');
+      des.textContent = config.des;
+      des.className = 'des';
+      headDiv.appendChild(des);
+      switch (config.type) {
+        case 'select':
+          let html1 = '';
+          html1 += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+          html1 += `</lit-allocation-select>`;
+          div.innerHTML = div.innerHTML + html1;
+          break;
+        case 'switch':
+          let switch1 = document.createElement('lit-switch') as LitSwitch;
+          switch1.className = 'config';
+          switch1.title = config.title;
+          if (config.value) {
+            switch1.checked = true;
+          } else {
+            switch1.checked = false;
+          }
+          if (config.title == 'Start VM Tracker Record') {
+            switch1.addEventListener('change', (event: any) => {
+              let detail = event.detail;
+              if (detail.checked) {
+                this.startSamp = true;
+                this.unDisable();
+              } else {
+                this.startSamp = false;
+                this.disable();
+              }
+            });
+          }
+          headDiv.appendChild(switch1);
+          break;
+        default:
+          break;
+      }
+      configList!.appendChild(div);
+    });
+    this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>("lit-allocation-select[title='Process']");
+    let inputDiv = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    this.selectProcess = this.processInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let processData: Array<string> = [];
+    inputDiv!.addEventListener('mousedown', (ev) => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.processInput!.processData = [];
+        this.processInput!.initData();
+      }
+    });
+    inputDiv!.addEventListener('mouseup', () => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.processInput!.processData = [];
+        this.processInput!.initData();
+      } else {
+        if (SpRecordTrace.isVscode) {
+          let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
+          Cmd.execHdcCmd(cmd, (res: string) => {
+            processData = [];
+            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of lineValues) {
+              if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                continue;
+              }
+              let process: string[] = lineVal.trim().split(' ');
+              if (process.length == 2) {
+                let processId = process[0];
+                let processName = process[1];
+                processData.push(processName + '(' + processId + ')');
+              }
+            }
+            this.processInput!.processData = processData;
+            this.processInput!.initData();
+          });
         } else {
-            this.removeAttribute('startSamp');
-            let input =
-                this.processInput?.shadowRoot?.querySelector<HTMLInputElement>(
-                    '#singleInput'
-                );
-            input!.value = '';
-        }
-    }
-
-    get process(): string {
-        if (this.processInput!.value.length > 0) {
-            let result = this.processInput!.value.match(/\((.+?)\)/g);
-            if (result) {
-                return result.toString().replace('(', '').replace(')', '');
-            } else {
-                return this.processInput!.value;
-            }
-        }
-        return '';
-    }
-
-    get startSamp(): boolean {
-        return this.hasAttribute('startSamp');
-    }
-
-    initElements(): void {
-        this.initConfigList();
-        let configList =
-            this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
-        this.configList.forEach((config) => {
-            let div = document.createElement('div');
-            if (config.hidden) {
-                div.className = 'config-div hidden';
-            } else {
-                div.className = 'config-div';
-            }
-            let headDiv = document.createElement('div');
-            div.appendChild(headDiv);
-            let title = document.createElement('span');
-            title.className = 'title';
-            title.textContent = config.title;
-            headDiv.appendChild(title);
-            let des = document.createElement('span');
-            des.textContent = config.des;
-            des.className = 'des';
-            headDiv.appendChild(des);
-            switch (config.type) {
-                case 'select':
-                    let html1 = '';
-                    html1 += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
-                    html1 += `</lit-allocation-select>`;
-                    div.innerHTML = div.innerHTML + html1;
-                    break;
-                case 'switch':
-                    let switch1 = document.createElement(
-                        'lit-switch'
-                    ) as LitSwitch;
-                    switch1.className = 'config';
-                    switch1.title = config.title;
-                    if (config.value) {
-                        switch1.checked = true;
-                    } else {
-                        switch1.checked = false;
+          HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
+            if (conn) {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
+                processData = [];
+                if (res) {
+                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of lineValues) {
+                    if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                      continue;
                     }
-                    if (config.title == 'Start VM Tracker Record') {
-                        switch1.addEventListener('change', (event: any) => {
-                            let detail = event.detail;
-                            if (detail.checked) {
-                                this.startSamp = true;
-                                this.unDisable();
-                            } else {
-                                this.startSamp = false;
-                                this.disable();
-                            }
-                        });
+                    let process: string[] = lineVal.trim().split(' ');
+                    if (process.length == 2) {
+                      let processId = process[0];
+                      let processName = process[1];
+                      processData.push(processName + '(' + processId + ')');
                     }
-                    headDiv.appendChild(switch1);
-                    break;
-                default:
-                    break;
-            }
-            configList!.appendChild(div);
-        });
-        this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>(
-            "lit-allocation-select[title='Process']"
-        );
-        let inputDiv = this.processInput?.shadowRoot?.querySelector(
-            '.multipleSelect'
-        ) as HTMLDivElement;
-        this.selectProcess = this.processInput!.shadowRoot?.querySelector(
-            'input'
-        ) as HTMLInputElement;
-        let processData: Array<string> = [];
-        inputDiv!.addEventListener('mousedown', (ev) => {
-            if (SpRecordTrace.serialNumber == '') {
-                this.processInput!.processData = [];
-                this.processInput!.initData();
-            }
-        });
-        inputDiv!.addEventListener('mouseup', () => {
-            if (SpRecordTrace.serialNumber == '') {
-                this.processInput!.processData = [];
-                this.processInput!.initData();
-            } else {
-                if (SpRecordTrace.isVscode) {
-                    let cmd = Cmd.formatString(
-                        CmdConstant.CMD_GET_PROCESS_DEVICES,
-                        [SpRecordTrace.serialNumber]
-                    );
-                    Cmd.execHdcCmd(cmd, (res: string) => {
-                        processData = [];
-                        let lineValues: string[] = res
-                            .replace(/\r\n/g, '\r')
-                            .replace(/\n/g, '\r')
-                            .split(/\r/);
-                        for (let lineVal of lineValues) {
-                            if (
-                                lineVal.indexOf('__progname') != -1 ||
-                                lineVal.indexOf('PID CMD') != -1
-                            ) {
-                                continue;
-                            }
-                            let process: string[] = lineVal.trim().split(' ');
-                            if (process.length == 2) {
-                                let processId = process[0];
-                                let processName = process[1];
-                                processData.push(
-                                    processName + '(' + processId + ')'
-                                );
-                            }
-                        }
-                        this.processInput!.processData = processData;
-                        this.processInput!.initData();
-                    });
-                } else {
-                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(
-                        (conn) => {
-                            if (conn) {
-                                HdcDeviceManager.shellResultAsString(
-                                    CmdConstant.CMD_GET_PROCESS,
-                                    false
-                                ).then((res) => {
-                                    processData = [];
-                                    if (res) {
-                                        let lineValues: string[] = res
-                                            .replace(/\r\n/g, '\r')
-                                            .replace(/\n/g, '\r')
-                                            .split(/\r/);
-                                        for (let lineVal of lineValues) {
-                                            if (
-                                                lineVal.indexOf('__progname') !=
-                                                    -1 ||
-                                                lineVal.indexOf('PID CMD') != -1
-                                            ) {
-                                                continue;
-                                            }
-                                            let process: string[] = lineVal
-                                                .trim()
-                                                .split(' ');
-                                            if (process.length == 2) {
-                                                let processId = process[0];
-                                                let processName = process[1];
-                                                processData.push(
-                                                    processName +
-                                                        '(' +
-                                                        processId +
-                                                        ')'
-                                                );
-                                            }
-                                        }
-                                    }
-                                    this.processInput!.processData =
-                                        processData;
-                                    this.processInput!.initData();
-                                });
-                            }
-                        }
-                    );
+                  }
                 }
+                this.processInput!.processData = processData;
+                this.processInput!.initData();
+              });
             }
-        });
-        this.disable();
-    }
+          });
+        }
+      }
+    });
+    this.disable();
+  }
 
-    private unDisable() {
-        let configVal =
-            this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-        configVal!.forEach((configVal1) => {
-            configVal1.removeAttribute('disabled');
-        });
-    }
+  private unDisable() {
+    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    configVal!.forEach((configVal1) => {
+      configVal1.removeAttribute('disabled');
+    });
+  }
 
-    private disable() {
-        let configVal =
-            this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-        configVal!.forEach((configVal1) => {
-            if (configVal1.title != 'Start VM Tracker Record') {
-                configVal1.setAttribute('disabled', '');
-            }
-        });
-    }
+  private disable() {
+    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    configVal!.forEach((configVal1) => {
+      if (configVal1.title != 'Start VM Tracker Record') {
+        configVal1.setAttribute('disabled', '');
+      }
+    });
+  }
 
-    initConfigList(): void {
-        this.configList = [
-            {
-                title: 'Start VM Tracker Record',
-                des: '',
-                hidden: false,
-                type: 'switch',
-                value: false,
-            },
-            {
-                title: 'Process',
-                des: 'Record process',
-                hidden: false,
-                type: 'select',
-                selectArray: [''],
-            },
-        ];
-    }
+  initConfigList(): void {
+    this.configList = [
+      {
+        title: 'Start VM Tracker Record',
+        des: '',
+        hidden: false,
+        type: 'switch',
+        value: false,
+      },
+      {
+        title: 'Process',
+        des: 'Record process',
+        hidden: false,
+        type: 'select',
+        selectArray: [''],
+      },
+    ];
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: inline-block;
@@ -345,5 +300,5 @@ export class SpVmTracker extends BaseElement {
             </div>
         </div>
         `;
-    }
+  }
 }

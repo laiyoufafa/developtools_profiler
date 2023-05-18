@@ -33,7 +33,7 @@ public:
     TraceStreamerSelector stream_ = {};
 };
 std::string g_result;
-void res(const std::string result, int finish)
+void res(const std::string result, int32_t finish)
 {
     TS_LOGI("%s", result.c_str());
     g_result = result;

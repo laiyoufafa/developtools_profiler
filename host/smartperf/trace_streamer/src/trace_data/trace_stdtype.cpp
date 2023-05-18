@@ -652,6 +652,21 @@ void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t 
 {
     symbolIdToSymbolName_.insert(std::make_pair(originSymbolId, symbolId));
 }
+void NativeHookFrame::UpdateFrameInfo(size_t row,
+                                      DataIndex symbolIndex,
+                                      DataIndex filePathIndex,
+                                      uint64_t offset,
+                                      uint64_t symbolOffset)
+{
+    if (row >= Size()) {
+        TS_LOGE("The updated row does not exist!");
+        return;
+    }
+    symbolNames_[row] = symbolIndex;
+    filePaths_[row] = filePathIndex;
+    offsets_[row] = offset;
+    symbolOffsets_[row] = symbolOffset;
+}
 
 void NativeHookFrame::UpdateSymbolId()
 {
@@ -1011,28 +1026,28 @@ size_t SysCall::AppendSysCallData(int64_t sysCallNum, DataIndex type, uint32_t i
 StatAndInfo::StatAndInfo()
 {
     // sched_switch_received | sched_switch_not_match | sched_switch_not_not_supported etc.
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
         event_[i] = config_.eventNameMap_.at(static_cast<SupportedTraceEventType>(i));
     }
-    for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
         stat_[j] = config_.eventErrorDescMap_.at(static_cast<StatType>(j));
     }
 
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
-        for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
             statSeverity_[i][j] = config_.eventParserStatSeverityDescMap_.at(static_cast<SupportedTraceEventType>(i))
                                       .at(static_cast<StatType>(j));
         }
     }
 
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
-        for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
             statSeverityDesc_[i][j] = config_.serverityLevelDescMap_.at(statSeverity_[i][j]);
         }
     }
 
-    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
-        for (int j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
+    for (int32_t i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        for (int32_t j = STAT_EVENT_START; j < STAT_EVENT_MAX; j++) {
             statCount_[i][j] = 0;
         }
     }
@@ -2094,17 +2109,21 @@ DataSourceClockIdData::DataSourceClockIdData()
                               {DATA_SOURCE_TYPE_DISKIO, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_CPU, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_PROCESS, TS_CLOCK_UNKNOW},
-                              {DATA_SOURCE_TYPE_HISYSEVENT, TS_CLOCK_UNKNOW}}),
-      dataSource2PluginNameMap_({{DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},
-                                 {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
-                                 {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},
-                                 {DATA_SOURCE_TYPE_NATIVEHOOK, "nativehook"},
-                                 {DATA_SOURCE_TYPE_FPS, "hidump-plugin"},
-                                 {DATA_SOURCE_TYPE_NETWORK, "network-plugin"},
-                                 {DATA_SOURCE_TYPE_DISKIO, "diskio-plugin"},
-                                 {DATA_SOURCE_TYPE_CPU, "cpu-plugin"},
-                                 {DATA_SOURCE_TYPE_PROCESS, "process-plugin"},
-                                 {DATA_SOURCE_TYPE_HISYSEVENT, "hisysevent-plugin"}})
+                              {DATA_SOURCE_TYPE_HISYSEVENT, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_JSMEMORY, TS_CLOCK_UNKNOW}}),
+      dataSource2PluginNameMap_({
+          {DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},
+          {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
+          {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},
+          {DATA_SOURCE_TYPE_NATIVEHOOK, "nativehook"},
+          {DATA_SOURCE_TYPE_FPS, "hidump-plugin"},
+          {DATA_SOURCE_TYPE_NETWORK, "network-plugin"},
+          {DATA_SOURCE_TYPE_DISKIO, "diskio-plugin"},
+          {DATA_SOURCE_TYPE_CPU, "cpu-plugin"},
+          {DATA_SOURCE_TYPE_PROCESS, "process-plugin"},
+          {DATA_SOURCE_TYPE_HISYSEVENT, "hisysevent-plugin"},
+          {DATA_SOURCE_TYPE_JSMEMORY, "js-memory"},
+      })
 {
 }
 #else
@@ -2194,7 +2213,7 @@ void FrameSlice::SetDst(uint64_t row, uint64_t dst)
     dsts_[row] = dst;
 }
 
-void FrameSlice::SetSrcs(uint64_t row, std::vector<uint64_t>& fromSlices)
+void FrameSlice::SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices)
 {
     std::string s = "";
     for (auto&& i : fromSlices) {
@@ -2298,14 +2317,20 @@ const size_t GPUSlice::Size() const
     return durs_.size();
 }
 
-void JsHeapFiles::AppendNewData(uint32_t id, std::string filePath)
+size_t
+    JsHeapFiles::AppendNewData(uint32_t id, std::string filePath, uint64_t startTime, uint64_t endTime, uint32_t ipid)
 {
-    ids_.emplace_back(id);
+    fileIds_.emplace_back(id);
     filePaths_.emplace_back(filePath);
+    startTimes_.emplace_back(startTime);
+    endTimes_.emplace_back(endTime);
+    ipids_.emplace_back(ipid);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapFiles::IDs() const
 {
-    return ids_;
+    return fileIds_;
 }
 const std::deque<std::string>& JsHeapFiles::FilePaths() const
 {
@@ -2319,14 +2344,18 @@ const std::deque<uint64_t>& JsHeapFiles::EndTimes() const
 {
     return endTimes_;
 }
+const std::deque<uint32_t>& JsHeapFiles::Pids() const
+{
+    return ipids_;
+}
 
-void JsHeapEdges::AppendNewData(uint32_t fileId,
-                                uint32_t edgeIndex,
-                                uint32_t type,
-                                uint32_t nameOrIndex,
-                                uint32_t toNode,
-                                uint32_t fromNodeId,
-                                uint32_t toNodeId)
+size_t JsHeapEdges::AppendNewData(uint32_t fileId,
+                                  uint32_t edgeIndex,
+                                  uint32_t type,
+                                  uint32_t nameOrIndex,
+                                  uint32_t toNode,
+                                  uint32_t fromNodeId,
+                                  uint32_t toNodeId)
 {
     fileIds_.emplace_back(fileId);
     edgeIndexs_.emplace_back(edgeIndex);
@@ -2335,6 +2364,8 @@ void JsHeapEdges::AppendNewData(uint32_t fileId,
     toNodes_.emplace_back(toNode);
     fromNodeIds_.emplace_back(fromNodeId);
     toNodeIds_.emplace_back(toNodeId);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapEdges::FileIds() const
 {
@@ -2365,13 +2396,16 @@ const std::deque<uint32_t>& JsHeapEdges::ToNodeIds() const
     return toNodeIds_;
 }
 
-void JsHeapInfo::AppendNewData(uint32_t fileId, std::string key, uint32_t type, uint32_t intValue, std::string strValue)
+size_t
+    JsHeapInfo::AppendNewData(uint32_t fileId, std::string key, uint32_t type, int32_t intValue, std::string strValue)
 {
     fileIds_.emplace_back(fileId);
     keys_.emplace_back(key);
     types_.emplace_back(type);
     intValues_.emplace_back(intValue);
     strValues_.emplace_back(strValue);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapInfo::FileIds() const
 {
@@ -2385,7 +2419,7 @@ const std::deque<uint32_t>& JsHeapInfo::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& JsHeapInfo::IntValues() const
+const std::deque<int32_t>& JsHeapInfo::IntValues() const
 {
     return intValues_;
 }
@@ -2394,17 +2428,19 @@ const std::deque<std::string>& JsHeapInfo::StrValues() const
     return strValues_;
 }
 
-void JsHeapLocation::AppendNewData(uint32_t fileId,
-                                   uint32_t objectIndex,
-                                   uint32_t scriptId,
-                                   uint32_t line,
-                                   uint32_t column)
+size_t JsHeapLocation::AppendNewData(uint32_t fileId,
+                                     uint32_t objectIndex,
+                                     uint32_t scriptId,
+                                     uint32_t line,
+                                     uint32_t column)
 {
     fileIds_.emplace_back(fileId);
     objectIndexs_.emplace_back(objectIndex);
     scriptIds_.emplace_back(scriptId);
     lines_.emplace_back(line);
     columns_.emplace_back(column);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapLocation::FileIds() const
 {
@@ -2427,25 +2463,27 @@ const std::deque<uint32_t>& JsHeapLocation::Columns() const
     return columns_;
 }
 
-void JsHeapNodes::AppendNewData(uint32_t fileId,
-                                uint32_t nodeIndex,
-                                uint32_t type,
-                                uint32_t name,
-                                uint32_t id,
-                                uint32_t selfSize,
-                                uint32_t edgeCount,
-                                uint32_t traceNodeId,
-                                uint32_t detachedNess)
+size_t JsHeapNodes::AppendNewData(uint32_t fileId,
+                                  uint32_t nodeIndex,
+                                  uint32_t type,
+                                  uint32_t name,
+                                  uint32_t id,
+                                  uint32_t selfSize,
+                                  uint32_t edgeCount,
+                                  uint32_t traceNodeId,
+                                  uint32_t detachedNess)
 {
     fileIds_.emplace_back(fileId);
     nodeIndexs_.emplace_back(nodeIndex);
     types_.emplace_back(type);
     names_.emplace_back(name);
-    ids_.emplace_back(id);
+    nodeIds_.emplace_back(id);
     selfSizes_.emplace_back(selfSize);
     edgeCounts_.emplace_back(edgeCount);
     traceNodeIds_.emplace_back(traceNodeId);
     detachedNess_.emplace_back(detachedNess);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapNodes::FileIds() const
 {
@@ -2463,9 +2501,9 @@ const std::deque<uint32_t>& JsHeapNodes::Names() const
 {
     return names_;
 }
-const std::deque<uint32_t>& JsHeapNodes::IDs() const
+const std::deque<uint32_t>& JsHeapNodes::NodeIds() const
 {
-    return ids_;
+    return nodeIds_;
 }
 const std::deque<uint32_t>& JsHeapNodes::SelfSizes() const
 {
@@ -2484,11 +2522,13 @@ const std::deque<uint32_t>& JsHeapNodes::DetachedNess() const
     return detachedNess_;
 }
 
-void JsHeapSample::AppendNewData(uint32_t fileId, uint64_t timeStampUs, uint32_t lastAssignedId)
+size_t JsHeapSample::AppendNewData(uint32_t fileId, uint64_t timeStampUs, uint32_t lastAssignedId)
 {
     fileIds_.emplace_back(fileId);
     timeStampUs_.emplace_back(timeStampUs);
     lastAssignedIds_.emplace_back(lastAssignedId);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapSample::FileIds() const
 {
@@ -2503,11 +2543,13 @@ const std::deque<uint32_t>& JsHeapSample::LastAssignedIds() const
     return lastAssignedIds_;
 }
 
-void JsHeapString::AppendNewData(uint32_t fileId, uint32_t fileIndex, std::string string)
+size_t JsHeapString::AppendNewData(uint32_t fileId, uint32_t fileIndex, std::string string)
 {
     fileIds_.emplace_back(fileId);
     fileIndexs_.emplace_back(fileIndex);
     strings_.emplace_back(string);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapString::FileIds() const
 {
@@ -2522,14 +2564,14 @@ const std::deque<std::string>& JsHeapString::Strings() const
     return strings_;
 }
 
-void JsHeapTraceFuncInfo::AppendNewData(uint32_t fileId,
-                                        uint32_t functionIndex,
-                                        uint32_t functionId,
-                                        uint32_t name,
-                                        uint32_t scriptName,
-                                        uint32_t scriptId,
-                                        uint32_t line,
-                                        uint32_t column)
+size_t JsHeapTraceFuncInfo::AppendNewData(uint32_t fileId,
+                                          uint32_t functionIndex,
+                                          uint32_t functionId,
+                                          uint32_t name,
+                                          uint32_t scriptName,
+                                          uint32_t scriptId,
+                                          uint32_t line,
+                                          uint32_t column)
 {
     fileIds_.emplace_back(fileId);
     functionIndexs_.emplace_back(functionIndex);
@@ -2539,6 +2581,8 @@ void JsHeapTraceFuncInfo::AppendNewData(uint32_t fileId,
     scriptIds_.emplace_back(scriptId);
     lines_.emplace_back(line);
     columns_.emplace_back(column);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapTraceFuncInfo::FileIds() const
 {
@@ -2573,27 +2617,29 @@ const std::deque<uint32_t>& JsHeapTraceFuncInfo::Columns() const
     return columns_;
 }
 
-void JsHeapTraceNode::AppendNewData(uint32_t fileId,
-                                    uint32_t id,
-                                    uint32_t functionInfoIndex,
-                                    uint32_t count,
-                                    uint32_t size,
-                                    uint32_t parentId)
+size_t JsHeapTraceNode::AppendNewData(uint32_t fileId,
+                                      uint32_t traceNodeIds,
+                                      uint32_t functionInfoIndex,
+                                      uint32_t count,
+                                      uint32_t size,
+                                      int32_t parentId)
 {
     fileIds_.emplace_back(fileId);
-    ids_.emplace_back(id);
+    traceNodeIds_.emplace_back(traceNodeIds);
     functionInfoIndexs_.emplace_back(functionInfoIndex);
     counts_.emplace_back(count);
     sizes_.emplace_back(size);
     parentIds_.emplace_back(parentId);
+    ids_.emplace_back(Size());
+    return Size() - 1;
 }
 const std::deque<uint32_t>& JsHeapTraceNode::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::IDs() const
+const std::deque<uint32_t>& JsHeapTraceNode::TraceNodeIDs() const
 {
-    return ids_;
+    return traceNodeIds_;
 }
 const std::deque<uint32_t>& JsHeapTraceNode::FunctionInfoIndexs() const
 {
@@ -2607,7 +2653,7 @@ const std::deque<uint32_t>& JsHeapTraceNode::NodeSizes() const
 {
     return sizes_;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::ParentIds() const
+const std::deque<int32_t>& JsHeapTraceNode::ParentIds() const
 {
     return parentIds_;
 }

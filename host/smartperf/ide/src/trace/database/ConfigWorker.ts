@@ -18,51 +18,43 @@ const mallocSize = 1024 * 1024;
 let Module_T: any = null;
 
 function initConfigWASM(wasmFunctionName: string) {
-    return new Promise((resolve, reject) => {
-        function callModelFun(functionName: string) {
-            let func = eval(functionName);
-            Module_T = new func({
-                locateFile: (s: any) => {
-                    return s;
-                },
-                print: (line: any) => {},
-                printErr: (line: any) => {},
-                onRuntimeInitialized: () => {
-                    resolve('ok');
-                },
-                onAbort: () => {},
-            });
-        }
-        callModelFun(wasmFunctionName);
-    });
+  return new Promise((resolve, reject) => {
+    function callModelFun(functionName: string) {
+      let func = eval(functionName);
+      Module_T = new func({
+        locateFile: (s: any) => {
+          return s;
+        },
+        print: (line: any) => {},
+        printErr: (line: any) => {},
+        onRuntimeInitialized: () => {
+          resolve('ok');
+        },
+        onAbort: () => {},
+      });
+    }
+    callModelFun(wasmFunctionName);
+  });
 }
 
 self.onmessage = async (e: MessageEvent) => {
-    if (e.data.action === 'open') {
-        let jsFile = e.data.wasmJsName;
-        importScripts(jsFile);
-        await initConfigWASM(e.data.WasmName);
-        let dataCallBack = (
-            heapPtr: number,
-            size: number,
-            isEnd: number,
-            isConfig: number
-        ) => {
-            if (isConfig == 1) {
-                let jsonOut: Uint8Array = Module_T.HEAPU8.slice(
-                    heapPtr,
-                    heapPtr + size
-                );
-                let decoder = new TextDecoder();
-                let result = decoder.decode(jsonOut);
-                let json = JSON.parse(result);
-                self.postMessage({
-                    results: json,
-                });
-            }
-        };
-        let fn = Module_T.addFunction(dataCallBack, 'viiii');
-        Module_T._Init(fn, mallocSize);
-        Module_T._TraceStreamer_In_JsonConfig();
-    }
+  if (e.data.action === 'open') {
+    let jsFile = e.data.wasmJsName;
+    importScripts(jsFile);
+    await initConfigWASM(e.data.WasmName);
+    let dataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
+      if (isConfig == 1) {
+        let jsonOut: Uint8Array = Module_T.HEAPU8.slice(heapPtr, heapPtr + size);
+        let decoder = new TextDecoder();
+        let result = decoder.decode(jsonOut);
+        let json = JSON.parse(result);
+        self.postMessage({
+          results: json,
+        });
+      }
+    };
+    let fn = Module_T.addFunction(dataCallBack, 'viiii');
+    Module_T._Init(fn, mallocSize);
+    Module_T._TraceStreamer_In_JsonConfig();
+  }
 };

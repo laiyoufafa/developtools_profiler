@@ -18,28 +18,28 @@ import { LitRadioBox } from './LitRadioBox.js';
 
 @element('lit-radio-group')
 export class LitRadioGroup extends BaseElement {
-    static get observedAttributes() {
-        return ['direction'];
-    }
+  static get observedAttributes() {
+    return ['direction'];
+  }
 
-    set layout(vale: string) {
-        this.setAttribute('layout', vale);
-    }
+  set layout(vale: string) {
+    this.setAttribute('layout', vale);
+  }
 
-    get direction() {
-        return this.getAttribute('direction');
-    }
+  get direction() {
+    return this.getAttribute('direction');
+  }
 
-    get value(): Array<string> {
-        const radio = this.querySelector('lit-radio[checked]') as LitRadioBox;
-        return radio ? [radio.value] : [];
-    }
+  get value(): Array<string> {
+    const radio = this.querySelector('lit-radio[checked]') as LitRadioBox;
+    return radio ? [radio.value] : [];
+  }
 
-    initElements(): void {}
+  initElements(): void {}
 
-    //方向
-    initHtml(): string {
-        return `
+  //方向
+  initHtml(): string {
+    return `
         <style>   
         :host {
             display: -webkit-flex; 
@@ -61,5 +61,5 @@ export class LitRadioGroup extends BaseElement {
         }
         </style>
         <slot class="radio-group"></slot>`;
-    }
+  }
 }

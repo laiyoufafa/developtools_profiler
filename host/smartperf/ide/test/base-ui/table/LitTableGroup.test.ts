@@ -17,19 +17,19 @@
 import { LitTableGroup } from '../../../dist/base-ui/table/lit-table-group.js';
 
 describe('LitTableGroup Test', () => {
-    let litTableGroup = new LitTableGroup();
-    litTableGroup.title = 'title';
+  let litTableGroup = new LitTableGroup();
+  litTableGroup.title = 'title';
 
-    it('LitTableGroupTest01', () => {
-        expect(litTableGroup.adoptedCallback()).toBeUndefined();
-    });
+  it('LitTableGroupTest01', () => {
+    expect(litTableGroup.adoptedCallback()).toBeUndefined();
+  });
 
-    it('LitTableGroupTest02', () => {
-        expect(litTableGroup.title).toBe('title');
-    });
+  it('LitTableGroupTest02', () => {
+    expect(litTableGroup.title).toBe('title');
+  });
 
-    it('LitTableGroupTest03', () => {
-        expect(litTableGroup.shadowRoot.innerHTML).toMatchInlineSnapshot(`
+  it('LitTableGroupTest03', () => {
+    expect(litTableGroup.shadowRoot.innerHTML).toMatchInlineSnapshot(`
 "
         <style>
         :host{ }
@@ -37,5 +37,5 @@ describe('LitTableGroup Test', () => {
         <slot id=\\"sl\\"></slot>
         "
 `);
-    });
+  });
 });

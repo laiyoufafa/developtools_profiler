@@ -22,32 +22,32 @@ const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('SpMpsChart Test', () => {
-    let MockquerySmapsExits = sqlit.querySmapsExits;
-    MockquerySmapsExits.mockResolvedValue([
-        {
-            event_name: 'trace_smaps',
-            stat_type: 'received',
-            count: 1,
-        },
-    ]);
+  let MockquerySmapsExits = sqlit.querySmapsExits;
+  MockquerySmapsExits.mockResolvedValue([
+    {
+      event_name: 'trace_smaps',
+      stat_type: 'received',
+      count: 1,
+    },
+  ]);
 
-    let MockquerySmapsDataMax = sqlit.querySmapsDataMax;
-    MockquerySmapsDataMax.mockResolvedValue([
-        {
-            max_value: 11111,
-        },
-    ]);
-    let trace = new SpChartManager();
-    let spMapsChart = new SmapsChart(trace);
-    it('SpMpsChart01', function () {
-        spMapsChart.init();
-        expect(SmapsChart).toBeInstanceOf(Function);
-    });
+  let MockquerySmapsDataMax = sqlit.querySmapsDataMax;
+  MockquerySmapsDataMax.mockResolvedValue([
+    {
+      max_value: 11111,
+    },
+  ]);
+  let trace = new SpChartManager();
+  let spMapsChart = new SmapsChart(trace);
+  it('SpMpsChart01', function () {
+    spMapsChart.init();
+    expect(SmapsChart).toBeInstanceOf(Function);
+  });
 });

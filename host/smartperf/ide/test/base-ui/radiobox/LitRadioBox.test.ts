@@ -20,25 +20,25 @@ import { LitRadioBox } from '../../../dist/base-ui/radiobox/LitRadioBox.js';
 import { LitRadioGroup } from '../../../dist/base-ui/radiobox/LitRadioGroup.js';
 
 describe('LitRadioBox Test', () => {
-    let litRadioBox = new LitRadioBox();
-    let litRadioGroup = new LitRadioGroup();
+  let litRadioBox = new LitRadioBox();
+  let litRadioGroup = new LitRadioGroup();
 
-    litRadioGroup.layout = 'layout';
+  litRadioGroup.layout = 'layout';
 
-    litRadioBox.checked = true;
-    litRadioBox.checked = false;
-    litRadioBox.value = 'value';
-    litRadioBox.dis = 'dis';
-    it('LitRadioBoxTest01', () => {
-        expect(litRadioBox.name).toBeNull();
-    });
+  litRadioBox.checked = true;
+  litRadioBox.checked = false;
+  litRadioBox.value = 'value';
+  litRadioBox.dis = 'dis';
+  it('LitRadioBoxTest01', () => {
+    expect(litRadioBox.name).toBeNull();
+  });
 
-    it('LitRadioBoxTest02', () => {
-        expect(litRadioBox.value).toBe('value');
-    });
+  it('LitRadioBoxTest02', () => {
+    expect(litRadioBox.value).toBe('value');
+  });
 
-    it('LitRadioBoxTest03', () => {
-        expect(litRadioBox.initHtml()).toMatchInlineSnapshot(`
+  it('LitRadioBoxTest03', () => {
+    expect(litRadioBox.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host([dis=round]):host{ 
@@ -175,15 +175,15 @@ describe('LitRadioBox Test', () => {
         </label>
         "
 `);
-    });
+  });
 
-    it('litRadioGroupTest01', () => {
-        let isReturn = litRadioGroup.value.length == 0;
-        expect(isReturn).toBeTruthy();
-    });
+  it('litRadioGroupTest01', () => {
+    let isReturn = litRadioGroup.value.length == 0;
+    expect(isReturn).toBeTruthy();
+  });
 
-    it('litRadioGroupTest02', () => {
-        expect(litRadioGroup.initHtml()).toMatchInlineSnapshot(`
+  it('litRadioGroupTest02', () => {
+    expect(litRadioGroup.initHtml()).toMatchInlineSnapshot(`
 "
         <style>   
         :host {
@@ -207,5 +207,5 @@ describe('LitRadioBox Test', () => {
         </style>
         <slot class=\\"radio-group\\"></slot>"
 `);
-    });
+  });
 });

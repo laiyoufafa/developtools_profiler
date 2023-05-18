@@ -14,12 +14,12 @@
  */
 
 export class TableRowObject {
-    public top: number = 0;
-    public height: number = 0;
-    public rowIndex: number = 0;
-    public data: any | undefined;
-    public expanded: boolean = true;
-    public rowHidden: boolean = false;
-    public children: any[] = [];
-    public depth: number = -1;
+  public top: number = 0;
+  public height: number = 0;
+  public rowIndex: number = 0;
+  public data: any | undefined;
+  public expanded: boolean = true;
+  public rowHidden: boolean = false;
+  public children: any[] = [];
+  public depth: number = -1;
 }

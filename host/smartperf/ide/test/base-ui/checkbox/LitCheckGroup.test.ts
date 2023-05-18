@@ -17,25 +17,25 @@
 import { LitCheckGroup } from '../../../dist/base-ui/checkbox/LitCheckGroup.js';
 
 describe('LitCheckGroup Test', () => {
-    it('LitCheckGroupTest01', function () {
-        let litCheckGroup = new LitCheckGroup();
-        expect(litCheckGroup).not.toBeUndefined();
-        expect(litCheckGroup).not.toBeNull();
-    });
+  it('LitCheckGroupTest01', function () {
+    let litCheckGroup = new LitCheckGroup();
+    expect(litCheckGroup).not.toBeUndefined();
+    expect(litCheckGroup).not.toBeNull();
+  });
 
-    it('LitCheckGroupTest02', function () {
-        let litCheckGroup = new LitCheckGroup();
-        expect(litCheckGroup.direction).toBeNull();
-    });
+  it('LitCheckGroupTest02', function () {
+    let litCheckGroup = new LitCheckGroup();
+    expect(litCheckGroup.direction).toBeNull();
+  });
 
-    it('LitCheckGroupTest03', function () {
-        let litCheckGroup = new LitCheckGroup();
-        expect(litCheckGroup.value).toEqual([]);
-    });
+  it('LitCheckGroupTest03', function () {
+    let litCheckGroup = new LitCheckGroup();
+    expect(litCheckGroup.value).toEqual([]);
+  });
 
-    it('LitCheckGroupTest03', function () {
-        let litCheckGroup = new LitCheckGroup();
-        expect(litCheckGroup.initHtml()).toMatchInlineSnapshot(`
+  it('LitCheckGroupTest03', function () {
+    let litCheckGroup = new LitCheckGroup();
+    expect(litCheckGroup.initHtml()).toMatchInlineSnapshot(`
 "
         <style>   
         :host {
@@ -60,5 +60,5 @@ describe('LitCheckGroup Test', () => {
         </style>
         <slot class=\\"check-group\\"></slot>"
 `);
-    });
+  });
 });

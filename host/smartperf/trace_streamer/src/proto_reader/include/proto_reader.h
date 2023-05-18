@@ -29,6 +29,7 @@
 namespace SysTuning {
 namespace ProtoReader {
 constexpr uint8_t DATA_AREA_TYPE_BITS = 3;
+constexpr uint8_t DATA_AREA_TYPE_VALUE = 7;
 constexpr uint32_t INVALID_DATA_AREA_ID = 0;
 constexpr uint8_t BYTE_HIGHEST_BIT_MARK = 0x80;
 const std::map<ProtoWireType, uint32_t> fixedTypeToSizeMap_ = {{ProtoWireType::kFixed32, sizeof(uint32_t)},
@@ -77,7 +78,7 @@ public:
         return *this;
     }
 
-    RepeatedDataAreaIterator operator++(int)
+    RepeatedDataAreaIterator operator++(int32_t)
     {
         RepeatedDataAreaIterator itor(*this);
         ++(*this);
@@ -164,7 +165,7 @@ public:
         return *this;
     }
 
-    PackedRepeatedDataAreaIterator operator++(int)
+    PackedRepeatedDataAreaIterator operator++(int32_t)
     {
         PackedRepeatedDataAreaIterator itor(*this);
         ++(*this);
@@ -270,7 +271,7 @@ private:
     std::map<ProtoWireType, ParseDataAreaValueByType> dataAreaTypeToParseFuncMap_ = {};
 };
 
-template <int MAX_DATA_AREA_ID>
+template <int32_t MAX_DATA_AREA_ID>
 class TypedProtoReader : public ProtoReaderBase {
 public:
     TypedProtoReader(const uint8_t* buffer, size_t length)

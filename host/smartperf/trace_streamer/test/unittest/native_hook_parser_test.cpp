@@ -384,7 +384,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOutNativeHookData, TestSi
     TS_LOGI("test24-1");
     BatchNativeHookData* batchNativeHookData = new BatchNativeHookData();
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     auto size = stream_.traceDataCache_->GetConstHilogData().Size();
     EXPECT_FALSE(size);
 }
@@ -423,7 +423,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMalloc, TestSize.Level
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -525,7 +525,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMalloc, TestSize.
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -622,7 +622,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneFree, TestSize.Level1)
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
     EXPECT_EQ(0, size);
@@ -701,7 +701,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleFree, TestSize.Le
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -768,7 +768,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOnePairsMallocAndFree, Te
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse Malloc event results
@@ -867,7 +867,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithNotMatchMallocAndFree, Te
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse Malloc event results
@@ -955,7 +955,7 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventMatched, TestSize.Level
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse first Malloc event results
@@ -1051,7 +1051,7 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventPartialMatched, TestSiz
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse first Malloc event results
@@ -1120,7 +1120,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMmap, TestSize.Level1)
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -1187,7 +1187,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMunmap, TestSize.Level
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
@@ -1259,7 +1259,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -1361,7 +1361,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMunmap, TestSize.
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
@@ -1431,7 +1431,7 @@ HWTEST_F(NativeHookParserTest, ParseOnePairsMmapAndMunmapEvent, TestSize.Level1)
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -1532,7 +1532,7 @@ HWTEST_F(NativeHookParserTest, ParseNotMatchMmapAndMunmapEvent, TestSize.Level1)
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -1633,7 +1633,7 @@ HWTEST_F(NativeHookParserTest, ParseTwoPairsMatchedMmapAndMunmapEvent, TestSize.
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -1733,7 +1733,7 @@ HWTEST_F(NativeHookParserTest, ParsePartialMatchedMmapAndMunmapEvent, TestSize.L
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
@@ -1867,7 +1867,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithAllTypesEvents, TestSize.
 
     // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
+    htraceNativeHookParser.Parse(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results

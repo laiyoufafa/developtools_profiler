@@ -14,34 +14,34 @@
  */
 
 export class Flag {
-    x: number = 0;
-    y: number = 0;
-    width: number = 0;
-    height: number = 0;
-    time: number = 0;
-    color: string = '';
-    selected: boolean = false;
-    text: string = '';
-    hidden: boolean = false;
-    type: string = '';
+  x: number = 0;
+  y: number = 0;
+  width: number = 0;
+  height: number = 0;
+  time: number = 0;
+  color: string = '';
+  selected: boolean = false;
+  text: string = '';
+  hidden: boolean = false;
+  type: string = '';
 
-    constructor(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        time: number,
-        color: string = '#999999',
-        selected = false,
-        type: string = ''
-    ) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.time = time;
-        this.color = color;
-        this.selected = selected;
-        this.type = type;
-    }
+  constructor(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    time: number,
+    color: string = '#999999',
+    selected = false,
+    type: string = ''
+  ) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.time = time;
+    this.color = color;
+    this.selected = selected;
+    this.type = type;
+  }
 }

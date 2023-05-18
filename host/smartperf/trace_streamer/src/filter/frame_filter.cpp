@@ -67,7 +67,7 @@ bool FrameFilter::MarkRSOnvsyncEvent(uint64_t ts, uint32_t itid)
         pos++;
     }
     pos->get()->isRsMainThread_ = true;
-    return false;
+    return true;
 }
 bool FrameFilter::EndOnVsyncEvent(uint64_t ts, uint32_t itid)
 {
@@ -154,10 +154,10 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
         fromExpectedSlices.push_back(srcFrame->second.get()->frameExpectedSliceRow_);
         srcFrame->second.get()->dstFrameSliceId_ = pos->get()->frameSliceRow_;
         srcFrame->second.get()->dstExpectedFrameSliceId_ = pos->get()->frameExpectedSliceRow_;
-        traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameSliceRow_,
-                                                       srcFrame->second.get()->dstFrameSliceId_);
-        traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameExpectedSliceRow_,
-                                                       srcFrame->second.get()->dstExpectedFrameSliceId_);
+        (void)traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameSliceRow_,
+                                                             srcFrame->second.get()->dstFrameSliceId_);
+        (void)traceDataCache_->GetFrameMapsData()->AppendNew(srcFrame->second.get()->frameExpectedSliceRow_,
+                                                             srcFrame->second.get()->dstExpectedFrameSliceId_);
         traceDataCache_->GetFrameSliceData()->SetDst(srcFrame->second.get()->frameSliceRow_,
                                                      srcFrame->second.get()->dstFrameSliceId_);
         traceDataCache_->GetFrameSliceData()->SetDst(srcFrame->second.get()->frameExpectedSliceRow_,
@@ -178,10 +178,6 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
 }
 bool FrameFilter::EndVsyncEvent(uint64_t ts, uint32_t itid)
 {
-    if (ts >= 12286384073630) {
-        // ts = 12286789073630;
-        printf("xx");
-    }
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
         TS_LOGW("EndVsyncEvent find for itid:%u ts:%llu failed", itid, ts);
@@ -248,7 +244,8 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
         return false;
     }
     auto pos = frame->second.begin();
-    traceDataCache_->GetGPUSliceData()->AppendNew(pos->get()->frameSliceRow_, ts - pos->get()->frameQueueStartTs_);
+    (void)traceDataCache_->GetGPUSliceData()->AppendNew(pos->get()->frameSliceRow_,
+                                                        ts - pos->get()->frameQueueStartTs_);
     pos->get()->gpuEnd_ = true;
     if (pos->get()->vsyncEnd_) {
         pos->get()->endTs_ = ts;

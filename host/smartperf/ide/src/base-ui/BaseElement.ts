@@ -14,36 +14,32 @@
  */
 
 export function element(tag: string) {
-    return (el: any) => {
-        if (!customElements.get(tag)) {
-            customElements.define(tag, el);
-        }
-    };
+  return (el: any) => {
+    if (!customElements.get(tag)) {
+      customElements.define(tag, el);
+    }
+  };
 }
 
 export abstract class BaseElement extends HTMLElement {
-    args: any;
+  args: any;
 
-    public constructor(args: any | undefined | null = null) {
-        super();
-        this.args = args;
-        this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
-        this.initElements();
-    }
+  public constructor(args: any | undefined | null = null) {
+    super();
+    this.args = args;
+    this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
+    this.initElements();
+  }
 
-    abstract initElements(): void;
+  abstract initElements(): void;
 
-    abstract initHtml(): string;
+  abstract initHtml(): string;
 
-    public connectedCallback() {}
+  public connectedCallback() {}
 
-    public disconnectedCallback() {}
+  public disconnectedCallback() {}
 
-    public adoptedCallback() {}
+  public adoptedCallback() {}
 
-    attributeChangedCallback(
-        name: string,
-        oldValue: string,
-        newValue: string
-    ) {}
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {}
 }

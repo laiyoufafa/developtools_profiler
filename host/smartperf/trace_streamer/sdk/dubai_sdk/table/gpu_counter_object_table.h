@@ -29,20 +29,17 @@ public:
 
 private:
     void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override {};
-    // bool CanFilterId(const char op, size_t& rowCount);
-    // void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
+        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override
         {
             UNUSED(fc);
             UNUSED(argv);
             return 0;
         };
-        // void FilterSorted(int col, unsigned char op, sqlite3_value* argv){};
-        int Column(int column) const override;
+        int32_t Column(int32_t column) const override;
 
     private:
         const GpuCounterObject& gpuCounterObjectDataObj_;

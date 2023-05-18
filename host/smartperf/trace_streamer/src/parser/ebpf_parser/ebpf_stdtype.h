@@ -73,11 +73,11 @@ struct ElfEventFixedHeader {
 // uint8_t aa[strTabLen] // xx, bb, cc, dd
 // uint8_t bb[symTabLen] //symEntLen elf64_sym, lef32_sym
 
-const int ARGS_MAX = 4;
-const int MAX_TRACER_SIZE = 8;
-const int SINGLE_IP_SIZE = 8;
-const int MAX_FS_EVENT_SZIE = 16;
-const int MAX_PROCESS_NAME_SZIE = 16;
+const int32_t ARGS_MAX = 4;
+const int32_t MAX_TRACER_SIZE = 8;
+const int32_t SINGLE_IP_SIZE = 8;
+const int32_t MAX_FS_EVENT_SZIE = 16;
+const int32_t MAX_PROCESS_NAME_SZIE = 16;
 struct FsFixedHeader {
     uint32_t pid = 0;
     uint32_t tid = 0;
@@ -93,9 +93,9 @@ struct FsFixedHeader {
 } __attribute__((packed));
 // the data following are ips ...
 
-const int MAX_TRACER_NAME_LEN = 8;
-const int MAX_TYPE_NAME_LEN = 16;
-const int MAX_COMM_LEN = 16;
+const int32_t MAX_TRACER_NAME_LEN = 8;
+const int32_t MAX_TYPE_NAME_LEN = 16;
+const int32_t MAX_COMM_LEN = 16;
 struct PagedMemoryFixedHeader {
     uint32_t pid = 0;
     uint32_t tid = 0;

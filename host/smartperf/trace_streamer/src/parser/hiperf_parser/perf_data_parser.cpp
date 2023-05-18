@@ -45,7 +45,7 @@ PerfDataParser::~PerfDataParser()
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
-bool PerfDataParser::ReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
+bool PerfDataParser::PerfReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
 {
     if (access(tmpPerfData_.c_str(), F_OK) != 0) {
         TS_LOGE("perf file:%s not exist", tmpPerfData_.c_str());
@@ -67,7 +67,7 @@ bool PerfDataParser::ReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
 bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data
-    int fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, 0600));
+    int32_t fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, TS_PERMISSION_RW));
     if (!fd) {
         fprintf(stdout, "Failed to create file: %s", tmpPerfData_.c_str());
         return false;

@@ -17,129 +17,129 @@
 import { TransferConfig } from '../../../dist/hdc/message/TransferConfig.js';
 
 describe('TransferConfig Test', () => {
-    let transferConfig = new TransferConfig();
-    it('TransferConfigTest01', function () {
-        expect(transferConfig).not.toBeUndefined();
-    });
+  let transferConfig = new TransferConfig();
+  it('TransferConfigTest01', function () {
+    expect(transferConfig).not.toBeUndefined();
+  });
 
-    it('TransferConfigTest02', function () {
-        expect(transferConfig.fileSize).toBeUndefined();
-    });
+  it('TransferConfigTest02', function () {
+    expect(transferConfig.fileSize).toBeUndefined();
+  });
 
-    it('TransferConfigTest03', function () {
-        transferConfig.fileSize = true;
-        expect(transferConfig.fileSize).toBeTruthy();
-    });
+  it('TransferConfigTest03', function () {
+    transferConfig.fileSize = true;
+    expect(transferConfig.fileSize).toBeTruthy();
+  });
 
-    it('TransferConfigTest04', function () {
-        expect(transferConfig.atime).toBeUndefined();
-    });
+  it('TransferConfigTest04', function () {
+    expect(transferConfig.atime).toBeUndefined();
+  });
 
-    it('TransferConfigTest05', function () {
-        transferConfig.atime = true;
-        expect(transferConfig.atime).toBeTruthy();
-    });
+  it('TransferConfigTest05', function () {
+    transferConfig.atime = true;
+    expect(transferConfig.atime).toBeTruthy();
+  });
 
-    it('TransferConfigTest06', function () {
-        expect(transferConfig.mtime).toBeUndefined();
-    });
+  it('TransferConfigTest06', function () {
+    expect(transferConfig.mtime).toBeUndefined();
+  });
 
-    it('TransferConfigTest07', function () {
-        transferConfig.mtime = true;
-        expect(transferConfig.mtime).toBeTruthy();
-    });
+  it('TransferConfigTest07', function () {
+    transferConfig.mtime = true;
+    expect(transferConfig.mtime).toBeTruthy();
+  });
 
-    it('TransferConfigTest08', function () {
-        expect(transferConfig.options).toBeFalsy();
-    });
+  it('TransferConfigTest08', function () {
+    expect(transferConfig.options).toBeFalsy();
+  });
 
-    it('TransferConfigTest09', function () {
-        transferConfig.options = true;
-        expect(transferConfig.options).toBeTruthy();
-    });
+  it('TransferConfigTest09', function () {
+    transferConfig.options = true;
+    expect(transferConfig.options).toBeTruthy();
+  });
 
-    it('TransferConfigTest10', function () {
-        expect(transferConfig.path).toBeUndefined();
-    });
+  it('TransferConfigTest10', function () {
+    expect(transferConfig.path).toBeUndefined();
+  });
 
-    it('TransferConfigTest11', function () {
-        transferConfig.path = true;
-        expect(transferConfig.path).toBeTruthy();
-    });
+  it('TransferConfigTest11', function () {
+    transferConfig.path = true;
+    expect(transferConfig.path).toBeTruthy();
+  });
 
-    it('TransferConfigTest12', function () {
-        expect(transferConfig.optionalName).toBeUndefined();
-    });
+  it('TransferConfigTest12', function () {
+    expect(transferConfig.optionalName).toBeUndefined();
+  });
 
-    it('TransferConfigTest13', function () {
-        transferConfig.optionalName = true;
-        expect(transferConfig.optionalName).toBeTruthy();
-    });
+  it('TransferConfigTest13', function () {
+    transferConfig.optionalName = true;
+    expect(transferConfig.optionalName).toBeTruthy();
+  });
 
-    it('TransferConfigTest14', function () {
-        expect(transferConfig.updateIfNew).toBeUndefined();
-    });
+  it('TransferConfigTest14', function () {
+    expect(transferConfig.updateIfNew).toBeUndefined();
+  });
 
-    it('TransferConfigTest15', function () {
-        transferConfig.updateIfNew = true;
-        expect(transferConfig.updateIfNew).toBeTruthy();
-    });
+  it('TransferConfigTest15', function () {
+    transferConfig.updateIfNew = true;
+    expect(transferConfig.updateIfNew).toBeTruthy();
+  });
 
-    it('TransferConfigTest16', function () {
-        expect(transferConfig.compressType).toBeUndefined();
-    });
+  it('TransferConfigTest16', function () {
+    expect(transferConfig.compressType).toBeUndefined();
+  });
 
-    it('TransferConfigTest17', function () {
-        transferConfig.compressType = true;
-        expect(transferConfig.compressType).toBeTruthy();
-    });
+  it('TransferConfigTest17', function () {
+    transferConfig.compressType = true;
+    expect(transferConfig.compressType).toBeTruthy();
+  });
 
-    it('TransferConfigTest18', function () {
-        expect(transferConfig.holdTimestamp).toBeUndefined();
-    });
+  it('TransferConfigTest18', function () {
+    expect(transferConfig.holdTimestamp).toBeUndefined();
+  });
 
-    it('TransferConfigTest19', function () {
-        transferConfig.holdTimestamp = true;
-        expect(transferConfig.holdTimestamp).toBeTruthy();
-    });
+  it('TransferConfigTest19', function () {
+    transferConfig.holdTimestamp = true;
+    expect(transferConfig.holdTimestamp).toBeTruthy();
+  });
 
-    it('TransferConfigTest20', function () {
-        expect(transferConfig.functionName).toBeUndefined();
-    });
+  it('TransferConfigTest20', function () {
+    expect(transferConfig.functionName).toBeUndefined();
+  });
 
-    it('TransferConfigTest21', function () {
-        transferConfig.functionName = true;
-        expect(transferConfig.functionName).toBeTruthy();
-    });
+  it('TransferConfigTest21', function () {
+    transferConfig.functionName = true;
+    expect(transferConfig.functionName).toBeTruthy();
+  });
 
-    it('TransferConfigTest22', function () {
-        expect(transferConfig.clientCwd).toBeUndefined();
-    });
+  it('TransferConfigTest22', function () {
+    expect(transferConfig.clientCwd).toBeUndefined();
+  });
 
-    it('TransferConfigTest23', function () {
-        transferConfig.clientCwd = true;
-        expect(transferConfig.clientCwd).toBeTruthy();
-    });
+  it('TransferConfigTest23', function () {
+    transferConfig.clientCwd = true;
+    expect(transferConfig.clientCwd).toBeTruthy();
+  });
 
-    it('TransferConfigTest24', function () {
-        expect(transferConfig.reserve1).toBeUndefined();
-    });
+  it('TransferConfigTest24', function () {
+    expect(transferConfig.reserve1).toBeUndefined();
+  });
 
-    it('TransferConfigTest25', function () {
-        transferConfig.reserve1 = true;
-        expect(transferConfig.reserve1).toBeTruthy();
-    });
+  it('TransferConfigTest25', function () {
+    transferConfig.reserve1 = true;
+    expect(transferConfig.reserve1).toBeTruthy();
+  });
 
-    it('TransferConfigTest26', function () {
-        expect(transferConfig.reserve2).toBeUndefined();
-    });
+  it('TransferConfigTest26', function () {
+    expect(transferConfig.reserve2).toBeUndefined();
+  });
 
-    it('TransferConfigTest27', function () {
-        transferConfig.reserve2 = true;
-        expect(transferConfig.reserve2).toBeTruthy();
-    });
+  it('TransferConfigTest27', function () {
+    transferConfig.reserve2 = true;
+    expect(transferConfig.reserve2).toBeTruthy();
+  });
 
-    it('TransferConfigTest28', function () {
-        expect(transferConfig.toString()).not.toBeUndefined();
-    });
+  it('TransferConfigTest28', function () {
+    expect(transferConfig.toString()).not.toBeUndefined();
+  });
 });

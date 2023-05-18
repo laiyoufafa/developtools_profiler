@@ -14,13 +14,13 @@
  */
 
 export class JankFramesStruct {
-    jankType: string = '';
-    minDuration: number = -1;
-    minDurationStr: string = '';
-    maxDuration: number = -1;
-    maxDurationStr: string = '';
-    meanDuration: number = -1;
-    meanDurationStr: string = '';
-    occurrences: number = 0;
-    flag: boolean = false;
+  jankType: string = '';
+  minDuration: number = -1;
+  minDurationStr: string = '';
+  maxDuration: number = -1;
+  maxDurationStr: string = '';
+  meanDuration: number = -1;
+  meanDurationStr: string = '';
+  occurrences: number = 0;
+  flag: boolean = false;
 }

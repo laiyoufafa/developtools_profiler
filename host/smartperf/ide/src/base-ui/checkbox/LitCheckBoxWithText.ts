@@ -18,64 +18,58 @@ import { SpCheckDesBox } from '../../trace/component/setting/SpCheckDesBox.js';
 
 @element('lit-check-text')
 export class LitCheckBoxWithText extends BaseElement {
-    private _checkBox: SpCheckDesBox | undefined;
-    private _lowerLimit: HTMLInputElement | undefined;
-    private _upLimit: HTMLInputElement | undefined;
+  private _checkBox: SpCheckDesBox | undefined;
+  private _lowerLimit: HTMLInputElement | undefined;
+  private _upLimit: HTMLInputElement | undefined;
 
-    static get observedAttributes() {
-        return ['text', 'lowerLimit', 'upLimit', 'checked'];
+  static get observedAttributes() {
+    return ['text', 'lowerLimit', 'upLimit', 'checked'];
+  }
+
+  get text(): string {
+    return this.getAttribute('text') || '';
+  }
+
+  set text(text: string) {
+    this.setAttribute('text', text);
+  }
+
+  get lowerLimit(): string {
+    return this.getAttribute('lowerLimit') || '0';
+  }
+
+  set lowerLimit(lower: string) {
+    this.setAttribute('lowerLimit', lower);
+  }
+
+  get upLimit(): string {
+    return this.getAttribute('upLimit') || '∞';
+  }
+
+  set upLimit(upLimit: string) {
+    this.setAttribute('upLimit', upLimit);
+  }
+
+  get checked() {
+    return this.getAttribute('checked') != null;
+  }
+
+  set checked(checked: boolean) {
+    if (checked) {
+      this.setAttribute('checked', '');
+    } else {
+      this.removeAttribute('checked');
     }
+  }
 
-    get text(): string {
-        return this.getAttribute('text') || '';
-    }
+  initElements(): void {
+    this._checkBox = this.shadowRoot?.getElementById('checkbox') as SpCheckDesBox;
+    this._lowerLimit = this.shadowRoot?.getElementById('textLowerLimit') as HTMLInputElement;
+    this._upLimit = this.shadowRoot?.getElementById('_upLimit') as HTMLInputElement;
+  }
 
-    set text(text: string) {
-        this.setAttribute('text', text);
-    }
-
-    get lowerLimit(): string {
-        return this.getAttribute('lowerLimit') || '0';
-    }
-
-    set lowerLimit(lower: string) {
-        this.setAttribute('lowerLimit', lower);
-    }
-
-    get upLimit(): string {
-        return this.getAttribute('upLimit') || '∞';
-    }
-
-    set upLimit(upLimit: string) {
-        this.setAttribute('upLimit', upLimit);
-    }
-
-    get checked() {
-        return this.getAttribute('checked') != null;
-    }
-
-    set checked(checked: boolean) {
-        if (checked) {
-            this.setAttribute('checked', '');
-        } else {
-            this.removeAttribute('checked');
-        }
-    }
-
-    initElements(): void {
-        this._checkBox = this.shadowRoot?.getElementById(
-            'checkbox'
-        ) as SpCheckDesBox;
-        this._lowerLimit = this.shadowRoot?.getElementById(
-            'textLowerLimit'
-        ) as HTMLInputElement;
-        this._upLimit = this.shadowRoot?.getElementById(
-            '_upLimit'
-        ) as HTMLInputElement;
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
          display: grid;
@@ -96,20 +90,20 @@ export class LitCheckBoxWithText extends BaseElement {
         <input class="input-style" id="textLowerLimit" value="${this.lowerLimit}"/>
         <input class="input-style" id="_upLimit" value="${this.upLimit}"/>
         `;
-    }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name == 'checked') {
-            this._checkBox!.checked = newValue !== null;
-        }
-        if (name == 'text') {
-            this._checkBox?.setAttribute('value', newValue);
-        }
-        if (name == 'lowerLimit') {
-            this._lowerLimit!.textContent = newValue;
-        }
-        if (name == 'upLimit') {
-            this._upLimit!.textContent = newValue;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name == 'checked') {
+      this._checkBox!.checked = newValue !== null;
     }
+    if (name == 'text') {
+      this._checkBox?.setAttribute('value', newValue);
+    }
+    if (name == 'lowerLimit') {
+      this._lowerLimit!.textContent = newValue;
+    }
+    if (name == 'upLimit') {
+      this._upLimit!.textContent = newValue;
+    }
+  }
 }

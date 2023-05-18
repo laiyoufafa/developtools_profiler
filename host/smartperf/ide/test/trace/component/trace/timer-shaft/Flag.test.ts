@@ -16,8 +16,8 @@
 import { Flag } from '../../../../../dist/trace/component/trace/timer-shaft/Flag.js';
 
 describe('Flag Test', () => {
-    it('FlagTest01 ', function () {
-        let flag = new Flag();
-        expect(flag).not.toBeUndefined();
-    });
+  it('FlagTest01 ', function () {
+    let flag = new Flag();
+    expect(flag).not.toBeUndefined();
+  });
 });

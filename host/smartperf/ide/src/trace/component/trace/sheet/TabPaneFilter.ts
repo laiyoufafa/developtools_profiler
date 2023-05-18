@@ -23,676 +23,579 @@ import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
 
 export interface FilterData {
-    inputValue: string;
-    firstSelect: string | null | undefined;
-    secondSelect: string | null | undefined;
-    thirdSelect: string | null | undefined;
-    mark: boolean | null | undefined;
-    icon: string | null;
-    type: string;
+  inputValue: string;
+  firstSelect: string | null | undefined;
+  secondSelect: string | null | undefined;
+  thirdSelect: string | null | undefined;
+  mark: boolean | null | undefined;
+  icon: string | null;
+  type: string;
 }
 
 export interface MiningData {
-    type: string;
-    item: any | null | undefined;
-    remove?: Array<any> | null | undefined;
+  type: string;
+  item: any | null | undefined;
+  remove?: Array<any> | null | undefined;
 }
 
 @element('tab-pane-filter')
 export class TabPaneFilter extends BaseElement {
-    private filterInputEL: HTMLInputElement | null | undefined;
-    private firstSelectEL: HTMLSelectElement | null | undefined;
-    private secondSelectEL: HTMLSelectElement | null | undefined;
-    private thirdSelectEL: LitSelect | null | undefined;
-    private markButtonEL: HTMLButtonElement | null | undefined;
-    private iconEL: LitIcon | null | undefined;
-    private statisticsName: HTMLDivElement | null | undefined;
-    private getFilter: ((e: FilterData) => void) | undefined;
-    private getMining: ((e: MiningData) => void) | undefined;
-    private getLibrary: ((e: MiningData) => void) | undefined;
-    private getCallTree: ((e: any) => void) | undefined;
-    private getCallTreeConstraints: ((e: any) => void) | undefined;
-    private getStatisticsType: ((e: any) => void) | undefined;
+  private filterInputEL: HTMLInputElement | null | undefined;
+  private firstSelectEL: HTMLSelectElement | null | undefined;
+  private secondSelectEL: HTMLSelectElement | null | undefined;
+  private thirdSelectEL: LitSelect | null | undefined;
+  private markButtonEL: HTMLButtonElement | null | undefined;
+  private iconEL: LitIcon | null | undefined;
+  private statisticsName: HTMLDivElement | null | undefined;
+  private getFilter: ((e: FilterData) => void) | undefined;
+  private getMining: ((e: MiningData) => void) | undefined;
+  private getLibrary: ((e: MiningData) => void) | undefined;
+  private getCallTree: ((e: any) => void) | undefined;
+  private getCallTreeConstraints: ((e: any) => void) | undefined;
+  private getStatisticsType: ((e: any) => void) | undefined;
 
-    private cutList: Array<any> | undefined;
-    private libraryList: Array<any> | undefined;
+  private cutList: Array<any> | undefined;
+  private libraryList: Array<any> | undefined;
 
-    filterData(type: string, data: object = {}) {
-        return {
-            type: type,
-            inputValue: this.filterInputEL!.value,
-            firstSelect: this.firstSelectEL?.value,
-            secondSelect: this.secondSelectEL?.value,
-            thirdSelect: this.thirdSelectEL?.value,
-            mark: false,
-            icon: this.icon,
-            ...data,
-        };
+  filterData(type: string, data: object = {}) {
+    return {
+      type: type,
+      inputValue: this.filterInputEL!.value,
+      firstSelect: this.firstSelectEL?.value,
+      secondSelect: this.secondSelectEL?.value,
+      thirdSelect: this.thirdSelectEL?.value,
+      mark: false,
+      icon: this.icon,
+      ...data,
+    };
+  }
+
+  showThird(b: boolean) {
+    if (b) {
+      if (this.thirdSelectEL?.value) {
+        this.setAttribute('third', '');
+      } else {
+        this.removeAttribute('third');
+      }
+    } else {
+      this.removeAttribute('third');
     }
+  }
 
-    showThird(b:boolean){
-        if(b){
-            if(this.thirdSelectEL?.value){
-                this.setAttribute('third','');
-            }else {
-                this.removeAttribute('third');
-            }
-        }else{
-            this.removeAttribute('third');
+  initElements(): void {
+    this.cutList = [];
+    this.libraryList = [];
+    this.filterInputEL = this.shadowRoot?.querySelector('#filter-input');
+    this.markButtonEL = this.shadowRoot?.querySelector('#mark');
+    this.iconEL = this.shadowRoot?.querySelector<LitIcon>('#icon');
+    this.statisticsName = this.shadowRoot?.querySelector<HTMLDivElement>('.statistics-name');
+    this.iconEL!.onclick = (e) => {
+      if (this.iconEL!.name == 'statistics') {
+        this.iconEL!.name = 'menu';
+        this.iconEL!.size = 18;
+        if (this.getFilter) {
+          this.getFilter(this.filterData('icon'));
         }
-    }
-
-    initElements(): void {
-        this.cutList = [];
-        this.libraryList = [];
-        this.filterInputEL = this.shadowRoot?.querySelector('#filter-input');
-        this.markButtonEL = this.shadowRoot?.querySelector('#mark');
-        this.iconEL = this.shadowRoot?.querySelector<LitIcon>('#icon');
-        this.statisticsName =
-            this.shadowRoot?.querySelector<HTMLDivElement>('.statistics-name');
-        this.iconEL!.onclick = (e) => {
-            if (this.iconEL!.name == 'statistics') {
-                this.iconEL!.name = 'menu';
-                this.iconEL!.size = 18;
-                if (this.getFilter) {
-                    this.getFilter(this.filterData('icon'));
-                }
-            } else if (this.iconEL!.name == 'menu') {
-                this.iconEL!.name = 'statistics';
-                this.iconEL!.size = 16;
-                if (this.getFilter) {
-                    this.getFilter(this.filterData('icon'));
-                }
-            }
-        };
-
-        this.markButtonEL!.onclick = (e) => {
-            if (this.getFilter) {
-                this.getFilter(this.filterData('mark', { mark: true }));
-            }
-        };
-
-        this.filterInputEL?.addEventListener('keyup', (event: any) => {
-            if (event.keyCode == 13) {
-                if (this.getFilter) {
-                    this.getFilter(
-                        this.filterData('inputValue', {
-                            inputValue: event.target.value,
-                        })
-                    );
-                }
-            }
-            event.stopPropagation();
-        });
-
-        this.filterInputEL?.addEventListener('keypress', (event: any) => {
-            event.stopPropagation();
-        });
-
-        this.setSelectList();
-
-        this.initializeCallTree();
-
-        this.initializeTreeConstraints();
-
-        this.initializeMining();
-
-        this.initializeLibrary();
-
-        this.shadowRoot!.querySelectorAll<HTMLDivElement>(
-            '.mining-button'
-        ).forEach((e, idx) => {
-            e!.onclick = (ev) => {
-                if (idx == 0) {
-                    const restoreList = this.cutList!.filter(
-                        (item) => item.highlight === true
-                    );
-                    const list = this.cutList!.filter(
-                        (item) => item.highlight === false
-                    );
-                    this.cutList = list;
-                    if (this.getMining) {
-                        this.getMining({
-                            type: 'button',
-                            item: 'restore',
-                            remove: restoreList,
-                        });
-                    }
-                    this.initializeMining();
-                }
-            };
-        });
-        this.shadowRoot!.querySelector<HTMLDivElement>(
-            '.library-button'
-        )!.onclick = (ev) => {
-            const restoreList = this.libraryList!.filter(
-                (item) => item.highlight === true
-            );
-            const list = this.libraryList!.filter(
-                (item) => item.highlight === false
-            );
-            this.libraryList = list;
-            if (this.getLibrary) {
-                this.getLibrary({
-                    type: 'button',
-                    item: 'restore',
-                    remove: restoreList,
-                });
-            }
-            this.initializeLibrary();
-        };
-
-        this.shadowRoot!.querySelector<HTMLDivElement>(
-            '#data-mining'
-        )!.onclick = (e) => {
-            if (this.getMining) {
-                this.getMining({ type: 'button', item: 'symbol' });
-            }
-        };
-        this.shadowRoot!.querySelector<HTMLDivElement>(
-            '#data-library'
-        )!.onclick = (e) => {
-            if (this.getLibrary) {
-                this.getLibrary({ type: 'button', item: 'library' });
-            }
-        };
-        this.shadowRoot!.querySelector<HTMLDivElement>('.sort')!.onclick = (
-            e
-        ) => {
-            let statisticsType =
-                this.statisticsName!.textContent == 'Statistics by Operation';
-            this.statisticsName!.textContent = statisticsType
-                ? 'Statistics by Thread'
-                : 'Statistics by Operation';
-            if (this.getStatisticsType) {
-                this.getStatisticsType(statisticsType ? 'thread' : 'operation');
-            }
-        };
-    }
-
-    set firstSelect(value: string) {
-        this.firstSelectEL!.value = value;
-    }
-
-    get firstSelect() {
-        return this.firstSelectEL?.value || '';
-    }
-
-    set secondSelect(value: string) {
-        this.secondSelectEL!.value = value;
-    }
-
-    get secondSelect() {
-        return this.secondSelectEL?.value || '';
-    }
-
-    set filterValue(value: string) {
-        this.filterInputEL!.value = value;
-    }
-
-    get filterValue() {
-        return this.filterInputEL!.value;
-    }
-
-    set thirdSelect(value: string) {
-        this.thirdSelectEL!.value = value;
-    }
-
-    get thirdSelect() {
-        return this.thirdSelectEL?.value || '';
-    }
-
-    get inputPlaceholder() {
-        return this.getAttribute('inputPlaceholder') || 'Detail Filter';
-    }
-
-    get icon() {
-        if (this.getAttribute('icon') != 'false') {
-            if (this.iconEL!.name == 'statistics') {
-                return 'tree';
-            } else if (this.iconEL!.name == 'menu') {
-                return 'block';
-            } else {
-                return '';
-            }
-        } else {
-            return '';
+      } else if (this.iconEL!.name == 'menu') {
+        this.iconEL!.name = 'statistics';
+        this.iconEL!.size = 16;
+        if (this.getFilter) {
+          this.getFilter(this.filterData('icon'));
         }
-    }
+      }
+    };
 
-    set icon(value: string) {
-        if (value == 'block') {
-            this.iconEL!.name = 'menu';
-            this.iconEL!.size = 18;
-        } else if (value == 'tree') {
-            this.iconEL!.name = 'statistics';
-            this.iconEL!.size = 16;
+    this.markButtonEL!.onclick = (e) => {
+      if (this.getFilter) {
+        this.getFilter(this.filterData('mark', { mark: true }));
+      }
+    };
+
+    this.filterInputEL?.addEventListener('keyup', (event: any) => {
+      if (event.keyCode == 13) {
+        if (this.getFilter) {
+          this.getFilter(
+            this.filterData('inputValue', {
+              inputValue: event.target.value,
+            })
+          );
         }
-    }
+      }
+      event.stopPropagation();
+    });
 
-    get disabledMining() {
-        return this.hasAttribute('disabledMining');
-    }
+    this.filterInputEL?.addEventListener('keypress', (event: any) => {
+      event.stopPropagation();
+    });
 
-    set disabledMining(value: boolean) {
-        if (value) {
-            this.setAttribute('disabledMining', '');
-        } else {
-            this.removeAttribute('disabledMining');
-        }
-    }
+    this.setSelectList();
 
-    setFilterModuleSelect(module: string, styleName: any, value: any) {
-        this.shadowRoot!.querySelector<HTMLDivElement>(module)!.style[
-            styleName
-        ] = value;
-    }
+    this.initializeCallTree();
 
-    getCallTreeData(getCallTree: (v: any) => void) {
-        this.getCallTree = getCallTree;
-    }
+    this.initializeTreeConstraints();
 
-    getCallTreeConstraintsData(getCallTreeConstraints: (v: any) => void) {
-        this.getCallTreeConstraints = getCallTreeConstraints;
-    }
+    this.initializeMining();
 
-    getFilterData(getFilter: (v: FilterData) => void) {
-        this.getFilter = getFilter;
-    }
+    this.initializeLibrary();
 
-    getStatisticsTypeData(getStatisticsType: (v: any) => void) {
-        this.getStatisticsType = getStatisticsType;
-    }
-
-    setSelectList(
-        firstList: Array<any> | null | undefined = [
-            'All Allocations',
-            'Created & Existing',
-            'Created & Destroyed',
-        ],
-        secondList: Array<any> | null | undefined = [
-            'All Heap & Anonymous VM',
-            'All Heap',
-            'All Anonymous VM',
-        ],
-        firstTitle = 'Allocation Lifespan',
-        secondTitle = 'Allocation Type',
-        thirdList: Array<any> | null | undefined = null,
-        thirdTitle = 'Responsible Library'
-    ) {
-        let sLE = this.shadowRoot?.querySelector('#load');
-        let html = ``;
-        if (firstList) {
-            html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
-            if (firstTitle != '') {
-                html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`;
-            }
-            firstList!.forEach((a, b) => {
-                html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
+    this.shadowRoot!.querySelectorAll<HTMLDivElement>('.mining-button').forEach((e, idx) => {
+      e!.onclick = (ev) => {
+        if (idx == 0) {
+          const restoreList = this.cutList!.filter((item) => item.highlight === true);
+          const list = this.cutList!.filter((item) => item.highlight === false);
+          this.cutList = list;
+          if (this.getMining) {
+            this.getMining({
+              type: 'button',
+              item: 'restore',
+              remove: restoreList,
             });
-            html += `</lit-select>`;
+          }
+          this.initializeMining();
         }
-        if (secondList) {
-            html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
-            if (secondTitle != '') {
-                html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
-            }
-            secondList!.forEach((a, b) => {
-                html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
-            });
-            html += `</lit-select>`;
-        }
-        let thtml = '';
-        if (thirdList) {
-            this.setAttribute('third','');
-        }
-        thtml += `<lit-select show-search default-value="" id="third-select" class="spacing" placeholder="please choose">`;
-        if (thirdList) {
-            if (thirdTitle != '') {
-                thtml += `<lit-select-option  value="${thirdTitle}" disabled>${thirdTitle}</lit-select-option>`;
-            }
-            thirdList!.forEach((a, b) => {
-                thtml += `<lit-select-option value="${b}">${a}</lit-select-option>`;
-            });
-        }
-        thtml += `</lit-select>`;
-
-        if (!firstList && !secondList) {
-            this.thirdSelectEL!.outerHTML = thtml;
-            this.thirdSelectEL =
-                this.shadowRoot?.querySelector('#third-select');
-            this.thirdSelectEL!.onchange = (e) => {
-                if (this.getFilter) {
-                    this.getFilter(this.filterData('thirdSelect'));
-                }
-            };
-            return;
-        }
-
-        if (!firstList) {
-            this.secondSelectEL!.outerHTML = html;
-        } else if (!secondList) {
-            this.firstSelectEL!.outerHTML = html;
-        } else {
-            sLE!.innerHTML = html + thtml;
-        }
-        this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
-        this.thirdSelectEL!.outerHTML = thtml;
-        this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
-
-        this.firstSelectEL = this.shadowRoot?.querySelector('#first-select');
-        this.secondSelectEL = this.shadowRoot?.querySelector('#second-select');
-
-        this.firstSelectEL!.onchange = (e) => {
-            if (this.getFilter) {
-                this.getFilter(this.filterData('firstSelect'));
-            }
-        };
-        this.secondSelectEL!.onchange = (e) => {
-            if (this.getFilter) {
-                this.getFilter(this.filterData('secondSelect'));
-            }
-        };
-        this.thirdSelectEL!.onchange = (e) => {
-            if (this.getFilter) {
-                this.getFilter(this.filterData('thirdSelect'));
-            }
-        };
-    }
-
-    initializeCallTree() {
-        let row = this.shadowRoot!.querySelectorAll('.tree-check');
-        row.forEach((e, idx) => {
-            let check = e.querySelector<LitCheckBox>('lit-check-box');
-            e.querySelector('div')!.onclick = (ev) => {
-                if (this.getCallTree) {
-                    if (idx == 0) {
-                        this.getCallTree({
-                            checks: [
-                                !check!.checked,
-                                row[1].querySelector<LitCheckBox>(
-                                    'lit-check-box'
-                                )!.checked,
-                            ],
-                            value: idx,
-                        });
-                    } else {
-                        this.getCallTree({
-                            checks: [
-                                row[0].querySelector<LitCheckBox>(
-                                    'lit-check-box'
-                                )!.checked,
-                                !check!.checked,
-                            ],
-                            value: idx,
-                        });
-                    }
-                }
-                check!.checked = !check!.checked;
-            };
-            check!.onchange = (ev: any) => {
-                if (this.getCallTree) {
-                    if (idx == 0) {
-                        this.getCallTree({
-                            checks: [
-                                ev.target.checked,
-                                row[1].querySelector<LitCheckBox>(
-                                    'lit-check-box'
-                                )!.checked,
-                            ],
-                            value: idx,
-                        });
-                    } else {
-                        this.getCallTree({
-                            checks: [
-                                row[0].querySelector<LitCheckBox>(
-                                    'lit-check-box'
-                                )!.checked,
-                                ev.target.checked,
-                            ],
-                            value: idx,
-                        });
-                    }
-                }
-            };
+      };
+    });
+    this.shadowRoot!.querySelector<HTMLDivElement>('.library-button')!.onclick = (ev) => {
+      const restoreList = this.libraryList!.filter((item) => item.highlight === true);
+      const list = this.libraryList!.filter((item) => item.highlight === false);
+      this.libraryList = list;
+      if (this.getLibrary) {
+        this.getLibrary({
+          type: 'button',
+          item: 'restore',
+          remove: restoreList,
         });
+      }
+      this.initializeLibrary();
+    };
+
+    this.shadowRoot!.querySelector<HTMLDivElement>('#data-mining')!.onclick = (e) => {
+      if (this.getMining) {
+        this.getMining({ type: 'button', item: 'symbol' });
+      }
+    };
+    this.shadowRoot!.querySelector<HTMLDivElement>('#data-library')!.onclick = (e) => {
+      if (this.getLibrary) {
+        this.getLibrary({ type: 'button', item: 'library' });
+      }
+    };
+    this.shadowRoot!.querySelector<HTMLDivElement>('.sort')!.onclick = (e) => {
+      let statisticsType = this.statisticsName!.textContent == 'Statistics by Operation';
+      this.statisticsName!.textContent = statisticsType ? 'Statistics by Thread' : 'Statistics by Operation';
+      if (this.getStatisticsType) {
+        this.getStatisticsType(statisticsType ? 'thread' : 'operation');
+      }
+    };
+  }
+
+  set firstSelect(value: string) {
+    this.firstSelectEL!.value = value;
+  }
+
+  get firstSelect() {
+    return this.firstSelectEL?.value || '';
+  }
+
+  set secondSelect(value: string) {
+    this.secondSelectEL!.value = value;
+  }
+
+  get secondSelect() {
+    return this.secondSelectEL?.value || '';
+  }
+
+  set filterValue(value: string) {
+    this.filterInputEL!.value = value;
+  }
+
+  get filterValue() {
+    return this.filterInputEL!.value;
+  }
+
+  set thirdSelect(value: string) {
+    this.thirdSelectEL!.value = value;
+  }
+
+  get thirdSelect() {
+    return this.thirdSelectEL?.value || '';
+  }
+
+  get inputPlaceholder() {
+    return this.getAttribute('inputPlaceholder') || 'Detail Filter';
+  }
+
+  get icon() {
+    if (this.getAttribute('icon') != 'false') {
+      if (this.iconEL!.name == 'statistics') {
+        return 'tree';
+      } else if (this.iconEL!.name == 'menu') {
+        return 'block';
+      } else {
+        return '';
+      }
+    } else {
+      return '';
+    }
+  }
+
+  set icon(value: string) {
+    if (value == 'block') {
+      this.iconEL!.name = 'menu';
+      this.iconEL!.size = 18;
+    } else if (value == 'tree') {
+      this.iconEL!.name = 'statistics';
+      this.iconEL!.size = 16;
+    }
+  }
+
+  get disabledMining() {
+    return this.hasAttribute('disabledMining');
+  }
+
+  set disabledMining(value: boolean) {
+    if (value) {
+      this.setAttribute('disabledMining', '');
+    } else {
+      this.removeAttribute('disabledMining');
+    }
+  }
+
+  setFilterModuleSelect(module: string, styleName: any, value: any) {
+    this.shadowRoot!.querySelector<HTMLDivElement>(module)!.style[styleName] = value;
+  }
+
+  getCallTreeData(getCallTree: (v: any) => void) {
+    this.getCallTree = getCallTree;
+  }
+
+  getCallTreeConstraintsData(getCallTreeConstraints: (v: any) => void) {
+    this.getCallTreeConstraints = getCallTreeConstraints;
+  }
+
+  getFilterData(getFilter: (v: FilterData) => void) {
+    this.getFilter = getFilter;
+  }
+
+  getStatisticsTypeData(getStatisticsType: (v: any) => void) {
+    this.getStatisticsType = getStatisticsType;
+  }
+
+  setSelectList(
+    firstList: Array<any> | null | undefined = ['All Allocations', 'Created & Existing', 'Created & Destroyed'],
+    secondList: Array<any> | null | undefined = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'],
+    firstTitle = 'Allocation Lifespan',
+    secondTitle = 'Allocation Type',
+    thirdList: Array<any> | null | undefined = null,
+    thirdTitle = 'Responsible Library'
+  ) {
+    let sLE = this.shadowRoot?.querySelector('#load');
+    let html = ``;
+    if (firstList) {
+      html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
+      if (firstTitle != '') {
+        html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`;
+      }
+      firstList!.forEach((a, b) => {
+        html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
+      });
+      html += `</lit-select>`;
+    }
+    if (secondList) {
+      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
+      if (secondTitle != '') {
+        html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
+      }
+      secondList!.forEach((a, b) => {
+        html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
+      });
+      html += `</lit-select>`;
+    }
+    let thtml = '';
+    if (thirdList) {
+      this.setAttribute('third', '');
+    }
+    thtml += `<lit-select show-search default-value="" id="third-select" class="spacing" placeholder="please choose">`;
+    if (thirdList) {
+      if (thirdTitle != '') {
+        thtml += `<lit-select-option  value="${thirdTitle}" disabled>${thirdTitle}</lit-select-option>`;
+      }
+      thirdList!.forEach((a, b) => {
+        thtml += `<lit-select-option value="${b}">${a}</lit-select-option>`;
+      });
+    }
+    thtml += `</lit-select>`;
+
+    if (!firstList && !secondList) {
+      this.thirdSelectEL!.outerHTML = thtml;
+      this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+      this.thirdSelectEL!.onchange = (e) => {
+        if (this.getFilter) {
+          this.getFilter(this.filterData('thirdSelect'));
+        }
+      };
+      return;
     }
 
-    initializeTreeConstraints() {
-        let inputs =
-            this.shadowRoot!.querySelectorAll<HTMLInputElement>(
-                '.constraints-input'
-            );
-        let check =
-            this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
-        check!.onchange = (ev: any) => {
-            inputs.forEach((e: any, idx) => {
-                if (inputs[idx].value == '') {
-                    inputs[idx].value = idx == 0 ? '0' : '∞';
-                }
-                ev.target.checked
-                    ? e.removeAttribute('disabled')
-                    : e.setAttribute('disabled', '');
+    if (!firstList) {
+      this.secondSelectEL!.outerHTML = html;
+    } else if (!secondList) {
+      this.firstSelectEL!.outerHTML = html;
+    } else {
+      sLE!.innerHTML = html + thtml;
+    }
+    this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+    this.thirdSelectEL!.outerHTML = thtml;
+    this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+
+    this.firstSelectEL = this.shadowRoot?.querySelector('#first-select');
+    this.secondSelectEL = this.shadowRoot?.querySelector('#second-select');
+
+    this.firstSelectEL!.onchange = (e) => {
+      if (this.getFilter) {
+        this.getFilter(this.filterData('firstSelect'));
+      }
+    };
+    this.secondSelectEL!.onchange = (e) => {
+      if (this.getFilter) {
+        this.getFilter(this.filterData('secondSelect'));
+      }
+    };
+    this.thirdSelectEL!.onchange = (e) => {
+      if (this.getFilter) {
+        this.getFilter(this.filterData('thirdSelect'));
+      }
+    };
+  }
+
+  initializeCallTree() {
+    let row = this.shadowRoot!.querySelectorAll('.tree-check');
+    row.forEach((e, idx) => {
+      let check = e.querySelector<LitCheckBox>('lit-check-box');
+      e.querySelector('div')!.onclick = (ev) => {
+        if (this.getCallTree) {
+          if (idx == 0) {
+            this.getCallTree({
+              checks: [!check!.checked, row[1].querySelector<LitCheckBox>('lit-check-box')!.checked],
+              value: idx,
             });
-            if (this.getCallTreeConstraints) {
-                this.getCallTreeConstraints({
-                    checked: ev.target.checked,
-                    min: inputs[0].value,
-                    max: inputs[1].value,
-                });
-            }
-        };
-        inputs.forEach((e, idx) => {
-            e.oninput = function () {
-                // @ts-ignore
-                this.value = this.value.replace(/\D/g, '');
-            };
-            e.addEventListener('keyup', (event: any) => {
-                event.stopPropagation();
-                if (event.keyCode == '13') {
-                    if (event?.target.value == '') {
-                        inputs[idx].value = idx == 0 ? '0' : '∞';
-                    }
-                    if (this.getCallTreeConstraints) {
-                        this.getCallTreeConstraints({
-                            checked: check!.checked,
-                            min:
-                                idx == 0
-                                    ? event?.target.value
-                                    : inputs[0].value,
-                            max:
-                                idx == 1
-                                    ? event?.target.value
-                                    : inputs[1].value,
-                        });
-                    }
-                }
+          } else {
+            this.getCallTree({
+              checks: [row[0].querySelector<LitCheckBox>('lit-check-box')!.checked, !check!.checked],
+              value: idx,
             });
+          }
+        }
+        check!.checked = !check!.checked;
+      };
+      check!.onchange = (ev: any) => {
+        if (this.getCallTree) {
+          if (idx == 0) {
+            this.getCallTree({
+              checks: [ev.target.checked, row[1].querySelector<LitCheckBox>('lit-check-box')!.checked],
+              value: idx,
+            });
+          } else {
+            this.getCallTree({
+              checks: [row[0].querySelector<LitCheckBox>('lit-check-box')!.checked, ev.target.checked],
+              value: idx,
+            });
+          }
+        }
+      };
+    });
+  }
+
+  initializeTreeConstraints() {
+    let inputs = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.constraints-input');
+    let check = this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
+    check!.onchange = (ev: any) => {
+      inputs.forEach((e: any, idx) => {
+        if (inputs[idx].value == '') {
+          inputs[idx].value = idx == 0 ? '0' : '∞';
+        }
+        ev.target.checked ? e.removeAttribute('disabled') : e.setAttribute('disabled', '');
+      });
+      if (this.getCallTreeConstraints) {
+        this.getCallTreeConstraints({
+          checked: ev.target.checked,
+          min: inputs[0].value,
+          max: inputs[1].value,
         });
-    }
+      }
+    };
+    inputs.forEach((e, idx) => {
+      e.oninput = function () {
+        // @ts-ignore
+        this.value = this.value.replace(/\D/g, '');
+      };
+      e.addEventListener('keyup', (event: any) => {
+        event.stopPropagation();
+        if (event.keyCode == '13') {
+          if (event?.target.value == '') {
+            inputs[idx].value = idx == 0 ? '0' : '∞';
+          }
+          if (this.getCallTreeConstraints) {
+            this.getCallTreeConstraints({
+              checked: check!.checked,
+              min: idx == 0 ? event?.target.value : inputs[0].value,
+              max: idx == 1 ? event?.target.value : inputs[1].value,
+            });
+          }
+        }
+      });
+    });
+  }
 
-    initializeMining() {
-        let html = ``;
-        this.cutList!.forEach((a, b) => {
-            html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${
-                a.highlight ? 'highlight' : ''
-            }>
+  initializeMining() {
+    let html = ``;
+    this.cutList!.forEach((a, b) => {
+      html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
-                            a.checked ? 'checked' : ''
+                          a.checked ? 'checked' : ''
                         } style="display: flex"></lit-check-box>
-                        <div id="title" title="${a.name}">${
-                a.name
-            }</div></div>`;
-        });
+                        <div id="title" title="${a.name}">${a.name}</div></div>`;
+    });
 
-        this.shadowRoot!.querySelector<HTMLDivElement>(
-            '#mining-row'
-        )!.innerHTML = html;
+    this.shadowRoot!.querySelector<HTMLDivElement>('#mining-row')!.innerHTML = html;
 
-        let row = this.shadowRoot!.querySelector('#mining-row')!.childNodes;
-        row!.forEach((e: any, idx) => {
-            e!.querySelector('#title')!.onclick = (ev: any) => {
-                if (e.getAttribute('highlight') == '') {
-                    e.removeAttribute('highlight');
-                    this.cutList![idx].highlight = false;
-                } else {
-                    e.setAttribute('highlight', '');
-                    this.cutList![idx].highlight = true;
-                }
-            };
-            // @ts-ignore
-            e!.querySelector<LitCheckBox>('lit-check-box')!.onchange = (ev) => {
-                // @ts-ignore
-                this.cutList[idx].checked = e!.querySelector<LitCheckBox>('lit-check-box')!.checked;
-                if (this.getMining) {
-                    this.getMining({ type: 'check', item: this.cutList![idx] });
-                }
-            };
-        });
-    }
-
-    initializeLibrary() {
-        let html = ``;
-        this.libraryList!.forEach((a, b) => {
-            html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${
-                a.highlight ? 'highlight' : ''
-            }>
-                        <lit-check-box class="lit-check-box" not-close ${
-                            a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
-                        <div id="title" title="${a.name}">${
-                a.name
-            }</div></div>`;
-        });
-
-        this.shadowRoot!.querySelector<HTMLDivElement>(
-            '#library-row'
-        )!.innerHTML = html;
-
-        let row = this.shadowRoot!.querySelector('#library-row')!.childNodes;
-        row!.forEach((e: any, idx) => {
-            e!.querySelector('#title')!.onclick = (ev: any) => {
-                if (e.getAttribute('highlight') == '') {
-                    e.removeAttribute('highlight');
-                    this.libraryList![idx].highlight = false;
-                } else {
-                    e.setAttribute('highlight', '');
-                    this.libraryList![idx].highlight = true;
-                }
-            };
-
-            // @ts-ignore
-            e!.querySelector<LitCheckBox>('lit-check-box')!.onchange = (ev) => {
-                // @ts-ignore
-                this.libraryList[idx].checked = e!.querySelector<LitCheckBox>('lit-check-box')!.checked;
-                if (this.getLibrary) {
-                    this.getLibrary({
-                        type: 'check',
-                        item: this.libraryList![idx],
-                    });
-                }
-            };
-        });
-    }
-
-    getDataMining(getMining: (v: MiningData) => void) {
-        this.getMining = getMining;
-    }
-
-    getDataLibrary(getLibrary: (v: MiningData) => void) {
-        this.getLibrary = getLibrary;
-    }
-
-    addDataMining(data: any, type: string) {
-        let list: Array<any> =
-            (type == 'symbol' ? this.cutList : this.libraryList) || [];
-        let idx = list!.findIndex((e) => e.name == data.name);
-        if (idx == -1) {
-            list!.push({
-                type: type,
-                name: data.name,
-                checked: true,
-                select: '1',
-                data: data,
-                highlight: false,
-            });
+    let row = this.shadowRoot!.querySelector('#mining-row')!.childNodes;
+    row!.forEach((e: any, idx) => {
+      e!.querySelector('#title')!.onclick = (ev: any) => {
+        if (e.getAttribute('highlight') == '') {
+          e.removeAttribute('highlight');
+          this.cutList![idx].highlight = false;
         } else {
-            list![idx] = {
-                type: type,
-                name: data.name,
-                checked: true,
-                select: '1',
-                data: data,
-                highlight: false,
-            };
+          e.setAttribute('highlight', '');
+          this.cutList![idx].highlight = true;
         }
-        this.initializeMining();
-        this.initializeLibrary();
-        return idx;
-    }
+      };
+      // @ts-ignore
+      e!.querySelector<LitCheckBox>('lit-check-box')!.onchange = (ev) => {
+        // @ts-ignore
+        this.cutList[idx].checked = e!.querySelector<LitCheckBox>('lit-check-box')!.checked;
+        if (this.getMining) {
+          this.getMining({ type: 'check', item: this.cutList![idx] });
+        }
+      };
+    });
+  }
 
-    getFilterTreeData() {
-        let row = this.shadowRoot!.querySelectorAll<LitCheckBox>(
-            '.tree-check lit-check-box'
-        );
-        let inputs =
-            this.shadowRoot!.querySelectorAll<HTMLInputElement>(
-                '.constraints-input'
-            );
-        let check =
-            this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
-        let data = {
-            callTree: [row[0]!.checked, row[1]!.checked],
-            callTreeConstraints: {
-                checked: check!.checked,
-                inputs: [
-                    inputs[0].value == '' ? '0' : inputs[0].value,
-                    inputs[1].value == '' ? '∞' : inputs[1].value,
-                ],
-            },
-            dataMining: this.cutList,
-            dataLibrary: this.libraryList,
-        };
-        return data;
-    }
+  initializeLibrary() {
+    let html = ``;
+    this.libraryList!.forEach((a, b) => {
+      html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? 'highlight' : ''}>
+                        <lit-check-box class="lit-check-box" not-close ${
+                          a.checked ? 'checked' : ''
+                        } style="display: flex"></lit-check-box>
+                        <div id="title" title="${a.name}">${a.name}</div></div>`;
+    });
 
-    initializeFilterTree(
-        callTree: boolean = true,
-        treeConstraints: boolean = true,
-        mining: boolean = true
-    ) {
-        if (callTree) {
-            let row = this.shadowRoot!.querySelectorAll('.tree-check');
-            row.forEach((e, idx) => {
-                let check = e.querySelector<LitCheckBox>('lit-check-box');
-                check!.checked = false;
-            });
-        }
-        if (treeConstraints) {
-            let inputs =
-                this.shadowRoot!.querySelectorAll<HTMLInputElement>(
-                    '.constraints-input'
-                );
-            if (inputs.length > 0) {
-                inputs[0].value = '0';
-                inputs[1].value = '∞';
-            }
-            let check =
-                this.shadowRoot!.querySelector<LitCheckBox>(
-                    '#constraints-check'
-                );
-            check!.checked = false;
-        }
-        if (mining) {
-            this.cutList = [];
-            this.libraryList = [];
-            this.initializeMining();
-            this.initializeLibrary();
-        }
-    }
+    this.shadowRoot!.querySelector<HTMLDivElement>('#library-row')!.innerHTML = html;
 
-    initHtml(): string {
-        return `
+    let row = this.shadowRoot!.querySelector('#library-row')!.childNodes;
+    row!.forEach((e: any, idx) => {
+      e!.querySelector('#title')!.onclick = (ev: any) => {
+        if (e.getAttribute('highlight') == '') {
+          e.removeAttribute('highlight');
+          this.libraryList![idx].highlight = false;
+        } else {
+          e.setAttribute('highlight', '');
+          this.libraryList![idx].highlight = true;
+        }
+      };
+
+      // @ts-ignore
+      e!.querySelector<LitCheckBox>('lit-check-box')!.onchange = (ev) => {
+        // @ts-ignore
+        this.libraryList[idx].checked = e!.querySelector<LitCheckBox>('lit-check-box')!.checked;
+        if (this.getLibrary) {
+          this.getLibrary({
+            type: 'check',
+            item: this.libraryList![idx],
+          });
+        }
+      };
+    });
+  }
+
+  getDataMining(getMining: (v: MiningData) => void) {
+    this.getMining = getMining;
+  }
+
+  getDataLibrary(getLibrary: (v: MiningData) => void) {
+    this.getLibrary = getLibrary;
+  }
+
+  addDataMining(data: any, type: string) {
+    let list: Array<any> = (type == 'symbol' ? this.cutList : this.libraryList) || [];
+    let idx = list!.findIndex((e) => e.name == data.name);
+    if (idx == -1) {
+      list!.push({
+        type: type,
+        name: data.name,
+        checked: true,
+        select: '1',
+        data: data,
+        highlight: false,
+      });
+    } else {
+      list![idx] = {
+        type: type,
+        name: data.name,
+        checked: true,
+        select: '1',
+        data: data,
+        highlight: false,
+      };
+    }
+    this.initializeMining();
+    this.initializeLibrary();
+    return idx;
+  }
+
+  getFilterTreeData() {
+    let row = this.shadowRoot!.querySelectorAll<LitCheckBox>('.tree-check lit-check-box');
+    let inputs = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.constraints-input');
+    let check = this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
+    let data = {
+      callTree: [row[0]!.checked, row[1]!.checked],
+      callTreeConstraints: {
+        checked: check!.checked,
+        inputs: [inputs[0].value == '' ? '0' : inputs[0].value, inputs[1].value == '' ? '∞' : inputs[1].value],
+      },
+      dataMining: this.cutList,
+      dataLibrary: this.libraryList,
+    };
+    return data;
+  }
+
+  initializeFilterTree(callTree: boolean = true, treeConstraints: boolean = true, mining: boolean = true) {
+    if (callTree) {
+      let row = this.shadowRoot!.querySelectorAll('.tree-check');
+      row.forEach((e, idx) => {
+        let check = e.querySelector<LitCheckBox>('lit-check-box');
+        check!.checked = false;
+      });
+    }
+    if (treeConstraints) {
+      let inputs = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.constraints-input');
+      if (inputs.length > 0) {
+        inputs[0].value = '0';
+        inputs[1].value = '∞';
+      }
+      let check = this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
+      check!.checked = false;
+    }
+    if (mining) {
+      this.cutList = [];
+      this.libraryList = [];
+      this.initializeMining();
+      this.initializeLibrary();
+    }
+  }
+
+  initHtml(): string {
+    return `
         <style>
         :host{
             height: 30px;
@@ -956,5 +859,5 @@ export class TabPaneFilter extends BaseElement {
             <div style="margin-left: 5px" class="describe statistics-name">Statistics by Thread</div>
         </div>
         `;
-    }
+  }
 }

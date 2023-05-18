@@ -24,58 +24,49 @@ import { TabCpuDetailsIrq } from './TabCpuDetailsIrq.js';
 
 @element('drawer-cpu-tabs')
 export class DrawerCpuTabs extends BaseElement {
-    private cpuNumber: number = 0;
-    private tabs: LitTabs | null | undefined;
-    private tabCpuDetailsFrequency: TabCpuDetailsFrequency | null | undefined;
-    private tabCpuDetailsIdle: TabCpuDetailsIdle | null | undefined;
-    private tabCpuDetailsIrq: TabCpuDetailsIrq | null | undefined;
+  private cpuNumber: number = 0;
+  private tabs: LitTabs | null | undefined;
+  private tabCpuDetailsFrequency: TabCpuDetailsFrequency | null | undefined;
+  private tabCpuDetailsIdle: TabCpuDetailsIdle | null | undefined;
+  private tabCpuDetailsIrq: TabCpuDetailsIrq | null | undefined;
 
-    initElements(): void {
-        this.tabs = this.shadowRoot?.querySelector<LitTabs>('#tabs');
-        this.tabCpuDetailsFrequency =
-            this.shadowRoot?.querySelector<TabCpuDetailsFrequency>(
-                '#tab-cpu-details-frequency'
-            );
-        this.tabCpuDetailsIdle =
-            this.shadowRoot?.querySelector<TabCpuDetailsIdle>(
-                '#tab-cpu-details-idle'
-            );
-        this.tabCpuDetailsIrq =
-            this.shadowRoot?.querySelector<TabCpuDetailsIrq>(
-                '#tab-cpu-details-irq'
-            );
+  initElements(): void {
+    this.tabs = this.shadowRoot?.querySelector<LitTabs>('#tabs');
+    this.tabCpuDetailsFrequency = this.shadowRoot?.querySelector<TabCpuDetailsFrequency>('#tab-cpu-details-frequency');
+    this.tabCpuDetailsIdle = this.shadowRoot?.querySelector<TabCpuDetailsIdle>('#tab-cpu-details-idle');
+    this.tabCpuDetailsIrq = this.shadowRoot?.querySelector<TabCpuDetailsIrq>('#tab-cpu-details-irq');
 
-        this.tabs!.onTabClick = (e: any) => {
-            if (e.detail.key == '1') {
-                this.tabCpuDetailsIdle?.init(this.cpuNumber);
-            } else if (e.detail.key == '2') {
-                this.tabCpuDetailsFrequency?.init(this.cpuNumber);
-            } else if (e.detail.key == '3') {
-                this.tabCpuDetailsIrq?.init(this.cpuNumber);
-            }
-        };
+    this.tabs!.onTabClick = (e: any) => {
+      if (e.detail.key == '1') {
+        this.tabCpuDetailsIdle?.init(this.cpuNumber);
+      } else if (e.detail.key == '2') {
+        this.tabCpuDetailsFrequency?.init(this.cpuNumber);
+      } else if (e.detail.key == '3') {
+        this.tabCpuDetailsIrq?.init(this.cpuNumber);
+      }
+    };
+  }
+
+  init(cpu: number, value: string) {
+    this.tabs!.activekey = value;
+    this.cpuNumber = cpu;
+    if (value == '1') {
+      this.tabCpuDetailsIdle?.init(this.cpuNumber);
+    } else if (value == '2') {
+      this.tabCpuDetailsFrequency?.init(this.cpuNumber);
+    } else if (value == '3') {
+      this.tabCpuDetailsIrq?.init(this.cpuNumber);
     }
+  }
 
-    init(cpu: number, value: string) {
-        this.tabs!.activekey = value;
-        this.cpuNumber = cpu;
-        if (value == '1') {
-            this.tabCpuDetailsIdle?.init(this.cpuNumber);
-        } else if (value == '2') {
-            this.tabCpuDetailsFrequency?.init(this.cpuNumber);
-        } else if (value == '3') {
-            this.tabCpuDetailsIrq?.init(this.cpuNumber);
-        }
-    }
+  clearData() {
+    this.tabCpuDetailsFrequency!.clearData();
+    this.tabCpuDetailsIdle!.clearData();
+    this.tabCpuDetailsIrq!.clearData();
+  }
 
-    clearData() {
-        this.tabCpuDetailsFrequency!.clearData();
-        this.tabCpuDetailsIdle!.clearData();
-        this.tabCpuDetailsIrq!.clearData();
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host {
             width: 100%;
@@ -106,5 +97,5 @@ export class DrawerCpuTabs extends BaseElement {
             </lit-tabs>
         </div>
         `;
-    }
+  }
 }

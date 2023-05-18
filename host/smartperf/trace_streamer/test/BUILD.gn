@@ -59,7 +59,10 @@ if (is_test) {
           "unittest/wasm_func_test.cpp",
         ]
       } else {
-        sources = [ "unittest/parser_pbreader_test.cpp" ]
+        sources = [
+          "unittest/js_memory_test.cpp",
+          "unittest/parser_pbreader_test.cpp",
+        ]
       }
     }
     deps = [
@@ -85,6 +88,7 @@ if (is_test) {
       "../src",
       "../src/trace_data",
       "../src/table",
+      "../src/table/base",
       "../src/filter",
       "../src/base",
       "../src/rpc",
@@ -100,6 +104,8 @@ if (is_test) {
       "..",
       "//third_party/googletest/googletest/include/gtest",
       "//third_party/protobuf/src",
+      "//third_party/hiperf/include",
+      "//third_party/hiperf/include/nonlinux/linux",
       "//third_party/protobuf/src/google/protobuf",
       "//third_party/json-master/include",
       "//third_party/json-master/include/nlohmann",
@@ -116,6 +122,7 @@ if (is_test) {
       "${OHOS_PROCESS_PROTO_DIR}",
       "${OHOS_SERVICE_PROTO_DIR}",
       "${OHOS_TEST_PROTO_DIR}",
+      "${OHOS_JSMEMORY_PROTO_DIR}",
     ]
     if (is_test) {
       if (is_pbdecoder) {

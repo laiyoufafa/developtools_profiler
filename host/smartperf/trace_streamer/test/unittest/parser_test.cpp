@@ -54,7 +54,7 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
             std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
         ta->EnableMetaTable(false);
         ta->SetCleanMode(false);
-        int fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
+        int32_t fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(readSize);
             auto rsize = base::Read(fd, buf.get(), readSize);
@@ -124,7 +124,7 @@ HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
             std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
         ta->EnableMetaTable(false);
         ta->SetCleanMode(false);
-        int fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
+        int32_t fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(readSize);
             auto rsize = base::Read(fd, buf.get(), readSize);
@@ -195,7 +195,7 @@ HWTEST_F(ParserTest, HtraceAndPerfParserTest, TestSize.Level1)
             std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
         ta->EnableMetaTable(false);
         ta->SetCleanMode(false);
-        int fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
+        int32_t fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(readSize);
             auto rsize = base::Read(fd, buf.get(), readSize);
@@ -266,7 +266,7 @@ HWTEST_F(ParserTest, HtraceAndEbpfParserTest, TestSize.Level1)
             std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
         ta->EnableMetaTable(false);
         ta->SetCleanMode(false);
-        int fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
+        int32_t fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(readSize);
             auto rsize = base::Read(fd, buf.get(), readSize);

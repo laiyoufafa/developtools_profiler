@@ -18,49 +18,47 @@ import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox.js';
 
 @element('check-des-box')
 export class SpCheckDesBox extends BaseElement {
-    private _checkBox: LitCheckBox | undefined;
-    private _des: HTMLSpanElement | undefined;
+  private _checkBox: LitCheckBox | undefined;
+  private _des: HTMLSpanElement | undefined;
 
-    static get observedAttributes() {
-        return ['checked', 'value', 'des'];
+  static get observedAttributes() {
+    return ['checked', 'value', 'des'];
+  }
+
+  set des(des: string) {
+    this.setAttribute('des', des);
+  }
+
+  get value(): string {
+    return this.getAttribute('value') || '';
+  }
+
+  set value(value: string) {
+    this.setAttribute('value', value);
+    this._checkBox!.value = value;
+  }
+
+  get checked() {
+    return this.getAttribute('checked') != null;
+  }
+
+  set checked(checked: boolean) {
+    if (checked) {
+      this.setAttribute('checked', 'true');
+      this._checkBox!.checked = true;
+    } else {
+      this.removeAttribute('checked');
+      this._checkBox!.checked = false;
     }
+  }
 
-    set des(des: string) {
-        this.setAttribute('des', des);
-    }
+  initElements(): void {
+    this._checkBox = this.shadowRoot?.getElementById('checkBox') as LitCheckBox;
+    this._des = this.shadowRoot?.getElementById('des') as HTMLSpanElement;
+  }
 
-    get value(): string {
-        return this.getAttribute('value') || '';
-    }
-
-    set value(value: string) {
-        this.setAttribute('value', value);
-        this._checkBox!.value = value;
-    }
-
-    get checked() {
-        return this.getAttribute('checked') != null;
-    }
-
-    set checked(checked: boolean) {
-        if (checked) {
-            this.setAttribute('checked', 'true');
-            this._checkBox!.checked = true;
-        } else {
-            this.removeAttribute('checked');
-            this._checkBox!.checked = false;
-        }
-    }
-
-    initElements(): void {
-        this._checkBox = this.shadowRoot?.getElementById(
-            'checkBox'
-        ) as LitCheckBox;
-        this._des = this.shadowRoot?.getElementById('des') as HTMLSpanElement;
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
 <style>
 .check-des{
     opacity: 0.6;
@@ -82,31 +80,31 @@ lit-check-box {
 <div id="des-con">
     <span id="des" class="check-des"></span>
 </div>`;
-    }
+  }
 
-    public connectedCallback() {
-        this._checkBox?.addEventListener('change', (ev: any) => {
-            let detail = ev.detail;
-            this.checked = detail.checked;
-            this.dispatchEvent(new CustomEvent('onchange', { detail }));
-        });
-    }
+  public connectedCallback() {
+    this._checkBox?.addEventListener('change', (ev: any) => {
+      let detail = ev.detail;
+      this.checked = detail.checked;
+      this.dispatchEvent(new CustomEvent('onchange', { detail }));
+    });
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name == 'checked') {
-            this._checkBox!.checked = newValue !== null;
-        }
-        if (name == 'value') {
-            this._checkBox!.value = newValue;
-        }
-        if (name == 'des') {
-            this._des!.textContent = newValue;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name == 'checked') {
+      this._checkBox!.checked = newValue !== null;
     }
+    if (name == 'value') {
+      this._checkBox!.value = newValue;
+    }
+    if (name == 'des') {
+      this._des!.textContent = newValue;
+    }
+  }
 }
 
 export interface checkDesBean {
-    value: string;
-    isSelect: boolean;
-    des: string;
+  value: string;
+  isSelect: boolean;
+  des: string;
 }

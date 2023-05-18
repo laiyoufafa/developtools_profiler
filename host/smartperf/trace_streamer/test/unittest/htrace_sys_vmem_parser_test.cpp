@@ -60,7 +60,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemParse, TestSize.Level1)
     MemoryData tracePacket;
     SysVMeminfo* vmem = tracePacket.add_vmeminfo();
     EXPECT_TRUE(vmem != nullptr);
-    int size = tracePacket.vmeminfo_size();
+    int32_t size = tracePacket.vmeminfo_size();
     EXPECT_TRUE(size == 1);
     vmem->set_key(SysVMeminfoType::VMEMINFO_UNSPECIFIED);
     uint64_t value = random();
@@ -95,7 +95,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemNomal, TestSize.Level1)
     MemoryData tracePacket;
     SysVMeminfo* vmem = tracePacket.add_vmeminfo();
     EXPECT_TRUE(vmem != nullptr);
-    int size = tracePacket.vmeminfo_size();
+    int32_t size = tracePacket.vmeminfo_size();
     EXPECT_TRUE(size == 1);
     vmem->set_key(SysVMeminfoType::VMEMINFO_NR_FREE_PAGES);
     uint64_t value = random();
@@ -140,7 +140,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemAbnomal, TestSize.Level1)
     MemoryData tracePacket;
     SysVMeminfo* vmem = tracePacket.add_vmeminfo();
     EXPECT_TRUE(vmem != nullptr);
-    int size = tracePacket.vmeminfo_size();
+    int32_t size = tracePacket.vmeminfo_size();
     EXPECT_TRUE(size == 1);
     vmem->set_key(SysVMeminfoType::VMEMINFO_NR_FREE_PAGES);
     uint64_t value = random();
@@ -186,7 +186,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithMutiNomal, TestSize.Level1)
     MemoryData tracePacket;
     SysVMeminfo* vmem = tracePacket.add_vmeminfo();
     EXPECT_TRUE(vmem != nullptr);
-    int size = tracePacket.vmeminfo_size();
+    int32_t size = tracePacket.vmeminfo_size();
     EXPECT_TRUE(size == 1);
     vmem->set_key(SysVMeminfoType::VMEMINFO_WORKINGSET_RESTORE);
     uint64_t value = random();
@@ -248,7 +248,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithRandomValue, TestSize.Level1)
         EXPECT_TRUE(vmem != nullptr);
         vmem->set_key(static_cast<SysVMeminfoType>(i));
         vmem->set_value(value);
-        int size = tracePacket.vmeminfo_size();
+        int32_t size = tracePacket.vmeminfo_size();
         EXPECT_TRUE(size == i + 1);
     }
 

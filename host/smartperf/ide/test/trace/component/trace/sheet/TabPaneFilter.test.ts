@@ -17,56 +17,56 @@
 import { TabPaneFilter } from '../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
 
 describe('TabPaneFilter Test', () => {
-    let tabPaneFilter = new TabPaneFilter();
+  let tabPaneFilter = new TabPaneFilter();
 
-    it('TabPaneFilterTest01', function () {
-        expect(tabPaneFilter.firstSelect).toBe('');
-    });
+  it('TabPaneFilterTest01', function () {
+    expect(tabPaneFilter.firstSelect).toBe('');
+  });
 
-    it('TabPaneFilterTest02', function () {
-        expect(tabPaneFilter.secondSelect).toBe('');
-    });
+  it('TabPaneFilterTest02', function () {
+    expect(tabPaneFilter.secondSelect).toBe('');
+  });
 
-    it('TabPaneFilterTest03', function () {
-        expect(tabPaneFilter.filterValue).toBe('');
-    });
+  it('TabPaneFilterTest03', function () {
+    expect(tabPaneFilter.filterValue).toBe('');
+  });
 
-    it('TabPaneFilterTest04', function () {
-        tabPaneFilter.filterValue = true;
-        expect(tabPaneFilter.filterValue).toBeTruthy();
-    });
+  it('TabPaneFilterTest04', function () {
+    tabPaneFilter.filterValue = true;
+    expect(tabPaneFilter.filterValue).toBeTruthy();
+  });
 
-    it('TabPaneFilterTest05', function () {
-        expect(tabPaneFilter.icon).toBe('tree');
-    });
+  it('TabPaneFilterTest05', function () {
+    expect(tabPaneFilter.icon).toBe('tree');
+  });
 
-    it('TabPaneFilterTest08', function () {
-        tabPaneFilter.iconEL.name = 'menu';
-        expect(tabPaneFilter.icon).toBe('block');
-    });
+  it('TabPaneFilterTest08', function () {
+    tabPaneFilter.iconEL.name = 'menu';
+    expect(tabPaneFilter.icon).toBe('block');
+  });
 
-    it('TabPaneFilterTest09', function () {
-        tabPaneFilter.iconEL.name = '';
-        expect(tabPaneFilter.icon).toBe('');
-    });
+  it('TabPaneFilterTest09', function () {
+    tabPaneFilter.iconEL.name = '';
+    expect(tabPaneFilter.icon).toBe('');
+  });
 
-    it('TabPaneFilterTest06', function () {
-        tabPaneFilter.icon = true;
-        expect(tabPaneFilter.icon).toBe('');
-    });
+  it('TabPaneFilterTest06', function () {
+    tabPaneFilter.icon = true;
+    expect(tabPaneFilter.icon).toBe('');
+  });
 
-    it('TabPaneFilterTest010', function () {
-        tabPaneFilter.icon = 'block';
-        expect(tabPaneFilter.icon).toBe('block');
-    });
+  it('TabPaneFilterTest010', function () {
+    tabPaneFilter.icon = 'block';
+    expect(tabPaneFilter.icon).toBe('block');
+  });
 
-    it('TabPaneFilterTest011', function () {
-        tabPaneFilter.icon = 'tree';
-        expect(tabPaneFilter.icon).toBe('tree');
-    });
+  it('TabPaneFilterTest011', function () {
+    tabPaneFilter.icon = 'tree';
+    expect(tabPaneFilter.icon).toBe('tree');
+  });
 
-    it('TabPaneFilterTest07', function () {
-        expect(tabPaneFilter.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneFilterTest07', function () {
+    expect(tabPaneFilter.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -329,28 +329,26 @@ describe('TabPaneFilter Test', () => {
         </div>
         "
 `);
-    });
+  });
 
-    it('TabPaneFilterTest10', function () {
-        expect(tabPaneFilter.addDataMining({ name: '' }, '')).toBe(-1);
-    });
+  it('TabPaneFilterTest10', function () {
+    expect(tabPaneFilter.addDataMining({ name: '' }, '')).toBe(-1);
+  });
 
-    it('TabPaneFilterTest11', function () {
-        expect(tabPaneFilter.getFilterTreeData()).not.toBeUndefined();
-    });
+  it('TabPaneFilterTest11', function () {
+    expect(tabPaneFilter.getFilterTreeData()).not.toBeUndefined();
+  });
 
-    it('TabPaneFilterTest12', function () {
-        expect(
-            tabPaneFilter.initializeFilterTree(true, true, true)
-        ).toBeUndefined();
-    });
+  it('TabPaneFilterTest12', function () {
+    expect(tabPaneFilter.initializeFilterTree(true, true, true)).toBeUndefined();
+  });
 
-    it('TabPaneFilterTest13', function () {
-        expect(tabPaneFilter.disabledMining).toBeFalsy();
-    });
+  it('TabPaneFilterTest13', function () {
+    expect(tabPaneFilter.disabledMining).toBeFalsy();
+  });
 
-    it('TabPaneFilterTest14', function () {
-        tabPaneFilter.disabledMining = true;
-        expect(tabPaneFilter.disabledMining).toBeTruthy();
-    });
+  it('TabPaneFilterTest14', function () {
+    tabPaneFilter.disabledMining = true;
+    expect(tabPaneFilter.disabledMining).toBeTruthy();
+  });
 });

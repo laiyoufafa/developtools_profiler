@@ -33,7 +33,7 @@ public:
 public:
     TraceStreamerSelector stream_ = {};
 };
-constexpr int MAX_TESET_BUF_SIZE = 1024;
+constexpr int32_t MAX_TESET_BUF_SIZE = 1024;
 
 /**
  * @tc.name: CorrectTraceData
@@ -48,7 +48,7 @@ HWTEST_F(WasmFuncTest, CorrectTraceData, TestSize.Level1)
 
     char out[MAX_TESET_BUF_SIZE] = {0};
 
-    int ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
+    int32_t ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
     EXPECT_EQ(0, ret);
     ret = TraceStreamerParseDataOver();
     EXPECT_EQ(0, ret);
@@ -72,7 +72,7 @@ HWTEST_F(WasmFuncTest, WrongTraceData, TestSize.Level1)
 
     char out[MAX_TESET_BUF_SIZE] = {0};
 
-    int ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
+    int32_t ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
     EXPECT_EQ(0, ret);
     ret = TraceStreamerParseDataOver();
     EXPECT_EQ(0, ret);

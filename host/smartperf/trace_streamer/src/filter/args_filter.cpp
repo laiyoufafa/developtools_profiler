@@ -22,13 +22,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 ArgsFilter::ArgsFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
 {
-    traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_INT, traceDataCache_->GetDataIndex("int"));
-    traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_STRING,
-                                                          traceDataCache_->GetDataIndex("string"));
-    traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_DOUBLE,
-                                                          traceDataCache_->GetDataIndex("double"));
-    traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_BOOLEAN,
-                                                          traceDataCache_->GetDataIndex("boolean"));
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_INT,
+                                                                traceDataCache_->GetDataIndex("int32_t"));
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_STRING,
+                                                                traceDataCache_->GetDataIndex("string"));
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_DOUBLE,
+                                                                traceDataCache_->GetDataIndex("double"));
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_BOOLEAN,
+                                                                traceDataCache_->GetDataIndex("boolean"));
 }
 
 ArgsFilter::~ArgsFilter() {}
@@ -37,7 +38,7 @@ uint32_t ArgsFilter::NewArgs(const ArgsSet& args)
 {
     auto argSet = traceDataCache_->GetArgSetData();
     for (auto it = args.valuesMap_.begin(); it != args.valuesMap_.end(); it++) {
-        argSet->AppendNewArg(it->first, it->second.type, it->second.value, count_);
+        (void)argSet->AppendNewArg(it->first, it->second.type, it->second.value, count_);
     }
     count_++;
     return count_ - 1;
@@ -46,7 +47,7 @@ uint32_t ArgsFilter::AppendArgs(const ArgsSet& args, const size_t argSetId)
 {
     auto argSet = traceDataCache_->GetArgSetData();
     for (auto it = args.valuesMap_.begin(); it != args.valuesMap_.end(); it++) {
-        argSet->AppendNewArg(it->first, it->second.type, it->second.value, argSetId);
+        (void)argSet->AppendNewArg(it->first, it->second.type, it->second.value, argSetId);
     }
     return count_ - 1;
 }

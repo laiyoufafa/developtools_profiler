@@ -83,24 +83,24 @@ void BinderFilter::SendTraction(int64_t ts,
             ArgsSet destArgs;
             destArgs.AppendArg(destThreadId_, BASE_DATA_TYPE_INT, destTid);
             destArgs.AppendArg(destThreadNameId_, BASE_DATA_TYPE_STRING, destThreadName);
-            streamFilters_->sliceFilter_->AddArgs(tid, binderCatalogId_, replyId_, destArgs);
+            (void)streamFilters_->sliceFilter_->AddArgs(tid, binderCatalogId_, replyId_, destArgs);
             transReplyFilter_.erase(tid);
         }
         // the flowing code should be under the ubove conditions, but this will bring a big impact to the UI-SHOW
-        streamFilters_->sliceFilter_->EndBinder(ts, tid, INVALID_UINT64, INVALID_UINT64, argsSend);
+        (void)streamFilters_->sliceFilter_->EndBinder(ts, tid, INVALID_UINT64, INVALID_UINT64, argsSend);
         transReplyWaitingReply_.insert(transactionId);
         return;
     } else {
         bool needReply = !isReply && !(flags & noReturnMsgFlag_);
         if (needReply) {
             // transaction needs reply TAG-1
-            streamFilters_->sliceFilter_->BeginBinder(ts, tid, binderCatalogId_, transSliceId_, argsSend);
+            (void)streamFilters_->sliceFilter_->BeginBinder(ts, tid, binderCatalogId_, transSliceId_, argsSend);
             transNeedReply_[transactionId] = tid;
         } else {
             // transaction do not need reply
             // tid calling id
             // a binder event only care the transactionId and the callint tid
-            streamFilters_->sliceFilter_->AsyncBinder(ts, tid, binderCatalogId_, transAsyncId_, argsSend);
+            (void)streamFilters_->sliceFilter_->AsyncBinder(ts, tid, binderCatalogId_, transAsyncId_, argsSend);
             asyncBinderEvents_[transactionId] = argsSend;
         }
     }
@@ -110,7 +110,7 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(ts, pid);
     const auto threadName = traceDataCache_->GetConstThreadData(internalTid).nameIndex_;
     if (transReplyWaitingReply_.count(transactionId)) {
-        streamFilters_->sliceFilter_->EndBinder(ts, pid);
+        (void)streamFilters_->sliceFilter_->EndBinder(ts, pid);
         transReplyWaitingReply_.erase(transactionId);
         return;
     }
@@ -147,7 +147,7 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
     // this problem can be test after the IDE is finished
     if (asyncBinderEvents_.count(transactionId)) {
         auto args = asyncBinderEvents_[transactionId];
-        streamFilters_->sliceFilter_->AsyncBinder(ts, pid, binderCatalogId_, asyncRcvId_, args);
+        (void)streamFilters_->sliceFilter_->AsyncBinder(ts, pid, binderCatalogId_, asyncRcvId_, args);
         // maybe you can use the flowing code: streamFilters_->sliceFilter_->EndBinder(ts, pid);
         asyncBinderEvents_.erase(transactionId);
         return;
@@ -158,14 +158,14 @@ void BinderFilter::TransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSi
     ArgsSet args;
     args.AppendArg(dataSizeId_, BASE_DATA_TYPE_INT, dataSize);
     args.AppendArg(dataOffsetSizeId_, BASE_DATA_TYPE_INT, offsetsSize);
-    streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, transSliceId_, args);
+    (void)streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, transSliceId_, args);
     UNUSED(ts);
 }
 void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string& tag)
 {
     UNUSED(tag);
     lastEventTs_[pid] = ts;
-    streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockTryId_);
+    (void)streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockTryId_);
 }
 void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
 {
@@ -174,8 +174,8 @@ void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& t
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, STAT_EVENT_NOTMATCH);
         return;
     }
-    streamFilters_->sliceFilter_->EndBinder(ts, pid);
-    streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockHoldId_);
+    (void)streamFilters_->sliceFilter_->EndBinder(ts, pid);
+    (void)streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockHoldId_);
     lastEventTs_.erase(pid);
     lastEventTs_[pid] = ts;
 }
@@ -186,7 +186,7 @@ void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string& t
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, STAT_EVENT_NOTMATCH);
         return;
     }
-    streamFilters_->sliceFilter_->EndBinder(ts, pid, binderCatalogId_, lockHoldId_);
+    (void)streamFilters_->sliceFilter_->EndBinder(ts, pid, binderCatalogId_, lockHoldId_);
     lastEventTs_.erase(pid);
     lastEventTs_[pid] = ts;
 }

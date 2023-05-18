@@ -16,43 +16,43 @@
 import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon.js';
 
 export class ProcedureLogicWorkerSPT extends LogicHandler {
-    arrTs: Array<ThreadState> = [];
-    arrTp: Array<ThreadProcess> = [];
-    currentEventId: string = '';
+  arrTs: Array<ThreadState> = [];
+  arrTp: Array<ThreadProcess> = [];
+  currentEventId: string = '';
 
-    handle(data: any): void {
-        this.currentEventId = data.id;
-        if (data && data.type) {
-            switch (data.type) {
-                case 'spt-init':
-                    this.getThreadState();
-                    break;
-                case 'spt-getThreadStateData':
-                    this.arrTs = convertJSON(data.params.list) || [];
-                    this.getThreadProcessData();
-                    break;
-                case 'spt-getThreadProcessData':
-                    this.arrTp = convertJSON(data.params.list) || [];
-                    this.initProcessThreadStateData();
-                    break;
-            }
-        }
+  handle(data: any): void {
+    this.currentEventId = data.id;
+    if (data && data.type) {
+      switch (data.type) {
+        case 'spt-init':
+          this.getThreadState();
+          break;
+        case 'spt-getThreadStateData':
+          this.arrTs = convertJSON(data.params.list) || [];
+          this.getThreadProcessData();
+          break;
+        case 'spt-getThreadProcessData':
+          this.arrTp = convertJSON(data.params.list) || [];
+          this.initProcessThreadStateData();
+          break;
+      }
     }
+  }
 
-    queryData(queryName: string, sql: string, args: any) {
-        self.postMessage({
-            id: this.currentEventId,
-            type: queryName,
-            isQuery: true,
-            args: args,
-            sql: sql,
-        });
-    }
+  queryData(queryName: string, sql: string, args: any) {
+    self.postMessage({
+      id: this.currentEventId,
+      type: queryName,
+      isQuery: true,
+      args: args,
+      sql: sql,
+    });
+  }
 
-    getThreadState() {
-        this.queryData(
-            'spt-getThreadStateData',
-            `
+  getThreadState() {
+    this.queryData(
+      'spt-getThreadStateData',
+      `
     select itid,
        state,
        dur,
@@ -62,14 +62,14 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
        cpu
 from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
 `,
-            {}
-        );
-    }
+      {}
+    );
+  }
 
-    getThreadProcessData() {
-        this.queryData(
-            'spt-getThreadProcessData',
-            `
+  getThreadProcessData() {
+    this.queryData(
+      'spt-getThreadProcessData',
+      `
     select A.id,
        A.tid as threadId,
        A.name as thread,
@@ -78,14 +78,14 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
 from thread as A left join process as IP on A.ipid = IP.id
 where IP.pid not null;
 `,
-            {}
-        );
-    }
+      {}
+    );
+  }
 
-    getSPT() {
-        this.queryData(
-            'spt-getStatesProcessThreadData',
-            `
+  getSPT() {
+    this.queryData(
+      'spt-getStatesProcessThreadData',
+      `
     select
       IP.name as process,
       IP.pid as processId,
@@ -114,73 +114,70 @@ where IP.pid not null;
       IP.pid not null
     and (B.ts - TR.start_ts) >= 0;
 `,
-            {}
-        );
-    }
+      {}
+    );
+  }
 
-    initProcessThreadStateData() {
-        let mapTp: Map<number, ThreadProcess> = new Map<
-            number,
-            ThreadProcess
-        >();
-        for (let tp of this.arrTp) {
-            mapTp.set(tp.id, tp);
-        }
-        let sptArr: Array<SPT> = [];
-        for (let tr of this.arrTs) {
-            if (mapTp.has(tr.itid)) {
-                let tp = mapTp.get(tr.itid);
-                let spt = new SPT();
-                spt.processId = tp!.processId;
-                spt.process = tp!.process;
-                spt.thread = tp!.thread;
-                spt.threadId = tp!.threadId;
-                spt.state = tr.state;
-                spt.dur = tr.dur;
-                spt.end_ts = tr.end_ts;
-                spt.start_ts = tr.start_ts;
-                spt.cpu = tr.cpu;
-                sptArr.push(spt);
-            }
-        }
-        this.arrTp = [];
-        this.arrTs = [];
-        self.postMessage({
-            id: this.currentEventId,
-            action: 'spt-init',
-            results: sptArr,
-        });
+  initProcessThreadStateData() {
+    let mapTp: Map<number, ThreadProcess> = new Map<number, ThreadProcess>();
+    for (let tp of this.arrTp) {
+      mapTp.set(tp.id, tp);
     }
+    let sptArr: Array<SPT> = [];
+    for (let tr of this.arrTs) {
+      if (mapTp.has(tr.itid)) {
+        let tp = mapTp.get(tr.itid);
+        let spt = new SPT();
+        spt.processId = tp!.processId;
+        spt.process = tp!.process;
+        spt.thread = tp!.thread;
+        spt.threadId = tp!.threadId;
+        spt.state = tr.state;
+        spt.dur = tr.dur;
+        spt.end_ts = tr.end_ts;
+        spt.start_ts = tr.start_ts;
+        spt.cpu = tr.cpu;
+        sptArr.push(spt);
+      }
+    }
+    this.arrTp = [];
+    this.arrTs = [];
+    self.postMessage({
+      id: this.currentEventId,
+      action: 'spt-init',
+      results: sptArr,
+    });
+  }
 }
 
 export class ThreadState {
-    itid: number = 0;
-    state: string = '';
-    dur: number = 0;
-    ts: number = 0;
-    end_ts: number = 0;
-    start_ts: number = 0;
-    cpu: number = 0;
+  itid: number = 0;
+  state: string = '';
+  dur: number = 0;
+  ts: number = 0;
+  end_ts: number = 0;
+  start_ts: number = 0;
+  cpu: number = 0;
 }
 
 export class ThreadProcess {
-    id: number = 0;
-    threadId: number = 0;
-    thread: string = '';
-    processId: number = 0;
-    process: string = '';
+  id: number = 0;
+  threadId: number = 0;
+  thread: string = '';
+  processId: number = 0;
+  process: string = '';
 }
 
 export class SPT {
-    process: string = '';
-    processId: number = 0;
-    thread: string = '';
-    threadId: number = 0;
-    state: string = '';
-    dur: number = 0;
-    start_ts: number = 0;
-    end_ts: number = 0;
-    cpu: number = 0;
-    priority: string = '-';
-    note: string = '-';
+  process: string = '';
+  processId: number = 0;
+  thread: string = '';
+  threadId: number = 0;
+  state: string = '';
+  dur: number = 0;
+  start_ts: number = 0;
+  end_ts: number = 0;
+  cpu: number = 0;
+  priority: string = '-';
+  note: string = '-';
 }

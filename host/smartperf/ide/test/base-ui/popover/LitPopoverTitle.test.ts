@@ -17,10 +17,8 @@
 import { LitPopoverTitle } from '../../../dist/base-ui/popover/LitPopoverTitle';
 
 describe('LitPopoverTitle Test', () => {
-    it('LitPopoverTitle01', () => {
-        let litPopoverTitle = new LitPopoverTitle();
-        expect(
-            litPopoverTitle.attributeChangedCallback('name', 'old', 'new')
-        ).toBeUndefined();
-    });
+  it('LitPopoverTitle01', () => {
+    let litPopoverTitle = new LitPopoverTitle();
+    expect(litPopoverTitle.attributeChangedCallback('name', 'old', 'new')).toBeUndefined();
+  });
 });

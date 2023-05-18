@@ -14,32 +14,32 @@
  */
 
 jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-    return {};
+  return {};
 });
 
 // @ts-ignore
 import { ClockStruct } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerClock.js';
 
 describe('ProcedureWorkerClock Test', () => {
-    it('ProcedureWorkerClock01', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
+  it('ProcedureWorkerClock01', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
 
-        const data = {
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100,
-            },
-            filterId: 125,
-            value: 556,
-            startNS: 15454,
-            dur: 14552,
-            delta: 125,
-        };
-        expect(ClockStruct.draw(ctx!, data, 2)).toBeUndefined();
-    });
+    const data = {
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      filterId: 125,
+      value: 556,
+      startNS: 15454,
+      dur: 14552,
+      delta: 125,
+    };
+    expect(ClockStruct.draw(ctx!, data, 2)).toBeUndefined();
+  });
 });

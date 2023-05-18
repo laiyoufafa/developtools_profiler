@@ -24,108 +24,107 @@ const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('TabPaneContextSwitch Test', () => {
-    document.body.innerHTML = `<div class="ddd"><lit-table id="tb-states"></lit-table><div>`;
-    let tab = document.querySelector('.ddd') as HTMLDivElement;
-    let tabPaneContextSwitch = new TabPaneContextSwitch();
-    tabPaneContextSwitch.tbl = jest.fn(() => tab);
-    tabPaneContextSwitch.tbl.treeElement = jest.fn(() => tab);
-    tabPaneContextSwitch.tbl.tableElement = jest.fn(() => tab);
-    SpSystemTrace.SPT_DATA = [
-        {
-            process: '',
-            processId: 0,
-            thread: '',
-            threadId: 0,
-            state: '',
-            dur: 0,
-            start_ts: 0,
-            end_ts: 0,
-            cpu: 0,
-            priority: '-',
-            note: '-',
-        },
-        {
-            process: '',
-            processId: 1,
-            thread: '',
-            threadId: 1,
-            state: '',
-            dur: 0,
-            start_ts: 0,
-            end_ts: 0,
-            cpu: 0,
-            priority: '-',
-            note: '-',
-        },
-        {
-            process: '',
-            processId: 2,
-            thread: '',
-            threadId: 2,
-            state: '',
-            dur: 0,
-            start_ts: 0,
-            end_ts: 0,
-            cpu: 0,
-            priority: '-',
-            note: '-',
-        },
-    ];
+  document.body.innerHTML = `<div class="ddd"><lit-table id="tb-states"></lit-table><div>`;
+  let tab = document.querySelector('.ddd') as HTMLDivElement;
+  let tabPaneContextSwitch = new TabPaneContextSwitch();
+  tabPaneContextSwitch.tbl = jest.fn(() => tab);
+  tabPaneContextSwitch.tbl.treeElement = jest.fn(() => tab);
+  tabPaneContextSwitch.tbl.tableElement = jest.fn(() => tab);
+  SpSystemTrace.SPT_DATA = [
+    {
+      process: '',
+      processId: 0,
+      thread: '',
+      threadId: 0,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+    {
+      process: '',
+      processId: 1,
+      thread: '',
+      threadId: 1,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+    {
+      process: '',
+      processId: 2,
+      thread: '',
+      threadId: 2,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+  ];
 
-    let dataArray = {
-        id: '',
-        pid: '',
-        title: '',
-        children: [],
-        process: '',
-        processId: 0,
-        thread: '',
-        threadId: 0,
-        state: '',
-        wallDuration: 0,
-        avgDuration: '',
-        count: 0,
-        minDuration: 0,
-        maxDuration: 0,
-        stdDuration: '',
-    };
+  let dataArray = {
+    id: '',
+    pid: '',
+    title: '',
+    children: [],
+    process: '',
+    processId: 0,
+    thread: '',
+    threadId: 0,
+    state: '',
+    wallDuration: 0,
+    avgDuration: '',
+    count: 0,
+    minDuration: 0,
+    maxDuration: 0,
+    stdDuration: '',
+  };
 
-    it('TabPaneContextSwitchTest01', function () {
-        expect(tabPaneContextSwitch).not.toBeUndefined();
-    });
+  it('TabPaneContextSwitchTest01', function () {
+    expect(tabPaneContextSwitch).not.toBeUndefined();
+  });
 
-    it('TabPanePTSTest02', function () {
-        expect(tabPaneContextSwitch.getDataBySPT(0, 0, [])).toBeUndefined();
-    });
+  it('TabPanePTSTest02', function () {
+    expect(tabPaneContextSwitch.getDataBySPT(0, 0, [])).toBeUndefined();
+  });
 
-    it('TabPaneContextSwitchTest03', function () {
-        let mockgetProcessThreadDataByRange =
-            sqlit.getStatesProcessThreadDataByRange;
-        mockgetProcessThreadDataByRange.mockResolvedValue([
-            {
-                process: 'process',
-                processId: 1,
-                thread: 'thread',
-                state: 'state',
-                threadId: 1,
-                dur: 1000,
-                end_ts: 2000,
-                start_ts: 2000,
-                cpu: 1111,
-            },
-        ]);
-        expect((tabPaneContextSwitch.data = dataArray)).toBeTruthy();
-    });
+  it('TabPaneContextSwitchTest03', function () {
+    let mockgetProcessThreadDataByRange = sqlit.getStatesProcessThreadDataByRange;
+    mockgetProcessThreadDataByRange.mockResolvedValue([
+      {
+        process: 'process',
+        processId: 1,
+        thread: 'thread',
+        state: 'state',
+        threadId: 1,
+        dur: 1000,
+        end_ts: 2000,
+        start_ts: 2000,
+        cpu: 1111,
+      },
+    ]);
+    expect((tabPaneContextSwitch.data = dataArray)).toBeTruthy();
+  });
 
-    it('TabPaneContextSwitchTest04', function () {
-        expect(tabPaneContextSwitch.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneContextSwitchTest04', function () {
+    expect(tabPaneContextSwitch.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -143,22 +142,18 @@ describe('TabPaneContextSwitch Test', () => {
         </lit-table>
         "
 `);
-    });
+  });
 
-    it('TabPaneContextSwitchTest04', function () {
-        document.body.innerHTML = `<tabpane-context-switch id="Switch"></tabpane-context-switch>`;
-        let tabPaneContextSwitch = document.querySelector(
-            '#Switch'
-        ) as TabPaneContextSwitch;
-        expect(tabPaneContextSwitch.data).toBe(tabPaneContextSwitch.dataArray);
-    });
+  it('TabPaneContextSwitchTest04', function () {
+    document.body.innerHTML = `<tabpane-context-switch id="Switch"></tabpane-context-switch>`;
+    let tabPaneContextSwitch = document.querySelector('#Switch') as TabPaneContextSwitch;
+    expect(tabPaneContextSwitch.data).toBe(tabPaneContextSwitch.dataArray);
+  });
 
-    it('TabPaneContextSwitchTest05', function () {
-        document.body.innerHTML = `<tabpane-context-switch id="Switch"></tabpane-context-switch>`;
-        let tabPaneContextSwitch = document.querySelector(
-            '#Switch'
-        ) as TabPaneContextSwitch;
-        tabPaneContextSwitch.loadDataInCache = false;
-        expect(tabPaneContextSwitch.data).toBe(tabPaneContextSwitch.dataArray);
-    });
+  it('TabPaneContextSwitchTest05', function () {
+    document.body.innerHTML = `<tabpane-context-switch id="Switch"></tabpane-context-switch>`;
+    let tabPaneContextSwitch = document.querySelector('#Switch') as TabPaneContextSwitch;
+    tabPaneContextSwitch.loadDataInCache = false;
+    expect(tabPaneContextSwitch.data).toBe(tabPaneContextSwitch.dataArray);
+  });
 });

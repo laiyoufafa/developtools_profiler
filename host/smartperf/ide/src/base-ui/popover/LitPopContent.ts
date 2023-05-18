@@ -17,30 +17,30 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-pop-content')
 export class LitPopContent extends BaseElement {
-    static get observedAttributes() {
-        return ['open'];
+  static get observedAttributes() {
+    return ['open'];
+  }
+
+  get open() {
+    return this.hasAttribute('open');
+  }
+
+  set open(value: boolean) {
+    if (value === null || !value) {
+      this.removeAttribute('open');
+      let parentElement = this.parentNode as Element;
+      parentElement?.removeAttribute('open');
+    } else {
+      this.setAttribute('open', '');
+      let parentElement = this.parentNode as Element;
+      parentElement?.setAttribute('open', '');
     }
+  }
 
-    get open() {
-        return this.hasAttribute('open');
-    }
+  initElements(): void {}
 
-    set open(value: boolean) {
-        if (value === null || !value) {
-            this.removeAttribute('open');
-            let parentElement = this.parentNode as Element;
-            parentElement?.removeAttribute('open');
-        } else {
-            this.setAttribute('open', '');
-            let parentElement = this.parentNode as Element;
-            parentElement?.setAttribute('open', '');
-        }
-    }
-
-    initElements(): void {}
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             font-family: Helvetica,serif;
@@ -71,21 +71,21 @@ export class LitPopContent extends BaseElement {
             <slot></slot>
         </div>
         `;
-    }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        switch (name) {
-            case 'open':
-                if (newValue === null || newValue === 'false') {
-                    let parentElement = this.parentNode as Element;
-                    parentElement?.removeAttribute('open');
-                } else {
-                    let parentElement = this.parentNode as Element;
-                    parentElement?.setAttribute('open', '');
-                }
-                break;
-            default:
-                break;
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    switch (name) {
+      case 'open':
+        if (newValue === null || newValue === 'false') {
+          let parentElement = this.parentNode as Element;
+          parentElement?.removeAttribute('open');
+        } else {
+          let parentElement = this.parentNode as Element;
+          parentElement?.setAttribute('open', '');
         }
+        break;
+      default:
+        break;
     }
+  }
 }

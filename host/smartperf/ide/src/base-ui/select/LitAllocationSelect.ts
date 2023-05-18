@@ -17,89 +17,87 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-allocation-select')
 export class LitAllocationSelect extends BaseElement {
-    private inputElement: HTMLInputElement | null | undefined;
-    private inputContent: HTMLDivElement | undefined;
-    private options: any;
+  private inputElement: HTMLInputElement | null | undefined;
+  private inputContent: HTMLDivElement | undefined;
+  private options: any;
 
-    static get observedAttributes() {
-        return ['value', 'disabled', 'placeholder'];
+  static get observedAttributes() {
+    return ['value', 'disabled', 'placeholder'];
+  }
+
+  get defaultPlaceholder() {
+    return this.getAttribute('placeholder') || '';
+  }
+
+  get placeholder() {
+    return this.getAttribute('placeholder') || this.defaultPlaceholder;
+  }
+
+  set placeholder(value) {
+    this.setAttribute('placeholder', value);
+  }
+
+  get value() {
+    return this.getAttribute('value') || '';
+  }
+
+  set value(value: string) {
+    this.setAttribute('value', value);
+  }
+
+  set processData(value: Array<string>) {
+    this.options.innerHTML = '';
+    value.forEach((item) => {
+      let option = document.createElement('div');
+      option.className = 'option';
+      option.innerHTML = item;
+      option.style.padding = '8px 10px';
+      this.options.appendChild(option);
+      this.inputElement?.focus();
+    });
+  }
+
+  get placement(): string {
+    return this.getAttribute('placement') || '';
+  }
+
+  set placement(placement: string) {
+    if (placement) {
+      this.setAttribute('placement', placement);
+    } else {
+      this.removeAttribute('placement');
     }
+  }
 
-    get defaultPlaceholder() {
-        return this.getAttribute('placeholder') || '';
-    }
+  get listHeight() {
+    return this.getAttribute('list-height') || '256px';
+  }
 
-    get placeholder() {
-        return this.getAttribute('placeholder') || this.defaultPlaceholder;
-    }
+  set listHeight(value) {
+    this.setAttribute('list-height', value);
+  }
 
-    set placeholder(value) {
-        this.setAttribute('placeholder', value);
-    }
+  initElements(): void {
+    this.inputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
+    this.addEventListener('click', () => {
+      if (this.options.style.visibility == 'visible') {
+        this.options.style.visibility = 'hidden';
+        this.options.style.opacity = '0';
+      } else {
+        this.options.style.visibility = 'visible';
+        this.options.style.opacity = '1';
+      }
+      this.inputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
+    });
+    this.addEventListener('focusout', (e) => {
+      this.options.style.visibility = 'hidden';
+      this.options.style.opacity = '0';
+    });
+    this.initData();
+  }
 
-    get value() {
-        return this.getAttribute('value') || '';
-    }
-
-    set value(value: string) {
-        this.setAttribute('value', value);
-    }
-
-    set processData(value: Array<string>) {
-        this.options.innerHTML = '';
-        value.forEach((item) => {
-            let option = document.createElement('div');
-            option.className = 'option';
-            option.innerHTML = item;
-            option.style.padding = '8px 10px';
-            this.options.appendChild(option);
-            this.inputElement?.focus();
-        });
-    }
-
-    get placement(): string {
-        return this.getAttribute('placement') || '';
-    }
-
-    set placement(placement: string) {
-        if (placement) {
-            this.setAttribute('placement', placement);
-        } else {
-            this.removeAttribute('placement');
-        }
-    }
-
-    get listHeight() {
-        return this.getAttribute('list-height') || '256px';
-    }
-
-    set listHeight(value) {
-        this.setAttribute('list-height', value);
-    }
-
-    initElements(): void {
-        this.inputContent = this.shadowRoot!.querySelector(
-            '.multipleSelect'
-        ) as HTMLDivElement;
-        this.addEventListener('click', () => {
-            if (this.options.style.visibility == 'visible') {
-                this.options.style.visibility = 'hidden';
-                this.options.style.opacity = '0';
-            } else {
-                this.options.style.visibility = 'visible';
-                this.options.style.opacity = '1';
-            }
-            this.inputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
-        });
-        this.addEventListener('focusout', (e) => {
-            this.options.style.visibility = 'hidden';
-            this.options.style.opacity = '0';
-        });
-        this.initData();
-    }
-
-    initHtml() {
-        return `
+  initHtml() {
+    return `
         <style>
         :host{
             display: inline-flex;
@@ -198,46 +196,40 @@ export class LitAllocationSelect extends BaseElement {
             <slot name="footer"></slot>
         </div>
         `;
-    }
+  }
 
-    connectedCallback() {}
+  connectedCallback() {}
 
-    initData() {
-        this.inputElement = this.shadowRoot!.querySelector('input');
-        this.options = this.shadowRoot!.querySelector(
-            '.body'
-        ) as HTMLDivElement;
-        this.inputElement?.addEventListener('keyup', () => {
-            let filter = [
-                ...this.shadowRoot!.querySelectorAll<HTMLDivElement>('.option'),
-            ].filter((a: HTMLDivElement) => {
-                if (a.textContent!.indexOf(this.inputElement!.value) <= -1) {
-                    a.style.display = 'none';
-                } else {
-                    a.style.display = 'block';
-                }
-            });
-            this.value = this.inputElement!.value;
-            this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
-        });
-        this.shadowRoot?.querySelectorAll('.option').forEach((a) => {
-            a.addEventListener('mousedown', (e) => {
-                a.dispatchEvent(
-                    new CustomEvent('onSelected', {
-                        detail: {
-                            selected: true,
-                            text: a.textContent,
-                        },
-                    })
-                );
-            });
-            a.addEventListener('onSelected', (e: any) => {
-                this.inputElement!.value = e.detail.text;
-                this.value = e.detail.text;
-                this.inputContent!.dispatchEvent(
-                    new CustomEvent('valuable', {})
-                );
-            });
-        });
-    }
+  initData() {
+    this.inputElement = this.shadowRoot!.querySelector('input');
+    this.options = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
+    this.inputElement?.addEventListener('keyup', () => {
+      let filter = [...this.shadowRoot!.querySelectorAll<HTMLDivElement>('.option')].filter((a: HTMLDivElement) => {
+        if (a.textContent!.indexOf(this.inputElement!.value) <= -1) {
+          a.style.display = 'none';
+        } else {
+          a.style.display = 'block';
+        }
+      });
+      this.value = this.inputElement!.value;
+      this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
+    });
+    this.shadowRoot?.querySelectorAll('.option').forEach((a) => {
+      a.addEventListener('mousedown', (e) => {
+        a.dispatchEvent(
+          new CustomEvent('onSelected', {
+            detail: {
+              selected: true,
+              text: a.textContent,
+            },
+          })
+        );
+      });
+      a.addEventListener('onSelected', (e: any) => {
+        this.inputElement!.value = e.detail.text;
+        this.value = e.detail.text;
+        this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
+      });
+    });
+  }
 }

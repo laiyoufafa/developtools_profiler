@@ -25,613 +25,545 @@ import { MerageBean } from '../../../../database/logic-worker/ProcedureLogicWork
 
 @element('tabpane-calltree')
 export class TabPaneCallTree extends BaseElement {
-    public queryFuncName: string = '';
-    public procedureAction: string = '';
-    private tbl: LitTable | null | undefined;
-    private tbr: LitTable | null | undefined;
-    private progressEL: LitProgressBar | null | undefined;
-    private rightSource: Array<MerageBean> = [];
-    private filter: any;
-    private dataSource: any[] = [];
-    private sortKey = 'weight';
-    private sortType = 0;
-    private currentSelectedData: any = undefined;
-    private frameChart: FrameChart | null | undefined;
-    private isChartShow: boolean = false;
-    private systmeRuleName = '/system/';
-    private numRuleName = '/max/min/';
-    private needShowMenu = true;
-    private searchValue: string = '';
-    private loadingList: number[] = [];
-    private loadingPage: any;
-    private currentSelection: SelectionParam | undefined;
-    private flameChartMode: ChartMode = ChartMode.Duration;
+  public queryFuncName: string = '';
+  public procedureAction: string = '';
+  private tbl: LitTable | null | undefined;
+  private tbr: LitTable | null | undefined;
+  private progressEL: LitProgressBar | null | undefined;
+  private rightSource: Array<MerageBean> = [];
+  private filter: any;
+  private dataSource: any[] = [];
+  private sortKey = 'weight';
+  private sortType = 0;
+  private currentSelectedData: any = undefined;
+  private frameChart: FrameChart | null | undefined;
+  private isChartShow: boolean = false;
+  private systmeRuleName = '/system/';
+  private numRuleName = '/max/min/';
+  private needShowMenu = true;
+  private searchValue: string = '';
+  private loadingList: number[] = [];
+  private loadingPage: any;
+  private currentSelection: SelectionParam | undefined;
+  private flameChartMode: ChartMode = ChartMode.Duration;
 
-    set data(val: SelectionParam | any) {
-        if (val == this.currentSelection) {
-            return;
-        }
-        this.searchValue = '';
-        this.initModeAndAction();
-        this.currentSelection = val;
-        this.tbl!.style.visibility = 'visible';
-        if (this.parentElement!.clientHeight > this.filter!.clientHeight) {
-            this.filter!.style.display = 'flex';
-        } else {
-            this.filter!.style.display = 'none';
-        }
-        this.filter!.initializeFilterTree(true, true, true);
-        this.filter!.filterValue = '';
-        this.progressEL!.loading = true;
-        this.loadingPage.style.visibility = 'visible';
-        this.getDataByWorker(
-            [
-                {
-                    funcName: 'setSearchValue',
-                    funcArgs: [''],
-                },
-                {
-                    funcName: 'getCurrentDataFromDb',
-                    funcArgs: [{ queryFuncName: this.queryFuncName, ...val }],
-                },
-            ],
-            (results: any[]) => {
-                this.setLTableData(results);
-                this.tbr!.recycleDataSource = [];
-                this.frameChart!.mode = this.flameChartMode;
-                this.frameChart!.data = this.dataSource;
-                this.frameChart?.updateCanvas(true, this.clientWidth);
-                this.frameChart?.calculateChartData();
-            }
-        );
+  set data(val: SelectionParam | any) {
+    if (val == this.currentSelection) {
+      return;
     }
-
-    initModeAndAction() {
-        if (this.procedureAction == '' && this.hasAttribute('action')) {
-            this.procedureAction = this.getAttribute('action') || '';
-        }
-        if (this.hasAttribute('flame-mode')) {
-            let mode = this.getAttribute('flame-mode');
-            switch (mode) {
-                case 'Byte':
-                    this.flameChartMode = ChartMode.Byte;
-                    break;
-                case 'Count':
-                    this.flameChartMode = ChartMode.Count;
-                    break;
-                case 'Duration':
-                    this.flameChartMode = ChartMode.Duration;
-                    break;
-            }
-        }
-        if (this.hasAttribute('query')) {
-            this.queryFuncName = this.getAttribute('query') || '';
-        }
+    this.searchValue = '';
+    this.initModeAndAction();
+    this.currentSelection = val;
+    this.tbl!.style.visibility = 'visible';
+    if (this.parentElement!.clientHeight > this.filter!.clientHeight) {
+      this.filter!.style.display = 'flex';
+    } else {
+      this.filter!.style.display = 'none';
     }
-
-    getParentTree(
-        src: Array<MerageBean>,
-        target: MerageBean,
-        parents: Array<MerageBean>
-    ): boolean {
-        for (let call of src) {
-            if (call.id == target.id) {
-                parents.push(call);
-                return true;
-            } else {
-                if (
-                    this.getParentTree(
-                        call.children as Array<MerageBean>,
-                        target,
-                        parents
-                    )
-                ) {
-                    parents.push(call);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    getChildTree(
-        src: Array<MerageBean>,
-        id: string,
-        children: Array<MerageBean>
-    ): boolean {
-        for (let call of src) {
-            if (call.id == id && call.children.length == 0) {
-                children.push(call);
-                return true;
-            } else {
-                if (
-                    this.getChildTree(
-                        call.children as Array<MerageBean>,
-                        id,
-                        children
-                    )
-                ) {
-                    children.push(call);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    setRightTableData(call: MerageBean) {
-        let parents: Array<MerageBean> = [];
-        let children: Array<MerageBean> = [];
-        this.getParentTree(this.dataSource, call, parents);
-        let maxId = call.id;
-        let maxDur = 0;
-
-        function findMaxStack(call: MerageBean) {
-            if (call.children.length == 0) {
-                if (call.dur > maxDur) {
-                    maxDur = call.dur;
-                    maxId = call.id;
-                }
-            } else {
-                call.children.map((callChild: any) => {
-                    findMaxStack(<MerageBean>callChild);
-                });
-            }
-        }
-
-        findMaxStack(call);
-        this.getChildTree(call.children as Array<MerageBean>, maxId, children);
-        let arr = parents.reverse().concat(children.reverse());
-        for (let data of arr) {
-            data.type =
-                data.libName.endsWith('.so.1') ||
-                data.libName.endsWith('.dll') ||
-                data.libName.endsWith('.so')
-                    ? 0
-                    : 1;
-        }
-        let len = arr.length;
-        this.rightSource = arr;
-        this.tbr!.dataSource = len == 0 ? [] : arr;
-    }
-
-    showButtomMenu(isShow: boolean) {
-        if (isShow) {
-            this.filter.setAttribute('tree', '');
-            this.filter.setAttribute('input', '');
-            this.filter.setAttribute('inputLeftText', '');
-        } else {
-            this.filter.removeAttribute('tree');
-            this.filter.removeAttribute('input');
-            this.filter.removeAttribute('inputLeftText');
-        }
-    }
-
-    connectedCallback() {
-        this.parentElement!.onscroll = () => {
-            this.frameChart!.tabPaneScrollTop = this.parentElement!.scrollTop;
-        };
-        this.frameChart!.addChartClickListener((needShowMenu: boolean) => {
-            this.parentElement!.scrollTo(0, 0);
-            this.showButtomMenu(needShowMenu);
-            this.needShowMenu = needShowMenu;
-        });
-        let filterHeight = 0;
-        new ResizeObserver((entries) => {
-            let tabPaneFilter = this.shadowRoot!.querySelector(
-                '#filter'
-            ) as HTMLElement;
-            if (tabPaneFilter.clientHeight > 0)
-                filterHeight = tabPaneFilter.clientHeight;
-            if (this.parentElement!.clientHeight > filterHeight) {
-                tabPaneFilter.style.display = 'flex';
-            } else {
-                tabPaneFilter.style.display = 'none';
-            }
-            if (this.tbl!.style.visibility == 'hidden') {
-                tabPaneFilter.style.display = 'none';
-            }
-            if (this.parentElement?.clientHeight != 0) {
-                if (this.isChartShow) {
-                    this.frameChart?.updateCanvas(
-                        false,
-                        entries[0].contentRect.width
-                    );
-                    this.frameChart?.calculateChartData();
-                }
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 35 + 'px';
-                this.tbl?.reMeauseHeight();
-                // @ts-ignore
-                this.tbr?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 - 21 + 'px';
-                this.tbr?.reMeauseHeight();
-                this.loadingPage.style.height =
-                    this.parentElement!.clientHeight - 24 + 'px';
-            }
-        }).observe(this.parentElement!);
-    }
-
-    initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-calltree');
-        this.progressEL = this.shadowRoot?.querySelector(
-            '.progress'
-        ) as LitProgressBar;
-        this.frameChart =
-            this.shadowRoot?.querySelector<FrameChart>('#framechart');
-        this.loadingPage = this.shadowRoot?.querySelector('.loading');
-
-        this.tbl!.rememberScrollTop = true;
-        this.filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-        this.tbl!.addEventListener('row-click', (evt: any) => {
-            // @ts-ignore
-            let data = evt.detail.data as MerageBean;
-            this.setRightTableData(data);
-            data.isSelected = true;
-            this.currentSelectedData = data;
-            this.tbr?.clearAllSelection(data);
-            this.tbr?.setCurrentSelection(data);
-            // @ts-ignore
-            if ((evt.detail as any).callBack) {
-                // @ts-ignore
-                (evt.detail as any).callBack(true);
-            }
-        });
-        this.tbr = this.shadowRoot?.querySelector<LitTable>('#tb-list');
-        this.tbr!.addEventListener('row-click', (evt: any) => {
-            // @ts-ignore
-            let data = evt.detail.data as MerageBean;
-            this.tbl?.clearAllSelection(data);
-            (data as any).isSelected = true;
-            this.tbl!.scrollToData(data);
-            // @ts-ignore
-            if ((evt.detail as any).callBack) {
-                // @ts-ignore
-                (evt.detail as any).callBack(true);
-            }
-        });
-        let filterFunc = (data: any) => {
-            let args: any[] = [];
-            if (data.type == 'check') {
-                if (data.item.checked) {
-                    args.push({
-                        funcName: 'splitTree',
-                        funcArgs: [
-                            data.item.name,
-                            data.item.select == '0',
-                            data.item.type == 'symbol',
-                        ],
-                    });
-                } else {
-                    args.push({
-                        funcName: 'resotreAllNode',
-                        funcArgs: [[data.item.name]],
-                    });
-                    args.push({
-                        funcName: 'resetAllNode',
-                        funcArgs: [],
-                    });
-                    args.push({
-                        funcName: 'clearSplitMapData',
-                        funcArgs: [data.item.name],
-                    });
-                }
-            } else if (data.type == 'select') {
-                args.push({
-                    funcName: 'resotreAllNode',
-                    funcArgs: [[data.item.name]],
-                });
-                args.push({
-                    funcName: 'clearSplitMapData',
-                    funcArgs: [data.item.name],
-                });
-                args.push({
-                    funcName: 'splitTree',
-                    funcArgs: [
-                        data.item.name,
-                        data.item.select == '0',
-                        data.item.type == 'symbol',
-                    ],
-                });
-            } else if (data.type == 'button') {
-                if (data.item == 'symbol') {
-                    if (
-                        this.currentSelectedData &&
-                        !this.currentSelectedData.canCharge
-                    ) {
-                        return;
-                    }
-                    if (this.currentSelectedData != undefined) {
-                        this.filter!.addDataMining(
-                            { name: this.currentSelectedData.symbolName },
-                            data.item
-                        );
-                        args.push({
-                            funcName: 'splitTree',
-                            funcArgs: [
-                                this.currentSelectedData.symbolName,
-                                false,
-                                true,
-                            ],
-                        });
-                    } else {
-                        return;
-                    }
-                } else if (data.item == 'library') {
-                    if (
-                        this.currentSelectedData &&
-                        !this.currentSelectedData.canCharge
-                    ) {
-                        return;
-                    }
-                    if (
-                        this.currentSelectedData != undefined &&
-                        this.currentSelectedData.libName != ''
-                    ) {
-                        this.filter!.addDataMining(
-                            { name: this.currentSelectedData.libName },
-                            data.item
-                        );
-                        args.push({
-                            funcName: 'splitTree',
-                            funcArgs: [
-                                this.currentSelectedData.libName,
-                                false,
-                                false,
-                            ],
-                        });
-                    } else {
-                        return;
-                    }
-                } else if (data.item == 'restore') {
-                    if (data.remove != undefined && data.remove.length > 0) {
-                        let list = data.remove.map((item: any) => {
-                            return item.name;
-                        });
-                        args.push({
-                            funcName: 'resotreAllNode',
-                            funcArgs: [list],
-                        });
-                        args.push({
-                            funcName: 'resetAllNode',
-                            funcArgs: [],
-                        });
-                        list.forEach((symbolName: string) => {
-                            args.push({
-                                funcName: 'clearSplitMapData',
-                                funcArgs: [symbolName],
-                            });
-                        });
-                    }
-                }
-            }
-            this.getDataByWorker(args, (result: any[]) => {
-                this.setLTableData(result);
-                this.frameChart!.data = this.dataSource;
-                if (this.isChartShow) this.frameChart?.calculateChartData();
-                this.tbl!.move1px();
-                if (this.currentSelectedData) {
-                    this.currentSelectedData.isSelected = false;
-                    this.tbl?.clearAllSelection(this.currentSelectedData);
-                    this.tbr!.recycleDataSource = [];
-                    this.currentSelectedData = undefined;
-                }
-            });
-        };
-        this.filter!.getDataLibrary(filterFunc);
-        this.filter!.getDataMining(filterFunc);
-        this.filter!.getCallTreeData((data: any) => {
-            if (data.value == 0) {
-                this.refreshAllNode({
-                    ...this.filter!.getFilterTreeData(),
-                    callTree: data.checks,
-                });
-            } else {
-                let args: any[] = [];
-                if (data.checks[1]) {
-                    args.push({
-                        funcName: 'hideSystemLibrary',
-                        funcArgs: [],
-                    });
-                    args.push({
-                        funcName: 'resetAllNode',
-                        funcArgs: [],
-                    });
-                } else {
-                    args.push({
-                        funcName: 'resotreAllNode',
-                        funcArgs: [[this.systmeRuleName]],
-                    });
-                    args.push({
-                        funcName: 'resetAllNode',
-                        funcArgs: [],
-                    });
-                    args.push({
-                        funcName: 'clearSplitMapData',
-                        funcArgs: [this.systmeRuleName],
-                    });
-                }
-                this.getDataByWorker(args, (result: any[]) => {
-                    this.setLTableData(result);
-                    this.frameChart!.data = this.dataSource;
-                    if (this.isChartShow) this.frameChart?.calculateChartData();
-                });
-            }
-        });
-        this.filter!.getCallTreeConstraintsData((data: any) => {
-            let args: any[] = [
-                {
-                    funcName: 'resotreAllNode',
-                    funcArgs: [[this.numRuleName]],
-                },
-                {
-                    funcName: 'clearSplitMapData',
-                    funcArgs: [this.numRuleName],
-                },
-            ];
-            if (data.checked) {
-                args.push({
-                    funcName: 'hideNumMaxAndMin',
-                    funcArgs: [parseInt(data.min), data.max],
-                });
-            }
-            args.push({
-                funcName: 'resetAllNode',
-                funcArgs: [],
-            });
-            this.getDataByWorker(args, (result: any[]) => {
-                this.setLTableData(result);
-                this.frameChart!.data = this.dataSource;
-                if (this.isChartShow) this.frameChart?.calculateChartData();
-            });
-        });
-        this.filter!.getFilterData((data: FilterData) => {
-            if (this.searchValue != this.filter!.filterValue) {
-                this.searchValue = this.filter!.filterValue;
-                let args = [
-                    {
-                        funcName: 'setSearchValue',
-                        funcArgs: [this.searchValue],
-                    },
-                    {
-                        funcName: 'resetAllNode',
-                        funcArgs: [],
-                    },
-                ];
-                this.getDataByWorker(args, (result: any[]) => {
-                    this.setLTableData(result);
-                    this.frameChart!.data = this.dataSource;
-                    this.switchFlameChart(data);
-                });
-            } else {
-                this.switchFlameChart(data);
-            }
-        });
-        this.tbl!.addEventListener('column-click', (evt) => {
-            // @ts-ignore
-            this.sortKey = evt.detail.key;
-            // @ts-ignore
-            this.sortType = evt.detail.sort;
-            // @ts-ignore
-            this.setLTableData(this.dataSource);
-            this.frameChart!.data = this.dataSource;
-        });
-    }
-
-    switchFlameChart(data: any) {
-        let pageTab = this.shadowRoot?.querySelector('#show_table');
-        let pageChart = this.shadowRoot?.querySelector('#show_chart');
-        if (data.icon == 'block') {
-            pageChart?.setAttribute('class', 'show');
-            pageTab?.setAttribute('class', '');
-            this.isChartShow = true;
-            this.filter!.disabledMining = true;
-            this.showButtomMenu(this.needShowMenu);
-            this.frameChart!.data = this.dataSource;
-            this.frameChart?.calculateChartData();
-        } else if (data.icon == 'tree') {
-            pageChart?.setAttribute('class', '');
-            pageTab?.setAttribute('class', 'show');
-            this.showButtomMenu(true);
-            this.isChartShow = false;
-            this.filter!.disabledMining = false;
-            this.frameChart!.clearCanvas();
-            this.tbl!.reMeauseHeight();
-        }
-    }
-
-    refreshAllNode(filterData: any) {
-        let args: any[] = [];
-        let isTopDown: boolean = !filterData.callTree[0];
-        let isHideSystemLibrary = filterData.callTree[1];
-        let list = filterData.dataMining.concat(filterData.dataLibrary);
-        args.push({
-            funcName: 'getCallChainsBySampleIds',
-            funcArgs: [isTopDown, this.queryFuncName],
-        });
+    this.filter!.initializeFilterTree(true, true, true);
+    this.filter!.filterValue = '';
+    this.progressEL!.loading = true;
+    this.loadingPage.style.visibility = 'visible';
+    this.getDataByWorker(
+      [
+        {
+          funcName: 'setSearchValue',
+          funcArgs: [''],
+        },
+        {
+          funcName: 'getCurrentDataFromDb',
+          funcArgs: [{ queryFuncName: this.queryFuncName, ...val }],
+        },
+      ],
+      (results: any[]) => {
+        this.setLTableData(results);
         this.tbr!.recycleDataSource = [];
-        if (isHideSystemLibrary) {
-            args.push({
-                funcName: 'hideSystemLibrary',
-                funcArgs: [],
-            });
+        this.frameChart!.mode = this.flameChartMode;
+        this.frameChart!.data = this.dataSource;
+        this.frameChart?.updateCanvas(true, this.clientWidth);
+        this.frameChart?.calculateChartData();
+      }
+    );
+  }
+
+  initModeAndAction() {
+    if (this.procedureAction == '' && this.hasAttribute('action')) {
+      this.procedureAction = this.getAttribute('action') || '';
+    }
+    if (this.hasAttribute('flame-mode')) {
+      let mode = this.getAttribute('flame-mode');
+      switch (mode) {
+        case 'Byte':
+          this.flameChartMode = ChartMode.Byte;
+          break;
+        case 'Count':
+          this.flameChartMode = ChartMode.Count;
+          break;
+        case 'Duration':
+          this.flameChartMode = ChartMode.Duration;
+          break;
+      }
+    }
+    if (this.hasAttribute('query')) {
+      this.queryFuncName = this.getAttribute('query') || '';
+    }
+  }
+
+  getParentTree(src: Array<MerageBean>, target: MerageBean, parents: Array<MerageBean>): boolean {
+    for (let call of src) {
+      if (call.id == target.id) {
+        parents.push(call);
+        return true;
+      } else {
+        if (this.getParentTree(call.children as Array<MerageBean>, target, parents)) {
+          parents.push(call);
+          return true;
         }
-        if (filterData.callTreeConstraints.checked) {
-            args.push({
-                funcName: 'hideNumMaxAndMin',
-                funcArgs: [
-                    parseInt(filterData.callTreeConstraints.inputs[0]),
-                    filterData.callTreeConstraints.inputs[1],
-                ],
-            });
+      }
+    }
+    return false;
+  }
+
+  getChildTree(src: Array<MerageBean>, id: string, children: Array<MerageBean>): boolean {
+    for (let call of src) {
+      if (call.id == id && call.children.length == 0) {
+        children.push(call);
+        return true;
+      } else {
+        if (this.getChildTree(call.children as Array<MerageBean>, id, children)) {
+          children.push(call);
+          return true;
         }
-        args.push({
-            funcName: 'splitAllProcess',
-            funcArgs: [list],
+      }
+    }
+    return false;
+  }
+
+  setRightTableData(call: MerageBean) {
+    let parents: Array<MerageBean> = [];
+    let children: Array<MerageBean> = [];
+    this.getParentTree(this.dataSource, call, parents);
+    let maxId = call.id;
+    let maxDur = 0;
+
+    function findMaxStack(call: MerageBean) {
+      if (call.children.length == 0) {
+        if (call.dur > maxDur) {
+          maxDur = call.dur;
+          maxId = call.id;
+        }
+      } else {
+        call.children.map((callChild: any) => {
+          findMaxStack(<MerageBean>callChild);
         });
-        args.push({
+      }
+    }
+
+    findMaxStack(call);
+    this.getChildTree(call.children as Array<MerageBean>, maxId, children);
+    let arr = parents.reverse().concat(children.reverse());
+    for (let data of arr) {
+      data.type =
+        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
+    }
+    let len = arr.length;
+    this.rightSource = arr;
+    this.tbr!.dataSource = len == 0 ? [] : arr;
+  }
+
+  showButtomMenu(isShow: boolean) {
+    if (isShow) {
+      this.filter.setAttribute('tree', '');
+      this.filter.setAttribute('input', '');
+      this.filter.setAttribute('inputLeftText', '');
+    } else {
+      this.filter.removeAttribute('tree');
+      this.filter.removeAttribute('input');
+      this.filter.removeAttribute('inputLeftText');
+    }
+  }
+
+  connectedCallback() {
+    this.parentElement!.onscroll = () => {
+      this.frameChart!.tabPaneScrollTop = this.parentElement!.scrollTop;
+    };
+    this.frameChart!.addChartClickListener((needShowMenu: boolean) => {
+      this.parentElement!.scrollTo(0, 0);
+      this.showButtomMenu(needShowMenu);
+      this.needShowMenu = needShowMenu;
+    });
+    let filterHeight = 0;
+    new ResizeObserver((entries) => {
+      let tabPaneFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
+      if (tabPaneFilter.clientHeight > 0) filterHeight = tabPaneFilter.clientHeight;
+      if (this.parentElement!.clientHeight > filterHeight) {
+        tabPaneFilter.style.display = 'flex';
+      } else {
+        tabPaneFilter.style.display = 'none';
+      }
+      if (this.tbl!.style.visibility == 'hidden') {
+        tabPaneFilter.style.display = 'none';
+      }
+      if (this.parentElement?.clientHeight != 0) {
+        if (this.isChartShow) {
+          this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
+          this.frameChart?.calculateChartData();
+        }
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 35 + 'px';
+        this.tbl?.reMeauseHeight();
+        // @ts-ignore
+        this.tbr?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 - 21 + 'px';
+        this.tbr?.reMeauseHeight();
+        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+      }
+    }).observe(this.parentElement!);
+  }
+
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-calltree');
+    this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
+    this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
+    this.loadingPage = this.shadowRoot?.querySelector('.loading');
+
+    this.tbl!.rememberScrollTop = true;
+    this.filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
+    this.tbl!.addEventListener('row-click', (evt: any) => {
+      // @ts-ignore
+      let data = evt.detail.data as MerageBean;
+      this.setRightTableData(data);
+      data.isSelected = true;
+      this.currentSelectedData = data;
+      this.tbr?.clearAllSelection(data);
+      this.tbr?.setCurrentSelection(data);
+      // @ts-ignore
+      if ((evt.detail as any).callBack) {
+        // @ts-ignore
+        (evt.detail as any).callBack(true);
+      }
+    });
+    this.tbr = this.shadowRoot?.querySelector<LitTable>('#tb-list');
+    this.tbr!.addEventListener('row-click', (evt: any) => {
+      // @ts-ignore
+      let data = evt.detail.data as MerageBean;
+      this.tbl?.clearAllSelection(data);
+      (data as any).isSelected = true;
+      this.tbl!.scrollToData(data);
+      // @ts-ignore
+      if ((evt.detail as any).callBack) {
+        // @ts-ignore
+        (evt.detail as any).callBack(true);
+      }
+    });
+    let filterFunc = (data: any) => {
+      let args: any[] = [];
+      if (data.type == 'check') {
+        if (data.item.checked) {
+          args.push({
+            funcName: 'splitTree',
+            funcArgs: [data.item.name, data.item.select == '0', data.item.type == 'symbol'],
+          });
+        } else {
+          args.push({
+            funcName: 'resotreAllNode',
+            funcArgs: [[data.item.name]],
+          });
+          args.push({
             funcName: 'resetAllNode',
             funcArgs: [],
+          });
+          args.push({
+            funcName: 'clearSplitMapData',
+            funcArgs: [data.item.name],
+          });
+        }
+      } else if (data.type == 'select') {
+        args.push({
+          funcName: 'resotreAllNode',
+          funcArgs: [[data.item.name]],
         });
+        args.push({
+          funcName: 'clearSplitMapData',
+          funcArgs: [data.item.name],
+        });
+        args.push({
+          funcName: 'splitTree',
+          funcArgs: [data.item.name, data.item.select == '0', data.item.type == 'symbol'],
+        });
+      } else if (data.type == 'button') {
+        if (data.item == 'symbol') {
+          if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
+            return;
+          }
+          if (this.currentSelectedData != undefined) {
+            this.filter!.addDataMining({ name: this.currentSelectedData.symbolName }, data.item);
+            args.push({
+              funcName: 'splitTree',
+              funcArgs: [this.currentSelectedData.symbolName, false, true],
+            });
+          } else {
+            return;
+          }
+        } else if (data.item == 'library') {
+          if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
+            return;
+          }
+          if (this.currentSelectedData != undefined && this.currentSelectedData.libName != '') {
+            this.filter!.addDataMining({ name: this.currentSelectedData.libName }, data.item);
+            args.push({
+              funcName: 'splitTree',
+              funcArgs: [this.currentSelectedData.libName, false, false],
+            });
+          } else {
+            return;
+          }
+        } else if (data.item == 'restore') {
+          if (data.remove != undefined && data.remove.length > 0) {
+            let list = data.remove.map((item: any) => {
+              return item.name;
+            });
+            args.push({
+              funcName: 'resotreAllNode',
+              funcArgs: [list],
+            });
+            args.push({
+              funcName: 'resetAllNode',
+              funcArgs: [],
+            });
+            list.forEach((symbolName: string) => {
+              args.push({
+                funcName: 'clearSplitMapData',
+                funcArgs: [symbolName],
+              });
+            });
+          }
+        }
+      }
+      this.getDataByWorker(args, (result: any[]) => {
+        this.setLTableData(result);
+        this.frameChart!.data = this.dataSource;
+        if (this.isChartShow) this.frameChart?.calculateChartData();
+        this.tbl!.move1px();
+        if (this.currentSelectedData) {
+          this.currentSelectedData.isSelected = false;
+          this.tbl?.clearAllSelection(this.currentSelectedData);
+          this.tbr!.recycleDataSource = [];
+          this.currentSelectedData = undefined;
+        }
+      });
+    };
+    this.filter!.getDataLibrary(filterFunc);
+    this.filter!.getDataMining(filterFunc);
+    this.filter!.getCallTreeData((data: any) => {
+      if (data.value == 0) {
+        this.refreshAllNode({
+          ...this.filter!.getFilterTreeData(),
+          callTree: data.checks,
+        });
+      } else {
+        let args: any[] = [];
+        if (data.checks[1]) {
+          args.push({
+            funcName: 'hideSystemLibrary',
+            funcArgs: [],
+          });
+          args.push({
+            funcName: 'resetAllNode',
+            funcArgs: [],
+          });
+        } else {
+          args.push({
+            funcName: 'resotreAllNode',
+            funcArgs: [[this.systmeRuleName]],
+          });
+          args.push({
+            funcName: 'resetAllNode',
+            funcArgs: [],
+          });
+          args.push({
+            funcName: 'clearSplitMapData',
+            funcArgs: [this.systmeRuleName],
+          });
+        }
         this.getDataByWorker(args, (result: any[]) => {
-            this.setLTableData(result);
-            this.frameChart!.data = this.dataSource;
-            if (this.isChartShow) this.frameChart?.calculateChartData();
+          this.setLTableData(result);
+          this.frameChart!.data = this.dataSource;
+          if (this.isChartShow) this.frameChart?.calculateChartData();
         });
-    }
-
-    setLTableData(resultData: any[]) {
-        this.dataSource = this.sortTree(resultData);
-        this.tbl!.recycleDataSource = this.dataSource;
-    }
-
-    sortTree(arr: Array<any>): Array<any> {
-        let sortArr = arr.sort((a, b) => {
-            if (this.sortKey == 'self') {
-                if (this.sortType == 0) {
-                    return b.dur - a.dur;
-                } else if (this.sortType == 1) {
-                    return a.selfDur - b.selfDur;
-                } else {
-                    return b.selfDur - a.selfDur;
-                }
-            } else {
-                if (this.sortType == 0) {
-                    return b.dur - a.dur;
-                } else if (this.sortType == 1) {
-                    return a.dur - b.dur;
-                } else {
-                    return b.dur - a.dur;
-                }
-            }
+      }
+    });
+    this.filter!.getCallTreeConstraintsData((data: any) => {
+      let args: any[] = [
+        {
+          funcName: 'resotreAllNode',
+          funcArgs: [[this.numRuleName]],
+        },
+        {
+          funcName: 'clearSplitMapData',
+          funcArgs: [this.numRuleName],
+        },
+      ];
+      if (data.checked) {
+        args.push({
+          funcName: 'hideNumMaxAndMin',
+          funcArgs: [parseInt(data.min), data.max],
         });
-        sortArr.map((call) => {
-            call.children = this.sortTree(call.children);
+      }
+      args.push({
+        funcName: 'resetAllNode',
+        funcArgs: [],
+      });
+      this.getDataByWorker(args, (result: any[]) => {
+        this.setLTableData(result);
+        this.frameChart!.data = this.dataSource;
+        if (this.isChartShow) this.frameChart?.calculateChartData();
+      });
+    });
+    this.filter!.getFilterData((data: FilterData) => {
+      if (this.searchValue != this.filter!.filterValue) {
+        this.searchValue = this.filter!.filterValue;
+        let args = [
+          {
+            funcName: 'setSearchValue',
+            funcArgs: [this.searchValue],
+          },
+          {
+            funcName: 'resetAllNode',
+            funcArgs: [],
+          },
+        ];
+        this.getDataByWorker(args, (result: any[]) => {
+          this.setLTableData(result);
+          this.frameChart!.data = this.dataSource;
+          this.switchFlameChart(data);
         });
-        return sortArr;
-    }
+      } else {
+        this.switchFlameChart(data);
+      }
+    });
+    this.tbl!.addEventListener('column-click', (evt) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key;
+      // @ts-ignore
+      this.sortType = evt.detail.sort;
+      // @ts-ignore
+      this.setLTableData(this.dataSource);
+      this.frameChart!.data = this.dataSource;
+    });
+  }
 
-    getDataByWorker(args: any[], handler: Function) {
-        this.loadingList.push(1);
-        this.progressEL!.loading = true;
-        this.loadingPage.style.visibility = 'visible';
-        procedurePool.submitWithName(
-            'logic0',
-            this.procedureAction,
-            { args, callType: this.queryFuncName },
-            undefined,
-            (results: any) => {
-                handler(results);
-                this.loadingList.splice(0, 1);
-                if (this.loadingList.length == 0) {
-                    this.progressEL!.loading = false;
-                    this.loadingPage.style.visibility = 'hidden';
-                }
-            }
-        );
+  switchFlameChart(data: any) {
+    let pageTab = this.shadowRoot?.querySelector('#show_table');
+    let pageChart = this.shadowRoot?.querySelector('#show_chart');
+    if (data.icon == 'block') {
+      pageChart?.setAttribute('class', 'show');
+      pageTab?.setAttribute('class', '');
+      this.isChartShow = true;
+      this.filter!.disabledMining = true;
+      this.showButtomMenu(this.needShowMenu);
+      this.frameChart!.data = this.dataSource;
+      this.frameChart?.calculateChartData();
+    } else if (data.icon == 'tree') {
+      pageChart?.setAttribute('class', '');
+      pageTab?.setAttribute('class', 'show');
+      this.showButtomMenu(true);
+      this.isChartShow = false;
+      this.filter!.disabledMining = false;
+      this.frameChart!.clearCanvas();
+      this.tbl!.reMeauseHeight();
     }
+  }
 
-    initHtml(): string {
-        return `
+  refreshAllNode(filterData: any) {
+    let args: any[] = [];
+    let isTopDown: boolean = !filterData.callTree[0];
+    let isHideSystemLibrary = filterData.callTree[1];
+    let list = filterData.dataMining.concat(filterData.dataLibrary);
+    args.push({
+      funcName: 'getCallChainsBySampleIds',
+      funcArgs: [isTopDown, this.queryFuncName],
+    });
+    this.tbr!.recycleDataSource = [];
+    if (isHideSystemLibrary) {
+      args.push({
+        funcName: 'hideSystemLibrary',
+        funcArgs: [],
+      });
+    }
+    if (filterData.callTreeConstraints.checked) {
+      args.push({
+        funcName: 'hideNumMaxAndMin',
+        funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
+      });
+    }
+    args.push({
+      funcName: 'splitAllProcess',
+      funcArgs: [list],
+    });
+    args.push({
+      funcName: 'resetAllNode',
+      funcArgs: [],
+    });
+    this.getDataByWorker(args, (result: any[]) => {
+      this.setLTableData(result);
+      this.frameChart!.data = this.dataSource;
+      if (this.isChartShow) this.frameChart?.calculateChartData();
+    });
+  }
+
+  setLTableData(resultData: any[]) {
+    this.dataSource = this.sortTree(resultData);
+    this.tbl!.recycleDataSource = this.dataSource;
+  }
+
+  sortTree(arr: Array<any>): Array<any> {
+    let sortArr = arr.sort((a, b) => {
+      if (this.sortKey == 'self') {
+        if (this.sortType == 0) {
+          return b.dur - a.dur;
+        } else if (this.sortType == 1) {
+          return a.selfDur - b.selfDur;
+        } else {
+          return b.selfDur - a.selfDur;
+        }
+      } else {
+        if (this.sortType == 0) {
+          return b.dur - a.dur;
+        } else if (this.sortType == 1) {
+          return a.dur - b.dur;
+        } else {
+          return b.dur - a.dur;
+        }
+      }
+    });
+    sortArr.map((call) => {
+      call.children = this.sortTree(call.children);
+    });
+    return sortArr;
+  }
+
+  getDataByWorker(args: any[], handler: Function) {
+    this.loadingList.push(1);
+    this.progressEL!.loading = true;
+    this.loadingPage.style.visibility = 'visible';
+    procedurePool.submitWithName(
+      'logic0',
+      this.procedureAction,
+      { args, callType: this.queryFuncName },
+      undefined,
+      (results: any) => {
+        handler(results);
+        this.loadingList.splice(0, 1);
+        if (this.loadingList.length == 0) {
+          this.progressEL!.loading = false;
+          this.loadingPage.style.visibility = 'hidden';
+        }
+      }
+    );
+  }
+
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -704,5 +636,5 @@ export class TabPaneCallTree extends BaseElement {
     </selector>  
     <div class="loading"></div>
     </div>`;
-    }
+  }
 }

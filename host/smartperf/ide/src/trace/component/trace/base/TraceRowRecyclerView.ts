@@ -19,162 +19,141 @@ import { log } from '../../../../log/Log.js';
 
 @element('trace-row-recycler-view')
 export class TraceRowRecyclerView extends BaseElement {
-    private recycler: boolean = true;
-    private gasketEL: HTMLDivElement | null | undefined;
-    private container: HTMLDivElement | null | undefined;
-    private visibleRowsCount: number = 0;
-    private visibleObjects: TraceRowObject<any>[] = [];
-    private totalHeight: number = 0;
+  private recycler: boolean = true;
+  private gasketEL: HTMLDivElement | null | undefined;
+  private container: HTMLDivElement | null | undefined;
+  private visibleRowsCount: number = 0;
+  private visibleObjects: TraceRowObject<any>[] = [];
+  private totalHeight: number = 0;
 
-    private _dataSource: Array<TraceRowObject<any>> = [];
-    private _renderType: string = 'div';
+  private _dataSource: Array<TraceRowObject<any>> = [];
+  private _renderType: string = 'div';
 
-    get dataSource(): Array<TraceRowObject<any>> {
-        return this._dataSource;
+  get dataSource(): Array<TraceRowObject<any>> {
+    return this._dataSource;
+  }
+
+  set dataSource(value: Array<TraceRowObject<any>>) {
+    log('dataSource TraceRowObject size :' + value.length);
+    this._dataSource = value;
+    this.measureHeight();
+    this.initUI();
+    let els = [...this.shadowRoot!.querySelectorAll<TraceRow<any>>('.recycler-cell')];
+    for (let i = 0; i < els.length; i++) {
+      this.refreshRow(els[i], this.visibleObjects[i]);
     }
+  }
 
-    set dataSource(value: Array<TraceRowObject<any>>) {
-        log('dataSource TraceRowObject size :' + value.length);
-        this._dataSource = value;
+  get renderType(): string {
+    return this._renderType;
+  }
+
+  set renderType(value: string) {
+    this._renderType = value;
+  }
+
+  refreshRow(el: TraceRow<any>, obj: TraceRowObject<any>) {
+    if (!obj) {
+      return;
+    }
+    el.obj = obj;
+    el.folder = obj.folder;
+    el.style.top = `${obj.top}px`;
+    el.name = obj.name || '';
+    if (obj.children) {
+      el.setAttribute('children', ``);
+    } else {
+      el.removeAttribute('children');
+    }
+    el.style.visibility = 'visible';
+    el.rowId = obj.rowId;
+    el.rowType = obj.rowType;
+    el.rowParentId = obj.rowParentId;
+    el.expansion = obj.expansion;
+    el.rowHidden = obj.rowHidden;
+    el.setAttribute('height', `${obj.rowHeight}`);
+    requestAnimationFrame(() => {});
+  }
+
+  initElements(): void {
+    this.container = this.shadowRoot?.querySelector<HTMLDivElement>('.container');
+    this.gasketEL = this.shadowRoot?.querySelector<HTMLDivElement>('.gasket');
+    let els: Array<TraceRow<any>> | undefined | null;
+    this.container!.onscroll = (ev) => {
+      let top = this.container!.scrollTop;
+      let skip = 0;
+      for (let i = 0; i < this.visibleObjects.length; i++) {
+        if (this.visibleObjects[i].top >= top) {
+          skip = this.visibleObjects[i].rowIndex - 1;
+          break;
+        }
+      }
+      if (skip < 0) skip = 0;
+      if (!els) els = [...this.shadowRoot!.querySelectorAll<TraceRow<any>>('.recycler-cell')];
+      for (let i = 0; i < els.length; i++) {
+        let obj = this.visibleObjects[i + skip];
+        this.refreshRow(els[i], obj);
+      }
+    };
+  }
+
+  measureHeight() {
+    this.visibleObjects = this.dataSource.filter((it) => !it.rowHidden);
+    this.totalHeight = this.visibleObjects.map((it) => it.rowHeight).reduce((a, b) => a + b);
+    let totalHeight = 0;
+    for (let i = 0; i < this.visibleObjects.length; i++) {
+      this.visibleObjects[i].top = totalHeight;
+      this.visibleObjects[i].rowIndex = i;
+      totalHeight += this.visibleObjects[i].rowHeight;
+      this.visibleObjects[i].preObject = i == 0 ? null : this.visibleObjects[i - 1];
+      this.visibleObjects[i].nextObject = i == this.visibleObjects.length - 1 ? null : this.visibleObjects[i + 1];
+    }
+    this.gasketEL && (this.gasketEL.style.height = `${this.totalHeight}px`);
+  }
+
+  initUI() {
+    this.visibleRowsCount = Math.ceil(this.clientHeight / 40);
+    if (this.visibleRowsCount >= this.visibleObjects.length) {
+      this.visibleRowsCount = this.visibleObjects.length;
+    }
+    if (!this.recycler) this.visibleRowsCount = this.dataSource.length;
+    for (let i = 0; i <= this.visibleRowsCount; i++) {
+      let el = new TraceRow<any>({
+        canvasNumber: 1,
+        alpha: true,
+        contextId: '2d',
+        isOffScreen: true,
+      });
+      el.className = 'recycler-cell';
+      this.container?.appendChild(el);
+      el.addEventListener('expansion-change', (ev: any) => {
+        el.obj!.expansion = ev.detail.expansion;
+        for (let j = 0; j < this.dataSource.length; j++) {
+          if (this.dataSource[j].rowParentId == ev.detail.rowId) {
+            this.dataSource[j].rowHidden = !ev.detail.expansion;
+          }
+        }
         this.measureHeight();
-        this.initUI();
-        let els = [
-            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(
-                '.recycler-cell'
-            ),
-        ];
-        for (let i = 0; i < els.length; i++) {
-            this.refreshRow(els[i], this.visibleObjects[i]);
-        }
-    }
-
-    get renderType(): string {
-        return this._renderType;
-    }
-
-    set renderType(value: string) {
-        this._renderType = value;
-    }
-
-    refreshRow(el: TraceRow<any>, obj: TraceRowObject<any>) {
-        if (!obj) {
-            return;
-        }
-        el.obj = obj;
-        el.folder = obj.folder;
-        el.style.top = `${obj.top}px`;
-        el.name = obj.name || '';
-        if (obj.children) {
-            el.setAttribute('children', ``);
-        } else {
-            el.removeAttribute('children');
-        }
-        el.style.visibility = 'visible';
-        el.rowId = obj.rowId;
-        el.rowType = obj.rowType;
-        el.rowParentId = obj.rowParentId;
-        el.expansion = obj.expansion;
-        el.rowHidden = obj.rowHidden;
-        el.setAttribute('height', `${obj.rowHeight}`);
-        requestAnimationFrame(() => {});
-    }
-
-    initElements(): void {
-        this.container =
-            this.shadowRoot?.querySelector<HTMLDivElement>('.container');
-        this.gasketEL =
-            this.shadowRoot?.querySelector<HTMLDivElement>('.gasket');
-        let els: Array<TraceRow<any>> | undefined | null;
-        this.container!.onscroll = (ev) => {
-            let top = this.container!.scrollTop;
-            let skip = 0;
-            for (let i = 0; i < this.visibleObjects.length; i++) {
-                if (this.visibleObjects[i].top >= top) {
-                    skip = this.visibleObjects[i].rowIndex - 1;
-                    break;
-                }
-            }
-            if (skip < 0) skip = 0;
-            if (!els)
-                els = [
-                    ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(
-                        '.recycler-cell'
-                    ),
-                ];
-            for (let i = 0; i < els.length; i++) {
-                let obj = this.visibleObjects[i + skip];
-                this.refreshRow(els[i], obj);
-            }
-        };
-    }
-
-    measureHeight() {
-        this.visibleObjects = this.dataSource.filter((it) => !it.rowHidden);
-        this.totalHeight = this.visibleObjects
-            .map((it) => it.rowHeight)
-            .reduce((a, b) => a + b);
-        let totalHeight = 0;
+        let els = [...this.shadowRoot!.querySelectorAll<TraceRow<any>>('.recycler-cell')];
+        let top = this.container!.scrollTop;
+        let skip = 0;
         for (let i = 0; i < this.visibleObjects.length; i++) {
-            this.visibleObjects[i].top = totalHeight;
-            this.visibleObjects[i].rowIndex = i;
-            totalHeight += this.visibleObjects[i].rowHeight;
-            this.visibleObjects[i].preObject =
-                i == 0 ? null : this.visibleObjects[i - 1];
-            this.visibleObjects[i].nextObject =
-                i == this.visibleObjects.length - 1
-                    ? null
-                    : this.visibleObjects[i + 1];
+          if (this.visibleObjects[i].top >= top) {
+            skip = this.visibleObjects[i].rowIndex - 1;
+            break;
+          }
         }
-        this.gasketEL && (this.gasketEL.style.height = `${this.totalHeight}px`);
+        if (skip < 0) skip = 0;
+        for (let i = 0; i < els.length; i++) {
+          let obj = this.visibleObjects[i + skip];
+          this.refreshRow(els[i], obj);
+        }
+      });
     }
+  }
 
-    initUI() {
-        this.visibleRowsCount = Math.ceil(this.clientHeight / 40);
-        if (this.visibleRowsCount >= this.visibleObjects.length) {
-            this.visibleRowsCount = this.visibleObjects.length;
-        }
-        if (!this.recycler) this.visibleRowsCount = this.dataSource.length;
-        for (let i = 0; i <= this.visibleRowsCount; i++) {
-            let el = new TraceRow<any>({
-                canvasNumber: 1,
-                alpha: true,
-                contextId: '2d',
-                isOffScreen: true,
-            });
-            el.className = 'recycler-cell';
-            this.container?.appendChild(el);
-            el.addEventListener('expansion-change', (ev: any) => {
-                el.obj!.expansion = ev.detail.expansion;
-                for (let j = 0; j < this.dataSource.length; j++) {
-                    if (this.dataSource[j].rowParentId == ev.detail.rowId) {
-                        this.dataSource[j].rowHidden = !ev.detail.expansion;
-                    }
-                }
-                this.measureHeight();
-                let els = [
-                    ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(
-                        '.recycler-cell'
-                    ),
-                ];
-                let top = this.container!.scrollTop;
-                let skip = 0;
-                for (let i = 0; i < this.visibleObjects.length; i++) {
-                    if (this.visibleObjects[i].top >= top) {
-                        skip = this.visibleObjects[i].rowIndex - 1;
-                        break;
-                    }
-                }
-                if (skip < 0) skip = 0;
-                for (let i = 0; i < els.length; i++) {
-                    let obj = this.visibleObjects[i + skip];
-                    this.refreshRow(els[i], obj);
-                }
-            });
-        }
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             width:100%;
@@ -211,5 +190,5 @@ export class TraceRowRecyclerView extends BaseElement {
         </div>
 
         `;
-    }
+  }
 }

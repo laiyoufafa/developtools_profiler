@@ -180,6 +180,9 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         fileType_ = GuessFileType(data.get(), size);
         if (fileType_ == TRACE_FILETYPE_H_TRACE) {
             htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
+#ifndef IS_PBDECODER
+            htraceParser_->EnableFileSeparate(enableFileSeparate_);
+#endif
         } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
             bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
             bytraceParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
@@ -206,101 +209,34 @@ void TraceStreamerSelector::EnableMetaTable(bool enabled)
     traceDataCache_->EnableMetaTable(enabled);
 }
 
+void TraceStreamerSelector::EnableFileSave(bool enabled)
+{
+    enableFileSeparate_ = enabled;
+}
+
 void TraceStreamerSelector::SetCleanMode(bool cleanMode)
 {
     g_cleanMode = true;
 }
 
-int TraceStreamerSelector::ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack)
 {
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportDatabase(outputName, resultCallBack);
 }
 
-bool TraceStreamerSelector::ReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
+bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vector<std::string>& symbolsPaths)
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
-        htraceParser_->ReloadSymbolFiles(symbolsPaths);
-    }
-    return true;
-}
-bool TraceStreamerSelector::ParserFileSO(const std::string& filename, int count)
-{
-    symbolsPaths_.emplace_back(filename);
-    std::unique_ptr<ElfFile> elfFile = ElfFile::MakeUnique(filename);
-
-    if (elfFile == nullptr) {
-        TS_LOGE("elf load failed");
-        return false;
-    } else {
-        TS_LOGE("loaded elf %s", filename.c_str());
-    }
-    ElfSymbolTable symbolInfo;
-    GetSymbols(std::move(elfFile), symbolInfo, filename);
-    if ((access(filename.c_str(), F_OK)) != -1) {
-        remove(filename.c_str());
-    }
-    elfSymbolTable_.emplace_back(symbolInfo);
-    if (elfSymbolTable_.size() >= count) {
-        UpdateELFData();
-    }
-    return true;
-}
-
-void TraceStreamerSelector::GetSymbols(std::unique_ptr<ElfFile> elfPtr,
-                                       ElfSymbolTable& symbols,
-                                       const std::string& filename)
-{
-    symbols.filePathId = filename;
-    symbols.textVaddr = (std::numeric_limits<uint64_t>::max)();
-    for (auto& item : elfPtr->phdrs_) {
-        if ((item->type_ == PT_LOAD) && (item->flags_ & PF_X)) {
-            // find the min addr
-            if (symbols.textVaddr != (std::min)(symbols.textVaddr, item->vaddr_)) {
-                symbols.textVaddr = (std::min)(symbols.textVaddr, item->vaddr_);
-                symbols.textOffset = item->offset_;
-            }
+        TS_LOGE("directory is %s", directory.c_str());
+        for (auto file : symbolsPaths) {
+            TS_LOGE("files is %s", file.c_str());
         }
+#ifndef IS_PBDECODER
+        htraceParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
+#endif
     }
-    if (symbols.textVaddr == (std::numeric_limits<uint64_t>::max)()) {
-        TS_LOGE("GetSymbols get textVaddr failed");
-        return;
-    }
-
-    std::string symSecName;
-    std::string strSecName;
-    if (elfPtr->shdrs_.find(".symtab") != elfPtr->shdrs_.end()) {
-        symSecName = ".symtab";
-        strSecName = ".strtab";
-    } else if (elfPtr->shdrs_.find(".dynsym") != elfPtr->shdrs_.end()) {
-        symSecName = ".dynsym";
-        strSecName = ".dynstr";
-    } else {
-        return;
-    }
-    const auto& sym = elfPtr->shdrs_[static_cast<const std::string>(symSecName)];
-    const uint8_t* symData = elfPtr->GetSectionData(sym->secIndex_);
-    const auto& str = elfPtr->shdrs_[static_cast<const std::string>(strSecName)];
-    const uint8_t* strData = elfPtr->GetSectionData(str->secIndex_);
-
-    if (sym->secSize_ == 0 || str->secSize_ == 0) {
-        TS_LOGE(
-            "GetSymbols get section size failed, \
-            sym size: %" PRIu64 ", str size: %" PRIu64 "",
-            sym->secSize_, str->secSize_);
-        return;
-    }
-    symbols.symEntSize = sym->secEntrySize_;
-    symbols.symTable.resize(sym->secSize_);
-    std::copy(symData, symData + sym->secSize_, symbols.symTable.data());
-    symbols.strTable.resize(str->secSize_);
-    std::copy(strData, strData + str->secSize_, symbols.strTable.data());
-}
-
-void TraceStreamerSelector::UpdateELFData()
-{
-    for (auto i = 0; i < elfSymbolTable_.size(); ++i) {
-    }
+    return true;
 }
 void TraceStreamerSelector::Clear()
 {
@@ -311,25 +247,25 @@ std::vector<std::string> TraceStreamerSelector::SearchData()
 {
     return traceDataCache_->SearchData();
 }
-int TraceStreamerSelector::OperateDatabase(const std::string& sql)
+int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
 {
     return traceDataCache_->OperateDatabase(sql);
 }
-int TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }
-int TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int outLen)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
 }
-int TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int len)
+int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
 {
     std::string traceRangeStr;
     memcpy(&traceRangeStr, data, len);
-    int size = traceRangeStr.size();
+    int32_t size = traceRangeStr.size();
     std::vector<string> vTraceRangeStr;
-    for (int i = 0, pos = 0; i < size; i++) {
+    for (int32_t i = 0, pos = 0; i < size; i++) {
         pos = traceRangeStr.find(";", i);
         if (pos == std::string::npos) {
             break;

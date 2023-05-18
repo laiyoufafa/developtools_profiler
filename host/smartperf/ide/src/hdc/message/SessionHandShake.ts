@@ -18,95 +18,89 @@ import { HANDSHAKE_MESSAGE } from '../common/ConstantType.js';
 import { BaseBean } from './BaseBean.js';
 
 export class SessionHandShake extends Object implements BaseBean {
-    private _banner: string = HANDSHAKE_MESSAGE; //  string  must first index
-    private _authType: number = AuthType.AUTH_NONE; // uint8_t auth none
-    private _sessionId: number = 0; // uint32_t
-    private _connectKey: string = ''; // string
-    private _buf: string = ''; // string
-    private _version: string = '';
+  private _banner: string = HANDSHAKE_MESSAGE; //  string  must first index
+  private _authType: number = AuthType.AUTH_NONE; // uint8_t auth none
+  private _sessionId: number = 0; // uint32_t
+  private _connectKey: string = ''; // string
+  private _buf: string = ''; // string
+  private _version: string = '';
 
-    constructor(
-        banner: string,
-        authType: number,
-        sessionId: number,
-        connectKey: string,
-        buf: string
-    ) {
-        super();
-        this._banner = banner;
-        this._authType = authType;
-        this._sessionId = sessionId;
-        this._connectKey = connectKey;
-        this._buf = buf;
-    }
+  constructor(banner: string, authType: number, sessionId: number, connectKey: string, buf: string) {
+    super();
+    this._banner = banner;
+    this._authType = authType;
+    this._sessionId = sessionId;
+    this._connectKey = connectKey;
+    this._buf = buf;
+  }
 
-    getDataView(): DataView {
-        const view = new DataView(new ArrayBuffer(24));
-        return view;
-    }
+  getDataView(): DataView {
+    const view = new DataView(new ArrayBuffer(24));
+    return view;
+  }
 
-    get banner(): string {
-        return this._banner;
-    }
+  get banner(): string {
+    return this._banner;
+  }
 
-    set banner(value: string) {
-        this._banner = value;
-    }
+  set banner(value: string) {
+    this._banner = value;
+  }
 
-    get authType(): number {
-        return this._authType;
-    }
+  get authType(): number {
+    return this._authType;
+  }
 
-    set authType(value: number) {
-        this._authType = value;
-    }
+  set authType(value: number) {
+    this._authType = value;
+  }
 
-    get sessionId(): number {
-        return this._sessionId;
-    }
+  get sessionId(): number {
+    return this._sessionId;
+  }
 
-    set sessionId(value: number) {
-        this._sessionId = value;
-    }
+  set sessionId(value: number) {
+    this._sessionId = value;
+  }
 
-    get connectKey(): string {
-        return this._connectKey;
-    }
+  get connectKey(): string {
+    return this._connectKey;
+  }
 
-    set connectKey(value: string) {
-        this._connectKey = value;
-    }
+  set connectKey(value: string) {
+    this._connectKey = value;
+  }
 
-    get buf(): string {
-        return this._buf;
-    }
+  get buf(): string {
+    return this._buf;
+  }
 
-    set buf(value: string) {
-        this._buf = value;
-    }
+  set buf(value: string) {
+    this._buf = value;
+  }
 
-    get version(): string {
-        return this._version;
-    }
+  get version(): string {
+    return this._version;
+  }
 
-    set version(value: string) {
-        this._version = value;
-    }
+  set version(value: string) {
+    this._version = value;
+  }
 
-    toString(): string {
-        return (
-            'banner: ' +
-            this._banner +
-            ' authType: ' +
-            this._authType +
-            ' sessionId: ' +
-            this._sessionId +
-            ' connectKey: ' +
-            this._connectKey +
-            ' buf: ' +
-            this._buf +
-            ' version: ' +
-            this._version
-        );
-    }
+  toString(): string {
+    return (
+      'banner: ' +
+      this._banner +
+      ' authType: ' +
+      this._authType +
+      ' sessionId: ' +
+      this._sessionId +
+      ' connectKey: ' +
+      this._connectKey +
+      ' buf: ' +
+      this._buf +
+      ' version: ' +
+      this._version
+    );
+  }
 }

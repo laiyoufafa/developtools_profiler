@@ -22,76 +22,72 @@ let backgroundColor = sessionStorage.getItem('backgroundColor');
 
 @element('lit-main-menu')
 export class LitMainMenu extends BaseElement {
-    private slotElements: Element[] | undefined;
-    private _menus: Array<MenuGroup> | undefined;
+  private slotElements: Element[] | undefined;
+  private _menus: Array<MenuGroup> | undefined;
 
-    static get observedAttributes() {
-        return [];
-    }
+  static get observedAttributes() {
+    return [];
+  }
 
-    get menus(): Array<MenuGroup> | undefined {
-        return this._menus;
-    }
+  get menus(): Array<MenuGroup> | undefined {
+    return this._menus;
+  }
 
-    set menus(value: Array<MenuGroup> | undefined) {
-        this._menus = value;
-        this.shadowRoot
-            ?.querySelectorAll('lit-main-menu-group')
-            .forEach((a) => a.remove());
-        let menuBody = this.shadowRoot?.querySelector('.menu-body');
-        value?.forEach((it) => {
-            let group = new LitMainMenuGroup();
-            group.setAttribute('title', it.title || '');
-            group.setAttribute('describe', it.describe || '');
-            if (it.collapsed) {
-                group.setAttribute('collapsed', '');
-            } else {
-                group.removeAttribute('collapsed');
+  set menus(value: Array<MenuGroup> | undefined) {
+    this._menus = value;
+    this.shadowRoot?.querySelectorAll('lit-main-menu-group').forEach((a) => a.remove());
+    let menuBody = this.shadowRoot?.querySelector('.menu-body');
+    value?.forEach((it) => {
+      let group = new LitMainMenuGroup();
+      group.setAttribute('title', it.title || '');
+      group.setAttribute('describe', it.describe || '');
+      if (it.collapsed) {
+        group.setAttribute('collapsed', '');
+      } else {
+        group.removeAttribute('collapsed');
+      }
+      menuBody?.appendChild(group);
+      it.children?.forEach((item: any) => {
+        let th = new LitMainMenuItem();
+        th.setAttribute('icon', item.icon || '');
+        th.setAttribute('title', item.title || '');
+        if (item.fileChoose) {
+          th.setAttribute('file', '');
+          th.addEventListener('file-change', (e) => {
+            if (item.fileHandler && !th.disabled) {
+              item.fileHandler(e);
             }
-            menuBody?.appendChild(group);
-            it.children?.forEach((item: any) => {
-                let th = new LitMainMenuItem();
-                th.setAttribute('icon', item.icon || '');
-                th.setAttribute('title', item.title || '');
-                if (item.fileChoose) {
-                    th.setAttribute('file', '');
-                    th.addEventListener('file-change', (e) => {
-                        if (item.fileHandler && !th.disabled) {
-                            item.fileHandler(e);
-                        }
-                    });
-                } else {
-                    th.removeAttribute('file');
-                    th.addEventListener('click', (e) => {
-                        if (item.clickHandler && !th.disabled) {
-                            item.clickHandler(item);
-                        }
-                    });
-                }
-                if (item.disabled != undefined) {
-                    th.disabled = item.disabled;
-                }
-                group?.appendChild(th);
-            });
-        });
-    }
+          });
+        } else {
+          th.removeAttribute('file');
+          th.addEventListener('click', (e) => {
+            if (item.clickHandler && !th.disabled) {
+              item.clickHandler(item);
+            }
+          });
+        }
+        if (item.disabled != undefined) {
+          th.disabled = item.disabled;
+        }
+        group?.appendChild(th);
+      });
+    });
+  }
 
-    initElements(): void {
-        let st: HTMLSlotElement | null | undefined =
-            this.shadowRoot?.querySelector('#st');
-        st?.addEventListener('slotchange', (e) => {
-            this.slotElements = st?.assignedElements();
-            this.slotElements?.forEach((it) => {
-                it.querySelectorAll('lit-main-menu-item').forEach((cell) => {});
-            });
-        });
-        let versionDiv: HTMLElement | null | undefined =
-            this.shadowRoot?.querySelector<HTMLElement>('.version');
-        versionDiv!.innerText = (window as any).version || '';
-    }
+  initElements(): void {
+    let st: HTMLSlotElement | null | undefined = this.shadowRoot?.querySelector('#st');
+    st?.addEventListener('slotchange', (e) => {
+      this.slotElements = st?.assignedElements();
+      this.slotElements?.forEach((it) => {
+        it.querySelectorAll('lit-main-menu-item').forEach((cell) => {});
+      });
+    });
+    let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');
+    versionDiv!.innerText = (window as any).version || '';
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -176,20 +172,20 @@ export class LitMainMenu extends BaseElement {
              <div class="version" style="">
              </div>
         </div>`;
-    }
+  }
 }
 
 export interface MenuGroup {
-    title: string;
-    describe: string;
-    collapsed: boolean;
-    children: Array<MenuItem>;
+  title: string;
+  describe: string;
+  collapsed: boolean;
+  children: Array<MenuItem>;
 }
 
 export interface MenuItem {
-    icon: string;
-    title: string;
-    fileChoose?: boolean;
-    clickHandler?: Function;
-    fileHandler?: Function;
+  icon: string;
+  title: string;
+  fileChoose?: boolean;
+  clickHandler?: Function;
+  fileHandler?: Function;
 }

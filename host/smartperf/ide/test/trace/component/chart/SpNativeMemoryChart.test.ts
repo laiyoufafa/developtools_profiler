@@ -22,40 +22,38 @@ const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 const intersectionObserverMock = () => ({
-    observe: () => null,
+  observe: () => null,
 });
-window.IntersectionObserver = jest
-    .fn()
-    .mockImplementation(intersectionObserverMock);
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('SpNativeMemoryChart Test', () => {
-    let spNativeMemoryChart = new SpNativeMemoryChart(new SpSystemTrace());
+  let spNativeMemoryChart = new SpNativeMemoryChart(new SpSystemTrace());
 
-    let nativeHookProcess = sqlit.queryNativeHookProcess;
-    nativeHookProcess.mockResolvedValue([
-        {
-            ipid: 0,
-            pid: 0,
-            name: 'name',
-        },
-    ]);
+  let nativeHookProcess = sqlit.queryNativeHookProcess;
+  nativeHookProcess.mockResolvedValue([
+    {
+      ipid: 0,
+      pid: 0,
+      name: 'name',
+    },
+  ]);
 
-    let heapGroupByEvent = sqlit.queryHeapGroupByEvent;
-    heapGroupByEvent.mockResolvedValue([
-        {
-            eventType: 'AllocEvent',
-            sumHeapSize: 10,
-        },
-    ]);
+  let heapGroupByEvent = sqlit.queryHeapGroupByEvent;
+  heapGroupByEvent.mockResolvedValue([
+    {
+      eventType: 'AllocEvent',
+      sumHeapSize: 10,
+    },
+  ]);
 
-    it('SpNativeMemoryChart01', function () {
-        expect(spNativeMemoryChart.initChart()).toBeDefined();
-    });
+  it('SpNativeMemoryChart01', function () {
+    expect(spNativeMemoryChart.initChart()).toBeDefined();
+  });
 });

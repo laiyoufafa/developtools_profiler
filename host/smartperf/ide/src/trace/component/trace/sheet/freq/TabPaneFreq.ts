@@ -20,43 +20,39 @@ import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-freq')
 export class TabPaneFreq extends BaseElement {
-    private tbl: LitTable | null | undefined;
+  private tbl: LitTable | null | undefined;
 
-    set data(freq: any) {
-        if (freq) {
-            this.tbl!.dataSource = [
-                {
-                    startNS: Utils.getTimeString(
-                        freq.startNS >= 0 ? freq.startNS : 0
-                    ),
-                    absoluteTime:
-                        (freq.startNS + (window as any).recordStartNS) /
-                        1000000000,
-                    dur: Utils.getProbablyTime(freq.dur),
-                    freq: `${ColorUtils.formatNumberComma(freq.value!)} kHz`,
-                    cpu: `Cpu ${freq.cpu}`,
-                },
-            ];
-        }
+  set data(freq: any) {
+    if (freq) {
+      this.tbl!.dataSource = [
+        {
+          startNS: Utils.getTimeString(freq.startNS >= 0 ? freq.startNS : 0),
+          absoluteTime: (freq.startNS + (window as any).recordStartNS) / 1000000000,
+          dur: Utils.getProbablyTime(freq.dur),
+          freq: `${ColorUtils.formatNumberComma(freq.value!)} kHz`,
+          cpu: `Cpu ${freq.cpu}`,
+        },
+      ];
     }
+  }
 
-    initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
-    }
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
-    }
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -77,5 +73,5 @@ export class TabPaneFreq extends BaseElement {
             </lit-table-column>
         </lit-table>
         `;
-    }
+  }
 }

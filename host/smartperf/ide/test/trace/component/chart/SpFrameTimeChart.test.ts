@@ -19,62 +19,60 @@ import { SpFrameTimeChart } from '../../../../dist/trace/component/chart/SpFrame
 import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
 
 const intersectionObserverMock = () => ({
-    observe: () => null,
+  observe: () => null,
 });
-window.IntersectionObserver = jest
-    .fn()
-    .mockImplementation(intersectionObserverMock);
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
 const sqlite = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('SpFrameTimeChart Test', () => {
-    let spSystemTrace = new SpSystemTrace();
-    let spFrameTimeChart = new SpFrameTimeChart(spSystemTrace);
+  let spSystemTrace = new SpSystemTrace();
+  let spFrameTimeChart = new SpFrameTimeChart(spSystemTrace);
 
-    let queryFrameTime = sqlite.queryFrameTimeData;
-    let queryFrameTimeData = [
-        {
-            pid: 256,
-        },
-    ];
-    queryFrameTime.mockResolvedValue(queryFrameTimeData);
+  let queryFrameTime = sqlite.queryFrameTimeData;
+  let queryFrameTimeData = [
+    {
+      pid: 256,
+    },
+  ];
+  queryFrameTime.mockResolvedValue(queryFrameTimeData);
 
-    let queryExpectedFrame = sqlite.queryExpectedFrameDate;
-    let queryExpectedFrameDate = [
-        {
-            dur: 2585,
-            depth: 1,
-        },
-        {
-            dur: 6688,
-            depth: 1,
-        },
-    ];
-    queryExpectedFrame.mockResolvedValue(queryExpectedFrameDate);
+  let queryExpectedFrame = sqlite.queryExpectedFrameDate;
+  let queryExpectedFrameDate = [
+    {
+      dur: 2585,
+      depth: 1,
+    },
+    {
+      dur: 6688,
+      depth: 1,
+    },
+  ];
+  queryExpectedFrame.mockResolvedValue(queryExpectedFrameDate);
 
-    let queryActualFrame = sqlite.queryActualFrameDate;
-    let queryActualFrameDate = [
-        {
-            dur: 6878,
-            depth: 1,
-        },
-        {
-            dur: 6238,
-            depth: 1,
-        },
-    ];
-    queryActualFrame.mockResolvedValue(queryActualFrameDate);
+  let queryActualFrame = sqlite.queryActualFrameDate;
+  let queryActualFrameDate = [
+    {
+      dur: 6878,
+      depth: 1,
+    },
+    {
+      dur: 6238,
+      depth: 1,
+    },
+  ];
+  queryActualFrame.mockResolvedValue(queryActualFrameDate);
 
-    it('TabPaneFramesTest01', function () {
-        expect(spFrameTimeChart.init()).toBeTruthy();
-    });
+  it('TabPaneFramesTest01', function () {
+    expect(spFrameTimeChart.init()).toBeTruthy();
+  });
 });

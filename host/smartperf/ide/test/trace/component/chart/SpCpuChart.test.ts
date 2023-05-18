@@ -23,19 +23,19 @@ const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('SpCpuChart Test', () => {
-    let MockqueryCpuMax = sqlit.queryCpuMax;
-    MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
-    let ss = new SpChartManager();
-    let trace = new SpCpuChart(ss);
-    it('SpMpsChart01', function () {
-        trace.init();
-        expect(trace).toBeDefined();
-    });
+  let MockqueryCpuMax = sqlit.queryCpuMax;
+  MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
+  let ss = new SpChartManager();
+  let trace = new SpCpuChart(ss);
+  it('SpMpsChart01', function () {
+    trace.init();
+    expect(trace).toBeDefined();
+  });
 });

@@ -17,45 +17,45 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-switch')
 export default class LitSwitch extends BaseElement {
-    private switch: HTMLInputElement | null | undefined;
-    private isfocus: boolean | undefined;
+  private switch: HTMLInputElement | null | undefined;
+  private isfocus: boolean | undefined;
 
-    static get observedAttributes() {
-        return ['disabled', 'checked'];
+  static get observedAttributes() {
+    return ['disabled', 'checked'];
+  }
+
+  get disabled() {
+    return this.getAttribute('disabled') !== null;
+  }
+
+  set disabled(value) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', '');
     }
+  }
 
-    get disabled() {
-        return this.getAttribute('disabled') !== null;
+  get checked() {
+    return this.getAttribute('checked') !== null;
+  }
+
+  set checked(value) {
+    if (value === null || value === false) {
+      this.removeAttribute('checked');
+    } else {
+      this.setAttribute('checked', '');
     }
+  }
 
-    set disabled(value) {
-        if (value === null || value === false) {
-            this.removeAttribute('disabled');
-        } else {
-            this.setAttribute('disabled', '');
-        }
-    }
+  get name() {
+    return this.getAttribute('name');
+  }
 
-    get checked() {
-        return this.getAttribute('checked') !== null;
-    }
+  initElements(): void {}
 
-    set checked(value) {
-        if (value === null || value === false) {
-            this.removeAttribute('checked');
-        } else {
-            this.setAttribute('checked', '');
-        }
-    }
-
-    get name() {
-        return this.getAttribute('name');
-    }
-
-    initElements(): void {}
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{ 
             display:inline-block; 
@@ -124,73 +124,69 @@ export default class LitSwitch extends BaseElement {
         </style>
         <input type="checkbox" id="switch"><label id="name" for="switch"></label>
         `;
-    }
+  }
 
-    connectedCallback() {
-        this.switch = this.shadowRoot?.getElementById(
-            'switch'
-        ) as HTMLInputElement;
-        this.disabled = this.disabled;
-        this.checked = this.checked;
-        this.switch!.onchange = (ev) => {
-            this.checked = this.switch!.checked;
-            this.dispatchEvent(
-                new CustomEvent('change', { detail: { checked: this.checked } })
-            );
-        };
-        this.switch.onkeydown = (ev) => {
-            switch (ev.keyCode) {
-                case 13: //enter
-                    this.checked = !this.checked;
-                    this.dispatchEvent(
-                        new CustomEvent('change', {
-                            detail: { checked: this.checked },
-                        })
-                    );
-                    break;
-                default:
-                    break;
-            }
-        };
-        this.switch.onfocus = (ev) => {
-            ev.stopPropagation();
-            if (!this.isfocus) {
-                this.dispatchEvent(
-                    new CustomEvent('focus', {
-                        detail: { value: this.switch!.value },
-                    })
-                );
-            }
-        };
-        this.switch.onblur = (ev) => {
-            ev.stopPropagation();
-            if (getComputedStyle(this.switch!).zIndex == '2') {
-                this.isfocus = true;
-            } else {
-                this.isfocus = false;
-                this.dispatchEvent(
-                    new CustomEvent('blur', {
-                        detail: { value: this.switch!.value },
-                    })
-                );
-            }
-        };
-    }
+  connectedCallback() {
+    this.switch = this.shadowRoot?.getElementById('switch') as HTMLInputElement;
+    this.disabled = this.disabled;
+    this.checked = this.checked;
+    this.switch!.onchange = (ev) => {
+      this.checked = this.switch!.checked;
+      this.dispatchEvent(new CustomEvent('change', { detail: { checked: this.checked } }));
+    };
+    this.switch.onkeydown = (ev) => {
+      switch (ev.keyCode) {
+        case 13: //enter
+          this.checked = !this.checked;
+          this.dispatchEvent(
+            new CustomEvent('change', {
+              detail: { checked: this.checked },
+            })
+          );
+          break;
+        default:
+          break;
+      }
+    };
+    this.switch.onfocus = (ev) => {
+      ev.stopPropagation();
+      if (!this.isfocus) {
+        this.dispatchEvent(
+          new CustomEvent('focus', {
+            detail: { value: this.switch!.value },
+          })
+        );
+      }
+    };
+    this.switch.onblur = (ev) => {
+      ev.stopPropagation();
+      if (getComputedStyle(this.switch!).zIndex == '2') {
+        this.isfocus = true;
+      } else {
+        this.isfocus = false;
+        this.dispatchEvent(
+          new CustomEvent('blur', {
+            detail: { value: this.switch!.value },
+          })
+        );
+      }
+    };
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name === 'disabled' && this.switch) {
-            if (newValue !== null) {
-                this.switch.setAttribute('disabled', '');
-            } else {
-                this.switch.removeAttribute('disabled');
-            }
-        }
-        if (name === 'checked' && this.switch) {
-            if (newValue !== null) {
-                this.switch.checked = true;
-            } else {
-                this.switch.checked = false;
-            }
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name === 'disabled' && this.switch) {
+      if (newValue !== null) {
+        this.switch.setAttribute('disabled', '');
+      } else {
+        this.switch.removeAttribute('disabled');
+      }
     }
+    if (name === 'checked' && this.switch) {
+      if (newValue !== null) {
+        this.switch.checked = true;
+      } else {
+        this.switch.checked = false;
+      }
+    }
+  }
 }

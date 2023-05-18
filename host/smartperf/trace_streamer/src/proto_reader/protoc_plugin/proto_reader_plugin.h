@@ -36,7 +36,7 @@ inline std::vector<std::string> SplitStringToVec(std::string& str, const std::st
 {
     std::vector<std::string> result = {};
     str += pat;
-    int size = str.size();
+    int32_t size = str.size();
     for (int32_t i = 0; i < size; i++) {
         auto pos = str.find(pat, i);
         if (pos == std::string::npos) {

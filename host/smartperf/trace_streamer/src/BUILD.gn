@@ -60,6 +60,7 @@ ohos_source_set("lib") {
     "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
     "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "${OHOS_PROTO_GEN}/types/plugins/hisysevent_data",
+    "${OHOS_PROTO_GEN}/types/plugins/js_memory",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
     "//third_party/hiperf/include",
@@ -127,6 +128,7 @@ ohos_source_set("trace_streamer_source") {
     "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
     "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "${OHOS_PROTO_GEN}/types/plugins/hisysevent_data",
+    "${OHOS_PROTO_GEN}/types/plugins/js_memory",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
   ]
@@ -159,16 +161,6 @@ ohos_source_set("trace_streamer_source") {
     "//third_party/json-master/include",
     "//third_party/json-master/include/nlohmann",
   ]
-  if (with_ebpf_help_table) {
-    sources += [
-      "table/ebpf_elf_symbol_table.cpp",
-      "table/ebpf_elf_symbol_table.h",
-      "table/ebpf_elf_table.cpp",
-      "table/ebpf_elf_table.h",
-      "table/ebpf_process_maps_table.cpp",
-      "table/ebpf_process_maps_table.h",
-    ]
-  }
 
   if (with_perf) {
     include_dirs += [

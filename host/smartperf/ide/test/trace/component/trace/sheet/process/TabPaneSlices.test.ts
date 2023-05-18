@@ -20,36 +20,36 @@ const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneSlices Test', () => {
-    let tabPaneSlices = new TabPaneSlices();
+  let tabPaneSlices = new TabPaneSlices();
 
-    it('TabPaneSlicesTest01', function () {
-        expect(
-            tabPaneSlices.sortByColumn({
-                key: 'name',
-                sort: () => {},
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneSlicesTest01', function () {
+    expect(
+      tabPaneSlices.sortByColumn({
+        key: 'name',
+        sort: () => {},
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneSlicesTest05', function () {
-        expect(
-            tabPaneSlices.sortByColumn({
-                key: !'name',
-                sort: () => {},
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneSlicesTest05', function () {
+    expect(
+      tabPaneSlices.sortByColumn({
+        key: !'name',
+        sort: () => {},
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneSlicesTest04', function () {
-        expect(tabPaneSlices.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneSlicesTest04', function () {
+    expect(tabPaneSlices.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -71,5 +71,5 @@ describe('TabPaneSlices Test', () => {
         </lit-table>
         "
 `);
-    });
+  });
 });

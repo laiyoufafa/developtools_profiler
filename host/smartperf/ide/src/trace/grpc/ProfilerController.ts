@@ -14,51 +14,51 @@
  */
 
 export class ClientContainer {
-    private _port: string | number | undefined;
-    private _host: string | undefined;
+  private _port: string | number | undefined;
+  private _host: string | undefined;
 
-    get port(): string | number | undefined {
-        return this._port;
-    }
+  get port(): string | number | undefined {
+    return this._port;
+  }
 
-    set port(value: string | number | undefined) {
-        this._port = value;
-    }
+  set port(value: string | number | undefined) {
+    this._port = value;
+  }
 
-    get host(): string | undefined {
-        return this._host;
-    }
+  get host(): string | undefined {
+    return this._host;
+  }
 
-    set host(value: string | undefined) {
-        this._host = value;
-    }
+  set host(value: string | undefined) {
+    this._host = value;
+  }
 
-    public registryClient(target: any, path: string) {}
+  public registryClient(target: any, path: string) {}
 
-    public start() {
-        this.loadSettings();
-        this._registryClient();
-    }
+  public start() {
+    this.loadSettings();
+    this._registryClient();
+  }
 
-    private loadSettings() {
-        let { host, port } = SettingRegistry.settings;
-        this._host = host;
-        this._port = port;
-    }
+  private loadSettings() {
+    let { host, port } = SettingRegistry.settings;
+    this._host = host;
+    this._port = port;
+  }
 
-    private _registryClient() {}
+  private _registryClient() {}
 }
 
 export class SettingRegistry {
-    static settings: Settings;
+  static settings: Settings;
 
-    static registry(settings: Settings) {
-        this.settings = settings;
-    }
+  static registry(settings: Settings) {
+    this.settings = settings;
+  }
 }
 
 export interface Settings {
-    port: string | number;
+  port: string | number;
 
-    host?: string;
+  host?: string;
 }

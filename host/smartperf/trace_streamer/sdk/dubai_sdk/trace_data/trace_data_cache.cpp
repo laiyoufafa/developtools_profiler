@@ -20,8 +20,6 @@
 #include "../table/slice_object_table.h"
 #include "../table/slice_table.h"
 
-// #include "args_table.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 TraceDataCache::TraceDataCache()

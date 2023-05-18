@@ -16,20 +16,20 @@
 import { initSysCallsTopStrategy } from '../../../../dist/trace/component/metrics/SysCallsTopStrategy.js';
 
 describe('SysCallsTopStrategy Test', () => {
-    const metricData = [
-        {
-            length: 1,
-            pid: 'pi',
-            tid: 'ti',
-            process_name: '',
-            maxDur: 'name',
-            minDur: '',
-            avgDur: '',
-            funName: '',
-        },
-    ];
+  const metricData = [
+    {
+      length: 1,
+      pid: 'pi',
+      tid: 'ti',
+      process_name: '',
+      maxDur: 'name',
+      minDur: '',
+      avgDur: '',
+      funName: '',
+    },
+  ];
 
-    it('initSysCallsTopStrategyTest01', () => {
-        expect(initSysCallsTopStrategy(metricData)).toBeTruthy();
-    });
+  it('initSysCallsTopStrategyTest01', () => {
+    expect(initSysCallsTopStrategy(metricData)).toBeTruthy();
+  });
 });

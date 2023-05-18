@@ -15,6 +15,8 @@
 #ifndef SRC_TRACE_BASE_SECUREC_H
 #define SRC_TRACE_BASE_SECUREC_H
 
+#include <cstdint>
+#include <sys/types.h>
 #define EOK 0
 #include "string_help.h"
 #endif // SRC_TRACE_BASE_SECUREC_H

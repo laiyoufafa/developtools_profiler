@@ -30,6 +30,15 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | hisys_event_measure | 记录了HiSysEvent事件相关数据，目前HiSysEvent事件包括了异常事件，IDE事件，器件状态事件 |
 | instant |  记录Sched_waking, sched_wakeup事件， 用作ThreadState表的上下文使用 | 
 | irq | 记录中断相关事件|
+| js_heap_edges | 记录了js内存数据类对象对应的成员的信息|
+| js_heap_files | 记录了js内存数据的名称和时间|
+| js_heap_info | 记录了js内存数据类型，如nodes和edges的字段类型和数据总数|
+| js_heap_location | 记录了js内存location节点相关数据|
+| js_heap_nodes | 记录了js内存类对象和其成员的对应关系|
+| js_heap_sample | 记录了timeline模式下的时间轴信息|
+| js_heap_string | 记录了js内存数据中的字符串|
+| js_heap_trace_function_info | 记录了timeline模式下的调用栈的每个函数信息|
+| js_heap_trace_node | 记录了timeline模式下的调用栈信息|
 | live_process | 记录了一些实时的进程中执行的一些数据|
 | log | 记录hilog打印日志数据|
 | measure_filter | 记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录|
@@ -80,6 +89,15 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |hisys_event_measure   |    -         |hisysevent-plugin  |JSON数据源             |
 |instant               |    -         |ftrace-plugin      |waking和wakeup事件     |
 |irq                   |    -         |ftrace-plugin      |记录中断事件           |
+| js_heap_edges        |    -         |js-memory          | js内存数据            |
+| js_heap_files        |    -         |js-memory          | js内存数据            |
+| js_heap_info         |    -         |js-memory          | js内存数据            |
+| js_heap_location     |    -         |js-memory          | js内存数据            |
+| js_heap_nodes        |    -         |js-memory          | js内存数据            |
+| js_heap_sample       |    -         |js-memory          | js内存数据            |
+| js_heap_string       |    -         |js-memory          | js内存数据            |
+| js_heap_trace_function_info | -     |js-memory          | js内存数据            |
+| js_heap_trace_node   |    -         |js-memory          | js内存数据            |                
 |live_process          |    -         |process-plugin     |Monitor数据            |
 |network               |    -         |network-plugin     |Monitor数据            |
 |diskio                |    -         |diskio-plugin      |Monitor数据            |
@@ -194,6 +212,18 @@ frame_maps:记录应用到RS的帧的映射关系。
 
 - 已知RS的渲染帧在frame_slice中所在行是14，求其对应的GPU渲染时长  
 ```select * from gpu_slice where frame_row = 14```
+
+### JS内存数据表关系图
+
+js_heap_files：记录js内存数据的文件名和文件索引
+
+![1683163158954](image/des_tables/1683163158954.png)
+
+js_heap_nodes:记录js内存类对象数据
+js_heap_edges:记录js内存类对象的成员数据
+js_heap_trace_node:记录timeline的调用栈信息
+js_heap_sample:记录timeline的时间轴信息
+![1683163373206](image/des_tables/1683163373206.png)
 ## TraceStreamer输出数据库表格详细介绍
 ### app_name表
 #### 表结构
@@ -539,6 +569,180 @@ frame_maps:记录应用到RS的帧的映射关系。
 - depth：中断调用的深度  
 - parent_id：父调用中断的id  
 - spanId：分布式调用中断关联关系
+
+### js_heap_edges表
+#### 表结构
+| Columns Name  | SQL TYPE |
+| ------------- | -------- |
+| file_id       | INT      |
+| edge_index    | INT      |
+| type          | INT      |
+| name_or_index | INT      |
+| to_node       | INT      |
+| from_node_id  | INT      |
+| to_node_id    | INT      |
+#### 表描述
+记录js内存数据类对象对应的成员的信息。
+#### 相关字段描述
+- file_id：文件ID
+- edge_index：成员的索引号
+- type：成员的类型，取值范围为js_heap_info表中的edge_types
+- name_or_index：数据名称，取值为js_heap_string表中的下标索引
+- to_node：此成员指向的类对象在nodes数组中的索引
+- from_node_id：类对象ID，该类对象指向此成员数据
+- to_node_id：此成员指向到的类对象nodes数组中的ID
+
+### js_heap_files表
+#### 表结构
+| Columns Name | SQL TYPE |
+| ------------ | -------- |
+| id           | INT      |
+| file_name    | TEXT     |
+| start_time   | INT      |
+| end_time     | INT      |
+| pid          | INT      |
+#### 表描述
+记录了js内存数据的文件名称和时间。
+#### 相关字段描述
+- id：文件ID
+- file_name：文件名称
+- start_time：数据抓取的起始时间
+- end_time：数据抓取的终止时间
+- pid：进程号
+
+### js_heap_info表
+#### 表结构
+| Columns Name | SQL TYPE |
+| ------------ | -------- |
+| file_id      | INT      |
+| key          | TEXT     |
+| type         | INT      |
+| int_value    | INT      |
+| str_value    | TEXT     |
+#### 表描述
+记录了js内存数据类型，如nodes和edges的字段类型和数据总数。
+#### 相关字段描述
+- file_id：文件ID
+- key：类型名称
+- type：数据类型索引
+- int_value：int类型的数据值，如count类型数据
+- str_value：string类型的数据值，如typename
+
+### js_heap_location表
+#### 表结构
+| Columns Name | SQL TYPE |
+| ------------ | -------- |
+| file_id      | INT      |
+| object_index | INT      |
+| script_id    | INT      |
+| line         | INT      |
+| column       | INT      |
+#### 表描述
+记录了js内存location节点相关数据，此表目前无抓取到的数据。
+#### 相关字段描述
+- file_id：文件ID
+- object_index：与location关联的类对象的索引，取值为js_heap_nodes的下标索引
+- script_id：关联到的类对象所在文件的绝对路径ID
+- line：在类对象所在的文件中的行号
+- column：在类对象所在的文件中的列号
+
+### js_heap_nodes表
+#### 表结构
+| Columns Name  | SQL TYPE |
+| ------------- | -------- |
+| file_id       | INT      |
+| node_index    | TEXT     |
+| type          | INT      |
+| name          | INT      |
+| id            | TEXT     |
+| self_size     | INT      |
+| edge_count    | INT      |
+| trace_node_id | INT      |
+| detachedness  | INT      |
+#### 表描述
+记录了js内存数据中类对象的数据。
+#### 相关字段描述
+- file_id：文件ID
+- node_index：类对象的索引
+- type：类对象的类型
+- name：类对象的名称
+- id：类对象的唯一ID
+- self_size：该类对象所有成员的大小（以字节为单位）
+- edge_count：该类对象指向的类成员的个数
+- trace_node_id：该类对象关联到js_heap_trace_node表中的调用栈ID
+- detachedness：是否可以从window全局对象访问此节点，0表示是，1表示否
+
+### js_heap_sample表
+#### 表结构
+| Columns Name     | SQL TYPE |
+| ---------------- | -------- |
+| file_id          | INT      |
+| timestamp_us     | INT      |
+| last_assigned_id | INT      |
+#### 表描述
+记录了timeline模式下的时间轴信息。
+#### 相关字段描述
+- file_id：文件ID
+- timestamp_us：时间信息
+- last_assigned_id：当前时间点的id
+
+### js_heap_string表
+#### 表结构
+| Columns Name | SQL TYPE |
+| ------------ | -------- |
+| file_id      | INT      |
+| file_index   | INT      |
+| string       | TEXT     |
+#### 表描述
+记录了js内存数据中的字符串。
+#### 相关字段描述
+- file_id：文件ID
+- file_index：索引
+- string：对应的字符串信息
+
+### js_heap_trace_function_info表
+#### 表结构
+| Columns Name   | SQL TYPE |
+| -------------- | -------- |
+| file_id        | INT      |
+| function_index | INT      |
+| function_id    | INT      |
+| name           | INT      |
+| script_name    | INT      |
+| script_id      | INT      |
+| line           | INT      |
+| column         | INT      |
+#### 表描述
+记录了timeline模式下的调用栈的每个函数信息。
+#### 相关字段描述
+- file_id：文件ID
+- function_index：函数索引
+- function_id：函数ID
+- name：函数名称
+- script_name：关联到的类对象所在文件的绝对路径名称
+- script_id：关联到的类对象所在文件的绝对路径ID
+- line：在类对象所在的文件中的行号
+- column：在类对象所在的文件中的列号
+
+### js_heap_trace_node表
+#### 表结构
+| Columns Name        | SQL TYPE |
+| ------------------- | -------- |
+| file_id             | INT      |
+| id                  | INT      |
+| function_info_index | INT      |
+| count               | INT      |
+| size                | INT      |
+| parent_id           | INT      |
+#### 表描述
+记录了timeline模式下的调用栈的信息。
+#### 相关字段描述
+- file_id：文件ID
+- id：调用栈节点索引
+- function_info_index：函数信息索引
+- count：调用栈个数
+- size：调用栈大小
+- parent_id：调用栈父节点
 
 ### live_process表
 #### 表结构

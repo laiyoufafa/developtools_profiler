@@ -15,83 +15,81 @@
 //@ts-ignore
 import { TabPaneLiveProcesses } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneLiveProcesses.js';
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneLiveProcesses Test', function () {
-    let tabPaneLiveProcesses = new TabPaneLiveProcesses();
+  let tabPaneLiveProcesses = new TabPaneLiveProcesses();
 
-    it('TabPaneLiveProcessesTest01 ', function () {
-        tabPaneLiveProcesses.queryResult.length = 1;
-        expect(tabPaneLiveProcesses.filterData()).toBeUndefined();
-    });
+  it('TabPaneLiveProcessesTest01 ', function () {
+    tabPaneLiveProcesses.queryResult.length = 1;
+    expect(tabPaneLiveProcesses.filterData()).toBeUndefined();
+  });
 
-    it('TabPaneLiveProcessesTest02 ', function () {
-        const live = {
-            processId: 1,
-            processName: '',
-            responsibleProcess: '',
-            userName: '',
-            cpu: '1',
-            threads: -1,
-            memory: '',
-            diskReads: -1,
-            diskWrite: -1,
-        };
-        expect(
-            tabPaneLiveProcesses.toLiveProcessArray(live)
-        ).not.toBeUndefined();
-    });
+  it('TabPaneLiveProcessesTest02 ', function () {
+    const live = {
+      processId: 1,
+      processName: '',
+      responsibleProcess: '',
+      userName: '',
+      cpu: '1',
+      threads: -1,
+      memory: '',
+      diskReads: -1,
+      diskWrite: -1,
+    };
+    expect(tabPaneLiveProcesses.toLiveProcessArray(live)).not.toBeUndefined();
+  });
 
-    it('TabPaneLiveProcessesTest03 ', function () {
-        expect(
-            tabPaneLiveProcesses.sortByColumn({
-                key: 'startTime',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneLiveProcessesTest03 ', function () {
+    expect(
+      tabPaneLiveProcesses.sortByColumn({
+        key: 'startTime',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneLiveProcessesTest07 ', function () {
-        expect(
-            tabPaneLiveProcesses.sortByColumn({
-                key: 'cpuTime',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneLiveProcessesTest07 ', function () {
+    expect(
+      tabPaneLiveProcesses.sortByColumn({
+        key: 'cpuTime',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneLiveProcessesTest04 ', function () {
-        expect(
-            tabPaneLiveProcesses.sortByColumn({
-                key: !'startTime' || !'cpuTime',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneLiveProcessesTest04 ', function () {
+    expect(
+      tabPaneLiveProcesses.sortByColumn({
+        key: !'startTime' || !'cpuTime',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneLiveProcessesTest09 ', function () {
-        expect(
-            tabPaneLiveProcesses.sortByColumn({
-                key: 'memory',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneLiveProcessesTest09 ', function () {
+    expect(
+      tabPaneLiveProcesses.sortByColumn({
+        key: 'memory',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneLiveProcessesTest05', function () {
-        expect(tabPaneLiveProcesses.timeFormat(70000)).toBe('1 min 10 s 0 ms ');
-    });
+  it('TabPaneLiveProcessesTest05', function () {
+    expect(tabPaneLiveProcesses.timeFormat(70000)).toBe('1 min 10 s 0 ms ');
+  });
 
-    it('TabPaneLiveProcessesTest06', function () {
-        expect(tabPaneLiveProcesses.timeFormat(2000)).toBe('2 s 0 ms ');
-    });
+  it('TabPaneLiveProcessesTest06', function () {
+    expect(tabPaneLiveProcesses.timeFormat(2000)).toBe('2 s 0 ms ');
+  });
 
-    it('TabPaneLiveProcessesTest07', function () {
-        expect(tabPaneLiveProcesses.timeFormat(3600002)).toBe('1 h 2 ms ');
-    });
+  it('TabPaneLiveProcessesTest07', function () {
+    expect(tabPaneLiveProcesses.timeFormat(3600002)).toBe('1 h 2 ms ');
+  });
 
-    it('TabPaneLiveProcessesTest08', function () {
-        expect(tabPaneLiveProcesses.timeFormat(10)).toBe('10 ms ');
-    });
+  it('TabPaneLiveProcessesTest08', function () {
+    expect(tabPaneLiveProcesses.timeFormat(10)).toBe('10 ms ');
+  });
 });

@@ -152,15 +152,15 @@ public:
     FrameSlice frameSliceData_;
     FrameMaps frameMapsData_;
     GPUSlice gpuSliceData_;
-    JsHeapFiles JsHeapFilesData_;
-    JsHeapEdges JsHeapEdgesData_;
-    JsHeapInfo JsHeapInfoData_;
-    JsHeapLocation JsHeapLocationData_;
-    JsHeapNodes JsHeapNodesData_;
-    JsHeapSample JsHeapSampleData_;
-    JsHeapString JsHeapStringData_;
-    JsHeapTraceFuncInfo JsHeapTraceFuncInfoData_;
-    JsHeapTraceNode JsHeapTraceNodeData_;
+    JsHeapFiles jsHeapFilesData_;
+    JsHeapEdges jsHeapEdgesData_;
+    JsHeapInfo jsHeapInfoData_;
+    JsHeapLocation jsHeapLocationData_;
+    JsHeapNodes jsHeapNodesData_;
+    JsHeapSample jsHeapSampleData_;
+    JsHeapString jsHeapStringData_;
+    JsHeapTraceFuncInfo jsHeapTraceFuncInfoData_;
+    JsHeapTraceNode jsHeapTraceNodeData_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

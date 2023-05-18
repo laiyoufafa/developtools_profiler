@@ -78,11 +78,11 @@ void ClockFilter::AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uin
 void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
 {
     ClockId srcId, desId;
-    const int theDataBeforeLast = 2;
+    const int32_t theDataBeforeLast = 2;
     for (srcId = 0; srcId < snapShot.size() - 1; ++srcId) {
         ClockId srcClockId = snapShot[srcId].clockId;
         uint64_t srcTs = snapShot[srcId].ts;
-        traceDataCache_->GetClockSnapshotData()->AppendNewSnapshot(
+        (void)traceDataCache_->GetClockSnapshotData()->AppendNewSnapshot(
             srcClockId, srcTs,
             dataCache_->GetConstStatAndInfo().clockid2ClockNameMap_.at(static_cast<BuiltinClocks>(srcClockId)));
         for (desId = srcId + 1; desId < snapShot.size(); ++desId) {

@@ -17,44 +17,44 @@
 import { TabPaneCpuByProcess } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuByProcess.js';
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 describe('TabPaneCpuByProcess Test', () => {
-    let tabPaneCpuByProcess = new TabPaneCpuByProcess();
+  let tabPaneCpuByProcess = new TabPaneCpuByProcess();
 
-    it('TabPaneCpuByProcessTest01', function () {
-        expect(
-            tabPaneCpuByProcess.sortByColumn({
-                key: 'number',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuByProcessTest01', function () {
+    expect(
+      tabPaneCpuByProcess.sortByColumn({
+        key: 'number',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuByProcessTest05', function () {
-        expect(
-            tabPaneCpuByProcess.sortByColumn({
-                sort: () => {},
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuByProcessTest05', function () {
+    expect(
+      tabPaneCpuByProcess.sortByColumn({
+        sort: () => {},
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuByProcessTest04', function () {
-        expect(
-            tabPaneCpuByProcess.sortByColumn({
-                key: 'pid' || 'wallDuration' || 'avgDuration' || 'occurrences',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCpuByProcessTest04', function () {
+    expect(
+      tabPaneCpuByProcess.sortByColumn({
+        key: 'pid' || 'wallDuration' || 'avgDuration' || 'occurrences',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCpuByProcessTest04', function () {
-        expect(tabPaneCpuByProcess.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneCpuByProcessTest04', function () {
+    expect(tabPaneCpuByProcess.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -78,5 +78,5 @@ describe('TabPaneCpuByProcess Test', () => {
         </lit-table>
         "
 `);
-    });
+  });
 });

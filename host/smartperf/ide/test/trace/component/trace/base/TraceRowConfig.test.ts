@@ -21,15 +21,15 @@ import { TraceRow } from '../../../../../dist/trace/component/trace/base/TraceRo
 import { SpApplication } from '../../../../../dist/trace/SpApplication.js';
 
 describe('TraceRowConfig Test', () => {
-    document.body.innerHTML = `<div><trace-row-config id="config"></trace-row-config>
+  document.body.innerHTML = `<div><trace-row-config id="config"></trace-row-config>
                                     <sp-system-trace>
                                        <div class=""rows-pane>
                                             <trace-row></trace-row>
                                        </div>     
                                     </sp-system-trace></div>`;
-    let traceRowConfig = document.querySelector('#config') as TraceRowConfig;
+  let traceRowConfig = document.querySelector('#config') as TraceRowConfig;
 
-    it('TraceRowConfig Test01', () => {
-        expect(traceRowConfig.init).toBeUndefined();
-    });
+  it('TraceRowConfig Test01', () => {
+    expect(traceRowConfig.init).toBeUndefined();
+  });
 });

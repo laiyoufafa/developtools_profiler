@@ -16,17 +16,17 @@
 import { BaseElement, element } from '../../base-ui/BaseElement.js';
 
 import {
-    queryDistributedTerm,
-    querySelectTraceStats,
-    querySystemCalls,
-    querySystemCallsTop,
-    queryTraceCpu,
-    queryTraceCpuTop,
-    queryTraceMemory,
-    queryTraceMemoryTop,
-    queryTraceMemoryUnAgg,
-    queryTraceMetaData,
-    queryTraceTaskName,
+  queryDistributedTerm,
+  querySelectTraceStats,
+  querySystemCalls,
+  querySystemCallsTop,
+  queryTraceCpu,
+  queryTraceCpuTop,
+  queryTraceMemory,
+  queryTraceMemoryTop,
+  queryTraceMemoryUnAgg,
+  queryTraceMetaData,
+  queryTraceTaskName,
 } from '../database/SqlLite.js';
 
 import '../../base-ui/table/lit-table.js';
@@ -42,176 +42,161 @@ import { initMetaDataStrategy } from './metrics/MetaDataStrategy.js';
 import { PluginConvertUtils } from './setting/utils/PluginConvertUtils.js';
 import { info } from '../../log/Log.js';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
 
 @element('sp-metrics')
 export class SpMetrics extends BaseElement {
-    private _metric?: string;
-    private _metricResult?: string;
-    private selectMetricEl: HTMLSelectElement | undefined;
-    private runButtonEl: HTMLButtonElement | undefined | null;
-    private responseJson: HTMLPreElement | undefined | null;
-    private metricOptionalSelects: Array<MetricQueryItem> | undefined;
-    private progressLoad: LitProgressBar | undefined;
+  private _metric?: string;
+  private _metricResult?: string;
+  private selectMetricEl: HTMLSelectElement | undefined;
+  private runButtonEl: HTMLButtonElement | undefined | null;
+  private responseJson: HTMLPreElement | undefined | null;
+  private metricOptionalSelects: Array<MetricQueryItem> | undefined;
+  private progressLoad: LitProgressBar | undefined;
 
-    static get observedAttributes() {
-        return ['metric', 'metricResult'];
+  static get observedAttributes() {
+    return ['metric', 'metricResult'];
+  }
+
+  get metric(): string {
+    return this.getAttribute('metric') || '';
+  }
+
+  set metric(value: string) {
+    this._metric = value;
+  }
+
+  get metricResult(): string {
+    return this.getAttribute('metricResult') || '';
+  }
+
+  set metricResult(value: string) {
+    this._metricResult = value;
+    this.setAttribute('metricResult', value);
+  }
+
+  reset() {
+    this.selectMetricEl!.selectedIndex = 0;
+    this.responseJson!.textContent = '';
+  }
+
+  initElements(): void {
+    this.progressLoad = this.shadowRoot?.querySelector('.load-metric') as LitProgressBar;
+    this.selectMetricEl = this.shadowRoot?.querySelector('.sql-select') as HTMLSelectElement;
+    this.runButtonEl = this.shadowRoot?.querySelector('.sql-select-button') as HTMLButtonElement;
+    this.responseJson = this.shadowRoot?.querySelector('.response-json') as HTMLPreElement;
+    if (this.selectMetricEl) {
+      this.selectMetricEl.addEventListener('selectionchange', () => {
+        if (this.selectMetricEl) this.selectMetricEl.textContent = '';
+      });
     }
+    this.initMetricDataHandle();
+    this.initMetricSelectOption();
+  }
 
-    get metric(): string {
-        return this.getAttribute('metric') || '';
+  async initMetric(queryItem: MetricQueryItem) {
+    this.initMetricData(queryItem).then((item) => {
+      this.progressLoad!.loading = false;
+    });
+  }
+
+  async initMetricData(queryItem: MetricQueryItem) {
+    let metricQuery = queryItem.metricQuery;
+    let queryList = await metricQuery();
+    info('current Metric Data size is: ', queryList!.length);
+    let metric = queryItem.metricResultHandle;
+    let resultData = metric(queryList);
+    let jsonText = PluginConvertUtils.BeanToCmdTxtWithObjName(resultData, true, queryItem.metricName, 4);
+    this.responseJson!.textContent = jsonText;
+  }
+
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    switch (name) {
+      case 'metric':
+        if (this.selectMetricEl) this.selectMetricEl.textContent = newValue;
+        break;
+      case 'metricResult':
+        if (this.selectMetricEl) this.selectMetricEl.textContent = newValue;
+        break;
     }
+  }
 
-    set metric(value: string) {
-        this._metric = value;
+  runClickListener = (event: any) => {
+    SpStatisticsHttpUtil.addOrdinaryVisitAction({
+      event: 'metrics',
+      action: 'metrics',
+    });
+    this.progressLoad!.loading = true;
+    let selectedIndex = this.selectMetricEl!.selectedIndex;
+    let value = this.selectMetricEl!.options[selectedIndex].value;
+    let resultQuery = this.metricOptionalSelects?.filter((item) => {
+      return item.metricName == value;
+    });
+    if (!resultQuery || resultQuery.length < 1) return;
+    this.initMetric(resultQuery[0]);
+  };
+
+  connectedCallback() {
+    // Run metric button to add listener
+    this.runButtonEl?.addEventListener('click', this.runClickListener);
+  }
+
+  disconnectedCallback() {
+    this.runButtonEl?.removeEventListener('click', this.runClickListener);
+  }
+
+  initMetricSelectOption() {
+    for (let index = 0; index < this.metricOptionalSelects!.length; index++) {
+      let htmlElement = document.createElement('option');
+      if (this.metricOptionalSelects) {
+        htmlElement.textContent = this.metricOptionalSelects[index].metricName;
+        this.selectMetricEl?.appendChild(htmlElement);
+      }
     }
+  }
 
-    get metricResult(): string {
-        return this.getAttribute('metricResult') || '';
-    }
+  initMetricDataHandle() {
+    this.metricOptionalSelects = [
+      {
+        metricName: 'trace_mem',
+        metricQuery: queryTraceMemory,
+        metricResultHandle: initMemoryStrategy,
+      },
+      {
+        metricName: 'trace_mem_top10',
+        metricQuery: queryTraceMemoryTop,
+        metricResultHandle: initMemoryStrategy,
+      },
+      {
+        metricName: 'trace_mem_unagg',
+        metricQuery: queryTraceMemoryUnAgg,
+        metricResultHandle: initMemoryAggStrategy,
+      },
+      {
+        metricName: 'trace_task_names',
+        metricQuery: queryTraceTaskName,
+        metricResultHandle: initTraceTaskStrategy,
+      },
+      {
+        metricName: 'trace_stats',
+        metricQuery: querySelectTraceStats,
+        metricResultHandle: initTraceStateStrategy,
+      },
+      {
+        metricName: 'trace_metadata',
+        metricQuery: queryTraceMetaData,
+        metricResultHandle: initMetaDataStrategy,
+      },
+      {
+        metricName: 'sys_calls',
+        metricQuery: querySystemCalls,
+        metricResultHandle: initSysCallsStrategy,
+      },
+    ];
+  }
 
-    set metricResult(value: string) {
-        this._metricResult = value;
-        this.setAttribute('metricResult', value);
-    }
-
-    reset() {
-        this.selectMetricEl!.selectedIndex = 0;
-        this.responseJson!.textContent = '';
-    }
-
-    initElements(): void {
-        this.progressLoad = this.shadowRoot?.querySelector(
-            '.load-metric'
-        ) as LitProgressBar;
-        this.selectMetricEl = this.shadowRoot?.querySelector(
-            '.sql-select'
-        ) as HTMLSelectElement;
-        this.runButtonEl = this.shadowRoot?.querySelector(
-            '.sql-select-button'
-        ) as HTMLButtonElement;
-        this.responseJson = this.shadowRoot?.querySelector(
-            '.response-json'
-        ) as HTMLPreElement;
-        if (this.selectMetricEl) {
-            this.selectMetricEl.addEventListener('selectionchange', () => {
-                if (this.selectMetricEl) this.selectMetricEl.textContent = '';
-            });
-        }
-        this.initMetricDataHandle();
-        this.initMetricSelectOption();
-    }
-
-    async initMetric(queryItem: MetricQueryItem) {
-        this.initMetricData(queryItem).then((item) => {
-            this.progressLoad!.loading = false;
-        });
-    }
-
-    async initMetricData(queryItem: MetricQueryItem) {
-        let metricQuery = queryItem.metricQuery;
-        let queryList = await metricQuery();
-        info('current Metric Data size is: ', queryList!.length);
-        let metric = queryItem.metricResultHandle;
-        let resultData = metric(queryList);
-        let jsonText = PluginConvertUtils.BeanToCmdTxtWithObjName(
-            resultData,
-            true,
-            queryItem.metricName,
-            4
-        );
-        this.responseJson!.textContent = jsonText;
-    }
-
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        switch (name) {
-            case 'metric':
-                if (this.selectMetricEl)
-                    this.selectMetricEl.textContent = newValue;
-                break;
-            case 'metricResult':
-                if (this.selectMetricEl)
-                    this.selectMetricEl.textContent = newValue;
-                break;
-        }
-    }
-
-    runClickListener = (event: any) => {
-        this.progressLoad!.loading = true;
-        let selectedIndex = this.selectMetricEl!.selectedIndex;
-        let value = this.selectMetricEl!.options[selectedIndex].value;
-        let resultQuery = this.metricOptionalSelects?.filter((item) => {
-            return item.metricName == value;
-        });
-        if (!resultQuery || resultQuery.length < 1) return;
-        this.initMetric(resultQuery[0]);
-    };
-
-    connectedCallback() {
-        // Run metric button to add listener
-        this.runButtonEl?.addEventListener('click', this.runClickListener);
-    }
-
-    disconnectedCallback() {
-        this.runButtonEl?.removeEventListener('click', this.runClickListener);
-    }
-
-    initMetricSelectOption() {
-        for (
-            let index = 0;
-            index < this.metricOptionalSelects!.length;
-            index++
-        ) {
-            let htmlElement = document.createElement('option');
-            if (this.metricOptionalSelects) {
-                htmlElement.textContent =
-                    this.metricOptionalSelects[index].metricName;
-                this.selectMetricEl?.appendChild(htmlElement);
-            }
-        }
-    }
-
-    initMetricDataHandle() {
-        this.metricOptionalSelects = [
-            {
-                metricName: 'trace_mem',
-                metricQuery: queryTraceMemory,
-                metricResultHandle: initMemoryStrategy,
-            },
-            {
-                metricName: 'trace_mem_top10',
-                metricQuery: queryTraceMemoryTop,
-                metricResultHandle: initMemoryStrategy,
-            },
-            {
-                metricName: 'trace_mem_unagg',
-                metricQuery: queryTraceMemoryUnAgg,
-                metricResultHandle: initMemoryAggStrategy,
-            },
-            {
-                metricName: 'trace_task_names',
-                metricQuery: queryTraceTaskName,
-                metricResultHandle: initTraceTaskStrategy,
-            },
-            {
-                metricName: 'trace_stats',
-                metricQuery: querySelectTraceStats,
-                metricResultHandle: initTraceStateStrategy,
-            },
-            {
-                metricName: 'trace_metadata',
-                metricQuery: queryTraceMetaData,
-                metricResultHandle: initMetaDataStrategy,
-            },
-            {
-                metricName: 'sys_calls',
-                metricQuery: querySystemCalls,
-                metricResultHandle: initSysCallsStrategy,
-            },
-        ];
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
 
         :host{
@@ -352,16 +337,16 @@ export class SpMetrics extends BaseElement {
             </div>
         </div>
         `;
-    }
+  }
 }
 
 export interface MetricQueryItem {
-    metricName: string;
-    metricQuery: Function;
-    metricResultHandle: Function;
+  metricName: string;
+  metricQuery: Function;
+  metricResultHandle: Function;
 }
 
 export class SpMetricsItem {
-    itemTip: string | undefined;
-    itemValue: any[] | undefined;
+  itemTip: string | undefined;
+  itemValue: any[] | undefined;
 }

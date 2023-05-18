@@ -15,151 +15,142 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement.js';
 import LitSwitch from '../../../base-ui/switch/lit-switch.js';
-import {
-    ProfilerPluginConfig,
-    TracePluginConfig,
-} from './bean/ProfilerServiceTypes.js';
+import { ProfilerPluginConfig, TracePluginConfig } from './bean/ProfilerServiceTypes.js';
 import { SpRecordTrace } from '../SpRecordTrace.js';
 
 @element('sp-record-template')
 export class SpRecordTemplate extends BaseElement {
-    static SCHEDULING_ANALYSIS_EVENT = [
-        'sched/sched_wakeup',
-        'sched/sched_switch',
-        'sched/sched_wakeup_new',
-        'sched/sched_waking',
-        'sched/sched_process_exit',
-        'sched/sched_process_free',
-        'task/task_newtask',
-        'task/task_rename',
-        'power/cpu_frequency',
-        'power/cpu_idle',
-        'irq/irq_handler_entry',
-        'irq/irq_handler_exit',
-        'irq/softirq_entry',
-        'irq/softirq_exit',
-        'irq/softirq_raise',
-    ];
-    static FRAME_TIMELINE_EVENTS = [
-        'sched/sched_switch',
-        'sched/sched_wakeup',
-        'sched/sched_wakeup_new',
-        'sched/sched_waking',
-        'sched/sched_process_exit',
-        'sched/sched_process_free',
-        'sched/sched_process_free',
-        'task/task_rename',
-        'power/cpu_frequency',
-        'power/cpu_idle',
-        'power/suspend_resume',
-    ];
-    static FRAME_TIMELINE_CATEGORIES_EVENT = [
-        'ability',
-        'ace',
-        'app',
-        'ark',
-        'binder',
-        'disk',
-        'freq',
-        'graphic',
-        'idle',
-        'irq',
-        'memreclaim',
-        'mmc',
-        'multimodalinput',
-        'ohos',
-        'pagecache',
-        'rpc',
-        'sched',
-        'sync',
-        'window',
-        'workq',
-        'zaudio',
-        'zcamera',
-        'zimage',
-        'zmedia',
-    ];
-    private frameTimeline: LitSwitch | undefined | null;
-    private schedulingAnalysis: LitSwitch | undefined | null;
+  static SCHEDULING_ANALYSIS_EVENT = [
+    'sched/sched_wakeup',
+    'sched/sched_switch',
+    'sched/sched_wakeup_new',
+    'sched/sched_waking',
+    'sched/sched_process_exit',
+    'sched/sched_process_free',
+    'task/task_newtask',
+    'task/task_rename',
+    'power/cpu_frequency',
+    'power/cpu_idle',
+    'irq/irq_handler_entry',
+    'irq/irq_handler_exit',
+    'irq/softirq_entry',
+    'irq/softirq_exit',
+    'irq/softirq_raise',
+  ];
+  static FRAME_TIMELINE_EVENTS = [
+    'sched/sched_switch',
+    'sched/sched_wakeup',
+    'sched/sched_wakeup_new',
+    'sched/sched_waking',
+    'sched/sched_process_exit',
+    'sched/sched_process_free',
+    'sched/sched_process_free',
+    'task/task_rename',
+    'power/cpu_frequency',
+    'power/cpu_idle',
+    'power/suspend_resume',
+  ];
+  static FRAME_TIMELINE_CATEGORIES_EVENT = [
+    'ability',
+    'ace',
+    'app',
+    'ark',
+    'binder',
+    'disk',
+    'freq',
+    'graphic',
+    'idle',
+    'irq',
+    'memreclaim',
+    'mmc',
+    'multimodalinput',
+    'ohos',
+    'pagecache',
+    'rpc',
+    'sched',
+    'sync',
+    'window',
+    'workq',
+    'zaudio',
+    'zcamera',
+    'zimage',
+    'zmedia',
+  ];
+  private frameTimeline: LitSwitch | undefined | null;
+  private schedulingAnalysis: LitSwitch | undefined | null;
 
-    initElements(): void {
-        this.frameTimeline =
-            this.shadowRoot?.querySelector<LitSwitch>('#frame_timeline');
-        this.schedulingAnalysis = this.shadowRoot?.querySelector<LitSwitch>(
-            '#scheduling_analysis'
-        );
-        this.frameTimeline!.addEventListener('change', (event: any) => {
-            let detail = event.detail;
-            if (detail.checked) {
-                this.dispatchEvent(new CustomEvent('addProbe', {}));
-            }
-        });
-        this.schedulingAnalysis!.addEventListener('change', (event: any) => {
-            let detail = event.detail;
-            if (detail.checked) {
-                this.dispatchEvent(new CustomEvent('addProbe', {}));
-            }
-        });
+  initElements(): void {
+    this.frameTimeline = this.shadowRoot?.querySelector<LitSwitch>('#frame_timeline');
+    this.schedulingAnalysis = this.shadowRoot?.querySelector<LitSwitch>('#scheduling_analysis');
+    this.frameTimeline!.addEventListener('change', (event: any) => {
+      let detail = event.detail;
+      if (detail.checked) {
+        this.dispatchEvent(new CustomEvent('addProbe', {}));
+      }
+    });
+    this.schedulingAnalysis!.addEventListener('change', (event: any) => {
+      let detail = event.detail;
+      if (detail.checked) {
+        this.dispatchEvent(new CustomEvent('addProbe', {}));
+      }
+    });
+  }
+
+  getTemplateConfig(): Array<ProfilerPluginConfig<any>> {
+    let config: Array<any> = [];
+    let traceEventSet = new Array<string>();
+    let hitraceCategories = new Array<string>();
+    let useFtracePlugin: boolean = false;
+    if (this.frameTimeline?.checked) {
+      useFtracePlugin = true;
+      SpRecordTemplate.FRAME_TIMELINE_CATEGORIES_EVENT.forEach((categories) => {
+        if (hitraceCategories.indexOf(categories) == -1) {
+          hitraceCategories.push(categories);
+        }
+      });
+      SpRecordTemplate.FRAME_TIMELINE_EVENTS.forEach((ev) => {
+        if (traceEventSet.indexOf(ev) == -1) {
+          traceEventSet.push(ev);
+        }
+      });
     }
-
-    getTemplateConfig(): Array<ProfilerPluginConfig<any>> {
-        let config: Array<any> = [];
-        let traceEventSet = new Array<string>();
-        let hitraceCategories = new Array<string>();
-        let useFtracePlugin: boolean = false;
-        if (this.frameTimeline?.checked) {
-            useFtracePlugin = true;
-            SpRecordTemplate.FRAME_TIMELINE_CATEGORIES_EVENT.forEach(
-                (categories) => {
-                    if (hitraceCategories.indexOf(categories) == -1) {
-                        hitraceCategories.push(categories);
-                    }
-                }
-            );
-            SpRecordTemplate.FRAME_TIMELINE_EVENTS.forEach((ev) => {
-                if (traceEventSet.indexOf(ev) == -1) {
-                    traceEventSet.push(ev);
-                }
-            });
+    if (this.schedulingAnalysis?.checked) {
+      useFtracePlugin = true;
+      SpRecordTemplate.SCHEDULING_ANALYSIS_EVENT.forEach((event) => {
+        if (traceEventSet.indexOf(event) < 0) {
+          traceEventSet.push(event);
         }
-        if (this.schedulingAnalysis?.checked) {
-            useFtracePlugin = true;
-            SpRecordTemplate.SCHEDULING_ANALYSIS_EVENT.forEach((event) => {
-                if (traceEventSet.indexOf(event) < 0) {
-                    traceEventSet.push(event);
-                }
-            });
-        }
-        if (useFtracePlugin) {
-            let tracePluginConfig: TracePluginConfig = {
-                ftraceEvents: traceEventSet,
-                hitraceCategories: hitraceCategories,
-                hitraceApps: [],
-                bufferSizeKb: 2048,
-                flushIntervalMs: 1000,
-                flushThresholdKb: 4096,
-                parseKsyms: true,
-                clock: 'boot',
-                tracePeriodMs: 200,
-                rawDataPrefix: '',
-                traceDurationMs: 0,
-                debugOn: false,
-                hitraceTime: this.args.recordSetting!.maxDur,
-            };
-            let htraceProfilerPluginConfig: ProfilerPluginConfig<TracePluginConfig> =
-                {
-                    pluginName: 'ftrace-plugin',
-                    sampleInterval: 1000,
-                    configData: tracePluginConfig,
-                };
-            SpRecordTrace.appendSerialize(htraceProfilerPluginConfig);
-            config.push(htraceProfilerPluginConfig);
-        }
-        return config;
+      });
     }
+    if (useFtracePlugin) {
+      let tracePluginConfig: TracePluginConfig = {
+        ftraceEvents: traceEventSet,
+        hitraceCategories: hitraceCategories,
+        hitraceApps: [],
+        bufferSizeKb: 2048,
+        flushIntervalMs: 1000,
+        flushThresholdKb: 4096,
+        parseKsyms: true,
+        clock: 'boot',
+        tracePeriodMs: 200,
+        rawDataPrefix: '',
+        traceDurationMs: 0,
+        debugOn: false,
+        hitraceTime: this.args.recordSetting!.maxDur,
+      };
+      let htraceProfilerPluginConfig: ProfilerPluginConfig<TracePluginConfig> = {
+        pluginName: 'ftrace-plugin',
+        sampleInterval: 1000,
+        configData: tracePluginConfig,
+      };
+      SpRecordTrace.appendSerialize(htraceProfilerPluginConfig);
+      config.push(htraceProfilerPluginConfig);
+    }
+    return config;
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
          :host{
             display: inline-block;
@@ -214,5 +205,5 @@ export class SpRecordTemplate extends BaseElement {
             </div>
         </div>
         `;
-    }
+  }
 }

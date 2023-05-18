@@ -16,17 +16,17 @@
 import { initMemoryStrategy } from '../../../../dist/trace/component/metrics/MemStrategy.js';
 
 describe('MemStrategy Test', () => {
-    const metricData = [
-        {
-            length: 1,
-            minNum: 'name',
-            maxNum: '',
-            avgNum: '',
-            processName: '',
-        },
-    ];
+  const metricData = [
+    {
+      length: 1,
+      minNum: 'name',
+      maxNum: '',
+      avgNum: '',
+      processName: '',
+    },
+  ];
 
-    it('initMemoryStrategyTest01', () => {
-        expect(initMemoryStrategy(metricData)).toBeTruthy();
-    });
+  it('initMemoryStrategyTest01', () => {
+    expect(initMemoryStrategy(metricData)).toBeTruthy();
+  });
 });

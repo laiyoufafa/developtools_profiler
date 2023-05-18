@@ -30,7 +30,7 @@ HttpSocket::~HttpSocket()
 {
     Close();
 }
-bool HttpSocket::CreateSocket(int domain)
+bool HttpSocket::CreateSocket(int32_t domain)
 {
     SOCKET sockId = socket(domain, SOCK_STREAM, 0);
     if (sockId == INVALID_SOCKET) {
@@ -39,7 +39,7 @@ bool HttpSocket::CreateSocket(int domain)
     }
     sockId_ = sockId;
     if (domain == AF_INET || domain == AF_INET6) {
-        int enable = 1;
+        int32_t enable = 1;
         if (setsockopt(sockId, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&enable),
             sizeof(enable)) == SOCKET_ERROR) {
             Close();
@@ -58,7 +58,7 @@ bool HttpSocket::CreateSocket(int domain)
     return true;
 }
 
-bool HttpSocket::Bind(int port)
+bool HttpSocket::Bind(int32_t port)
 {
     if (sockId_ == INVALID_SOCKET) {
         TS_LOGE("the socket not created");
@@ -92,7 +92,7 @@ bool HttpSocket::Bind(int port)
     return true;
 }
 
-bool HttpSocket::Listen(int maxConn)
+bool HttpSocket::Listen(int32_t maxConn)
 {
     if (listen(sockId_, maxConn) == SOCKET_ERROR) {
         TS_LOGE("listen socket error: %d:%s", errno, strerror(errno));
@@ -104,7 +104,7 @@ bool HttpSocket::Listen(int maxConn)
 
 bool HttpSocket::Accept(HttpSocket& client)
 {
-    int clientId = accept(sockId_, nullptr, nullptr);
+    int32_t clientId = accept(sockId_, nullptr, nullptr);
     if (clientId == INVALID_SOCKET) {
         TS_LOGE("accept socket error: %d:%s", errno, strerror(errno));
         return false;

@@ -15,78 +15,76 @@
 
 import { info } from '../../../log/Log.js';
 
-export const initMemoryAggStrategy = (
-    metricData: Array<any>
-): ProcessValuesListItem => {
-    info('Memory Agg Strategy data length is:', metricData.length);
-    let processValuesListItems: Array<ProcessValuesItem> = [];
-    const splitChar: string = ',';
-    for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
-        let processNames = metricData[sqlIndex].processName;
-        let processInfoSource: ProcessValuesItem = {
-            processName: processNames,
-        };
-        if (metricData[sqlIndex].name == null) {
-            let values = metricData[sqlIndex].value.split(splitChar);
-            let times = metricData[sqlIndex].ts.split(splitChar);
-            let oomScoreValue = 0;
-            for (let index = 0; index < values.length; index++) {
-                if (!processInfoSource) continue;
-                processValuesListItems?.push(processInfoSource);
-            }
-        } else {
-            let names = metricData[sqlIndex].name.split(splitChar);
-            let values = metricData[sqlIndex].value.split(splitChar);
-            let times = metricData[sqlIndex].ts.split(splitChar);
-            let oomScoreValue = 0;
-            for (let indexScore = 0; indexScore < names.length; indexScore++) {
-                if ('oom_score_adj' === names[indexScore]) {
-                    oomScoreValue = values[indexScore];
-                    break;
-                }
-            }
-            for (let index = 0; index < names.length; index++) {
-                let typeItem: TypeItem = {
-                    ts: times[index],
-                    oom_score: oomScoreValue,
-                    value: values[index],
-                };
-                if (!processInfoSource) continue;
-                if ('mem.rss.anon' === names[index]) {
-                    processInfoSource.anonRss = typeItem;
-                }
-                if ('mem.swap' === names[index]) {
-                    processInfoSource.swap = typeItem;
-                }
-                if ('mem.rss.file' === names[index]) {
-                    processInfoSource.fileRss = typeItem;
-                }
-                if ('oom_score_adj' === names[index]) {
-                    processInfoSource.anonAndSwap = typeItem;
-                }
-            }
-        }
-        processValuesListItems?.push(processInfoSource);
-    }
-    return {
-        processValues: processValuesListItems,
+export const initMemoryAggStrategy = (metricData: Array<any>): ProcessValuesListItem => {
+  info('Memory Agg Strategy data length is:', metricData.length);
+  let processValuesListItems: Array<ProcessValuesItem> = [];
+  const splitChar: string = ',';
+  for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
+    let processNames = metricData[sqlIndex].processName;
+    let processInfoSource: ProcessValuesItem = {
+      processName: processNames,
     };
+    if (metricData[sqlIndex].name == null) {
+      let values = metricData[sqlIndex].value.split(splitChar);
+      let times = metricData[sqlIndex].ts.split(splitChar);
+      let oomScoreValue = 0;
+      for (let index = 0; index < values.length; index++) {
+        if (!processInfoSource) continue;
+        processValuesListItems?.push(processInfoSource);
+      }
+    } else {
+      let names = metricData[sqlIndex].name.split(splitChar);
+      let values = metricData[sqlIndex].value.split(splitChar);
+      let times = metricData[sqlIndex].ts.split(splitChar);
+      let oomScoreValue = 0;
+      for (let indexScore = 0; indexScore < names.length; indexScore++) {
+        if ('oom_score_adj' === names[indexScore]) {
+          oomScoreValue = values[indexScore];
+          break;
+        }
+      }
+      for (let index = 0; index < names.length; index++) {
+        let typeItem: TypeItem = {
+          ts: times[index],
+          oom_score: oomScoreValue,
+          value: values[index],
+        };
+        if (!processInfoSource) continue;
+        if ('mem.rss.anon' === names[index]) {
+          processInfoSource.anonRss = typeItem;
+        }
+        if ('mem.swap' === names[index]) {
+          processInfoSource.swap = typeItem;
+        }
+        if ('mem.rss.file' === names[index]) {
+          processInfoSource.fileRss = typeItem;
+        }
+        if ('oom_score_adj' === names[index]) {
+          processInfoSource.anonAndSwap = typeItem;
+        }
+      }
+    }
+    processValuesListItems?.push(processInfoSource);
+  }
+  return {
+    processValues: processValuesListItems,
+  };
 };
 
 export interface ProcessValuesListItem {
-    processValues: Array<ProcessValuesItem>;
+  processValues: Array<ProcessValuesItem>;
 }
 
 export interface ProcessValuesItem {
-    processName: string;
-    anonRss?: TypeItem;
-    swap?: TypeItem;
-    fileRss?: TypeItem;
-    anonAndSwap?: TypeItem;
+  processName: string;
+  anonRss?: TypeItem;
+  swap?: TypeItem;
+  fileRss?: TypeItem;
+  anonAndSwap?: TypeItem;
 }
 
 export interface TypeItem {
-    ts: number;
-    oom_score: number;
-    value: number;
+  ts: number;
+  oom_score: number;
+  value: number;
 }

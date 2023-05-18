@@ -329,39 +329,39 @@ GPUSlice* TraceDataCacheWriter::GetGPUSliceData()
 
 JsHeapFiles* TraceDataCacheWriter::GetJsHeapFilesData()
 {
-    return &JsHeapFilesData_;
+    return &jsHeapFilesData_;
 }
 JsHeapEdges* TraceDataCacheWriter::GetJsHeapEdgesData()
 {
-    return &JsHeapEdgesData_;
+    return &jsHeapEdgesData_;
 }
 JsHeapInfo* TraceDataCacheWriter::GetJsHeapInfoData()
 {
-    return &JsHeapInfoData_;
+    return &jsHeapInfoData_;
 }
 JsHeapLocation* TraceDataCacheWriter::GetJsHeapLocationData()
 {
-    return &JsHeapLocationData_;
+    return &jsHeapLocationData_;
 }
 JsHeapNodes* TraceDataCacheWriter::GetJsHeapNodesData()
 {
-    return &JsHeapNodesData_;
+    return &jsHeapNodesData_;
 }
 JsHeapSample* TraceDataCacheWriter::GetJsHeapSampleData()
 {
-    return &JsHeapSampleData_;
+    return &jsHeapSampleData_;
 }
 JsHeapString* TraceDataCacheWriter::GetJsHeapStringData()
 {
-    return &JsHeapStringData_;
+    return &jsHeapStringData_;
 }
 JsHeapTraceFuncInfo* TraceDataCacheWriter::GetJsHeapTraceFuncInfoData()
 {
-    return &JsHeapTraceFuncInfoData_;
+    return &jsHeapTraceFuncInfoData_;
 }
 JsHeapTraceNode* TraceDataCacheWriter::GetJsHeapTraceNodeData()
 {
-    return &JsHeapTraceNodeData_;
+    return &jsHeapTraceNodeData_;
 }
 void TraceDataCacheWriter::Clear()
 {
@@ -411,6 +411,16 @@ void TraceDataCacheWriter::Clear()
     fileSamplingTableData_.Clear();
     ebpfCallStackData_.Clear();
     PagedMemorySampleData_.Clear();
+    jsHeapFilesData_.Clear();
+    jsHeapEdgesData_.Clear();
+    jsHeapInfoData_.Clear();
+    jsHeapLocationData_.Clear();
+    jsHeapNodesData_.Clear();
+    jsHeapSampleData_.Clear();
+    jsHeapStringData_.Clear();
+    jsHeapTraceFuncInfoData_.Clear();
+    jsHeapTraceNodeData_.Clear();
+
 #if WITH_EBPF_HELP
     ebpfProcessMaps_.Clear();
     ebpfElf_.Clear();

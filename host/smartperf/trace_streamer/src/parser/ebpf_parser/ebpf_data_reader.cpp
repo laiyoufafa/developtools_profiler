@@ -148,6 +148,16 @@ bool EbpfDataReader::ReadItemEventMaps(const uint8_t* buffer, uint32_t size)
 #endif
     return true;
 }
+template <class T>
+void EbpfDataReader::AddSymbolsToTable(T* firstSymbolAddr, const int size, const ElfEventFixedHeader* elfAddr)
+{
+    for (auto i = 0; i < size; i++) {
+        auto symAddr = firstSymbolAddr + i;
+        if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
+            elfAddrAndStValueToSymAddr_.Insert(elfAddr, symAddr->st_value, reinterpret_cast<const uint8_t*>(symAddr));
+        }
+    }
+}
 void EbpfDataReader::UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size)
 {
     if (size < sizeof(ElfEventFixedHeader) + elfAddr->strTabLen + elfAddr->symTabLen + elfAddr->fileNameLen) {
@@ -157,23 +167,9 @@ void EbpfDataReader::UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHead
     auto symEntLen = elfAddr->symEntLen;
     auto symTabHeadAddr = reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen;
     if (symEntLen == ELF32_SYM) {
-        auto firstSymbolAddr = reinterpret_cast<const Elf32_Sym*>(symTabHeadAddr);
-        for (auto i = 0; i < elfAddr->symTabLen / symEntLen; i++) {
-            auto symAddr = firstSymbolAddr + i;
-            if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-                elfAddrAndStValueToSymAddr_.Insert(elfAddr, symAddr->st_value,
-                                                   reinterpret_cast<const uint8_t*>(symAddr));
-            }
-        }
+        AddSymbolsToTable(reinterpret_cast<const Elf32_Sym*>(symTabHeadAddr), elfAddr->symTabLen / symEntLen, elfAddr);
     } else {
-        auto firstSymbolAddr = reinterpret_cast<const Elf64_Sym*>(symTabHeadAddr);
-        for (auto i = 0; i < elfAddr->symTabLen / symEntLen; i++) {
-            auto symAddr = firstSymbolAddr + i;
-            if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-                elfAddrAndStValueToSymAddr_.Insert(elfAddr, symAddr->st_value,
-                                                   reinterpret_cast<const uint8_t*>(symAddr));
-            }
-        }
+        AddSymbolsToTable(reinterpret_cast<const Elf64_Sym*>(symTabHeadAddr), elfAddr->symTabLen / symEntLen, elfAddr);
     }
 }
 void EbpfDataReader::ReadKernelSymAddrMap(const KernelSymbolInfoHeader* elfAddr, uint32_t size)
@@ -224,6 +220,17 @@ void EbpfDataReader::UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* e
 }
 
 #if WITH_EBPF_HELP
+template <class T>
+void EbpfDataReader::AppendSymbolsToTable(T* firstSymbolAddr, const int size)
+{
+    for (auto i = 0; i < size; i++) {
+        auto symAddr = firstSymbolAddr + i;
+        if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
+            traceDataCache_->GetEbpfElfSymbol()->AppendNewData(elfId_, symAddr->st_name, symAddr->st_value,
+                                                               symAddr->st_size);
+        }
+    }
+}
 void EbpfDataReader::UpdateEbpfElfSymbolTable(const ElfEventFixedHeader* elfAddr, uint32_t size)
 {
     if (size < sizeof(ElfEventFixedHeader) + elfAddr->strTabLen + elfAddr->symTabLen + elfAddr->fileNameLen) {
@@ -232,25 +239,13 @@ void EbpfDataReader::UpdateEbpfElfSymbolTable(const ElfEventFixedHeader* elfAddr
     }
     auto symEntLen = elfAddr->symEntLen;
     if (symEntLen == ELF32_SYM) {
-        auto firstSymbolAddr =
-            reinterpret_cast<const Elf32_Sym*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen);
-        for (auto i = 0; i < elfAddr->symTabLen / symEntLen; i++) {
-            auto symAddr = firstSymbolAddr + i;
-            if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-                traceDataCache_->GetEbpfElfSymbol()->AppendNewData(elfId_, symAddr->st_name, symAddr->st_value,
-                                                                   symAddr->st_size);
-            }
-        }
+        AppendSymbolsToTable(
+            reinterpret_cast<const Elf32_Sym*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen),
+            elfAddr->symTabLen / symEntLen);
     } else {
-        auto firstSymbolAddr =
-            reinterpret_cast<const Elf64_Sym*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen);
-        for (auto i = 0; i < elfAddr->symTabLen / symEntLen; i++) {
-            auto symAddr = firstSymbolAddr + i;
-            if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-                traceDataCache_->GetEbpfElfSymbol()->AppendNewData(elfId_, symAddr->st_name, symAddr->st_value,
-                                                                   symAddr->st_size);
-            }
-        }
+        AppendSymbolsToTable(
+            reinterpret_cast<const Elf64_Sym*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen),
+            elfAddr->symTabLen / symEntLen);
     }
 }
 #endif
@@ -349,6 +344,7 @@ SymbolAndFilePathIndex EbpfDataReader::GetSymbolNameIndexFromElfSym(uint64_t ip)
     auto length = std::distance(kernelSymbolMap_.begin(), end);
     if (length > 0) {
         end--;
+        // Follow the rules of front closing and rear opening, [start, end)
         if (ip < end->first + end->second.size) {
             symbolAndFilePathIndex.flag = true;
             symbolAndFilePathIndex.symbolIndex = end->second.name;

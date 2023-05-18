@@ -18,24 +18,22 @@ import { LitCheckBox } from './LitCheckBox.js';
 
 @element('lit-check-group')
 export class LitCheckGroup extends BaseElement {
-    get direction() {
-        return this.getAttribute('direction');
+  get direction() {
+    return this.getAttribute('direction');
+  }
+
+  get value(): Array<string> {
+    let values = [];
+    for (const litCheckBoxElement of this.querySelectorAll<LitCheckBox>('lit-check-box[checked]')) {
+      values.push(litCheckBoxElement.value);
     }
+    return values;
+  }
 
-    get value(): Array<string> {
-        let values = [];
-        for (const litCheckBoxElement of this.querySelectorAll<LitCheckBox>(
-            'lit-check-box[checked]'
-        )) {
-            values.push(litCheckBoxElement.value);
-        }
-        return values;
-    }
+  initElements(): void {}
 
-    initElements(): void {}
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>   
         :host {
             display: -webkit-flex; 
@@ -58,5 +56,5 @@ export class LitCheckGroup extends BaseElement {
         
         </style>
         <slot class="check-group"></slot>`;
-    }
+  }
 }

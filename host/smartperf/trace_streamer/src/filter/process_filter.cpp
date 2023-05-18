@@ -124,11 +124,15 @@ uint32_t ProcessFilter::UpdateOrCreateThreadWithNameIndex(uint64_t timeStamp, ui
     if (internalTid != INVALID_ID) {
         if (threadNameIndex) {
             thread = traceDataCache_->GetThreadData(internalTid);
-            thread->nameIndex_ = threadNameIndex;
+            if (threadNameIndex != thread->nameIndex_) {
+                thread->nameIndex_ = threadNameIndex;
+            }
         }
     } else {
         std::tie(internalTid, thread) = NewThread(tid);
-        thread->nameIndex_ = threadNameIndex;
+        if (threadNameIndex != thread->nameIndex_) {
+            thread->nameIndex_ = threadNameIndex;
+        }
         if (timeStamp < thread->startT_) {
             thread->startT_ = timeStamp;
         }

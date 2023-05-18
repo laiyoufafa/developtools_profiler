@@ -83,7 +83,7 @@ private:
     std::unordered_map<uint64_t, FilterId> transNeedReply_ = {};
     std::unordered_map<uint64_t, FilterId> transReplyFilter_ = {};
     std::unordered_map<uint64_t, ArgsSet> asyncBinderEvents_ = {};
-    std::unordered_map<int, std::string> binderFlagDescs_ = {};
+    std::unordered_map<int32_t, std::string> binderFlagDescs_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

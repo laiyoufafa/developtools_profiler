@@ -15,36 +15,34 @@
 
 import { info } from '../../../log/Log.js';
 
-export const initTraceStateStrategy = (
-    metricData: Array<any>
-): StatListItem => {
-    info('Trace State Strategy data length is:', metricData.length);
-    let statListItems: Array<StatItem> = [];
-    for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
-        let names = metricData[sqlIndex].event_name;
-        let counts = metricData[sqlIndex].count;
-        let sources = metricData[sqlIndex].source;
-        let severities = metricData[sqlIndex].serverity;
-        let statListItem: StatItem = {
-            name: names,
-            count: counts,
-            source: sources,
-            severity: severities,
-        };
-        statListItems?.push(statListItem);
-    }
-    return {
-        stat: statListItems,
+export const initTraceStateStrategy = (metricData: Array<any>): StatListItem => {
+  info('Trace State Strategy data length is:', metricData.length);
+  let statListItems: Array<StatItem> = [];
+  for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
+    let names = metricData[sqlIndex].event_name;
+    let counts = metricData[sqlIndex].count;
+    let sources = metricData[sqlIndex].source;
+    let severities = metricData[sqlIndex].serverity;
+    let statListItem: StatItem = {
+      name: names,
+      count: counts,
+      source: sources,
+      severity: severities,
     };
+    statListItems?.push(statListItem);
+  }
+  return {
+    stat: statListItems,
+  };
 };
 
 export interface StatListItem {
-    stat: Array<StatItem>;
+  stat: Array<StatItem>;
 }
 
 export interface StatItem {
-    name: string;
-    count: string;
-    source: string;
-    severity: string;
+  name: string;
+  count: string;
+  source: string;
+  severity: string;
 }

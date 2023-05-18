@@ -54,7 +54,7 @@ void HttpServer::RegisterRpcFunction(RpcServer* rpc)
 }
 
 #ifdef _WIN32
-void HttpServer::Run(int port)
+void HttpServer::Run(int32_t port)
 {
     WSADATA ws{};
     if (WSAStartup(MAKEWORD(WS_VERSION_FIRST, WS_VERSION_SEC), &ws) != 0) {
@@ -64,7 +64,7 @@ void HttpServer::Run(int port)
         return;
     }
     WSAEVENT events[COUNT_SOCKET];
-    for (int i = 0; i < COUNT_SOCKET; i++) {
+    for (int32_t i = 0; i < COUNT_SOCKET; i++) {
         if ((events[i] = WSACreateEvent()) == WSA_INVALID_EVENT) {
             TS_LOGE("WSACreateEvent error %d", WSAGetLastError());
             return;
@@ -75,7 +75,7 @@ void HttpServer::Run(int port)
     while (!isExit_) {
         ClearDeadClientThread();
 
-        int index = WSAWaitForMultipleEvents(COUNT_SOCKET, events, false, pollTimeOut_, false);
+        int32_t index = WSAWaitForMultipleEvents(COUNT_SOCKET, events, false, pollTimeOut_, false);
         if (index == WSA_WAIT_FAILED) {
             TS_LOGE("WSAWaitForMultipleEvents error %d", WSAGetLastError());
             break;
@@ -113,7 +113,7 @@ void HttpServer::Run(int port)
     WSACleanup();
 }
 #else
-void HttpServer::Run(int port)
+void HttpServer::Run(int32_t port)
 {
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
         return;
@@ -124,7 +124,7 @@ void HttpServer::Run(int port)
     }
     TS_LOGI("http server running");
     struct pollfd fds[COUNT_SOCKET];
-    for (int i = 0; i < COUNT_SOCKET; i++) {
+    for (int32_t i = 0; i < COUNT_SOCKET; i++) {
         fds[i] = {sockets_[i].GetFd(), POLLIN, 0};
     }
     while (!isExit_) {
@@ -133,7 +133,7 @@ void HttpServer::Run(int port)
             continue; // try again
         }
 
-        for (int i = 0; i < 1; i++) {
+        for (int32_t i = 0; i < 1; i++) {
             if (fds[i].revents != POLLIN) {
                 continue;
             }
@@ -155,7 +155,7 @@ void HttpServer::Run(int port)
     }
     clientThreads_.clear();
 
-    for (int i = 0; i < COUNT_SOCKET; i++) {
+    for (int32_t i = 0; i < COUNT_SOCKET; i++) {
         sockets_[i].Close();
     }
     TS_LOGI("http server exit");
@@ -165,14 +165,14 @@ void HttpServer::Run(int port)
 void HttpServer::Exit()
 {
     isExit_ = true;
-    for (int i = 0; i < COUNT_SOCKET; i++) {
+    for (int32_t i = 0; i < COUNT_SOCKET; i++) {
         sockets_[i].Close();
     }
 }
 
-bool HttpServer::CreateSocket(int port)
+bool HttpServer::CreateSocket(int32_t port)
 {
-    for (int i = 0; i < COUNT_SOCKET; i++) {
+    for (int32_t i = 0; i < COUNT_SOCKET; i++) {
         if (!sockets_[i].CreateSocket(i == 0 ? AF_INET : AF_INET6)) {
             TS_LOGE("Create http socket error");
             return false;
@@ -218,7 +218,7 @@ void HttpServer::ProcessClient(HttpSocket& client)
     }
     WSAEventSelect(client.GetFd(), recvEvent, FD_READ | FD_CLOSE);
     while (!isExit_) {
-        int index = WSAWaitForMultipleEvents(1, &recvEvent, false, pollTimeOut_, false);
+        int32_t index = WSAWaitForMultipleEvents(1, &recvEvent, false, pollTimeOut_, false);
         if (index == WSA_WAIT_FAILED) {
             TS_LOGE("WSAWaitForMultipleEvents error %d", WSAGetLastError());
             break;
@@ -268,7 +268,7 @@ void HttpServer::ProcessClient(HttpSocket& client)
 
     struct pollfd fd = {client.GetFd(), POLLIN, 0};
     while (!isExit_) {
-        int pollRet = poll(&fd, sizeof(fd) / sizeof(pollfd), pollTimeOut_);
+        int32_t pollRet = poll(&fd, sizeof(fd) / sizeof(pollfd), pollTimeOut_);
         if (pollRet < 0) {
             TS_LOGE("poll client socket(%d) error: %d:%s", client.GetFd(), errno, strerror(errno));
             break;
@@ -332,7 +332,7 @@ void HttpServer::ProcessRequest(HttpSocket& client, RequestST& request)
         return;
     }
     HttpResponse(client, "200 OK\r\n", true);
-    auto resultCallback = [&client](const std::string& result, int) {
+    auto resultCallback = [&client](const std::string& result, int32_t) {
         std::stringstream chunkLenbuff;
         chunkLenbuff << std::hex << result.size() << "\r\n";
         if (!client.Send(chunkLenbuff.str().data(), chunkLenbuff.str().size())) {

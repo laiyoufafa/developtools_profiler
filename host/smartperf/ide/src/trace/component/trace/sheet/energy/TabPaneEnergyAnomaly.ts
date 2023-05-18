@@ -23,204 +23,153 @@ import { EnergyAnomalyStruct } from '../../../../database/ui-worker/ProcedureWor
 
 @element('tabpane-anomaly-details')
 export class TabPaneEnergyAnomaly extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private tableObserver: MutationObserver | undefined;
-    private static KEY_INDEX: number = 2;
-    private static VALUE_INDEX: number = 3;
-    set data(selection: SelectionParam) {
-        let div: HTMLElement | null | undefined =
-            this?.shadowRoot?.querySelector('#anomaly-details');
-        let htmlText = '';
-        if (selection) {
-            this.queryAnomalyTableData(
-                selection.leftNs,
-                selection.rightNs
-            ).then((bean) => {
-                let filterAppMap = new Map();
-                for (let index = 0; index < bean.length; index++) {
-                    let findAppNameIndex = -1;
-					 // @ts-ignore
-                    let values = Object.values(bean[index]);
-                    if (values[TabPaneEnergyAnomaly.VALUE_INDEX]) {
-                        let apps =
-                            values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
-                        for (
-                            let appIndex = 0;
-                            appIndex < apps.length;
-                            appIndex++
-                        ) {
-                            if (
-                                apps.indexOf(SpHiSysEventChart.app_name) != -1
-                            ) {
-                                findAppNameIndex = apps.indexOf(
-                                    SpHiSysEventChart.app_name
-                                );
-                                filterAppMap.set(
-                                    values[0] + values[1],
-                                    findAppNameIndex
-                                );
-                                break;
-                            }
-                        }
-                        if (
-                            values[TabPaneEnergyAnomaly.KEY_INDEX] == 'APPNAME'
-                        ) {
-                            //ts+eventName : appNameIndex
-                            filterAppMap.set(
-                                values[0] + values[1],
-                                findAppNameIndex
-                            );
-                        }
-                    }
-                }
-                let set = new Set();
-                for (let index = 0; index < bean.length; index++) {
-					 // @ts-ignore
-                    let values = Object.values(bean[index]);
-                    let findAppNameIndex = -1;
-                    if (filterAppMap.get(values[0] + values[1]) == -1) {
-                        continue;
-                    } else {
-                        findAppNameIndex = filterAppMap.get(
-                            values[0] + values[1]
-                        );
-                    }
-                    if (!set.has(values[0])) {
-                        set.add(values[0]);
-                        htmlText +=
-                            '<div><table' +
-                            ' style=\'border:none;table-layout:fixed;word-break:break-all\' cellspacing="5"; cellpadding="5"><tbody>' +
-                            '<tr><td colspan="5" style=\'font-weight: 700;font-size: 14px\'>' +
-                            values[1] +
-                            '</td></tr>';
-                    }
-					 // @ts-ignore
-                    if (set.has(Object.values(bean[index])[0])) {
-                        let appValues =
-                            values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
-                        htmlText +=
-                            "<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>" +
-                            values[TabPaneEnergyAnomaly.KEY_INDEX] +
-                            "</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>" +
-                            (findAppNameIndex >= 0
-                                ? appValues.length > 1
-                                    ? appValues[findAppNameIndex]
-                                    : values[TabPaneEnergyAnomaly.VALUE_INDEX]
-                                : values[TabPaneEnergyAnomaly.VALUE_INDEX]) +
-                            TabPaneEnergyAnomaly.getUnit(
-                                values[TabPaneEnergyAnomaly.KEY_INDEX]
-                            ) +
-                            "</td><td style='width:100px'></td>";
-                    }
-                    if (index + 1 < bean.length) {
-						 // @ts-ignore
-                        let nextValues = Object.values(bean[index + 1]);
-                        let appValues =
-                            nextValues[TabPaneEnergyAnomaly.VALUE_INDEX].split(
-                                ','
-                            );
-                        if (set.has(nextValues[0])) {
-                            htmlText +=
-                                "<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>" +
-                                nextValues[TabPaneEnergyAnomaly.KEY_INDEX] +
-                                "</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>" +
-                                (findAppNameIndex >= 0
-                                    ? appValues.length > 1
-                                        ? appValues[findAppNameIndex]
-                                        : nextValues[
-                                              TabPaneEnergyAnomaly.VALUE_INDEX
-                                          ]
-                                    : nextValues[
-                                          TabPaneEnergyAnomaly.VALUE_INDEX
-                                      ]) +
-                                TabPaneEnergyAnomaly.getUnit(
-                                    nextValues[TabPaneEnergyAnomaly.KEY_INDEX]
-                                ) +
-                                '</td></tr>';
-                        } else {
-                            htmlText += '</tr>';
-                            htmlText += '</tbody></table></div>';
-                            continue;
-                        }
-                        index++;
-                    }
-                }
-                div!.innerHTML = htmlText;
-            });
-        }
-    }
-
-    static getUnit(value: any) {
-        if (value == 'DURATION') {
-            return ' ms';
-        } else if (
-            value == 'ENERGY' ||
-            value == 'BGENERGY' ||
-            value == 'BATTERY_GAS_GUAGE'
-        ) {
-            return ' mAh';
-        } else if (value == 'BGUSAGE') {
-            return ' s';
-        }
-        return '';
-    }
-
-    /**
-     * 查询出 异常详细信息
-     * @param data
-     */
-    async queryAnomalyTableData(
-        startTime: number,
-        endTime: number
-    ): Promise<Array<EnergyAnomalyStruct>> {
-        let anomalyTableData = await queryAnomalyDetailedData(
-            startTime,
-            endTime
-        );
-        return anomalyTableData;
-    }
-
-    initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>(
-            '#anomalyselectionTbl'
-        );
-        this.tbl?.addEventListener('column-click', (ev: any) => {});
-        this.addTableObserver();
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl!.reMeauseHeight();
+  private tbl: LitTable | null | undefined;
+  private tableObserver: MutationObserver | undefined;
+  private static KEY_INDEX: number = 2;
+  private static VALUE_INDEX: number = 3;
+  set data(selection: SelectionParam) {
+    let div: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#anomaly-details');
+    let htmlText = '';
+    if (selection) {
+      this.queryAnomalyTableData(selection.leftNs, selection.rightNs).then((bean) => {
+        let filterAppMap = new Map();
+        for (let index = 0; index < bean.length; index++) {
+          let findAppNameIndex = -1;
+          // @ts-ignore
+          let values = Object.values(bean[index]);
+          if (values[TabPaneEnergyAnomaly.VALUE_INDEX]) {
+            let apps = values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
+            for (let appIndex = 0; appIndex < apps.length; appIndex++) {
+              if (apps.indexOf(SpHiSysEventChart.app_name) != -1) {
+                findAppNameIndex = apps.indexOf(SpHiSysEventChart.app_name);
+                filterAppMap.set(values[0] + values[1], findAppNameIndex);
+                break;
+              }
             }
-        }).observe(this.parentElement!);
-    }
-
-    addTableObserver() {
-        let MutationObserver = window.MutationObserver;
-        this.tableObserver = new MutationObserver((list) => {
-            if (this.tbl) {
-                let width = getComputedStyle(this.tbl).getPropertyValue(
-                    'width'
-                );
-                let height = getComputedStyle(this.tbl).getPropertyValue(
-                    'height'
-                );
+            if (values[TabPaneEnergyAnomaly.KEY_INDEX] == 'APPNAME') {
+              //ts+eventName : appNameIndex
+              filterAppMap.set(values[0] + values[1], findAppNameIndex);
             }
-        });
-        let selector = this.shadowRoot?.querySelector('.left-table');
-        this.tableObserver?.observe(selector!, {
-            attributes: true,
-            attributeFilter: ['style'],
-            attributeOldValue: true,
-        });
+          }
+        }
+        let set = new Set();
+        for (let index = 0; index < bean.length; index++) {
+          // @ts-ignore
+          let values = Object.values(bean[index]);
+          let findAppNameIndex = -1;
+          if (filterAppMap.get(values[0] + values[1]) == -1) {
+            continue;
+          } else {
+            findAppNameIndex = filterAppMap.get(values[0] + values[1]);
+          }
+          if (!set.has(values[0])) {
+            set.add(values[0]);
+            htmlText +=
+              '<div><table' +
+              ' style=\'border:none;table-layout:fixed;word-break:break-all\' cellspacing="5"; cellpadding="5"><tbody>' +
+              '<tr><td colspan="5" style=\'font-weight: 700;font-size: 14px\'>' +
+              values[1] +
+              '</td></tr>';
+          }
+          // @ts-ignore
+          if (set.has(Object.values(bean[index])[0])) {
+            let appValues = values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
+            htmlText +=
+              "<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>" +
+              values[TabPaneEnergyAnomaly.KEY_INDEX] +
+              "</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>" +
+              (findAppNameIndex >= 0
+                ? appValues.length > 1
+                  ? appValues[findAppNameIndex]
+                  : values[TabPaneEnergyAnomaly.VALUE_INDEX]
+                : values[TabPaneEnergyAnomaly.VALUE_INDEX]) +
+              TabPaneEnergyAnomaly.getUnit(values[TabPaneEnergyAnomaly.KEY_INDEX]) +
+              "</td><td style='width:100px'></td>";
+          }
+          if (index + 1 < bean.length) {
+            // @ts-ignore
+            let nextValues = Object.values(bean[index + 1]);
+            let appValues = nextValues[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
+            if (set.has(nextValues[0])) {
+              htmlText +=
+                "<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>" +
+                nextValues[TabPaneEnergyAnomaly.KEY_INDEX] +
+                "</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>" +
+                (findAppNameIndex >= 0
+                  ? appValues.length > 1
+                    ? appValues[findAppNameIndex]
+                    : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]
+                  : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]) +
+                TabPaneEnergyAnomaly.getUnit(nextValues[TabPaneEnergyAnomaly.KEY_INDEX]) +
+                '</td></tr>';
+            } else {
+              htmlText += '</tr>';
+              htmlText += '</tbody></table></div>';
+              continue;
+            }
+            index++;
+          }
+        }
+        div!.innerHTML = htmlText;
+      });
     }
+  }
 
-    initHtml(): string {
-        return `
+  static getUnit(value: any) {
+    if (value == 'DURATION') {
+      return ' ms';
+    } else if (value == 'ENERGY' || value == 'BGENERGY' || value == 'BATTERY_GAS_GUAGE') {
+      return ' mAh';
+    } else if (value == 'BGUSAGE') {
+      return ' s';
+    }
+    return '';
+  }
+
+  /**
+   * 查询出 异常详细信息
+   * @param data
+   */
+  async queryAnomalyTableData(startTime: number, endTime: number): Promise<Array<EnergyAnomalyStruct>> {
+    let anomalyTableData = await queryAnomalyDetailedData(startTime, endTime);
+    return anomalyTableData;
+  }
+
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#anomalyselectionTbl');
+    this.tbl?.addEventListener('column-click', (ev: any) => {});
+    this.addTableObserver();
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
+        // @ts-ignore
+        this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl!.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
+
+  addTableObserver() {
+    let MutationObserver = window.MutationObserver;
+    this.tableObserver = new MutationObserver((list) => {
+      if (this.tbl) {
+        let width = getComputedStyle(this.tbl).getPropertyValue('width');
+        let height = getComputedStyle(this.tbl).getPropertyValue('height');
+      }
+    });
+    let selector = this.shadowRoot?.querySelector('.left-table');
+    this.tableObserver?.observe(selector!, {
+      attributes: true,
+      attributeFilter: ['style'],
+      attributeOldValue: true,
+    });
+  }
+
+  initHtml(): string {
+    return `
         <style>
             .current-title{
                 width: 95%;
@@ -262,5 +211,5 @@ export class TabPaneEnergyAnomaly extends BaseElement {
             </div>
         </div>
         `;
-    }
+  }
 }

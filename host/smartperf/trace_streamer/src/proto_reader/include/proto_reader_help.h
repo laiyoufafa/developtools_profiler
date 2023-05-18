@@ -80,8 +80,8 @@ inline std::vector<std::string> TableNameSplitToVec(std::string& str, const std:
     std::string::size_type pos;
     std::vector<std::string> result;
     str += pat;
-    int size = str.size();
-    for (int i = 0; i < size; i++) {
+    int32_t size = str.size();
+    for (int32_t i = 0; i < size; i++) {
         pos = str.find(pat, i);
         if (pos == std::string::npos) {
             break;

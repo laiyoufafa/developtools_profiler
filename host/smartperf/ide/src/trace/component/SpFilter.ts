@@ -17,10 +17,10 @@ import { BaseElement, element } from '../../base-ui/BaseElement.js';
 
 @element('sp-filter')
 export class SpFilter extends BaseElement {
-    initElements(): void {}
+  initElements(): void {}
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             width:100%;
@@ -79,5 +79,5 @@ export class SpFilter extends BaseElement {
         </div>
         </div>
         `;
-    }
+  }
 }

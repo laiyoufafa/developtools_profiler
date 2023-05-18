@@ -25,6 +25,7 @@ if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
     OHOS_PROCESS_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/process_data"
     OHOS_HISYSEVENT_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/hisysevent_data"
     OHOS_TEST_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/test_data"
+    OHOS_JSMEMORY_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/js_memory"
     enable_ts_utest = true
     OHOS_HILOG_PROTO_DIR = "//src/multi_platform"
     OHOS_NATIVE_HOOK_PROTO_DIR = "//src/multi_platform"

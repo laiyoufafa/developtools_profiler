@@ -149,19 +149,12 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
     }
     uint32_t nextInternalTid = 0;
     uint32_t uprevtid = 0;
-    if (streamFilters_->processFilter_->isThreadNameEmpty(nextPidValue.value())) {
-        nextInternalTid =
-            streamFilters_->processFilter_->UpdateOrCreateThreadWithName(line.ts, nextPidValue.value(), nextCommStr);
-    } else {
-        nextInternalTid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, nextPidValue.value());
-    }
-    if (streamFilters_->processFilter_->isThreadNameEmpty(prevPidValue.value())) {
-        if (!prevCommStr.empty()) {
-            uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(line.ts, prevPidValue.value(),
-                                                                                    prevCommStr);
-        } else {
-            uprevtid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, prevPidValue.value());
-        }
+    nextInternalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThreadWithName(line.ts, nextPidValue.value(), nextCommStr);
+
+    if (!prevCommStr.empty()) {
+        uprevtid =
+            streamFilters_->processFilter_->UpdateOrCreateThreadWithName(line.ts, prevPidValue.value(), prevCommStr);
     } else {
         uprevtid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, prevPidValue.value());
     }
@@ -733,7 +726,7 @@ void BytraceEventParser::FilterAllEvents()
 #endif
     size_t maxBuffSize = 1000 * 1000;
     while (eventList_.size()) {
-        int size = std::min(maxBuffSize, eventList_.size());
+        int32_t size = std::min(maxBuffSize, eventList_.size());
         auto endOfList = eventList_.begin() + size;
         for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
             EventInfo* event = itor->get();

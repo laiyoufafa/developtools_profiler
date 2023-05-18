@@ -17,27 +17,26 @@
 import { LitSelectOption } from '../../../dist/base-ui/select/LitSelectOption.js';
 
 describe('LitSelectOption Test', () => {
-    it('LitSelectOptionTest01', function () {
-        document.body.innerHTML =
-            "<lit-select-option id ='aa' disabled></lit-select-option>";
-        let inner = document.querySelector('#aa') as LitSelectOption;
-        expect(inner).not.toBeUndefined();
-    });
-    it('LitSelectOptionTest03', function () {
-        expect(LitSelectOption.adoptedCallback).toBeUndefined();
-    });
+  it('LitSelectOptionTest01', function () {
+    document.body.innerHTML = "<lit-select-option id ='aa' disabled></lit-select-option>";
+    let inner = document.querySelector('#aa') as LitSelectOption;
+    expect(inner).not.toBeUndefined();
+  });
+  it('LitSelectOptionTest03', function () {
+    expect(LitSelectOption.adoptedCallback).toBeUndefined();
+  });
 
-    it('LitSelectOptionTest04', function () {
-        expect(LitSelectOption.disconnectedCallback).toBeUndefined();
-    });
+  it('LitSelectOptionTest04', function () {
+    expect(LitSelectOption.disconnectedCallback).toBeUndefined();
+  });
 
-    it('LitSelectOptionTest05', function () {
-        expect(LitSelectOption.attributeChangedCallback).toBeUndefined();
-    });
+  it('LitSelectOptionTest05', function () {
+    expect(LitSelectOption.attributeChangedCallback).toBeUndefined();
+  });
 
-    it('LitSelectOption02', function () {
-        let litSelect = new LitSelectOption();
-        expect(litSelect.initHtml()).toMatchInlineSnapshot(`
+  it('LitSelectOption02', function () {
+    let litSelect = new LitSelectOption();
+    expect(litSelect.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{ 
@@ -91,5 +90,5 @@ describe('LitSelectOption Test', () => {
 <!--        <lit-icon class=\\"check\\" name=\\"check\\"></lit-icon>-->
         "
 `);
-    });
+  });
 });

@@ -24,133 +24,133 @@ import { LitCheckBoxWithText } from '../checkbox/LitCheckBoxWithText.js';
 
 @element('lit-popover')
 export class LitPopover extends BaseElement {
-    private popContent: LitPopContent | null | undefined;
-    private litGroup: LitRadioGroup | LitCheckGroup | undefined;
-    private _texBox: LitCheckBoxWithText | undefined;
+  private popContent: LitPopContent | null | undefined;
+  private litGroup: LitRadioGroup | LitCheckGroup | undefined;
+  private _texBox: LitCheckBoxWithText | undefined;
 
-    static get observedAttributes() {
-        return [];
+  static get observedAttributes() {
+    return [];
+  }
+
+  get type() {
+    return this.getAttribute('type') || '';
+  }
+
+  set type(type: string) {
+    this.setAttribute('type', type);
+  }
+
+  get title() {
+    return this.getAttribute('title') || '';
+  }
+
+  set title(title: string) {
+    this.setAttribute('title', title);
+  }
+
+  get limit(): LimitText {
+    if (this._texBox?.checked) {
+      return {
+        textLowerLimit: this._texBox.lowerLimit,
+        textUpperLimit: this._texBox.upLimit,
+      };
     }
+    return { textLowerLimit: '', textUpperLimit: '' };
+  }
 
-    get type() {
-        return this.getAttribute('type') || '';
+  set dataSource(dataSource: Array<SelectBean>) {
+    this.popContent = this.querySelector<LitPopContent>('lit-pop-content');
+    if (!this.popContent) {
+      this.popContent = new LitPopContent();
+      this.appendChild(this.popContent);
     }
-
-    set type(type: string) {
-        this.setAttribute('type', type);
-    }
-
-    get title() {
-        return this.getAttribute('title') || '';
-    }
-
-    set title(title: string) {
-        this.setAttribute('title', title);
-    }
-
-    get limit(): LimitText {
-        if (this._texBox?.checked) {
-            return {
-                textLowerLimit: this._texBox.lowerLimit,
-                textUpperLimit: this._texBox.upLimit,
-            };
-        }
-        return { textLowerLimit: '', textUpperLimit: '' };
-    }
-
-    set dataSource(dataSource: Array<SelectBean>) {
-        this.popContent = this.querySelector<LitPopContent>('lit-pop-content');
-        if (!this.popContent) {
-            this.popContent = new LitPopContent();
-            this.appendChild(this.popContent);
-        }
-        switch (this.type) {
-            case 'multiple':
-                this.litGroup = new LitCheckGroup();
-                this.litGroup.setAttribute('layout', 'dispersion');
-                this.popContent!.appendChild(this.litGroup);
-                dataSource.forEach((data) => {
-                    let litCheckBox = new LitCheckBox();
-                    this.litGroup?.appendChild(litCheckBox);
-                    if (data.isSelected) {
-                        litCheckBox.setAttribute('checked', 'true');
-                    }
-                    litCheckBox.setAttribute('value', data.text);
-                });
-                break;
-            case 'radio':
-                this.litGroup = new LitRadioGroup();
-                if (this.title !== '') {
-                    let title = new LitPopoverTitle();
-                    title.setAttribute('title', this.title || '');
-                    this.popContent!.appendChild(title);
-                    this.litGroup.setAttribute('layout', 'compact');
-                } else {
-                    this.litGroup.setAttribute('layout', 'dispersion');
-                }
-                this.popContent!.appendChild(this.litGroup);
-                dataSource.forEach((data) => {
-                    let litRadioBox = new LitRadioBox();
-                    if (this.title == '') {
-                        litRadioBox.setAttribute('dis', 'round');
-                    } else {
-                        litRadioBox.setAttribute('dis', 'check');
-                    }
-                    if (data.isSelected) {
-                        litRadioBox.setAttribute('checked', 'true');
-                    }
-                    this.litGroup?.appendChild(litRadioBox);
-                    litRadioBox.setAttribute('value', data.text);
-                });
-                break;
-            case 'multiple-text':
-                dataSource.forEach((data) => {
-                    this._texBox = new LitCheckBoxWithText();
-                    this._texBox.setAttribute('text', data.text);
-                    this._texBox.setAttribute('checked', '');
-                    this.popContent!.appendChild(this._texBox);
-                });
-                break;
-            case 'data-ming':
-                break;
-        }
-    }
-
-    get select(): Array<string> | undefined {
-        if (this._texBox?.checked) {
-            return [this._texBox!.text];
-        }
-        return this.litGroup?.value;
-    }
-
-    get trigger() {
-        return this.getAttribute('trigger');
-    }
-
-    get direction() {
-        return this.getAttribute('direction') || 'topright';
-    }
-
-    set direction(value: string) {
-        this.setAttribute('direction', value);
-    }
-
-    get open() {
-        return this.getAttribute('open') !== null;
-    }
-
-    set open(value: boolean) {
-        if (value === null || value === false) {
-            this.removeAttribute('open');
+    switch (this.type) {
+      case 'multiple':
+        this.litGroup = new LitCheckGroup();
+        this.litGroup.setAttribute('layout', 'dispersion');
+        this.popContent!.appendChild(this.litGroup);
+        dataSource.forEach((data) => {
+          let litCheckBox = new LitCheckBox();
+          this.litGroup?.appendChild(litCheckBox);
+          if (data.isSelected) {
+            litCheckBox.setAttribute('checked', 'true');
+          }
+          litCheckBox.setAttribute('value', data.text);
+        });
+        break;
+      case 'radio':
+        this.litGroup = new LitRadioGroup();
+        if (this.title !== '') {
+          let title = new LitPopoverTitle();
+          title.setAttribute('title', this.title || '');
+          this.popContent!.appendChild(title);
+          this.litGroup.setAttribute('layout', 'compact');
         } else {
-            this.setAttribute('open', '');
+          this.litGroup.setAttribute('layout', 'dispersion');
         }
+        this.popContent!.appendChild(this.litGroup);
+        dataSource.forEach((data) => {
+          let litRadioBox = new LitRadioBox();
+          if (this.title == '') {
+            litRadioBox.setAttribute('dis', 'round');
+          } else {
+            litRadioBox.setAttribute('dis', 'check');
+          }
+          if (data.isSelected) {
+            litRadioBox.setAttribute('checked', 'true');
+          }
+          this.litGroup?.appendChild(litRadioBox);
+          litRadioBox.setAttribute('value', data.text);
+        });
+        break;
+      case 'multiple-text':
+        dataSource.forEach((data) => {
+          this._texBox = new LitCheckBoxWithText();
+          this._texBox.setAttribute('text', data.text);
+          this._texBox.setAttribute('checked', '');
+          this.popContent!.appendChild(this._texBox);
+        });
+        break;
+      case 'data-ming':
+        break;
     }
+  }
 
-    initElements(): void {}
+  get select(): Array<string> | undefined {
+    if (this._texBox?.checked) {
+      return [this._texBox!.text];
+    }
+    return this.litGroup?.value;
+  }
 
-    initHtml(): string {
-        return `
+  get trigger() {
+    return this.getAttribute('trigger');
+  }
+
+  get direction() {
+    return this.getAttribute('direction') || 'topright';
+  }
+
+  set direction(value: string) {
+    this.setAttribute('direction', value);
+  }
+
+  get open() {
+    return this.getAttribute('open') !== null;
+  }
+
+  set open(value: boolean) {
+    if (value === null || value === false) {
+      this.removeAttribute('open');
+    } else {
+      this.setAttribute('open', '');
+    }
+  }
+
+  initElements(): void {}
+
+  initHtml(): string {
+    return `
         <style>
         :host {
             display:inline-block;
@@ -421,44 +421,43 @@ export class LitPopover extends BaseElement {
         </style>
         <slot></slot>
       `;
-    }
+  }
 
-    connectedCallback() {
-        if (!(this.trigger && this.trigger !== 'click')) {
-            this.addEventListener('click', () => {
-                this.popContent =
-                    this.querySelector<LitPopContent>('lit-pop-content');
-                if (!this.popContent) {
-                    this.popContent = new LitPopContent();
-                    this.appendChild(this.popContent);
-                }
-                this.popContent?.setAttribute('open', 'true');
-            });
+  connectedCallback() {
+    if (!(this.trigger && this.trigger !== 'click')) {
+      this.addEventListener('click', () => {
+        this.popContent = this.querySelector<LitPopContent>('lit-pop-content');
+        if (!this.popContent) {
+          this.popContent = new LitPopContent();
+          this.appendChild(this.popContent);
         }
-        document.addEventListener('mousedown', (ev) => {
-            const path = ev.composedPath && ev.composedPath();
-            if (
-				// @ts-ignore
-                this.popContent && !path.includes(this.popContent) && !path.includes(this.children[0]) && !path.includes(this.popContent)
-            ) {
-                this.popContent!.open = false;
-            }
-        });
+        this.popContent?.setAttribute('open', 'true');
+      });
     }
+    document.addEventListener('mousedown', (ev) => {
+      const path = ev.composedPath && ev.composedPath();
+      if (
+        // @ts-ignore
+        this.popContent && !path.includes(this.popContent) && !path.includes(this.children[0]) && !path.includes(this.popContent)
+      ) {
+        this.popContent!.open = false;
+      }
+    });
+  }
 }
 
 export interface SelectBean {
-    text: string;
-    isSelected: boolean;
-    limitText?: LimitText;
+  text: string;
+  isSelected: boolean;
+  limitText?: LimitText;
 }
 
 export interface LimitText {
-    textUpperLimit: string;
-    textLowerLimit: string;
+  textUpperLimit: string;
+  textLowerLimit: string;
 }
 
 export interface Charge {
-    text: string;
-    isSelected: boolean;
+  text: string;
+  isSelected: boolean;
 }

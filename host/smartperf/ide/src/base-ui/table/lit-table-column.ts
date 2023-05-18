@@ -17,13 +17,13 @@ import { element } from '../BaseElement.js';
 
 @element('lit-table-column')
 export class LitTableColumn extends HTMLElement {
-    template: Element | undefined | null;
-    private st: HTMLSlotElement | undefined | null;
+  template: Element | undefined | null;
+  private st: HTMLSlotElement | undefined | null;
 
-    constructor() {
-        super();
-        const shadowRoot = this.attachShadow({ mode: 'open' });
-        shadowRoot.innerHTML = `
+  constructor() {
+    super();
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    shadowRoot.innerHTML = `
         <style>
         :host{
             overflow: auto;
@@ -32,30 +32,26 @@ export class LitTableColumn extends HTMLElement {
         </style>
         <slot id="slot"></slot>
         `;
-    }
+  }
 
-    static get observedAttributes() {
-        return ['name', 'order'];
-    }
+  static get observedAttributes() {
+    return ['name', 'order'];
+  }
 
-    connectedCallback() {
-        this.template = null;
-        this.st = this.shadowRoot?.querySelector('#slot');
-        this.st?.addEventListener('slotchange', () => {
-            const elements = this.st!.assignedElements({ flatten: false });
-            if (elements!.length > 0) {
-                this.template = elements[0];
-            }
-        });
-    }
+  connectedCallback() {
+    this.template = null;
+    this.st = this.shadowRoot?.querySelector('#slot');
+    this.st?.addEventListener('slotchange', () => {
+      const elements = this.st!.assignedElements({ flatten: false });
+      if (elements!.length > 0) {
+        this.template = elements[0];
+      }
+    });
+  }
 
-    disconnectedCallback() {}
+  disconnectedCallback() {}
 
-    adoptedCallback() {}
+  adoptedCallback() {}
 
-    attributeChangedCallback(
-        name: string,
-        oldValue: string,
-        newValue: string
-    ) {}
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {}
 }

@@ -18,66 +18,66 @@ import { LitTabs } from './lit-tabs.js';
 
 @element('lit-tabpane')
 export class LitTabpane extends BaseElement {
-    static get observedAttributes() {
-        return ['tab', 'key', 'disabled', 'icon', 'closeable', 'hidden'];
+  static get observedAttributes() {
+    return ['tab', 'key', 'disabled', 'icon', 'closeable', 'hidden'];
+  }
+
+  get tab() {
+    return this.getAttribute('tab');
+  }
+
+  set tab(value) {
+    this.setAttribute('tab', value || '');
+  }
+
+  get icon() {
+    return this.getAttribute('icon');
+  }
+
+  get disabled() {
+    return this.getAttribute('disabled') !== null;
+  }
+
+  set disabled(value) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', value + '');
     }
+  }
 
-    get tab() {
-        return this.getAttribute('tab');
+  get hidden() {
+    return this.getAttribute('hidden') !== null;
+  }
+
+  set hidden(value) {
+    this.setAttribute('hidden', `${value}`);
+  }
+
+  get closeable() {
+    return this.getAttribute('closeable') !== null;
+  }
+
+  set closeable(value) {
+    if (value === null || value === false) {
+      this.removeAttribute('closeable');
+    } else {
+      this.setAttribute('closeable', value + '');
     }
+  }
 
-    set tab(value) {
-        this.setAttribute('tab', value || '');
-    }
+  get key() {
+    return this.getAttribute('key') || '';
+  }
 
-    get icon() {
-        return this.getAttribute('icon');
-    }
+  set key(value) {
+    this.setAttribute('key', value);
+  }
 
-    get disabled() {
-        return this.getAttribute('disabled') !== null;
-    }
+  initElements(): void {}
 
-    set disabled(value) {
-        if (value === null || value === false) {
-            this.removeAttribute('disabled');
-        } else {
-            this.setAttribute('disabled', value + '');
-        }
-    }
-
-    get hidden() {
-        return this.getAttribute('hidden') !== null;
-    }
-
-    set hidden(value) {
-        this.setAttribute('hidden', `${value}`);
-    }
-
-    get closeable() {
-        return this.getAttribute('closeable') !== null;
-    }
-
-    set closeable(value) {
-        if (value === null || value === false) {
-            this.removeAttribute('closeable');
-        } else {
-            this.setAttribute('closeable', value + '');
-        }
-    }
-
-    get key() {
-        return this.getAttribute('key') || '';
-    }
-
-    set key(value) {
-        this.setAttribute('key', value);
-    }
-
-    initElements(): void {}
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host(){
             scroll-behavior: smooth;
@@ -88,48 +88,28 @@ export class LitTabpane extends BaseElement {
         </style>
         <slot></slot>
         `;
+  }
+
+  connectedCallback() {}
+
+  disconnectedCallback() {}
+
+  adoptedCallback() {}
+
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (oldValue !== newValue && newValue !== undefined) {
+      if (name === 'tab' && this.parentNode && this.parentNode instanceof LitTabs) {
+        this.parentNode.updateLabel && this.parentNode.updateLabel(this.key, newValue);
+      }
+      if (name === 'disabled' && this.parentNode && this.parentNode instanceof LitTabs) {
+        this.parentNode.updateDisabled && this.parentNode.updateDisabled(this.key, newValue);
+      }
+      if (name === 'closeable' && this.parentNode && this.parentNode instanceof LitTabs) {
+        this.parentNode.updateCloseable && this.parentNode.updateCloseable(this.key, newValue);
+      }
+      if (name === 'hidden' && this.parentNode && this.parentNode instanceof LitTabs) {
+        this.parentNode.updateHidden && this.parentNode.updateHidden(this.key, newValue);
+      }
     }
-
-    connectedCallback() {}
-
-    disconnectedCallback() {}
-
-    adoptedCallback() {}
-
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (oldValue !== newValue && newValue !== undefined) {
-            if (
-                name === 'tab' &&
-                this.parentNode &&
-                this.parentNode instanceof LitTabs
-            ) {
-                this.parentNode.updateLabel &&
-                    this.parentNode.updateLabel(this.key, newValue);
-            }
-            if (
-                name === 'disabled' &&
-                this.parentNode &&
-                this.parentNode instanceof LitTabs
-            ) {
-                this.parentNode.updateDisabled &&
-                    this.parentNode.updateDisabled(this.key, newValue);
-            }
-            if (
-                name === 'closeable' &&
-                this.parentNode &&
-                this.parentNode instanceof LitTabs
-            ) {
-                this.parentNode.updateCloseable &&
-                    this.parentNode.updateCloseable(this.key, newValue);
-            }
-            if (
-                name === 'hidden' &&
-                this.parentNode &&
-                this.parentNode instanceof LitTabs
-            ) {
-                this.parentNode.updateHidden &&
-                    this.parentNode.updateHidden(this.key, newValue);
-            }
-        }
-    }
+  }
 }

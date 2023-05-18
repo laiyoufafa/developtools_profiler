@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-export const HANDSHAKE_MESSAGE: string = "OHOS HDC";  // sep not char '-', not more than 11 bytes
-export const PACKET_FLAG = "HW";
-export const USB_PACKET_FLAG: string = "UB";
+export const HANDSHAKE_MESSAGE: string = 'OHOS HDC'; // sep not char '-', not more than 11 bytes
+export const PACKET_FLAG = 'HW';
+export const USB_PACKET_FLAG: string = 'UB';
 export const MAX_PACKET_SIZE_HISPEED: number = 512; // uint16_t
-export const MAX_USBFFS_BULK : number = 16384;
+export const MAX_USBFFS_BULK: number = 16384;
 export const ERR_IO_FAIL = -14000;
 
-export const CMDSTR_SHELL:string = "shell";
-export const CMDSTR_FILE_SEND:string = "file send";
-export const CMDSTR_FILE_RECV:string = "file recv";
+export const CMDSTR_SHELL: string = 'shell';
+export const CMDSTR_FILE_SEND: string = 'file send';
+export const CMDSTR_FILE_RECV: string = 'file recv';
 // @ts-ignore
-export const HDC_DEVICE_FILTER = {classCode: 255, subclassCode: 80, protocolCode: 1} as USBDeviceFilter;
+export const HDC_DEVICE_FILTER = { classCode: 255, subclassCode: 80, protocolCode: 1 } as USBDeviceFilter;
 
 export const HDC_DEVICE_FILTERS = [HDC_DEVICE_FILTER];

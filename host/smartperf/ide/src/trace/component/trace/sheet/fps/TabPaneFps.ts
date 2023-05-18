@@ -22,54 +22,50 @@ import { log } from '../../../../../log/Log.js';
 
 @element('tabpane-fps')
 export class TabPaneFps extends BaseElement {
-    private tbl: LitTable | null | undefined;
-    private range: HTMLLabelElement | null | undefined;
+  private tbl: LitTable | null | undefined;
+  private range: HTMLLabelElement | null | undefined;
 
-    set data(val: SelectionParam | any) {
-        this.range!.textContent =
-            'Selected range: ' +
-            parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) +
-            ' ms';
-        getTabFps(val.leftNs, val.rightNs).then((result) => {
-            if (result != null && result.length > 0) {
-                log('getTabFps result size : ' + result.length);
+  set data(val: SelectionParam | any) {
+    this.range!.textContent =
+      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    getTabFps(val.leftNs, val.rightNs).then((result) => {
+      if (result != null && result.length > 0) {
+        log('getTabFps result size : ' + result.length);
 
-                let index = result.findIndex((d) => d.startNS >= val.leftNs);
-                if (index != -1) {
-                    let arr = result.splice(index > 0 ? index - 1 : index);
-                    arr.map(
-                        (e) => (e.timeStr = Utils.getTimeString(e.startNS))
-                    );
-                    this.tbl!.recycleDataSource = arr;
-                } else {
-                    let last = result[result.length - 1];
-                    last.timeStr = Utils.getTimeString(last.startNS);
-                    this.tbl!.recycleDataSource = [last];
-                }
-            } else {
-                this.tbl!.recycleDataSource = [];
-            }
-        });
-    }
+        let index = result.findIndex((d) => d.startNS >= val.leftNs);
+        if (index != -1) {
+          let arr = result.splice(index > 0 ? index - 1 : index);
+          arr.map((e) => (e.timeStr = Utils.getTimeString(e.startNS)));
+          this.tbl!.recycleDataSource = arr;
+        } else {
+          let last = result[result.length - 1];
+          last.timeStr = Utils.getTimeString(last.startNS);
+          this.tbl!.recycleDataSource = [last];
+        }
+      } else {
+        this.tbl!.recycleDataSource = [];
+      }
+    });
+  }
 
-    initElements(): void {
-        this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-fps');
-        this.range = this.shadowRoot?.querySelector('#time-range');
-    }
+  initElements(): void {
+    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-fps');
+    this.range = this.shadowRoot?.querySelector('#time-range');
+  }
 
-    connectedCallback() {
-        super.connectedCallback();
-        new ResizeObserver((entries) => {
-            if (this.parentElement?.clientHeight != 0) {
-                // @ts-ignore
-                this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-                this.tbl?.reMeauseHeight();
-            }
-        }).observe(this.parentElement!);
-    }
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver((entries) => {
+      if (this.parentElement?.clientHeight != 0) {
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+        this.tbl?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{
             display: flex;
@@ -85,5 +81,5 @@ export class TabPaneFps extends BaseElement {
             </lit-table-column>
         </lit-table>
         `;
-    }
+  }
 }

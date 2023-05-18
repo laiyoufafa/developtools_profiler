@@ -14,7 +14,7 @@
  */
 
 export class WakeUpTimeBean {
-    wakeTs: number | undefined;
-    startTs: number | undefined;
-    preRow: number | undefined;
+  wakeTs: number | undefined;
+  startTs: number | undefined;
+  preRow: number | undefined;
 }

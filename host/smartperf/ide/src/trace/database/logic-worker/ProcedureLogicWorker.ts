@@ -21,22 +21,22 @@ import { ProcedureLogicWorkerCpuState } from './ProcedureLogicWorkerCpuState.js'
 import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSchedulingAnalysis.js';
 
 let logicWorker: any = {
-    perf: new ProcedureLogicWorkerPerf(),
-    'native-memory': new ProcedureLogicWorkerNativeMemory(),
-    fileSystem: new ProcedureLogicWorkerFileSystem(),
-    CpuState: new ProcedureLogicWorkerCpuState(),
-    spt: new ProcedureLogicWorkerSPT(),
-    scheduling: new ProcedureLogicWorkerSchedulingAnalysis(),
+  perf: new ProcedureLogicWorkerPerf(),
+  'native-memory': new ProcedureLogicWorkerNativeMemory(),
+  fileSystem: new ProcedureLogicWorkerFileSystem(),
+  CpuState: new ProcedureLogicWorkerCpuState(),
+  spt: new ProcedureLogicWorkerSPT(),
+  scheduling: new ProcedureLogicWorkerSchedulingAnalysis(),
 };
 
 function match(req: any) {
-    Reflect.ownKeys(logicWorker).filter((it) => {
-        if (req.type && req.type.startsWith(it as string)) {
-            logicWorker[it].handle(req);
-        }
-    });
+  Reflect.ownKeys(logicWorker).filter((it) => {
+    if (req.type && req.type.startsWith(it as string)) {
+      logicWorker[it].handle(req);
+    }
+  });
 }
 
 self.onmessage = function (e: any) {
-    match(e.data);
+  match(e.data);
 };

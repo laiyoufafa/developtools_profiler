@@ -16,5 +16,5 @@
 import { DataMessage } from '../message/DataMessage.js';
 
 export interface DataListener {
-    createDataMessage(data: DataMessage): void;
+  createDataMessage(data: DataMessage): void;
 }

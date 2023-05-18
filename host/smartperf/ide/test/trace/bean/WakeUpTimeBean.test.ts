@@ -17,27 +17,27 @@
 import { WakeUpTimeBean } from '../../../dist/trace/bean/WakeUpTimeBean.js';
 
 describe('WakeUpTimeBean Test', () => {
-    let wakeUpTimeBean = new WakeUpTimeBean();
-    it('wakeUpTimeBean', function () {
-        wakeUpTimeBean = {
-            wakeTs: 0,
-            startTs: 0,
-            preRow: 0,
-        };
-        expect(wakeUpTimeBean).not.toBeUndefined();
-        expect(wakeUpTimeBean).toMatchInlineSnapshot(
-            {
-                wakeTs: expect.any(Number),
-                startTs: expect.any(Number),
-                preRow: expect.any(Number),
-            },
-            `
+  let wakeUpTimeBean = new WakeUpTimeBean();
+  it('wakeUpTimeBean', function () {
+    wakeUpTimeBean = {
+      wakeTs: 0,
+      startTs: 0,
+      preRow: 0,
+    };
+    expect(wakeUpTimeBean).not.toBeUndefined();
+    expect(wakeUpTimeBean).toMatchInlineSnapshot(
+      {
+        wakeTs: expect.any(Number),
+        startTs: expect.any(Number),
+        preRow: expect.any(Number),
+      },
+      `
 Object {
   "preRow": Any<Number>,
   "startTs": Any<Number>,
   "wakeTs": Any<Number>,
 }
 `
-        );
-    });
+    );
+  });
 });

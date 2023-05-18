@@ -13,17 +13,13 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {
-    threadPool,
-    DbThread,
-    DbPool,
-} from '../../../dist/trace/database/SqlLite.js';
+import { threadPool, DbThread, DbPool } from '../../../dist/trace/database/SqlLite.js';
 
 describe('SqlLite Test', () => {
-    it('SqlLiteTest01', function () {
-        expect(DbThread).not.toBeTruthy();
-    });
-    it('SqlLiteTest02', function () {
-        expect(DbPool).not.toBeUndefined();
-    });
+  it('SqlLiteTest01', function () {
+    expect(DbThread).not.toBeTruthy();
+  });
+  it('SqlLiteTest02', function () {
+    expect(DbPool).not.toBeUndefined();
+  });
 });

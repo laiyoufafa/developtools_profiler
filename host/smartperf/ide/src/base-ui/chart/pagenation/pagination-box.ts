@@ -17,30 +17,30 @@ import { BaseElement, element } from '../../BaseElement.js';
 
 @element('pagination-box')
 export class PaginationBox extends BaseElement {
-    private page: any;
+  private page: any;
 
-    static get observedAttributes() {
-        return ['text', 'height', 'width'];
-    }
+  static get observedAttributes() {
+    return ['text', 'height', 'width'];
+  }
 
-    get text() {
-        return this.getAttribute('text') || '';
-    }
+  get text() {
+    return this.getAttribute('text') || '';
+  }
 
-    set text(text: string) {
-        this.setAttribute('text', text);
-    }
+  set text(text: string) {
+    this.setAttribute('text', text);
+  }
 
-    get height() {
-        return this.getAttribute('height') || '';
-    }
+  get height() {
+    return this.getAttribute('height') || '';
+  }
 
-    set height(height: string) {
-        this.setAttribute('height', height);
-    }
+  set height(height: string) {
+    this.setAttribute('height', height);
+  }
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{ 
             display: block;
@@ -52,14 +52,14 @@ export class PaginationBox extends BaseElement {
         </style>
         <div class="pagination" id="box"></div>
             `;
-    }
+  }
 
-    initElements(): void {
-        this.page = this.shadowRoot?.querySelector('#box');
-    }
+  initElements(): void {
+    this.page = this.shadowRoot?.querySelector('#box');
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, value: string) {
-        switch (name) {
-        }
+  attributeChangedCallback(name: string, oldValue: string, value: string) {
+    switch (name) {
     }
+  }
 }

@@ -17,61 +17,61 @@
 import { PayloadHead } from '../../../dist/hdc/message/PayloadHead.js';
 
 describe('PayloadHead Test', () => {
-    let payloadHead = new PayloadHead();
-    it('PayloadHeadTest01', function () {
-        expect(payloadHead).not.toBeUndefined();
-    });
+  let payloadHead = new PayloadHead();
+  it('PayloadHeadTest01', function () {
+    expect(payloadHead).not.toBeUndefined();
+  });
 
-    it('PayloadHeadTest02', function () {
-        expect(payloadHead.flag).toBeUndefined();
-    });
+  it('PayloadHeadTest02', function () {
+    expect(payloadHead.flag).toBeUndefined();
+  });
 
-    it('PayloadHeadTest03', function () {
-        payloadHead.flag = true;
-        expect(payloadHead.flag).toBeTruthy();
-    });
+  it('PayloadHeadTest03', function () {
+    payloadHead.flag = true;
+    expect(payloadHead.flag).toBeTruthy();
+  });
 
-    it('PayloadHeadTest04', function () {
-        expect(payloadHead.reserve).toBeUndefined();
-    });
+  it('PayloadHeadTest04', function () {
+    expect(payloadHead.reserve).toBeUndefined();
+  });
 
-    it('PayloadHeadTest05', function () {
-        payloadHead.reserve = true;
-        expect(payloadHead.reserve).toBeTruthy();
-    });
+  it('PayloadHeadTest05', function () {
+    payloadHead.reserve = true;
+    expect(payloadHead.reserve).toBeTruthy();
+  });
 
-    it('PayloadHeadTest06', function () {
-        expect(payloadHead.protocolVer).toBeUndefined();
-    });
+  it('PayloadHeadTest06', function () {
+    expect(payloadHead.protocolVer).toBeUndefined();
+  });
 
-    it('PayloadHeadTest07', function () {
-        payloadHead.protocolVer = true;
-        expect(payloadHead.protocolVer).toBeTruthy();
-    });
+  it('PayloadHeadTest07', function () {
+    payloadHead.protocolVer = true;
+    expect(payloadHead.protocolVer).toBeTruthy();
+  });
 
-    it('PayloadHeadTest08', function () {
-        expect(payloadHead.headSize).toBeUndefined();
-    });
+  it('PayloadHeadTest08', function () {
+    expect(payloadHead.headSize).toBeUndefined();
+  });
 
-    it('PayloadHeadTest9', function () {
-        payloadHead.headSize = true;
-        expect(payloadHead.headSize).toBeTruthy();
-    });
+  it('PayloadHeadTest9', function () {
+    payloadHead.headSize = true;
+    expect(payloadHead.headSize).toBeTruthy();
+  });
 
-    it('PayloadHeadTest10', function () {
-        expect(payloadHead.dataSize).toBeUndefined();
-    });
+  it('PayloadHeadTest10', function () {
+    expect(payloadHead.dataSize).toBeUndefined();
+  });
 
-    it('PayloadHeadTest11', function () {
-        payloadHead.dataSize = true;
-        expect(payloadHead.dataSize).toBeTruthy();
-    });
+  it('PayloadHeadTest11', function () {
+    payloadHead.dataSize = true;
+    expect(payloadHead.dataSize).toBeTruthy();
+  });
 
-    it('PayloadHeadTest12', function () {
-        expect(payloadHead.toString()).toBeTruthy();
-    });
+  it('PayloadHeadTest12', function () {
+    expect(payloadHead.toString()).toBeTruthy();
+  });
 
-    it('PayloadHeadTest13', function () {
-        expect(payloadHead.getPayloadHeadLength).toBe(undefined);
-    });
+  it('PayloadHeadTest13', function () {
+    expect(payloadHead.getPayloadHeadLength).toBe(undefined);
+  });
 });

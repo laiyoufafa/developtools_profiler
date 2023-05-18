@@ -14,9 +14,9 @@
  */
 
 export class BinderArgBean {
-    argset: number | undefined;
-    keyName: string | undefined;
-    id: number | undefined;
-    desc: string | undefined;
-    strValue: string | undefined;
+  argset: number | undefined;
+  keyName: string | undefined;
+  id: number | undefined;
+  desc: string | undefined;
+  strValue: string | undefined;
 }

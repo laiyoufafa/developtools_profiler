@@ -20,6 +20,8 @@
 
 namespace SysTuning {
 namespace base {
+#define TS_PERMISSION_RW 0600
+#define TS_PERMISSION_RWX 777
 constexpr uint32_t kFileModeInvalid = 0xFFFFFFFF;
 enum TraceParserStatus {
     TRACE_PARSER_NORMAL = 0,
@@ -32,9 +34,9 @@ void SetAnalysisResult(TraceParserStatus stat);
 
 TraceParserStatus GetAnalysisResult();
 
-ssize_t Read(int fd, uint8_t* dst, size_t dstSize);
+ssize_t Read(int32_t fd, uint8_t* dst, size_t dstSize);
 
-int OpenFile(const std::string& path, int flags, uint32_t mode = kFileModeInvalid);
+int32_t OpenFile(const std::string& path, int32_t flags, uint32_t mode = kFileModeInvalid);
 
 std::string GetExecutionDirectoryPath();
 } // namespace base

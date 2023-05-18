@@ -21,127 +21,117 @@ import { Utils } from '../common/Utils.js';
 import { HdcCommand } from '../hdcclient/HdcCommand.js';
 
 export class DataMessage extends Object {
-    body?: DataView;
+  body?: DataView;
 
-    private _usbHead: USBHead;
-    private _channelId: number = -1;
-    private _result: string = '';
-    private _channelClose: boolean = false;
-    private _resArrayBuffer: ArrayBuffer | undefined;
-    private _commandFlag: number = -1;
+  private _usbHead: USBHead;
+  private _channelId: number = -1;
+  private _result: string = '';
+  private _channelClose: boolean = false;
+  private _resArrayBuffer: ArrayBuffer | undefined;
+  private _commandFlag: number = -1;
 
-    constructor(usbHead: USBHead, body?: DataView) {
-        super();
-        this._usbHead = usbHead;
-        this.body = body;
-        if (this.body) {
-            this.splitData();
-        }
+  constructor(usbHead: USBHead, body?: DataView) {
+    super();
+    this._usbHead = usbHead;
+    this.body = body;
+    if (this.body) {
+      this.splitData();
     }
+  }
 
-    splitData() {
-        let playHeadArray = this.body!.buffer.slice(0, 11);
-        let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(
-            new DataView(playHeadArray)
-        );
-        let headSize = resultPayloadHead.headSize;
-        let dataSize = resultPayloadHead.dataSize;
-        let resultPlayProtectBuffer = this.body!.buffer.slice(
-            11,
-            11 + headSize
-        );
-        let payloadProtect = Serialize.parsePayloadProtect(
-            resultPlayProtectBuffer
-        );
-        this._channelId = payloadProtect.channelId;
-        this._commandFlag = payloadProtect.commandFlag;
-        if (payloadProtect.commandFlag == HdcCommand.CMD_KERNEL_CHANNEL_CLOSE) {
-            log('commandFlag: ' + payloadProtect.commandFlag);
-            this._channelClose = true;
-        } else {
-            if (dataSize > 0) {
-                this._resArrayBuffer = this.body!.buffer.slice(
-                    11 + headSize,
-                    11 + headSize + dataSize
-                );
-            }
-        }
+  splitData() {
+    let playHeadArray = this.body!.buffer.slice(0, 11);
+    let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
+    let headSize = resultPayloadHead.headSize;
+    let dataSize = resultPayloadHead.dataSize;
+    let resultPlayProtectBuffer = this.body!.buffer.slice(11, 11 + headSize);
+    let payloadProtect = Serialize.parsePayloadProtect(resultPlayProtectBuffer);
+    this._channelId = payloadProtect.channelId;
+    this._commandFlag = payloadProtect.commandFlag;
+    if (payloadProtect.commandFlag == HdcCommand.CMD_KERNEL_CHANNEL_CLOSE) {
+      log('commandFlag: ' + payloadProtect.commandFlag);
+      this._channelClose = true;
+    } else {
+      if (dataSize > 0) {
+        this._resArrayBuffer = this.body!.buffer.slice(11 + headSize, 11 + headSize + dataSize);
+      }
     }
+  }
 
-    public getChannelId(): number {
-        return this._channelId;
-    }
+  public getChannelId(): number {
+    return this._channelId;
+  }
 
-    public getData(): ArrayBuffer | undefined {
-        return this._resArrayBuffer;
-    }
+  public getData(): ArrayBuffer | undefined {
+    return this._resArrayBuffer;
+  }
 
-    public getDataToString(): string {
-        let textDecoder = new TextDecoder();
-        this._result = textDecoder.decode(this._resArrayBuffer);
-        return this._result;
-    }
+  public getDataToString(): string {
+    let textDecoder = new TextDecoder();
+    this._result = textDecoder.decode(this._resArrayBuffer);
+    return this._result;
+  }
 
-    get usbHead(): USBHead {
-        return this._usbHead;
-    }
+  get usbHead(): USBHead {
+    return this._usbHead;
+  }
 
-    set usbHead(value: USBHead) {
-        this._usbHead = value;
-    }
+  set usbHead(value: USBHead) {
+    this._usbHead = value;
+  }
 
-    get channelId(): number {
-        return this._channelId;
-    }
+  get channelId(): number {
+    return this._channelId;
+  }
 
-    set channelId(value: number) {
-        this._channelId = value;
-    }
+  set channelId(value: number) {
+    this._channelId = value;
+  }
 
-    get result(): string {
-        return this._result;
-    }
+  get result(): string {
+    return this._result;
+  }
 
-    set result(value: string) {
-        this._result = value;
-    }
+  set result(value: string) {
+    this._result = value;
+  }
 
-    get channelClose(): boolean {
-        return this._channelClose;
-    }
+  get channelClose(): boolean {
+    return this._channelClose;
+  }
 
-    set channelClose(value: boolean) {
-        this._channelClose = value;
-    }
+  set channelClose(value: boolean) {
+    this._channelClose = value;
+  }
 
-    get resArrayBuffer(): ArrayBuffer | undefined {
-        return this._resArrayBuffer;
-    }
+  get resArrayBuffer(): ArrayBuffer | undefined {
+    return this._resArrayBuffer;
+  }
 
-    set resArrayBuffer(value: ArrayBuffer | undefined) {
-        this._resArrayBuffer = value;
-    }
+  set resArrayBuffer(value: ArrayBuffer | undefined) {
+    this._resArrayBuffer = value;
+  }
 
-    get commandFlag(): number {
-        return this._commandFlag;
-    }
+  get commandFlag(): number {
+    return this._commandFlag;
+  }
 
-    set commandFlag(value: number) {
-        this._commandFlag = value;
-    }
+  set commandFlag(value: number) {
+    this._commandFlag = value;
+  }
 
-    toString(): string {
-        return (
-            'usbHead: ' +
-            this._usbHead +
-            ' channelId: ' +
-            this._channelId +
-            ' result: ' +
-            this._result +
-            ' channelClose: ' +
-            this._channelClose +
-            ' commandFlag: ' +
-            this._commandFlag
-        );
-    }
+  toString(): string {
+    return (
+      'usbHead: ' +
+      this._usbHead +
+      ' channelId: ' +
+      this._channelId +
+      ' result: ' +
+      this._result +
+      ' channelClose: ' +
+      this._channelClose +
+      ' commandFlag: ' +
+      this._commandFlag
+    );
+  }
 }

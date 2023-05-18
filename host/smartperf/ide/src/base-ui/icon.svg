@@ -80,9 +80,9 @@
         <g id="ic_list" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="marshalling-2">
             <rect id="rectangle" x="0" y="0" width="16" height="16"></rect>
-            <rect id="rectangle" fill="#4d4d4d" opacity="0.600880941" x="1" y="2" width="14" height="2"></rect>
-            <rect id="rectangle" fill="#4d4d4d" opacity="0.600880941" x="1" y="7" width="14" height="2"></rect>
-            <rect id="rectangle-2" fill="#4d4d4d" opacity="0.600880941" x="1" y="12" width="14" height="2"></rect>
+            <rect id="rectangle" fill="currentColor" opacity="0.600880941" x="1" y="2" width="14" height="2"></rect>
+            <rect id="rectangle" fill="currentColor" opacity="0.600880941" x="1" y="7" width="14" height="2"></rect>
+            <rect id="rectangle-2" fill="currentColor" opacity="0.600880941" x="1" y="12" width="14" height="2"></rect>
         </g>
         </g>
     </symbol>

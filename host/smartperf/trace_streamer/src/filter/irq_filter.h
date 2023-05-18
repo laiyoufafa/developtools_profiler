@@ -53,7 +53,7 @@ private:
     std::unordered_set<uint64_t> transReplyWaitingReply_ = {};
     std::unordered_map<uint64_t, FilterId> transWaitingRcv_ = {};
     std::unordered_map<uint64_t, ArgsSet> transNoNeedReply_ = {};
-    std::unordered_map<int, std::string> binderFlagDescs_ = {};
+    std::unordered_map<int32_t, std::string> binderFlagDescs_ = {};
     std::vector<std::string> irqActionNames_ = {"HI",           "TIMER",   "NET_TX", "NET_RX",  "BLOCK",
                                                 "BLOCK_IOPOLL", "TASKLET", "SCHED",  "HRTIMER", "RCU"};
     std::vector<DataIndex> irqActionNameIds_ = {};

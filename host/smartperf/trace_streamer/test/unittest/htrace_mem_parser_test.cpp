@@ -60,7 +60,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
     MemoryData tracePacket;
     ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo != nullptr);
-    int size = tracePacket.processesinfo_size();
+    int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 1);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -90,7 +90,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
     MemoryData tracePacket;
     ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo != nullptr);
-    int size = tracePacket.processesinfo_size();
+    int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 1);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -151,7 +151,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
     MemoryData tracePacket;
     ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo != nullptr);
-    int size = tracePacket.processesinfo_size();
+    int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 1);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -204,7 +204,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
     MemoryData tracePacket;
     ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo != nullptr);
-    int size = tracePacket.processesinfo_size();
+    int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 1);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -239,7 +239,7 @@ HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    int size = tracePacket.processesinfo_size();
+    int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 0);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;

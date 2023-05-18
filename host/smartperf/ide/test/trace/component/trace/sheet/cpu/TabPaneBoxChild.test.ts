@@ -19,55 +19,55 @@ import { TabPaneBoxChild } from '../../../../../../dist/trace/component/trace/sh
 import { getTabBoxChildData } from '../../../../../../src/trace/database/SqlLite';
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneBoxChild Test', () => {
-    document.body.innerHTML = `<div id="div"></div>`;
-    let element = document.querySelector('#div') as HTMLDivElement;
-    let tabPaneBoxChild = new TabPaneBoxChild();
-    element.appendChild(tabPaneBoxChild);
-    tabPaneBoxChild.loadDataInCache = true;
-    tabPaneBoxChild.data = {
-        cpus: [],
-        threadIds: [],
-        trackIds: [],
-        funTids: [],
-        heapIds: [],
-        leftNs: 0,
-        rightNs: 0,
-        hasFps: false,
-    };
-    let val = {
-        leftNs: 2,
-        rightNs: 1,
-        state: '1',
-        processId: 0,
-        threadId: 1,
-    };
+  document.body.innerHTML = `<div id="div"></div>`;
+  let element = document.querySelector('#div') as HTMLDivElement;
+  let tabPaneBoxChild = new TabPaneBoxChild();
+  element.appendChild(tabPaneBoxChild);
+  tabPaneBoxChild.loadDataInCache = true;
+  tabPaneBoxChild.data = {
+    cpus: [],
+    threadIds: [],
+    trackIds: [],
+    funTids: [],
+    heapIds: [],
+    leftNs: 0,
+    rightNs: 0,
+    hasFps: false,
+  };
+  let val = {
+    leftNs: 2,
+    rightNs: 1,
+    state: '1',
+    processId: 0,
+    threadId: 1,
+  };
 
-    it('TabPaneBoxChildTest01', function () {
-        expect(
-            tabPaneBoxChild.sortByColumn({
-                key: 'number',
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneBoxChildTest01', function () {
+    expect(
+      tabPaneBoxChild.sortByColumn({
+        key: 'number',
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCounterTest02', function () {
-        expect(
-            tabPaneBoxChild.sortByColumn({
-                sort: () => {},
-            })
-        ).toBeUndefined();
-    });
+  it('TabPaneCounterTest02', function () {
+    expect(
+      tabPaneBoxChild.sortByColumn({
+        sort: () => {},
+      })
+    ).toBeUndefined();
+  });
 
-    it('TabPaneCounterTest03', function () {
-        expect(tabPaneBoxChild.initHtml()).toMatchInlineSnapshot(`
+  it('TabPaneCounterTest03', function () {
+    expect(tabPaneBoxChild.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
@@ -97,5 +97,5 @@ describe('TabPaneBoxChild Test', () => {
         </lit-table>
         "
 `);
-    });
+  });
 });

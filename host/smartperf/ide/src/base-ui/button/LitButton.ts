@@ -17,117 +17,117 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-button')
 export class LitButton extends BaseElement {
-    private slotHtml: HTMLElement | undefined;
-    private button: HTMLButtonElement | null | undefined;
-    private litIcon: LitButton | null | undefined;
+  private slotHtml: HTMLElement | undefined;
+  private button: HTMLButtonElement | null | undefined;
+  private litIcon: LitButton | null | undefined;
 
-    static get observedAttributes() {
-        return [
-            'text',
-            'back',
-            'icon',
-            'height',
-            'width',
-            'color',
-            'font_size',
-            'border',
-            'padding',
-            'justify_content',
-            'border_radius',
-            'margin_icon',
-            'opacity',
-        ];
+  static get observedAttributes() {
+    return [
+      'text',
+      'back',
+      'icon',
+      'height',
+      'width',
+      'color',
+      'font_size',
+      'border',
+      'padding',
+      'justify_content',
+      'border_radius',
+      'margin_icon',
+      'opacity',
+    ];
+  }
+
+  get text() {
+    return this.getAttribute('text') || '';
+  }
+
+  set text(text: string) {
+    this.setAttribute('text', text);
+  }
+
+  get back() {
+    return this.getAttribute('back') || '';
+  }
+
+  set back(backColor: string) {
+    this.button!.style.backgroundColor = backColor;
+    this.setAttribute('back', backColor);
+  }
+
+  get icon() {
+    return this.getAttribute('icon') || '';
+  }
+
+  set icon(icon: string) {
+    this.litIcon?.setAttribute('name', icon);
+    this.setAttribute('icon', icon);
+    if (icon) {
+      this.litIcon!.style.display = 'block';
     }
+  }
 
-    get text() {
-        return this.getAttribute('text') || '';
+  get height() {
+    return this.getAttribute('height') || '';
+  }
+
+  set height(height: string) {
+    this.setAttribute('height', height);
+  }
+
+  get width() {
+    return this.getAttribute('width') || '';
+  }
+
+  set width(width: string) {
+    this.setAttribute('width', width);
+  }
+
+  set color(color: string) {
+    this.setAttribute('color', color);
+  }
+
+  set font_size(fontSize: string) {
+    this.setAttribute('font_size', fontSize);
+  }
+
+  set border(border: string) {
+    this.setAttribute('border', border);
+  }
+
+  set padding(padding: string) {
+    this.setAttribute('padding', padding);
+  }
+
+  set justify_content(justifyContent: string) {
+    this.setAttribute('justify_content', justifyContent);
+  }
+
+  set border_radius(borderRadius: string) {
+    this.setAttribute('border_radius', borderRadius);
+  }
+
+  set margin_icon(value: string) {
+    this.litIcon?.setAttribute('margin_icon', value);
+  }
+
+  set opacity(value: string) {
+    this.litIcon?.setAttribute('opacity', value);
+  }
+
+  set hidden(hidden: boolean) {
+    if (hidden) {
+      this.setAttribute('hidden', 'true');
+      this.style.display = 'none';
+    } else {
+      this.removeAttribute('hidden');
+      this.style.display = 'block';
     }
+  }
 
-    set text(text: string) {
-        this.setAttribute('text', text);
-    }
-
-    get back() {
-        return this.getAttribute('back') || '';
-    }
-
-    set back(backColor: string) {
-        this.button!.style.backgroundColor = backColor;
-        this.setAttribute('back', backColor);
-    }
-
-    get icon() {
-        return this.getAttribute('icon') || '';
-    }
-
-    set icon(icon: string) {
-        this.litIcon?.setAttribute('name', icon);
-        this.setAttribute('icon', icon);
-        if (icon) {
-            this.litIcon!.style.display = 'block';
-        }
-    }
-
-    get height() {
-        return this.getAttribute('height') || '';
-    }
-
-    set height(height: string) {
-        this.setAttribute('height', height);
-    }
-
-    get width() {
-        return this.getAttribute('width') || '';
-    }
-
-    set width(width: string) {
-        this.setAttribute('width', width);
-    }
-
-    set color(color: string) {
-        this.setAttribute('color', color);
-    }
-
-    set font_size(fontSize: string) {
-        this.setAttribute('font_size', fontSize);
-    }
-
-    set border(border: string) {
-        this.setAttribute('border', border);
-    }
-
-    set padding(padding: string) {
-        this.setAttribute('padding', padding);
-    }
-
-    set justify_content(justifyContent: string) {
-        this.setAttribute('justify_content', justifyContent);
-    }
-
-    set border_radius(borderRadius: string) {
-        this.setAttribute('border_radius', borderRadius);
-    }
-
-    set margin_icon(value: string) {
-        this.litIcon?.setAttribute('margin_icon', value);
-    }
-
-    set opacity(value: string) {
-        this.litIcon?.setAttribute('opacity', value);
-    }
-
-    set hidden(hidden: boolean) {
-        if (hidden) {
-            this.setAttribute('hidden', 'true');
-            this.style.display = 'none';
-        } else {
-            this.removeAttribute('hidden');
-            this.style.display = 'block';
-        }
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         /*
          * Outer box style
@@ -181,60 +181,58 @@ export class LitButton extends BaseElement {
                  </button>
             </div>
             `;
-    }
+  }
 
-    initElements(): void {
-        this.slotHtml = this.shadowRoot?.querySelector('#sl') as HTMLElement;
-        this.button = this.shadowRoot?.querySelector('#custom-button');
-        this.litIcon = this.shadowRoot?.querySelector(
-            '#button-icon'
-        ) as LitButton;
-        if (this.litIcon.getAttribute('name') == '') {
-            this.litIcon!.style.display = 'none';
-        }
+  initElements(): void {
+    this.slotHtml = this.shadowRoot?.querySelector('#sl') as HTMLElement;
+    this.button = this.shadowRoot?.querySelector('#custom-button');
+    this.litIcon = this.shadowRoot?.querySelector('#button-icon') as LitButton;
+    if (this.litIcon.getAttribute('name') == '') {
+      this.litIcon!.style.display = 'none';
     }
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, value: string) {
-        switch (name) {
-            case 'text':
-                this.slotHtml!.innerText = value;
-                break;
-            case 'back':
-                this.button!.style.backgroundColor = value;
-                break;
-            case 'icon':
-                this.litIcon?.setAttribute('name', value);
-                if (value) {
-                    this.litIcon!.style.display = 'block';
-                }
-                break;
-            case 'height':
-                this.button!.style.height = value;
-                break;
-            case 'color':
-                this.button!.style.color = value;
-                break;
-            case 'font_size':
-                this.button!.style.fontSize = value;
-                break;
-            case 'border':
-                this.button!.style.border = value;
-                break;
-            case 'padding':
-                this.button!.style.padding = value;
-                break;
-            case 'justify_content':
-                this.button!.style.justifyContent = value;
-                break;
-            case 'border_radius':
-                this.button!.style.borderRadius = value;
-                break;
-            case 'margin_icon':
-                this.litIcon!.style.margin = value;
-                break;
-            case 'opacity':
-                this.button!.style.opacity = value;
-                break;
+  attributeChangedCallback(name: string, oldValue: string, value: string) {
+    switch (name) {
+      case 'text':
+        this.slotHtml!.innerText = value;
+        break;
+      case 'back':
+        this.button!.style.backgroundColor = value;
+        break;
+      case 'icon':
+        this.litIcon?.setAttribute('name', value);
+        if (value) {
+          this.litIcon!.style.display = 'block';
         }
+        break;
+      case 'height':
+        this.button!.style.height = value;
+        break;
+      case 'color':
+        this.button!.style.color = value;
+        break;
+      case 'font_size':
+        this.button!.style.fontSize = value;
+        break;
+      case 'border':
+        this.button!.style.border = value;
+        break;
+      case 'padding':
+        this.button!.style.padding = value;
+        break;
+      case 'justify_content':
+        this.button!.style.justifyContent = value;
+        break;
+      case 'border_radius':
+        this.button!.style.borderRadius = value;
+        break;
+      case 'margin_icon':
+        this.litIcon!.style.margin = value;
+        break;
+      case 'opacity':
+        this.button!.style.opacity = value;
+        break;
     }
+  }
 }

@@ -14,23 +14,23 @@
  */
 
 export class CpuUsage {
-    cpu: number = 0;
-    usage: number = 0;
-    usageStr: string = '';
-    top1: number = 0;
-    top2: number = 0;
-    top3: number = 0;
-    top1Percent: number = 0;
-    top1PercentStr: string = '';
-    top2Percent: number = 0;
-    top2PercentStr: string = '';
-    top3Percent: number = 0;
-    top3PercentStr: string = '';
+  cpu: number = 0;
+  usage: number = 0;
+  usageStr: string = '';
+  top1: number = 0;
+  top2: number = 0;
+  top3: number = 0;
+  top1Percent: number = 0;
+  top1PercentStr: string = '';
+  top2Percent: number = 0;
+  top2PercentStr: string = '';
+  top3Percent: number = 0;
+  top3PercentStr: string = '';
 }
 
 export class Freq {
-    cpu: number = 0;
-    value: number = 0;
-    startNs: number = 0;
-    dur: number = 0;
+  cpu: number = 0;
+  value: number = 0;
+  startNs: number = 0;
+  dur: number = 0;
 }

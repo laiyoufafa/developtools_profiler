@@ -16,6 +16,6 @@
 import { Rect } from '../component/trace/timer-shaft/Rect.js';
 
 export class BaseStruct {
-    frame: Rect | undefined;
-    isHover: boolean = false;
+  frame: Rect | undefined;
+  isHover: boolean = false;
 }

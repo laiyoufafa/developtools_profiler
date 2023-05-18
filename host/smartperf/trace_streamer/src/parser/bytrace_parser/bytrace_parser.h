@@ -58,7 +58,7 @@ public:
 
 private:
     enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
-    int GetNextSegment();
+    int32_t GetNextSegment();
     void GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const;
 
     void FilterThread();
@@ -149,18 +149,18 @@ private:
     size_t parsedTraceInvalidLines_ = 0;
     size_t traceCommentLines_ = 0;
     std::mutex dataSegMux_;
-    int parseHead_ = 0;
+    int32_t parseHead_ = 0;
     std::atomic<bool> filterThreadStarted_{false};
     bool parseThreadStarted_ = false;
-    const int MAX_SEG_ARRAY_SIZE = 5000;
-    const int maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
-    int parserThreadCount_ = 0;
+    const int32_t MAX_SEG_ARRAY_SIZE = 5000;
+    const int32_t maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
+    int32_t parserThreadCount_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
     std::unique_ptr<DataSegment[]> dataSegArray_;
-    int rawDataHead_ = 0;
-    int filterHead_ = 0;
-    const int sleepDur_ = 100;
+    int32_t rawDataHead_ = 0;
+    int32_t filterHead_ = 0;
+    const int32_t sleepDur_ = 100;
     bool supportThread_ = false;
     bool isBytrace_ = true;
     bool traceBegan_ = false;

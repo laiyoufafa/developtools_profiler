@@ -17,46 +17,46 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-check-box')
 export class LitCheckBox extends BaseElement {
-    private checkbox: HTMLInputElement | undefined;
+  private checkbox: HTMLInputElement | undefined;
 
-    static get observedAttributes() {
-        return ['checked', 'value'];
+  static get observedAttributes() {
+    return ['checked', 'value'];
+  }
+
+  get indeterminate() {
+    return this.checkbox!.indeterminate;
+  }
+
+  set indeterminate(value) {
+    if (value === null || value === false) {
+      this.checkbox!.indeterminate = false;
+    } else {
+      this.checkbox!.indeterminate = true;
     }
+  }
 
-    get indeterminate() {
-        return this.checkbox!.indeterminate;
+  get checked() {
+    return this.getAttribute('checked') !== null;
+  }
+
+  set checked(value: boolean) {
+    if (value === null || !value) {
+      this.removeAttribute('checked');
+    } else {
+      this.setAttribute('checked', '');
     }
+  }
 
-    set indeterminate(value) {
-        if (value === null || value === false) {
-            this.checkbox!.indeterminate = false;
-        } else {
-            this.checkbox!.indeterminate = true;
-        }
-    }
+  get value() {
+    return this.getAttribute('value') || '';
+  }
 
-    get checked() {
-        return this.getAttribute('checked') !== null;
-    }
+  set value(value: string) {
+    this.setAttribute('value', value);
+  }
 
-    set checked(value: boolean) {
-        if (value === null || !value) {
-            this.removeAttribute('checked');
-        } else {
-            this.setAttribute('checked', '');
-        }
-    }
-
-    get value() {
-        return this.getAttribute('value') || '';
-    }
-
-    set value(value: string) {
-        this.setAttribute('value', value);
-    }
-
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
         <style>
         :host{ 
             display:flex;
@@ -136,34 +136,32 @@ export class LitCheckBox extends BaseElement {
           <slot id="slot"></slot>
        </label>
         `;
-    }
+  }
 
-    initElements(): void {
-        this.checkbox = this.shadowRoot?.getElementById(
-            'checkbox'
-        ) as HTMLInputElement;
-    }
+  initElements(): void {
+    this.checkbox = this.shadowRoot?.getElementById('checkbox') as HTMLInputElement;
+  }
 
-    connectedCallback() {
-        this.checkbox!.addEventListener('change', (ev) => {
-            this.checked = this.checkbox!.checked;
-            this.dispatchEvent(
-                new CustomEvent('change', {
-                    detail: {
-                        checked: this.checked,
-                    },
-                })
-            );
-        });
-    }
+  connectedCallback() {
+    this.checkbox!.addEventListener('change', (ev) => {
+      this.checked = this.checkbox!.checked;
+      this.dispatchEvent(
+        new CustomEvent('change', {
+          detail: {
+            checked: this.checked,
+          },
+        })
+      );
+    });
+  }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-        if (name == 'checked' && this.checkbox) {
-            this.checkbox.checked = newValue !== null;
-        }
-        if (name == 'value') {
-            let slot = this.shadowRoot?.getElementById('slot');
-            slot!.textContent = newValue;
-        }
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name == 'checked' && this.checkbox) {
+      this.checkbox.checked = newValue !== null;
     }
+    if (name == 'value') {
+      let slot = this.shadowRoot?.getElementById('slot');
+      slot!.textContent = newValue;
+    }
+  }
 }

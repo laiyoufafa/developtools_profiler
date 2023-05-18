@@ -32,11 +32,11 @@ public:
     static bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
     void EnableMetaTable(bool enabled);
     static void SetCleanMode(bool cleanMode);
-    int ExportDatabase(const std::string& outputName) const;
-    int SearchData();
-    int OperateDatabase(const std::string& sql);
-    int SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
-    int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
+    int32_t ExportDatabase(const std::string& outputName) const;
+    int32_t SearchData();
+    int32_t OperateDatabase(const std::string& sql);
+    int32_t SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
+    int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
     MetaData* GetMetaData();
     static void WaitForParserEnd();
     void Clear();
