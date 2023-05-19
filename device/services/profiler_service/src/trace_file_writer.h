@@ -63,6 +63,8 @@ private:
 
     void DeleteOldSplitFile();
 
+    bool FlushStream();
+
 private:
     std::string path_ {};
     std::string oldPath_ {};

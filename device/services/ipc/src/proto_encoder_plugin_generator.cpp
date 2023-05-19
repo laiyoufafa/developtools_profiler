@@ -26,7 +26,7 @@ class OptGeneratorImpl {
 public:
     explicit OptGeneratorImpl(const FileDescriptor* file) : fileContent_(file), printer_(nullptr) {}
 
-    std::string GetPrefix(const std::string& fileName)
+    static std::string GetPrefix(const std::string& fileName)
     {
         std::string prefix = "";
         for (size_t i = 0; i < fileName.length(); i++) {
@@ -55,7 +55,7 @@ public:
     }
 
     // Swap variable style. e.g: cpu_plugin_config to cpuPluginConfig
-    std::string SwapName(std::string& s)
+    static std::string SwapName(const std::string& s)
     {
         std::string ret = "";
         bool b = true;
@@ -73,7 +73,7 @@ public:
         return ret;
     }
 
-    std::string Tolowercase(const std::string& s)
+    static std::string Tolowercase(const std::string& s)
     {
         std::string str = s;
         std::transform(str.begin(), str.end(), str.begin(), [](char& c) {
@@ -298,7 +298,7 @@ public:
         }
     }
 
-    std::string GetParamType(const FieldDescriptor* field)
+    static std::string GetParamType(const FieldDescriptor* field)
     {
         switch (field->type()) {
             case FieldDescriptor::TYPE_BOOL:
@@ -333,7 +333,7 @@ public:
         return "";
     }
 
-    std::string GetInnerType(const FieldDescriptor* field, bool packed = false)
+    static std::string GetInnerType(const FieldDescriptor* field, bool packed = false)
     {
         switch (field->type()) {
             case FieldDescriptor::TYPE_BOOL:

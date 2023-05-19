@@ -742,8 +742,8 @@ bool FtraceParser::ParseFtraceEvent(FtraceEvent& ftraceEvent,
             ftraceEvent.set_tgid(tgid);
         } else {
             ParseSavedTgid(FtraceFsOps::GetInstance().GetSavedTgids());
-            if (auto it = tgidDict_.find(pid); it != tgidDict_.end()) {
-                tgid = it->second;
+            if (auto itm = tgidDict_.find(pid); itm != tgidDict_.end()) {
+                tgid = itm->second;
                 ftraceEvent.set_tgid(tgid);
             }
         }
