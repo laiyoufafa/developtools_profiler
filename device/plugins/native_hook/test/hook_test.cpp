@@ -96,7 +96,7 @@ void DepthFree(int depth, char *p)
     return (DepthFree(depth - 1, p));
 }
 
-void* thread_func_cpp(void* param)
+void* ThreadFuncCpp(void* param)
 {
     char *p = nullptr;
     long tid = syscall(SYS_gettid);
@@ -121,7 +121,7 @@ void* thread_func_cpp(void* param)
     return nullptr;
 }
 
-void* thread_func_cpp_hook(void* param)
+void* ThreadFuncCppHook(void* param)
 {
     char *p = nullptr;
     long tid = syscall(SYS_gettid);
@@ -167,47 +167,48 @@ void* thread_func_cpp_hook(void* param)
     return nullptr;
 }
 
-int ThreadTimeCost(int threadNum, int mallocTimes) {
+int ThreadTimeCost(int threadNum, int mallocTimes) 
+{
     Timer timer = {};
     if (threadNum <= 0) {
         printf("threadNum less than or equal to 0.\n");
         return 1;
     }
-    pthread_t* thr_array = new (std::nothrow) pthread_t[threadNum];
-    if (!thr_array) {
+    pthread_t* thrArray = new (std::nothrow) pthread_t[threadNum];
+    if (!thrArray) {
         printf("new thread array failed.\n");
         return 1;
     }
     int idx;
     for (idx = 0; idx < threadNum; ++idx) {
-        if (pthread_create(thr_array + idx, nullptr, thread_func_cpp, static_cast<void*>(&mallocTimes)) != 0) {
+        if (pthread_create(thrArray + idx, nullptr, ThreadFuncCpp, static_cast<void*>(&mallocTimes)) != 0) {
             printf("Creating thread failed.\n");
         }
     }
     for (idx = 0; idx < threadNum; ++idx) {
-        pthread_join(thr_array[idx], nullptr);
+        pthread_join(thrArray[idx], nullptr);
     }
-    delete []thr_array;
+    delete []thrArray;
     auto timeCost = timer.ElapsedUs();
     printf("Before hook, time cost %ldus.\nAfter hook test sleeping 200 ......., please send signal\n", timeCost);
     sleep(SLEEP_TIME);
     printf("Hook test start\n");
     Timer hooktimer = {};
-    pthread_t* thr_array_hook = new (std::nothrow) pthread_t[threadNum];
-    if (!thr_array_hook) {
+    pthread_t* thrArrayHook = new (std::nothrow) pthread_t[threadNum];
+    if (!thrArrayHook) {
         printf("new thread lock array failed.\n");
         return 1;
     }
     for (idx = 0; idx < threadNum; ++idx) {
-        if (pthread_create(thr_array_hook + idx, nullptr, thread_func_cpp_hook, static_cast<void*>(&mallocTimes)) !=
+        if (pthread_create(thrArrayHook + idx, nullptr, ThreadFuncCppHook, static_cast<void*>(&mallocTimes)) !=
             0) {
             printf("Creating thread failed.\n");
         }
     }
     for (idx = 0; idx < threadNum; ++idx) {
-        pthread_join(thr_array_hook[idx], nullptr);
+        pthread_join(thrArrayHook[idx], nullptr);
     }
-    delete []thr_array_hook;
+    delete []thrArrayHook;
     auto hookCost = hooktimer.ElapsedUs();
     printf("After hook, time cost %ldus.\nPerformance test finish!", hookCost);
     return 0;

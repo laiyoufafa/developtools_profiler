@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef __runtime_stack_range_h__
-#define __runtime_stack_range_h__
+#ifndef __RUNTIME_STACK_RANGE_H__
+#define __RUNTIME_STACK_RANGE_H__
 
 #include <pthread.h>
 
@@ -32,4 +32,4 @@ void GetMainThreadRuntimeStackRange(void);
 }
 #endif
 
-#endif  /* __runtime_stack_range_h__ */
+#endif  /* __RUNTIME_STACK_RANGE_H__ */

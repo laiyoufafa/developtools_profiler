@@ -55,7 +55,7 @@ static int g_runing = 1;
 static int g_threadNum = 1;
 static int g_mallocSize = 1;
 static char* g_fileName = "./mmapTest";
-static unsigned int g_hook_flag = 0;
+static unsigned int g_hookFlag = 0;
 
 char* DepthMalloc(int depth, int mallocSize)
 {
@@ -314,13 +314,13 @@ char* MmapReadFile(char* pMap, int length)
 
 static void RandSrand(void)
 {
-    srand((unsigned)time(NULL));
+    (void)srand((unsigned)time(NULL));
 }
 
 // 10 ~ 4096
-int RandInt(int Max, int Min)
+int RandInt(int maxVal, int minVal)
 {
-    int value = (rand() % (Max - Min)) + Min;
+    int value = (rand() % (maxVal - minVal)) + minVal;
     return value;
 }
 
@@ -353,7 +353,7 @@ char* RandString(int maxLength)
 }
 
 // 初始化函数
-void mmapInit(void)
+void MmapInit(void)
 {
     // 设置随机种子
     RandSrand();
@@ -406,7 +406,7 @@ void* ThreadMmap(void* param)
 }
 
 // 维护hook test类型管理
-int bitMapNum(unsigned int data)
+int BitMapNum(unsigned int data)
 {
     unsigned int tmp = data;
     int num = 0;
@@ -430,14 +430,14 @@ int CommandParse(int argc, char** argv)
                 // hook test的类型
                 if (!strcmp("mmap", optarg)) {
                     printf("Type: %s \n", optarg);
-                    g_hook_flag |= MMAP_FLAG;
+                    g_hookFlag |= MMAP_FLAG;
                 } else if (!strcmp("alloc", optarg)) {
                     printf("Type: %s \n", optarg);
-                    g_hook_flag |= ALLOC_FLAG;
+                    g_hookFlag |= ALLOC_FLAG;
                 } else if (!strcmp("all", optarg)) {
                     printf("Type: %s \n", optarg);
-                    g_hook_flag |= ALLOC_FLAG;
-                    g_hook_flag |= MMAP_FLAG;
+                    g_hookFlag |= ALLOC_FLAG;
+                    g_hookFlag |= MMAP_FLAG;
                 }
                 break;
             case 's':
@@ -477,11 +477,11 @@ int main(int argc, char* argv[])
     if (ret == -1) {
         return 0;
     }
-    int typeNum = bitMapNum(g_hook_flag);
-    printf(" g_hook_flag =  [%x] \n", g_hook_flag);
+    int typeNum = BitMapNum(g_hookFlag);
+    printf(" g_hookFlag =  [%x] \n", g_hookFlag);
     if (typeNum == 0) {
         // 未设置type时默认启动alloc
-        g_hook_flag |= ALLOC_FLAG;
+        g_hookFlag |= ALLOC_FLAG;
         typeNum++;
     }
 
@@ -491,7 +491,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     int type = 0;
-    if (g_hook_flag & ALLOC_FLAG) {
+    if (g_hookFlag & ALLOC_FLAG) {
         int threadNum = g_threadNum;
         int mallocSize = g_mallocSize;
 
@@ -517,10 +517,10 @@ int main(int argc, char* argv[])
         type++;
     }
 
-    if (g_hook_flag & MMAP_FLAG) {
+    if (g_hookFlag & MMAP_FLAG) {
         int threadNum = g_threadNum;
         // 初始化
-        mmapInit();
+        MmapInit();
 
         thrArrayList[type] = (pthread_t*)malloc(sizeof(pthread_t) * threadNum);
         if (thrArrayList[type] == NULL) {
