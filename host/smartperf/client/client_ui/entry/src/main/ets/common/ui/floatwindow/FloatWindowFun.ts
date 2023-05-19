@@ -31,7 +31,7 @@ export class FloatWindowFun {
     static initAllFun() {
         globalThis.CreateFloatingWindow = (() => {
             //5.5SP2  2106 改成 8
-            wm.create(globalThis.abilityContext, 'sp_floatingWindow', window.WindowType_TYPE_FLOAT).then((floatWin) => {
+      wm.create(globalThis.abilityContext, 'sp_floatingWindow', window.WindowType_TYPE_FLOAT).then((floatWin) => {
                 floatWin.moveTo(this.floatingWindowOffsetX, this.floatingWindowOffsetY).then(() => {
                     floatWin.resetSize(this.atWidth*globalThis.coefficient, this.atWidth*globalThis.coefficient).then(() => {
                         floatWin.getProperties().then((property) => {
@@ -71,7 +71,7 @@ export class FloatWindowFun {
         })
 
         globalThis.CreateTitleWindow = (() => {
-            wm.create(globalThis.abilityContext, 'sp_TitleWindow', window.WindowType_TYPE_FLOAT).then((floatWin) => {
+      wm.create(globalThis.abilityContext, 'sp_TitleWindow', window.WindowType_TYPE_FLOAT).then((floatWin) => {
                 floatWin.moveTo(this.titleWindowOffsetX, this.titleWindowOffsetY).then(() => {
                     floatWin.resetSize(350*globalThis.coefficient, 480*globalThis.coefficient).then(() => {
                         floatWin.getProperties().then((property) => {

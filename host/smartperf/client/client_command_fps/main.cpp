@@ -142,7 +142,7 @@ static void ProcessResult(FILE *fp, FpsConfig &fpsConfig, FpsInfo &fpsInfo)
         if (frameReadyTime == 0) {
             fpsConfig.zeroNum++;
             continue;
-        }    
+        }
         if (fpsConfig.lastReadyTime >= frameReadyTime) {
             fpsConfig.lastReadyTime = -1;
             continue;
@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
             }
             FpsConfig fpsConfig;
             FpsConfig fpsUniteConfig;
-            gfpsInfo = GetSurfaceFrame(layerName, fpsConfig);        
+            gfpsInfo = GetSurfaceFrame(layerName, fpsConfig);
             gfpsUniteInfo = GetSurfaceFrame(uniteLayer, fpsUniteConfig);
             if (gfpsUniteInfo.fps > gfpsInfo.fps)
             {
