@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-window.ResizeObserver =
-  window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-  }));
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 
 jest.mock('../../../dist/trace/component/trace/TimerShaftElement.js', () => {
   return {};
@@ -142,12 +141,12 @@ describe('SpRecyclerSystemTrace Test', () => {
         }
 
         </style>
-        <div class=\\"container\\">
-            <timer-shaft-element class=\\"timer-shaft\\">
+        <div class="container">
+            <timer-shaft-element class="timer-shaft">
             </timer-shaft-element>
-            <trace-row-recycler-view class=\\"rows\\">
+            <trace-row-recycler-view class="rows">
             </trace-row-recycler-view>
-            <trace-sheet class=\\"trace-sheet\\" mode=\\"hidden\\">
+            <trace-sheet class="trace-sheet" mode="hidden">
             </trace-sheet>
         </div>
         "

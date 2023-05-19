@@ -100,7 +100,7 @@ describe('LitSlider Test', () => {
         /*
          * Disable sliding
          */
-        :host([disabled]) input[type=\\"range\\"]{
+        :host([disabled]) input[type="range"]{
             pointer-events:none;
         }
         /*
@@ -129,7 +129,7 @@ describe('LitSlider Test', () => {
         /*
          * Slider basic style
          */
-        input[type=\\"range\\"]{
+        input[type="range"]{
             pointer-events:all;
             margin:0 -5px;
             width: 100%;
@@ -144,7 +144,7 @@ describe('LitSlider Test', () => {
         /*
          * Slider-line slidedAble area component
          */
-        input[type=\\"range\\"]::-webkit-slider-runnable-track{
+        input[type="range"]::-webkit-slider-runnable-track{
             display: flex;
             align-items: center;
             position: relative;
@@ -155,7 +155,7 @@ describe('LitSlider Test', () => {
          /*
          * Slider slider component
          */
-        input[type=\\"range\\"]::-webkit-slider-thumb{
+        input[type="range"]::-webkit-slider-thumb{
             -webkit-appearance: none;
             position: relative;
             width:20px;
@@ -166,7 +166,7 @@ describe('LitSlider Test', () => {
             transition:0.2s cubic-bezier(.12, .4, .29, 1.46);
         }
         
-        input[type=\\"range\\"]:focus{
+        input[type="range"]:focus{
             z-index:2;
         }
 
@@ -175,9 +175,9 @@ describe('LitSlider Test', () => {
         }
         
         </style>
-        <slot id=\\"slot\\"></slot>
-        <div id='slider-con' dir=\\"right\\">
-            <input id=\\"slider\\" type=\\"range\\" max=\\"10000000\\">
+        <slot id="slot"></slot>
+        <div id='slider-con' dir="right">
+            <input id="slider" type="range" max="10000000">
         </div>
         "
 `);

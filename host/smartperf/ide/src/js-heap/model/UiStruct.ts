@@ -42,6 +42,7 @@ export class ConstructorItem {
   hasNext = true;
   status = true;
   isSelected: boolean = false;
+  objectName = '';
 
   edgeCount = 0;
   edgeType!: EdgeType;

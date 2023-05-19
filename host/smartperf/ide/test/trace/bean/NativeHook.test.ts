@@ -46,22 +46,20 @@ describe('NativeHook Test', () => {
     };
     expect(nativeHookStatistics).not.toBeUndefined();
     expect(nativeHookStatistics).toMatchInlineSnapshot(
-      {
-        eventId: expect.any(Number),
-        eventType: expect.any(String),
-        subType: expect.any(String),
-        heapSize: expect.any(Number),
-        addr: expect.any(String),
-        startTs: expect.any(Number),
-        endTs: expect.any(Number),
-        sumHeapSize: expect.any(Number),
-        max: expect.any(Number),
-        count: expect.any(Number),
-        tid: expect.any(Number),
-        isSelected: expect.any(Boolean),
-      },
-      `
-Object {
+{
+  eventId: expect.any(Number),
+  eventType: expect.any(String),
+  subType: expect.any(String),
+  heapSize: expect.any(Number),
+  addr: expect.any(String),
+  startTs: expect.any(Number),
+  endTs: expect.any(Number),
+  sumHeapSize: expect.any(Number),
+  max: expect.any(Number),
+  count: expect.any(Number),
+  tid: expect.any(Number),
+  isSelected: expect.any(Boolean) }, `
+{
   "addr": Any<String>,
   "count": Any<Number>,
   "endTs": Any<Number>,
@@ -75,8 +73,7 @@ Object {
   "sumHeapSize": Any<Number>,
   "tid": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('NativeEventHeapTest02', function () {
@@ -92,17 +89,15 @@ Object {
     };
     expect(nativeHookMalloc).not.toBeUndefined();
     expect(nativeHookMalloc).toMatchInlineSnapshot(
-      {
-        eventType: expect.any(String),
-        subType: expect.any(String),
-        heapSize: expect.any(Number),
-        allocByte: expect.any(Number),
-        allocCount: expect.any(Number),
-        freeByte: expect.any(Number),
-        freeCount: expect.any(Number),
-      },
-      `
-Object {
+{
+  eventType: expect.any(String),
+  subType: expect.any(String),
+  heapSize: expect.any(Number),
+  allocByte: expect.any(Number),
+  allocCount: expect.any(Number),
+  freeByte: expect.any(Number),
+  freeCount: expect.any(Number) }, `
+{
   "allocByte": Any<Number>,
   "allocCount": Any<Number>,
   "eventType": Any<String>,
@@ -111,8 +106,7 @@ Object {
   "heapSize": Any<Number>,
   "subType": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('NativeEventHeapTest03', function () {
@@ -123,17 +117,14 @@ Object {
     };
     expect(nativeEventHeap).not.toBeUndefined();
     expect(nativeEventHeap).toMatchInlineSnapshot(
-      {
-        eventType: expect.any(String),
-        sumHeapSize: expect.any(Number),
-      },
-      `
-Object {
+{
+  eventType: expect.any(String),
+  sumHeapSize: expect.any(Number) }, `
+{
   "eventType": Any<String>,
   "sumHeapSize": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('NativeHookProcessTest04', function () {
@@ -145,19 +136,16 @@ Object {
     };
     expect(nativeHookProcess).not.toBeUndefined();
     expect(nativeHookProcess).toMatchInlineSnapshot(
-      {
-        ipid: expect.any(Number),
-        pid: expect.any(Number),
-        name: expect.any(String),
-      },
-      `
-Object {
+{
+  ipid: expect.any(Number),
+  pid: expect.any(Number),
+  name: expect.any(String) }, `
+{
   "ipid": Any<Number>,
   "name": Any<String>,
   "pid": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('NativeHookStatisticsTableDataTest05', function () {
@@ -176,20 +164,18 @@ Object {
     };
     expect(nativeHookStatisticsTableData).not.toBeUndefined();
     expect(nativeHookStatisticsTableData).toMatchInlineSnapshot(
-      {
-        memoryTap: expect.any(String),
-        existing: expect.any(Number),
-        existingString: expect.any(String),
-        allocCount: expect.any(Number),
-        freeCount: expect.any(Number),
-        totalBytes: expect.any(Number),
-        totalBytesString: expect.any(String),
-        maxStr: expect.any(String),
-        max: expect.any(Number),
-        totalCount: expect.any(Number),
-      },
-      `
-Object {
+{
+  memoryTap: expect.any(String),
+  existing: expect.any(Number),
+  existingString: expect.any(String),
+  allocCount: expect.any(Number),
+  freeCount: expect.any(Number),
+  totalBytes: expect.any(Number),
+  totalBytesString: expect.any(String),
+  maxStr: expect.any(String),
+  max: expect.any(Number),
+  totalCount: expect.any(Number) }, `
+{
   "allocCount": Any<Number>,
   "existing": Any<Number>,
   "existingString": Any<String>,
@@ -201,8 +187,7 @@ Object {
   "totalBytesString": Any<String>,
   "totalCount": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('NativeMemoryTest06', function () {
@@ -223,22 +208,20 @@ Object {
     };
     expect(nativeMemory).not.toBeUndefined();
     expect(nativeMemory).toMatchInlineSnapshot(
-      {
-        index: expect.any(Number),
-        eventId: expect.any(Number),
-        eventType: expect.any(String),
-        subType: expect.any(String),
-        addr: expect.any(String),
-        startTs: expect.any(Number),
-        timestamp: expect.any(String),
-        heapSize: expect.any(Number),
-        heapSizeUnit: expect.any(String),
-        symbol: expect.any(String),
-        library: expect.any(String),
-        isSelected: expect.any(Boolean),
-      },
-      `
-Object {
+{
+  index: expect.any(Number),
+  eventId: expect.any(Number),
+  eventType: expect.any(String),
+  subType: expect.any(String),
+  addr: expect.any(String),
+  startTs: expect.any(Number),
+  timestamp: expect.any(String),
+  heapSize: expect.any(Number),
+  heapSizeUnit: expect.any(String),
+  symbol: expect.any(String),
+  library: expect.any(String),
+  isSelected: expect.any(Boolean) }, `
+{
   "addr": Any<String>,
   "eventId": Any<Number>,
   "eventType": Any<String>,
@@ -252,8 +235,7 @@ Object {
   "symbol": Any<String>,
   "timestamp": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('NativeHookCallInfoTest07', function () {
@@ -273,21 +255,19 @@ Object {
     };
     expect(nativeHookSamplerInfo).not.toBeUndefined();
     expect(nativeHookSamplerInfo).toMatchInlineSnapshot(
-      {
-        current: expect.any(String),
-        currentSize: expect.any(Number),
-        startTs: expect.any(Number),
-        heapSize: expect.any(Number),
-        snapshot: expect.any(String),
-        growth: expect.any(String),
-        total: expect.any(Number),
-        totalGrowth: expect.any(String),
-        existing: expect.any(Number),
-        timestamp: expect.any(String),
-        eventId: expect.any(Number),
-      },
-      `
-Object {
+{
+  current: expect.any(String),
+  currentSize: expect.any(Number),
+  startTs: expect.any(Number),
+  heapSize: expect.any(Number),
+  snapshot: expect.any(String),
+  growth: expect.any(String),
+  total: expect.any(Number),
+  totalGrowth: expect.any(String),
+  existing: expect.any(Number),
+  timestamp: expect.any(String),
+  eventId: expect.any(Number) }, `
+{
   "current": Any<String>,
   "currentSize": Any<Number>,
   "eventId": Any<Number>,
@@ -300,8 +280,7 @@ Object {
   "total": Any<Number>,
   "totalGrowth": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('NativeHookCallInfoTest08', function () {
@@ -321,20 +300,18 @@ Object {
 
     expect(nativeHookSampleQueryInfo).not.toBeUndefined();
     expect(nativeHookSampleQueryInfo).toMatchInlineSnapshot(
-      {
-        eventId: expect.any(Number),
-        current: expect.any(Number),
-        eventType: expect.any(String),
-        subType: expect.any(String),
-        growth: expect.any(Number),
-        existing: expect.any(Number),
-        addr: expect.any(String),
-        startTs: expect.any(Number),
-        endTs: expect.any(Number),
-        total: expect.any(Number),
-      },
-      `
-Object {
+{
+  eventId: expect.any(Number),
+  current: expect.any(Number),
+  eventType: expect.any(String),
+  subType: expect.any(String),
+  growth: expect.any(Number),
+  existing: expect.any(Number),
+  addr: expect.any(String),
+  startTs: expect.any(Number),
+  endTs: expect.any(Number),
+  total: expect.any(Number) }, `
+{
   "addr": Any<String>,
   "current": Any<Number>,
   "endTs": Any<Number>,
@@ -346,8 +323,7 @@ Object {
   "subType": Any<String>,
   "total": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('NativeHookCallInfoTest09', function () {
@@ -367,21 +343,19 @@ Object {
     };
     expect(nativeHookCallInfo).not.toBeUndefined();
     expect(nativeHookCallInfo).toMatchInlineSnapshot(
-      {
-        id: expect.any(String),
-        pid: expect.any(String),
-        library: expect.any(String),
-        title: expect.any(String),
-        count: expect.any(Number),
-        type: expect.any(Number),
-        heapSize: expect.any(Number),
-        heapSizeStr: expect.any(String),
-        eventId: expect.any(Number),
-        threadId: expect.any(Number),
-        isSelected: expect.any(Boolean),
-      },
-      `
-Object {
+{
+  id: expect.any(String),
+  pid: expect.any(String),
+  library: expect.any(String),
+  title: expect.any(String),
+  count: expect.any(Number),
+  type: expect.any(Number),
+  heapSize: expect.any(Number),
+  heapSizeStr: expect.any(String),
+  eventId: expect.any(Number),
+  threadId: expect.any(Number),
+  isSelected: expect.any(Boolean) }, `
+{
   "count": Any<Number>,
   "eventId": Any<Number>,
   "heapSize": Any<Number>,
@@ -394,8 +368,7 @@ Object {
   "title": Any<String>,
   "type": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('NativeHookCallInfoTest10', function () {
@@ -412,18 +385,15 @@ Object {
     };
     expect(nativeEvent).not.toBeUndefined();
     expect(nativeEvent).toMatchInlineSnapshot(
-      {
-        startTime: expect.any(Number),
-        heapSize: expect.any(Number),
-        eventType: expect.any(String),
-      },
-      `
-Object {
+{
+  startTime: expect.any(Number),
+  heapSize: expect.any(Number),
+  eventType: expect.any(String) }, `
+{
   "eventType": Any<String>,
   "heapSize": Any<Number>,
   "startTime": Any<Number>,
 }
-`
-    );
+`);
   });
 });

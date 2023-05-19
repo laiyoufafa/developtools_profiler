@@ -79,9 +79,9 @@ int32_t SDKDataParser::ParserClock(const uint8_t* data, int32_t len)
 }
 
 int32_t SDKDataParser::SetTableName(const char* counterTableName,
-                                              const char* counterObjectTableName,
-                                              const char* sliceTableName,
-                                              const char* sliceObjectName)
+                                    const char* counterObjectTableName,
+                                    const char* sliceTableName,
+                                    const char* sliceObjectName)
 {
     if (!g_isUseExternalModify) {
         counterTableName_ = counterTableName;
@@ -110,7 +110,7 @@ int32_t SDKDataParser::UpdateJson()
     return 0;
 }
 
-// 创建对应的表
+// create a corresponding table
 int32_t SDKDataParser::CreateTableByJson()
 {
 #ifdef USE_VTABLE
@@ -118,7 +118,7 @@ int32_t SDKDataParser::CreateTableByJson()
 #else
     TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "_meta");
 #endif
-    // 创建对应的表
+    // create a corresponding table
     CreateCounterObjectTable(counterObjectTableName_);
     CreateCounterTable(counterTableName_);
     CreateSliceObjectTable(sliceObjectName_);
@@ -126,7 +126,7 @@ int32_t SDKDataParser::CreateTableByJson()
     return 0;
 }
 
-// 根据Json配置创建couter object表
+// create a couter object table based on the JSON configuration
 int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
@@ -137,7 +137,7 @@ int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
     return 0;
 }
 
-// 根据Json配置创建couter表
+// Create a couter table based on the JSON configuration
 int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
@@ -148,7 +148,7 @@ int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
     return 0;
 }
 
-// 根据Json配置创建slice object表
+// Create a slice object table based on the JSON configuration
 int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
@@ -159,7 +159,7 @@ int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
     return 0;
 }
 
-// 根据Json配置创建slice表
+// Create a slice table based on the JSON configuration
 int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
 {
 #ifdef USE_VTABLE
@@ -170,7 +170,7 @@ int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
     return 0;
 }
 
-// Counter业务
+// Counter business
 int32_t SDKDataParser::AppendCounterObject(int32_t counterId, const char* columnName)
 {
     traceDataCache_->GetGpuCounterObjectData()->AppendNewData(counterId, columnName);
@@ -185,14 +185,19 @@ int32_t SDKDataParser::AppendCounter(int32_t counterId, uint64_t ts, double valu
     return 0;
 }
 
-// Slice业务
+// Slice business
 int32_t SDKDataParser::AppendSliceObject(int32_t sliceId, const char* columnName)
 {
     traceDataCache_->GetSliceObjectData()->AppendNewData(sliceId, columnName);
     return 0;
 }
 
-int32_t SDKDataParser::AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, std::string start_time, std::string end_time, double value)
+int32_t SDKDataParser::AppendSlice(int32_t sliceId,
+                                   uint64_t ts,
+                                   uint64_t endTs,
+                                   std::string start_time,
+                                   std::string end_time,
+                                   double value)
 {
     auto newTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     auto newEndTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, endTs);

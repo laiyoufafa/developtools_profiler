@@ -30,7 +30,6 @@ declare_args() {
   use_wasm = false
   use_wasmpb = false
   is_test = false
-  is_testpb = false
   is_sdkdemo = false
   is_dubai_sdk = false
   is_sdkdemo_test = false
@@ -64,7 +63,6 @@ if (target == "wasm") {
   testonly = true
 } else if (target == "testpb") {
   is_test = true
-  is_testpb = true
   testonly = true
   is_pbdecoder = true
 } else if (target == "fuzz") {

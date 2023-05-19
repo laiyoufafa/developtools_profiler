@@ -30,7 +30,6 @@ public:
     ~EbpfDataParser();
     void InitAndParseEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
     void Finish();
-    bool EBPFReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables);
     bool SupportImportSymbolTable()
     {
         return reader_ ? true : false;

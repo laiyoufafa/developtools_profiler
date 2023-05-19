@@ -128,7 +128,6 @@ export class DiskIoAbilityRender extends Render {
       req.context.fillStyle = '#333';
       req.context.textBaseline = 'middle';
       req.context.fillText(maxDiskRateName, 4, 5 + 9);
-      drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
       drawFlagLine(
         req.context,
         req.flagMoveInfo,

@@ -20,15 +20,15 @@ export class AllocationLogic {
   private fileStruct: FileStruct;
   private traceNodes: Array<AllocationFunction>;
   private bottomUpList: Array<AllocationFunction>;
-  private static instance: AllocationLogic;
 
   constructor(fileStruct: FileStruct) {
     this.fileStruct = fileStruct;
     this.bottomUpList = [];
     this.traceNodes = this.fileStruct.snapshotStruct.traceNodes;
+    this.init();
   }
 
-  public init() {
+  private init() {
     this.setBottomUpTree();
   }
 

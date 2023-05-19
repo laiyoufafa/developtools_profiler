@@ -19,16 +19,21 @@
 #include <string>
 namespace SysTuning {
 namespace TraceStreamer {
-extern "C" {    
+extern "C" {
 extern bool g_isUseExternalModify;
 int32_t SDK_SetTableName(const char* counterTableName,
-                     const char* counterObjectTableName,
-                     const char* sliceTableName,
-                     const char* sliceObjectName);
+                         const char* counterObjectTableName,
+                         const char* sliceTableName,
+                         const char* sliceObjectName);
 int32_t SDK_AppendCounterObject(int32_t counterId, const char* columnName);
 int32_t SDK_AppendCounter(int32_t counterId, uint64_t ts, double value);
 int32_t SDK_AppendSliceObject(int32_t sliceId, const char* columnName);
-int32_t SDK_AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, std::string start_time, std::string end_time, double value);
+int32_t SDK_AppendSlice(int32_t sliceId,
+                        uint64_t ts,
+                        uint64_t endTs,
+                        std::string start_time,
+                        std::string end_time,
+                        double value);
 void SetRpcServer(RpcServer* rpcServer);
 }
 } // namespace TraceStreamer

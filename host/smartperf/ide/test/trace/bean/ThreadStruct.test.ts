@@ -87,7 +87,7 @@ describe('ThreadStruct Test', () => {
   });
 
   it('ThreadStructTest10', function () {
-    dataSource.state = 'ThreadStructTest10';
-    expect(ThreadStruct.getEndState(1)).toBe('');
+      dataSource.state = 'ThreadStructTest10';
+      expect(ThreadStruct.getEndState(1)).toBe('Unknown State');
   });
 });

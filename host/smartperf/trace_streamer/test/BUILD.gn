@@ -29,6 +29,7 @@ if (is_test) {
           "unittest/ebpf_parser_test.cpp",
           "unittest/event_parser_test.cpp",
           "unittest/filter_filter_test.cpp",
+          "unittest/frame_filter_test.cpp",
           "unittest/hidump_parser_test.cpp",
           "unittest/hilog_parser_test.cpp",
           "unittest/hisys_event_parser_test.cpp",

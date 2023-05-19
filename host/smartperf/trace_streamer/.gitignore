@@ -12,3 +12,7 @@ third_party
 .idea
 tools
 tmp
+out.perf
+perf.data
+out.floded
+./.db

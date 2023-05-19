@@ -67,7 +67,12 @@ const std::deque<std::string>& SliceObject::SliceName() const
 {
     return sliceName_;
 }
-void SliceData::AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs, std::string start_time, std::string end_time, double value)
+void SliceData::AppendNewData(int32_t sliceId,
+                              uint64_t startTs,
+                              uint64_t endTs,
+                              std::string start_time,
+                              std::string end_time,
+                              double value)
 {
     startTs_.emplace_back(startTs);
     endTs_.emplace_back(endTs);

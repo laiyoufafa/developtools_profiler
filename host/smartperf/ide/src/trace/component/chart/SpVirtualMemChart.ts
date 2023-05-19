@@ -112,6 +112,6 @@ export class SpVirtualMemChart {
       );
       row.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(row);
+    folder.addChildTraceRow(row);
   }
 }

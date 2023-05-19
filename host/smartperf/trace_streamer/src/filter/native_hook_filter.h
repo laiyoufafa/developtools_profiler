@@ -61,7 +61,7 @@ public:
     NativeHookFilter(TraceDataCache*, const TraceStreamerFilters*);
     NativeHookFilter(const NativeHookFilter&) = delete;
     NativeHookFilter& operator=(const NativeHookFilter&) = delete;
-    ~NativeHookFilter() override;
+    ~NativeHookFilter() = default;
 
 public:
     void MaybeParseNativeHookMainEvent(uint64_t timeStamp, std::unique_ptr<NativeHookMetaData> nativeHookMetaData);
@@ -74,7 +74,7 @@ public:
     void ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
     void ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
     void FinishParseNativeHookData();
-    bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables);
+    bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables);
     bool SupportImportSymbolTable()
     {
         return isOfflineSymbolizationMode_;
@@ -93,17 +93,23 @@ private:
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
-    void UpdateSymbolIdByOffline();
+    void UpdateSymbolIdsForSymbolizationFailed();
     void ParseFramesInOfflineSymbolizationMode();
     void ParseFramesInCallStackCompressedMode();
     void ParseFramesWithOutCallStackCompressedMode();
     void ParseSymbolizedNativeHookFrame();
+    bool GetIpsWitchNeedResymbolization(DataIndex filePathId, std::set<uint64_t>& ips);
     template <class T>
-    void AddSymbolsToTable(T* firstSymbolAddr, const int size, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
+    void UpdateSymbolTablePtrAndStValueToSymAddrMap(T* firstSymbolAddr,
+                                                    const int size,
+                                                    std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     void ReparseStacksWithDifferentMeans();
     void CompressStackAndFrames(ProtoReader::RepeatedDataAreaIterator<ProtoReader::BytesView> frames);
     std::tuple<uint64_t, uint64_t> GetNeedUpdateProcessMapsAddrRange(uint64_t startAddr, uint64_t endAddr);
     std::unique_ptr<NativeHookFrameInfo> ParseFrame(const ProtoReader::DataArea& frame);
+    template <class T>
+    void UpdateFilePathIdAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathId);
+    void UpdateResymbolizationResult(const std::set<uint64_t>& ips);
 
 private:
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};

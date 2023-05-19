@@ -78,6 +78,5 @@ void EbpfDataParser::Finish()
         TS_LOGI("EBPF data time is not updated, maybe this trace file has other data");
     }
 }
-bool EbpfDataParser::EBPFReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables) {}
 } // namespace TraceStreamer
 } // namespace SysTuning

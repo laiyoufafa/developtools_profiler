@@ -96,11 +96,11 @@ describe('TabPaneFlag Test', () => {
             cursor: pointer;
             outline: inherit;
         </style>
-        <div class=\\"notes-editor-panel\\">
-            <div class=\\"flag-text\\">Annotation at <span id=\\"flag-time\\"></span></div>
-            <input style=\\"flex: 1\\" class=\\"flag-input\\" type=\\"text\\" id=\\"text-input\\"/>
-            <span class=\\"flag-text\\">Change color: <input style=\\"background: var(--dark-background5,#FFFFFF);\\" type=\\"color\\" id=\\"color-input\\"/></span>
-            <button id=\\"remove-flag\\">Remove</button>
+        <div class="notes-editor-panel">
+            <div class="flag-text">Annotation at <span id="flag-time"></span></div>
+            <input style="flex: 1" class="flag-input" type="text" id="text-input"/>
+            <span class="flag-text">Change color: <input style="background: var(--dark-background5,#FFFFFF);" type="color" id="color-input"/></span>
+            <button id="remove-flag">Remove</button>
         </div>
         "
 `);

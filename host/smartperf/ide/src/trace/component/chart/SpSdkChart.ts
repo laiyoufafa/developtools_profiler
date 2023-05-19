@@ -275,7 +275,7 @@ export class SpSdkChart {
       );
       traceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(traceRow);
+    nodeRow.addChildTraceRow(traceRow);
   };
 
   private initNodeRow = (index: number, name: string) => {
@@ -393,6 +393,6 @@ export class SpSdkChart {
       );
       traceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(traceRow);
+    nodeRow.addChildTraceRow(traceRow);
   };
 }

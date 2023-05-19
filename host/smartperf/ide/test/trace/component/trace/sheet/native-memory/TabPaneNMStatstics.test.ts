@@ -82,17 +82,17 @@ describe('TabPaneNMStatstics Test', () => {
     padding: 10px 10px;
 }
 </style>
-<lit-table id=\\"tb-native-statstics\\" style=\\"height: auto\\">
-    <lit-table-column width=\\"25%\\" title=\\"Memory Type\\" data-index=\\"memoryTap\\" key=\\"memoryTap\\"  align=\\"flex-start\\"></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"Existing\\" data-index=\\"existingString\\" key=\\"existingString\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"# Existing\\" data-index=\\"allocCount\\" key=\\"allocCount\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"Transient\\" data-index=\\"freeByteString\\" key=\\"freeByteString\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"# Transient\\" data-index=\\"freeCount\\" key=\\"freeCount\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"Total Bytes\\" data-index=\\"totalBytesString\\" key=\\"totalBytesString\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"# Total\\" data-index=\\"totalCount\\" key=\\"totalCount\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"1fr\\" title=\\"Peak Value\\" data-index=\\"maxStr\\" key=\\"maxStr\\"  align=\\"flex-start\\" order></lit-table-column>
-    <lit-table-column width=\\"160px\\" title=\\"Existing / Total\\" data-index=\\"existingValue\\" key=\\"existingValue\\"  align=\\"flex-start\\" >
-        <template><tab-progress-bar data=\\"{{existingValue}}\\"></tab-progress-bar></template>
+<lit-table id="tb-native-statstics" style="height: auto">
+    <lit-table-column width="25%" title="Memory Type" data-index="memoryTap" key="memoryTap"  align="flex-start"></lit-table-column>
+    <lit-table-column width="1fr" title="Existing" data-index="existingString" key="existingString"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="1fr" title="# Existing" data-index="allocCount" key="allocCount"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="1fr" title="Transient" data-index="freeByteString" key="freeByteString"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="1fr" title="# Transient" data-index="freeCount" key="freeCount"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="1fr" title="Total Bytes" data-index="totalBytesString" key="totalBytesString"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="1fr" title="# Total" data-index="totalCount" key="totalCount"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="1fr" title="Peak Value" data-index="maxStr" key="maxStr"  align="flex-start" order></lit-table-column>
+    <lit-table-column width="160px" title="Existing / Total" data-index="existingValue" key="existingValue"  align="flex-start" >
+        <template><tab-progress-bar data="{{existingValue}}"></tab-progress-bar></template>
     </lit-table-column>
 </lit-table>
         "

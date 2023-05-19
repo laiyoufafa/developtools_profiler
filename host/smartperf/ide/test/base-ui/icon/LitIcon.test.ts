@@ -88,8 +88,8 @@ describe('testLitIcon Test', () => {
                     overflow: hidden;
                  }
             </style>
-            <svg class=\\"icon\\" id=\\"icon\\" aria-hidden=\\"true\\" viewBox=\\"0 0 1024 1024\\">
-                 <use id=\\"use\\"></use>
+            <svg class="icon" id="icon" aria-hidden="true" viewBox="0 0 1024 1024">
+                 <use id="use"></use>
             </svg>
             "
 `);

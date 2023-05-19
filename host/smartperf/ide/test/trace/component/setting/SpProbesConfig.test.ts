@@ -146,26 +146,26 @@ describe('SpProbesConfig Test', () => {
            margin-left: 15px;;
         }
         </style>
-        <div class=\\"root\\">
-            <div class=\\"recordText\\" >Record mode</div>
-            <div class=\\"config-page\\">
+        <div class="root">
+            <div class="recordText" >Record mode</div>
+            <div class="config-page">
                 <div>
-                    <div class=\\"trace-config\\"></div>
-                    <div class=\\"span-col-2\\" id=\\"hitrace-cat\\">
-                      <check-des-box id=\\"hitrace\\" checked=\\"true\\" value =\\"Hitrace categories\\" des=\\"Enables C++ codebase annotations (HTRACE_BEGIN() / os.Trace())\\">
+                    <div class="trace-config"></div>
+                    <div class="span-col-2" id="hitrace-cat">
+                      <check-des-box id="hitrace" checked="true" value ="Hitrace categories" des="Enables C++ codebase annotations (HTRACE_BEGIN() / os.Trace())">
                       </check-des-box>
-                      <div class=\\"user-events\\">
+                      <div class="user-events">
                           <slot></slot>
                       </div>
                     </div>
                 </div>
-                <div class=\\"memory-config\\">
-                    <div class=\\"span-col-2\\">
+                <div class="memory-config">
+                    <div class="span-col-2">
                       <span>Memory Config</span>
                     </div>
                 </div>
-                <div class=\\"ability-config\\">
-                    <div class=\\"span-col-2\\">
+                <div class="ability-config">
+                    <div class="span-col-2">
                       <span>Ability Config</span>
                     </div>
                 </div>

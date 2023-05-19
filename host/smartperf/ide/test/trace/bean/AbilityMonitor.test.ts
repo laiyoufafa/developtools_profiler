@@ -48,22 +48,20 @@ describe('AbilityMonitor Test', () => {
 
     expect(systemCpuSummary).not.toBeUndefined();
     expect(systemCpuSummary).toMatchInlineSnapshot(
-      {
-        startTime: expect.any(Number),
-        startTimeStr: expect.any(String),
-        duration: expect.any(Number),
-        durationStr: expect.any(String),
-        totalLoad: expect.any(Number),
-        totalLoadStr: expect.any(String),
-        userLoad: expect.any(Number),
-        userLoadStr: expect.any(String),
-        systemLoad: expect.any(Number),
-        systemLoadStr: expect.any(String),
-        threads: expect.any(Number),
-        threadsStr: expect.any(String),
-      },
-      `
-Object {
+{
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  totalLoad: expect.any(Number),
+  totalLoadStr: expect.any(String),
+  userLoad: expect.any(Number),
+  userLoadStr: expect.any(String),
+  systemLoad: expect.any(Number),
+  systemLoadStr: expect.any(String),
+  threads: expect.any(Number),
+  threadsStr: expect.any(String) }, `
+{
   "duration": Any<Number>,
   "durationStr": Any<String>,
   "startTime": Any<Number>,
@@ -77,8 +75,7 @@ Object {
   "userLoad": Any<Number>,
   "userLoadStr": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('SystemCpuSummaryTest', function () {
@@ -106,30 +103,28 @@ Object {
     };
     expect(systemDiskIOSummary).not.toBeUndefined();
     expect(systemDiskIOSummary).toMatchInlineSnapshot(
-      {
-        startTime: expect.any(Number),
-        startTimeStr: expect.any(String),
-        duration: expect.any(Number),
-        durationStr: expect.any(String),
-        dataRead: expect.any(Number),
-        dataReadStr: expect.any(String),
-        dataReadSec: expect.any(Number),
-        dataReadSecStr: expect.any(String),
-        dataWrite: expect.any(Number),
-        dataWriteStr: expect.any(String),
-        dataWriteSec: expect.any(Number),
-        dataWriteSecStr: expect.any(String),
-        readsIn: expect.any(Number),
-        readsInStr: expect.any(String),
-        readsInSec: expect.any(Number),
-        readsInSecStr: expect.any(String),
-        writeOut: expect.any(Number),
-        writeOutStr: expect.any(String),
-        writeOutSec: expect.any(Number),
-        writeOutSecStr: expect.any(String),
-      },
-      `
-Object {
+{
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  dataRead: expect.any(Number),
+  dataReadStr: expect.any(String),
+  dataReadSec: expect.any(Number),
+  dataReadSecStr: expect.any(String),
+  dataWrite: expect.any(Number),
+  dataWriteStr: expect.any(String),
+  dataWriteSec: expect.any(Number),
+  dataWriteSecStr: expect.any(String),
+  readsIn: expect.any(Number),
+  readsInStr: expect.any(String),
+  readsInSec: expect.any(Number),
+  readsInSecStr: expect.any(String),
+  writeOut: expect.any(Number),
+  writeOutStr: expect.any(String),
+  writeOutSec: expect.any(Number),
+  writeOutSecStr: expect.any(String) }, `
+{
   "dataRead": Any<Number>,
   "dataReadSec": Any<Number>,
   "dataReadSecStr": Any<String>,
@@ -151,8 +146,7 @@ Object {
   "writeOutSecStr": Any<String>,
   "writeOutStr": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('SystemCpuSummaryTest', function () {
@@ -180,30 +174,28 @@ Object {
     };
     expect(systemDiskIOSummary).not.toBeUndefined();
     expect(systemDiskIOSummary).toMatchInlineSnapshot(
-      {
-        startTime: expect.any(Number),
-        startTimeStr: expect.any(String),
-        duration: expect.any(Number),
-        durationStr: expect.any(String),
-        dataRead: expect.any(Number),
-        dataReadStr: expect.any(String),
-        dataReadSec: expect.any(Number),
-        dataReadSecStr: expect.any(String),
-        dataWrite: expect.any(Number),
-        dataWriteStr: expect.any(String),
-        dataWriteSec: expect.any(Number),
-        dataWriteSecStr: expect.any(String),
-        readsIn: expect.any(Number),
-        readsInStr: expect.any(String),
-        readsInSec: expect.any(Number),
-        readsInSecStr: expect.any(String),
-        writeOut: expect.any(Number),
-        writeOutStr: expect.any(String),
-        writeOutSec: expect.any(Number),
-        writeOutSecStr: expect.any(String),
-      },
-      `
-Object {
+{
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  dataRead: expect.any(Number),
+  dataReadStr: expect.any(String),
+  dataReadSec: expect.any(Number),
+  dataReadSecStr: expect.any(String),
+  dataWrite: expect.any(Number),
+  dataWriteStr: expect.any(String),
+  dataWriteSec: expect.any(Number),
+  dataWriteSecStr: expect.any(String),
+  readsIn: expect.any(Number),
+  readsInStr: expect.any(String),
+  readsInSec: expect.any(Number),
+  readsInSecStr: expect.any(String),
+  writeOut: expect.any(Number),
+  writeOutStr: expect.any(String),
+  writeOutSec: expect.any(Number),
+  writeOutSecStr: expect.any(String) }, `
+{
   "dataRead": Any<Number>,
   "dataReadSec": Any<Number>,
   "dataReadSecStr": Any<String>,
@@ -225,8 +217,7 @@ Object {
   "writeOutSecStr": Any<String>,
   "writeOutStr": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('ProcessHistoryTest', function () {
@@ -242,18 +233,16 @@ Object {
     };
     expect(processHistory).not.toBeUndefined();
     expect(processHistory).toMatchInlineSnapshot(
-      {
-        processId: expect.any(Number),
-        alive: expect.any(String),
-        firstSeen: expect.any(String),
-        lastSeen: expect.any(String),
-        processName: expect.any(String),
-        responsibleProcess: expect.any(String),
-        userName: expect.any(String),
-        cpuTime: expect.any(String),
-      },
-      `
-Object {
+{
+  processId: expect.any(Number),
+  alive: expect.any(String),
+  firstSeen: expect.any(String),
+  lastSeen: expect.any(String),
+  processName: expect.any(String),
+  responsibleProcess: expect.any(String),
+  userName: expect.any(String),
+  cpuTime: expect.any(String) }, `
+{
   "alive": Any<String>,
   "cpuTime": Any<String>,
   "firstSeen": Any<String>,
@@ -263,8 +252,7 @@ Object {
   "responsibleProcess": Any<String>,
   "userName": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('LiveProcessTest', function () {
@@ -278,16 +266,14 @@ Object {
     };
     expect(liveProcess).not.toBeUndefined();
     expect(liveProcess).toMatchInlineSnapshot(
-      {
-        processId: expect.any(Number),
-        processName: expect.any(String),
-        responsibleProcess: expect.any(String),
-        userName: expect.any(String),
-        cpu: expect.any(String),
-        threads: expect.any(Number),
-      },
-      `
-Object {
+{
+  processId: expect.any(Number),
+  processName: expect.any(String),
+  responsibleProcess: expect.any(String),
+  userName: expect.any(String),
+  cpu: expect.any(String),
+  threads: expect.any(Number) }, `
+{
   "cpu": Any<String>,
   "processId": Any<Number>,
   "processName": Any<String>,
@@ -295,8 +281,7 @@ Object {
   "threads": Any<Number>,
   "userName": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('SystemNetworkSummaryTest', function () {
@@ -320,26 +305,24 @@ Object {
     };
     expect(systemNetworkSummary).not.toBeUndefined();
     expect(systemNetworkSummary).toMatchInlineSnapshot(
-      {
-        startTime: expect.any(Number),
-        startTimeStr: expect.any(String),
-        duration: expect.any(Number),
-        durationStr: expect.any(String),
-        dataReceived: expect.any(Number),
-        dataReceivedStr: expect.any(String),
-        dataReceivedSec: expect.any(Number),
-        dataReceivedSecStr: expect.any(String),
-        dataSend: expect.any(Number),
-        dataSendStr: expect.any(String),
-        dataSendSec: expect.any(Number),
-        dataSendSecStr: expect.any(String),
-        packetsIn: expect.any(Number),
-        packetsInSec: expect.any(Number),
-        packetsOut: expect.any(Number),
-        packetsOutSec: expect.any(Number),
-      },
-      `
-Object {
+{
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  dataReceived: expect.any(Number),
+  dataReceivedStr: expect.any(String),
+  dataReceivedSec: expect.any(Number),
+  dataReceivedSecStr: expect.any(String),
+  dataSend: expect.any(Number),
+  dataSendStr: expect.any(String),
+  dataSendSec: expect.any(Number),
+  dataSendSecStr: expect.any(String),
+  packetsIn: expect.any(Number),
+  packetsInSec: expect.any(Number),
+  packetsOut: expect.any(Number),
+  packetsOutSec: expect.any(Number) }, `
+{
   "dataReceived": Any<Number>,
   "dataReceivedSec": Any<Number>,
   "dataReceivedSecStr": Any<String>,
@@ -357,8 +340,7 @@ Object {
   "startTime": Any<Number>,
   "startTimeStr": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('systemMemorySummaryTest', function () {
@@ -382,26 +364,24 @@ Object {
     };
     expect(systemMemorySummary).not.toBeUndefined();
     expect(systemMemorySummary).toMatchInlineSnapshot(
-      {
-        startTime: expect.any(Number),
-        startTimeStr: expect.any(String),
-        duration: expect.any(Number),
-        durationStr: expect.any(String),
-        memoryTotal: expect.any(Number),
-        memoryTotalStr: expect.any(String),
-        cached: expect.any(Number),
-        cachedStr: expect.any(String),
-        swapTotal: expect.any(Number),
-        swapTotalStr: expect.any(String),
-        appMemory: expect.any(Number),
-        cachedFiles: expect.any(Number),
-        compressed: expect.any(Number),
-        memoryUsed: expect.any(Number),
-        wiredMemory: expect.any(Number),
-        swapUsed: expect.any(Number),
-      },
-      `
-Object {
+{
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  memoryTotal: expect.any(Number),
+  memoryTotalStr: expect.any(String),
+  cached: expect.any(Number),
+  cachedStr: expect.any(String),
+  swapTotal: expect.any(Number),
+  swapTotalStr: expect.any(String),
+  appMemory: expect.any(Number),
+  cachedFiles: expect.any(Number),
+  compressed: expect.any(Number),
+  memoryUsed: expect.any(Number),
+  wiredMemory: expect.any(Number),
+  swapUsed: expect.any(Number) }, `
+{
   "appMemory": Any<Number>,
   "cached": Any<Number>,
   "cachedFiles": Any<Number>,
@@ -419,7 +399,6 @@ Object {
   "swapUsed": Any<Number>,
   "wiredMemory": Any<Number>,
 }
-`
-    );
+`);
   });
 });

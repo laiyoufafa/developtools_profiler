@@ -170,13 +170,22 @@ describe('TabPaneSdkSlice Test', () => {
     padding: 10px 10px;
 }
 </style>
-<div style=\\"display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px\\">
-            <stack-bar id=\\"stack-bar\\" style=\\"flex: 1\\"></stack-bar>
-            <label id=\\"time-range\\"  style=\\"width: auto;text-align: end;font-size: 10pt;\\">Selected range:0.0 ms</label>
+<div style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
+            <stack-bar id="stack-bar" style="flex: 1"></stack-bar>
+            <label id="time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
         </div>
-<lit-table id=\\"tb-sdk-slice\\" style=\\"height: auto\\">
+<lit-table id="tb-sdk-slice" style="height: auto">
 </lit-table>
         "
 `);
+  });
+  it('TabPaneSdkSliceTest06', () => {
+    expect(tabPaneSdkSlice.isDateIntersection(5,5,1,6)).toBeTruthy();
+  });
+  it('TabPaneSdkSliceTest07', () => {
+    expect(tabPaneSdkSlice.isDateIntersection(5,5,1,6)).toBeTruthy();
+  });
+  it('TabPaneSdkSliceTest08', () => {
+    expect(tabPaneSdkSlice.isDateIntersection(1,5,5,3)).toBeTruthy();
   });
 });

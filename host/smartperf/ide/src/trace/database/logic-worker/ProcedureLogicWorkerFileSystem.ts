@@ -79,7 +79,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
           // @ts-ignore
           self.postMessage({
             id: data.id,
-            action: data.action,
+            action: 'fileSystem-init',
             results: [],
           });
           break;

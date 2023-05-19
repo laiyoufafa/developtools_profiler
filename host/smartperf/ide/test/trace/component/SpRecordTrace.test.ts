@@ -16,8 +16,8 @@
 // @ts-ignore
 import { SpRecordTrace } from '../../../dist/trace/component/SpRecordTrace.js';
 
-window.ResizeObserver =
-  window.ResizeObserver ||
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
@@ -219,4 +219,158 @@ describe('SpRecordTrace Test', () => {
   it('SpRecordTraceTest26', function () {
     expect(spRecordTrace.isSuccess('')).toBe(0);
   });
+  it('SpRecordTraceTest27', function () {
+    expect(spRecordTrace.synchronizeDeviceList()).toBeUndefined();
+  });
+  it('SpRecordTraceTest28', function () {
+    expect(spRecordTrace.freshMenuItemsStatus('Trace command')).toBeUndefined();
+  });
+  it('SpRecordTraceTest29', function () {
+    expect(spRecordTrace.buttonDisable(true)).toBeUndefined();
+  });
+  it('SpRecordTraceTest30', function () {
+    expect(spRecordTrace.startRefreshDeviceList()).toBeUndefined();
+  });
+  it('SpRecordTraceTest31', function () {
+    expect(spRecordTrace.freshConfigMenuDisable(true)).toBeUndefined();
+  });
+  it('SpRecordTraceTest31', function () {
+    expect(spRecordTrace.createSdkConfig()).toStrictEqual(
+        {"configData": {}, "pluginName": "", "sampleInterval": 5000}
+    );
+  });
+  it('SpRecordTraceTest32', function () {
+    expect(spRecordTrace.createHtracePluginConfig()).toStrictEqual(
+        {
+          "configData": {
+            "bufferSizeKb": 2048,
+                "clock": "boot",
+                "debugOn": false,
+                "flushIntervalMs": 1000,
+                "flushThresholdKb": 4096,
+                "ftraceEvents":  [
+                  "sched/sched_switch",
+                      "power/suspend_resume",
+                      "sched/sched_wakeup",
+                      "sched/sched_wakeup_new",
+                      "sched/sched_waking",
+                      "sched/sched_process_exit",
+                      "sched/sched_process_free",
+                      "task/task_newtask",
+                      "task/task_rename",
+                      "power/cpu_frequency",
+                      "power/cpu_idle",
+                    ],
+                "hitraceApps":  [],
+                "hitraceCategories":  [
+                  "ability",
+                      "ace",
+                      "app",
+                      "ark",
+                      "binder",
+                      "disk",
+                      "freq",
+                      "graphic",
+                      "idle",
+                      "irq",
+                      "memreclaim",
+                      "mmc",
+                      "multimodalinput",
+                      "ohos",
+                      "pagecache",
+                      "rpc",
+                      "sched",
+                      "sync",
+                      "window",
+                      "workq",
+                      "zaudio",
+                      "zcamera",
+                      "zimage",
+                      "zmedia",
+                    ],
+                "hitraceTime": 30,
+                "parseKsyms": true,
+                "rawDataPrefix": "",
+                "traceDurationMs": 0,
+                "tracePeriodMs": 200,
+              },
+        "pluginName": "ftrace-plugin",
+            "sampleInterval": 1000,
+        }
+    );
+  });
+  it('SpRecordTraceTest33', function () {
+    expect(spRecordTrace.createJsHeapConfig()).toStrictEqual(
+        {"configData": {"capture_numeric_value": true, "interval": 10, "pid": 0, "track_allocations": false, "type": 0}, "pluginName": "js-memory", "sampleInterval": 5000}
+    );
+  });
+  it('SpRecordTraceTest34', function () {
+    expect(spRecordTrace.createMemoryPluginConfig(1,true,true,true)).toStrictEqual(
+        {
+          "configData":  {
+                "pid":  [
+                      0,
+                        ],
+                    "reportAppMemByMemoryService": false,
+                    "reportAppMemInfo": false,
+                    "reportProcessMemInfo": true,
+                    "reportProcessTree": true,
+                    "reportSmapsMemInfo": true,
+                    "reportSysmemMemInfo": true,
+                    "reportSysmemVmemInfo": true,
+                    "sysMeminfoCounters":  [
+                      "PMEM_MEM_TOTAL",
+                          "PMEM_MEM_FREE",
+                          "PMEM_BUFFERS",
+                          "PMEM_CACHED",
+                          "PMEM_SHMEM",
+                          "PMEM_SLAB",
+                          "PMEM_SWAP_TOTAL",
+                          "PMEM_SWAP_FREE",
+                          "PMEM_MAPPED",
+                          "PMEM_VMALLOC_USED",
+                          "PMEM_PAGE_TABLES",
+                          "PMEM_KERNEL_STACK",
+                          "PMEM_ACTIVE",
+                          "PMEM_INACTIVE",
+                          "PMEM_UNEVICTABLE",
+                          "PMEM_VMALLOC_TOTAL",
+                          "PMEM_SLAB_UNRECLAIMABLE",
+                          "PMEM_CMA_TOTAL",
+                          "PMEM_CMA_FREE",
+                          "PMEM_KERNEL_RECLAIMABLE",
+                        ],
+                    "sysVmeminfoCounters":  [],
+                  },
+            "pluginName": "memory-plugin",
+                "sampleInterval": 1000,
+        }
+    );
+  });
+  it('SpRecordTraceTest35', function () {
+    expect(spRecordTrace.createSystemConfig()).toStrictEqual(
+        {"configData": {"cmdLine": "hiebpf --duration 30 --max_stack_depth 10", "outfileName": "/data/local/tmp/ebpf.data"}, "pluginName": "hiebpf-plugin", "sampleInterval": 1000}
+    );
+  });
+  it('SpRecordTraceTest36', function () {
+    expect(spRecordTrace.createSystemConfig({},1)).toStrictEqual(
+        {"configData": {"cmdLine": "hiebpf --duration 30 --max_stack_depth 10", "outfileName": "/data/local/tmp/ebpf.data"}, "pluginName": "hiebpf-plugin", "sampleInterval": 1000});
+  });
+    it('SpRecordTraceTest37', function () {
+        spRecordTrace.record_template = 'record_template';
+        expect(spRecordTrace.record_template).toBeTruthy();
+    });
+    it('SpRecordTraceTest38', function () {
+        expect(spRecordTrace.setDeviceVersionSelect(true)).toBe();
+    });
+    it('SpRecordTraceTest39', function () {
+        expect(spRecordTrace.recordButtonListener()).toBe();
+    });
+    it('SpRecordTraceTest40', function () {
+        let evt = {
+            isTrusted:true,
+            device:true
+        }
+        expect(spRecordTrace.usbConnectionListener(evt)).toBe();
+    });
 });

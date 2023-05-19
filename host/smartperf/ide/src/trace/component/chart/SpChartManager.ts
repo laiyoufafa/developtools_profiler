@@ -149,8 +149,13 @@ export class SpChartManager {
   }
 
   async importSoFileUpdate() {
+    SpSystemTrace.DATA_DICT.clear();
+    let dict = await queryDataDICT();
+    dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
     await perfDataQuery.initPerfCache();
     await this.nativeMemory.initNativeMemory();
+    await this.fileSystem.initFileCallchain();
+    this.perf.updateChartData();
   }
 
   handleProcessThread(arr: { id: number; name: string; type: string }[]) {

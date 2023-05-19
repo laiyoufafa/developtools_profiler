@@ -17,12 +17,12 @@
 #define TABLE_H
 
 #include <memory>
-#include <sqlite3.h>
 #include <string>
 #include <vector>
 
 #include "filter_constraints.h"
 #include "index_map.h"
+#include "sqlite3.h"
 #include "trace_data_cache.h"
 
 #define UNUSED(expr)             \

@@ -510,20 +510,20 @@ describe('LitSwitch Test', () => {
         }
         
         </style>
-        <style id=\\"filter\\"></style>
-        <div class=\\"tab\\">
-            <div class=\\"nav-root\\" style=\\"background-color: var(--dark-background4,#f2f2f2);\\">
-                <slot name=\\"left\\" style=\\"flex:1\\"></slot>
-                <div class=\\"tab-nav-container\\">
-                    <div class=\\"tab-nav-bg-line\\"></div>
-                    <div class=\\"tab-nav\\" id=\\"nav\\"></div>
-                    <div class=\\"tab-line\\" id=\\"tab-line\\"></div>
+        <style id="filter"></style>
+        <div class="tab">
+            <div class="nav-root" style="background-color: var(--dark-background4,#f2f2f2);">
+                <slot name="left" style="flex:1"></slot>
+                <div class="tab-nav-container">
+                    <div class="tab-nav-bg-line"></div>
+                    <div class="tab-nav" id="nav"></div>
+                    <div class="tab-line" id="tab-line"></div>
                 </div>
-                <div id=\\"tab-filling\\" style=\\"flex: 1\\"></div>
-                <slot name=\\"right\\" style=\\"flex:1\\"></slot>
+                <div id="tab-filling" style="flex: 1"></div>
+                <slot name="right" style="flex:1"></slot>
             </div>
-            <div class=\\"tab-content\\">
-                <slot id=\\"slot\\">NEED CONTENT</slot>
+            <div class="tab-content">
+                <slot id="slot">NEED CONTENT</slot>
             </div>
         </div>
         "

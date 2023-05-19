@@ -136,7 +136,7 @@ export class SpFrameTimeChart {
       );
       expectedTimeLineRow!.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(expectedTimeLineRow);
+    frameTimeLineRow.addChildTraceRow(expectedTimeLineRow);
   }
 
   async initActualChart(frameTimeLineRow: TraceRow<any>) {
@@ -186,6 +186,7 @@ export class SpFrameTimeChart {
     actualTimeLineRow.name = `Actual Timeline`;
     actualTimeLineRow.setAttribute('height', `${maxHeight}`);
     actualTimeLineRow.setAttribute('children', '');
+    actualTimeLineRow.dataList = frameActualData;
     actualTimeLineRow.supplier = () =>
       new Promise((resolve) => {
         resolve(frameActualData);
@@ -205,70 +206,88 @@ export class SpFrameTimeChart {
       );
       actualTimeLineRow!.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(actualTimeLineRow);
+    frameTimeLineRow.addChildTraceRow(actualTimeLineRow);
+    let offsetYTimeOut: any = undefined;
     frameTimeLineRow.addEventListener('expansion-change', (e: any) => {
+      if (offsetYTimeOut) {
+        clearTimeout(offsetYTimeOut);
+      }
       if (e.detail.expansion) {
         if (JankStruct!.selectJankStruct) {
           JankStruct.delJankLineFlag = true;
         } else {
           JankStruct.delJankLineFlag = false;
         }
-        this.trace.linkNodes.forEach((linkNode) => {
-          JankStruct.selectJankStructList?.forEach((dat: any) => {
-            if (e.detail.rowId == dat.pid) {
-              JankStruct.selectJankStruct = dat;
-              JankStruct.hoverJankStruct = dat;
+        offsetYTimeOut = setTimeout(() => {
+          this.trace.linkNodes.forEach((linkNode) => {
+            JankStruct.selectJankStructList?.forEach((dat: any) => {
+              if (e.detail.rowId == dat.pid) {
+                JankStruct.selectJankStruct = dat;
+                JankStruct.hoverJankStruct = dat;
+              }
+            });
+            if (linkNode[0].rowEL.collect) {
+              linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+            } else {
+              linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+            }
+            linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
+            if (linkNode[1].rowEL.collect) {
+              linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+            } else {
+              linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+            }
+            linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+            if (linkNode[0].rowEL.rowId == e.detail.rowId) {
+              linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
+              linkNode[0].y = actualTimeLineRow!.translateY! + linkNode[0].offsetY * 2;
+              linkNode[0].offsetY = linkNode[0].offsetY * 2;
+              linkNode[0].rowEL = actualTimeLineRow;
+            } else if (linkNode[1].rowEL.rowId == e.detail.rowId) {
+              linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
+              linkNode[1].y = actualTimeLineRow!.translateY! + linkNode[1].offsetY * 2;
+              linkNode[1].offsetY = linkNode[1].offsetY * 2;
+              linkNode[1].rowEL = actualTimeLineRow!;
             }
           });
-          if (linkNode[0].rowEL.rowId == e.detail.rowId) {
-            linkNode[0] = {
-              x: ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!),
-              y: actualTimeLineRow!.translateY! + linkNode[0].offsetY * 2,
-              offsetY: linkNode[0].offsetY * 2,
-              ns: linkNode[0].ns,
-              rowEL: actualTimeLineRow!,
-              isRight: true,
-            };
-          } else if (linkNode[1].rowEL.rowId == e.detail.rowId) {
-            linkNode[1] = {
-              x: ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!),
-              y: actualTimeLineRow!.translateY! + linkNode[1].offsetY * 2,
-              offsetY: linkNode[1].offsetY * 2,
-              ns: linkNode[1].ns,
-              rowEL: actualTimeLineRow!,
-              isRight: true,
-            };
-          }
-        });
-        this.trace.refreshCanvas(true);
+        }, 300);
       } else {
         JankStruct.delJankLineFlag = false;
         if (JankStruct!.selectJankStruct) {
           JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
         }
-        this.trace.linkNodes.forEach((linkNode) => {
-          if (linkNode[0].rowEL.rowParentId == e.detail.rowId) {
-            linkNode[0] = {
-              x: ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!),
-              y: frameTimeLineRow!.translateY! + linkNode[0].offsetY / 2,
-              offsetY: linkNode[0].offsetY / 2,
-              ns: linkNode[0].ns,
-              rowEL: frameTimeLineRow,
-              isRight: true,
-            };
-          } else if (linkNode[1].rowEL.rowParentId == e.detail.rowId) {
-            linkNode[1] = {
-              x: ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!),
-              y: frameTimeLineRow!.translateY! + linkNode[1].offsetY / 2,
-              offsetY: linkNode[1].offsetY / 2,
-              ns: linkNode[1].ns,
-              rowEL: frameTimeLineRow,
-              isRight: true,
-            };
-          }
-        });
-        this.trace.refreshCanvas(true);
+        offsetYTimeOut = setTimeout(() => {
+          this.trace.linkNodes.forEach((linkNode) => {
+            if (linkNode[0].rowEL.collect) {
+              linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+            } else {
+              linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+            }
+            linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
+            if (linkNode[1].rowEL.collect) {
+              linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+            } else {
+              linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+            }
+            linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+            if (linkNode[0].rowEL.rowParentId == e.detail.rowId) {
+              linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
+              linkNode[0].y = frameTimeLineRow!.translateY! + linkNode[0].offsetY / 2;
+              linkNode[0].offsetY = linkNode[0].offsetY / 2;
+              linkNode[0].rowEL = frameTimeLineRow;
+            } else if (linkNode[1].rowEL.rowParentId == e.detail.rowId) {
+              linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
+              linkNode[1].y = frameTimeLineRow!.translateY! + linkNode[1].offsetY / 2;
+              linkNode[1].offsetY = linkNode[1].offsetY / 2;
+              linkNode[1].rowEL = frameTimeLineRow!;
+            }
+          });
+        }, 300);
       }
+      let refreshTimeOut = setTimeout(() => {
+        this.trace.refreshCanvas(true);
+        clearTimeout(refreshTimeOut);
+      }, 360);
     });
   }
 }

@@ -186,7 +186,7 @@ ohos_source_set("trace_streamer_source") {
     deps += [ "parser/hiperf_parser:hiperf_parser" ]
   }
 
-  if (use_wasm || enable_ts_utest) {
+  if (use_wasm) {
     sources += [
       "rpc/wasm_func.cpp",
       "rpc/wasm_func.h",

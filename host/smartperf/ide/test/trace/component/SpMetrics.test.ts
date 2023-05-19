@@ -173,16 +173,16 @@ describe('SpMetrics Test', () => {
 
         </style>
 
-        <div class=\\"metric\\">
-            <div class=\\"metric-select request\\">
+        <div class="metric">
+            <div class="metric-select request">
                 <p>Select a metric</p>
-                <select class=\\"sql-select\\">
+                <select class="sql-select">
                 </select>
-                <button class=\\"sql-select-button\\">&nbsp;&nbsp; Run &nbsp;&nbsp;</button>
-                <lit-progress-bar class=\\"load-metric\\"></lit-progress-bar>
+                <button class="sql-select-button">&nbsp;&nbsp; Run &nbsp;&nbsp;</button>
+                <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
-            <div class=\\"metric-select response\\">
-                 <textarea class=\\"response-json\\" readonly>
+            <div class="metric-select response">
+                 <textarea class="response-json" readonly>
                  </textarea>
             </div>
         </div>

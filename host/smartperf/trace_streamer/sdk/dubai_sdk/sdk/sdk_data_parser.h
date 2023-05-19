@@ -40,9 +40,9 @@ public:
     // third_party
     int32_t CreateTableByJson();
     int32_t SetTableName(const char* counterTableName,
-                     const char* counterObjectTableName,
-                     const char* sliceTableName,
-                     const char* sliceObjectName);
+                         const char* counterObjectTableName,
+                         const char* sliceTableName,
+                         const char* sliceObjectName);
     int32_t GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction);
     int32_t GetPluginName(std::string pluginName);
     int32_t GetPluginName(const uint8_t* data, int32_t len);
@@ -51,7 +51,12 @@ public:
     int32_t AppendCounterObject(int32_t counterId, const char* columnName);
     int32_t AppendCounter(int32_t counterId, uint64_t ts, double value);
     int32_t AppendSliceObject(int32_t sliceId, const char* columnName);
-    int32_t AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, std::string start_time, std::string end_time, double value);
+    int32_t AppendSlice(int32_t sliceId,
+                        uint64_t ts,
+                        uint64_t endTs,
+                        std::string start_time,
+                        std::string end_time,
+                        double value);
 
 private:
     int32_t CreateCounterObjectTable(const std::string& tableName);

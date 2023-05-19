@@ -165,10 +165,10 @@ describe('LitRadioBox Test', () => {
             color:#ffffff
         }
         </style>
-        <input type=\\"checkbox\\" id=\\"radio\\" >
-        <label id=\\"label\\" for=\\"radio\\">
-            <span class=\\"selected\\">
-            <lit-icon name=\\"checkmark\\" class=\\"icon\\" size=\\"8\\">
+        <input type="checkbox" id="radio" >
+        <label id="label" for="radio">
+            <span class="selected">
+            <lit-icon name="checkmark" class="icon" size="8">
             </lit-icon>
             </span>
             <slot id='slot'></slot>
@@ -198,14 +198,14 @@ describe('LitRadioBox Test', () => {
             flex-direction: column;
         }
         
-        :host([layout=\\"compact\\"]) {
+        :host([layout="compact"]) {
             gap:5px;
         }
-        :host([layout=\\"dispersion\\"]) {
+        :host([layout="dispersion"]) {
            gap:10px;
         }
         </style>
-        <slot class=\\"radio-group\\"></slot>"
+        <slot class="radio-group"></slot>"
 `);
   });
 });

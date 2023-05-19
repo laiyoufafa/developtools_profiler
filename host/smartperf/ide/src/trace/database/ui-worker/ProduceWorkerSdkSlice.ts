@@ -117,7 +117,6 @@ export class SdkSliceRender extends Render {
       req.context.globalAlpha = 1;
       req.context.fillStyle = '#333';
       req.context.textBaseline = 'middle';
-      drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
       drawFlagLine(
         req.context,
         req.flagMoveInfo,

@@ -220,6 +220,7 @@ int32_t RpcServer::DownloadELFCallback(const std::string fileName,
         fd = fopen(fileName.c_str(), "a+");
         if (fd == nullptr) {
             TS_LOGE("wasm file create failed");
+            fclose(fd);
             return false;
         }
         int32_t writeLength = fwrite(data, len, 1, fd);
@@ -234,6 +235,7 @@ int32_t RpcServer::DownloadELFCallback(const std::string fileName,
     g_fileLen = 0;
     fd = fopen(fileName.c_str(), "a+");
     if (fd == nullptr) {
+        fclose(fd);
         TS_LOGE("wasm file open failed");
         return false;
     }

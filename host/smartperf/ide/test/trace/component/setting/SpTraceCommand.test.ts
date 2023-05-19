@@ -143,12 +143,12 @@ describe('SPTraceCommand Test', () => {
             display: block
         } 
         </style>
-        <div id=\\"text-cmd\\">
-            <button id=\\"copy-button\\">
-                <img id=\\"copy-image\\" src=\\"img/copy.png\\">
+        <div id="text-cmd">
+            <button id="copy-button">
+                <img id="copy-image" src="img/copy.png">
             </button>
-            <textarea id=\\"code-text\\" readonly></textarea>
-            <button id=\\"stop-button\\">Stop Cmd</button>
+            <textarea id="code-text" readonly></textarea>
+            <button id="stop-button">Stop Cmd</button>
         </div>
         "
 `);

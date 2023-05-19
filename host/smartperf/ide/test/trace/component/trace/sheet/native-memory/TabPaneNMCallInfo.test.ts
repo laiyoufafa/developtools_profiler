@@ -18,9 +18,8 @@ import { TabPaneNMCallInfo } from '../../../../../../dist/trace/component/trace/
 const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-window.ResizeObserver =
-  window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
     unobserve: jest.fn(),
@@ -168,39 +167,39 @@ describe('TabPaneNMCallInfo Test', () => {
             flex: 1;
         }
         </style>
-        <div style=\\"display: flex;flex-direction: row\\">
-            <selector id='show_table' class=\\"show\\">
-            <lit-slicer style=\\"width:100%\\">
-                <div style=\\"width: 65%\\">
-                    <lit-table id=\\"tb-native-callinfo\\" style=\\"height: auto\\" tree>
-                        <lit-table-column width=\\"60%\\" title=\\"Symbol Name\\" data-index=\\"symbolName\\" key=\\"symbolName\\"  align=\\"flex-start\\">
+        <div style="display: flex;flex-direction: row">
+            <selector id='show_table' class="show">
+            <lit-slicer style="width:100%">
+                <div style="width: 65%">
+                    <lit-table id="tb-native-callinfo" style="height: auto" tree>
+                        <lit-table-column width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start">
                         </lit-table-column>
-                        <lit-table-column width=\\"1fr\\" title=\\"Size\\" data-index=\\"heapSizeStr\\" key=\\"heapSizeStr\\"  align=\\"flex-start\\" order>
+                        <lit-table-column width="1fr" title="Size" data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
                         </lit-table-column>
-                        <lit-table-column width=\\"1fr\\" title=\\"%\\" data-index=\\"heapPercent\\" key=\\"heapPercent\\" align=\\"flex-start\\"  order>
+                        <lit-table-column width="1fr" title="%" data-index="heapPercent" key="heapPercent" align="flex-start"  order>
                         </lit-table-column>
-                        <lit-table-column width=\\"1fr\\" title=\\"Count\\" data-index=\\"countValue\\" key=\\"countValue\\" align=\\"flex-start\\" order>
+                        <lit-table-column width="1fr" title="Count" data-index="countValue" key="countValue" align="flex-start" order>
                         </lit-table-column>
-                        <lit-table-column width=\\"1fr\\" title=\\"%\\" data-index=\\"countPercent\\" key=\\"countPercent\\" align=\\"flex-start\\" order>
+                        <lit-table-column width="1fr" title="%" data-index="countPercent" key="countPercent" align="flex-start" order>
                         </lit-table-column>
-                        <lit-table-column width=\\"1fr\\" title=\\"  \\" data-index=\\"type\\" key=\\"type\\"  align=\\"flex-start\\" >
+                        <lit-table-column width="1fr" title="  " data-index="type" key="type"  align="flex-start" >
                             <template>
-                                <img src=\\"img/library.png\\" size=\\"20\\" v-if=\\" type == 1 \\">
-                                <img src=\\"img/function.png\\" size=\\"20\\" v-if=\\" type == 0 \\">
-                                <div v-if=\\" type == - 1 \\"></div>
+                                <img src="img/library.png" size="20" v-if=" type == 1 ">
+                                <img src="img/function.png" size="20" v-if=" type == 0 ">
+                                <div v-if=" type == - 1 "></div>
                             </template>
                         </lit-table-column>
                     </lit-table>
                 </div>
                 <lit-slicer-track ></lit-slicer-track>
-                <lit-table id=\\"tb-native-data\\" no-head style=\\"height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)\\">
-                    <lit-table-column width=\\"60px\\" title=\\"\\" data-index=\\"type\\" key=\\"type\\"  align=\\"flex-start\\" >
+                <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                    <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
                         <template>
-                            <img src=\\"img/library.png\\" size=\\"20\\" v-if=\\" type == 1 \\">
-                            <img src=\\"img/function.png\\" size=\\"20\\" v-if=\\" type == 0 \\">
+                            <img src="img/library.png" size="20" v-if=" type == 1 ">
+                            <img src="img/function.png" size="20" v-if=" type == 0 ">
                         </template>
                     </lit-table-column>
-                    <lit-table-column width=\\"1fr\\" title=\\"\\" data-index=\\"symbolName\\" key=\\"symbolName\\"  align=\\"flex-start\\">
+                    <lit-table-column width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start">
                     </lit-table-column>
                 </lit-table>
                 </lit-slicer>
@@ -208,9 +207,9 @@ describe('TabPaneNMCallInfo Test', () => {
             <selector id='show_chart'>
                 <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
             </selector>
-            <lit-progress-bar class=\\"progress\\"></lit-progress-bar>
-            <tab-pane-filter id=\\"filter\\" icon first second></tab-pane-filter>
-            <div class=\\"loading\\"></div>
+            <lit-progress-bar class="progress"></lit-progress-bar>
+            <tab-pane-filter id="filter" icon first second></tab-pane-filter>
+            <div class="loading"></div>
         </div>
         "
 `);
@@ -240,5 +239,8 @@ describe('TabPaneNMCallInfo Test', () => {
   it('TabPaneNMCallInfoTest14', function () {
     let isShow = 1;
     expect(tabPaneNMCallInfo.showButtomMenu(isShow)).toBeUndefined();
+  });
+  it('TabPaneNMCallInfoTest15', function () {
+    expect(tabPaneNMCallInfo.showButtomMenu({},{})).toBeUndefined();
   });
 });

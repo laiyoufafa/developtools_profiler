@@ -34,7 +34,7 @@ if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
 
   # kernel_version = "5.10.79_aarch64"
   kernel_version = "."
-  if (target == "test") {
+  if (target == "test" || target == "testpb") {
     enable_ts_utest = true
   } else {
     enable_ts_utest = false

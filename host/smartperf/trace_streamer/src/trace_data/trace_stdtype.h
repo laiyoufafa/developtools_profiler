@@ -744,7 +744,7 @@ public:
                                    std::string eventType,
                                    DataIndex subType,
                                    uint64_t timeStamp,
-                                   uint64_t endTimestamp,
+                                   uint64_t endTimeStamp,
                                    uint64_t duration,
                                    uint64_t addr,
                                    int64_t memSize);
@@ -1364,12 +1364,13 @@ private:
 };
 class EbpfCallStackData : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t callChainId, uint32_t depth, uint64_t ip, uint64_t symbolId, uint64_t filePathId);
+    size_t AppendNewData(uint32_t callChainId, uint32_t depth, DataIndex ip, DataIndex symbolId, DataIndex filePathId);
+    void UpdateSymbolAndFilePathIndex(size_t row, DataIndex symbolId, DataIndex filePathId);
     const std::deque<uint32_t>& CallChainIds() const;
     const std::deque<uint32_t>& Depths() const;
-    const std::deque<uint64_t>& Ips() const;
-    const std::deque<uint64_t>& SymbolIds() const;
-    const std::deque<uint64_t>& FilePathIds() const;
+    const std::deque<DataIndex>& Ips() const;
+    const std::deque<DataIndex>& SymbolIds() const;
+    const std::deque<DataIndex>& FilePathIds() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -1382,9 +1383,9 @@ public:
 private:
     std::deque<uint32_t> callChainIds_ = {};
     std::deque<uint32_t> depths_ = {};
-    std::deque<uint64_t> ips_ = {};
-    std::deque<uint64_t> symbolIds_ = {};
-    std::deque<uint64_t> filePathIds_ = {};
+    std::deque<DataIndex> ips_ = {};
+    std::deque<DataIndex> symbolIds_ = {};
+    std::deque<DataIndex> filePathIds_ = {};
 };
 class PagedMemorySampleData : public CacheBase {
 public:
@@ -2177,7 +2178,7 @@ private:
 class JsHeapTraceNode : public CacheBase {
 public:
     size_t AppendNewData(uint32_t fileId,
-                         uint32_t id,
+                         uint32_t traceNodeId,
                          uint32_t functionInfoIndex,
                          uint32_t count,
                          uint32_t size,

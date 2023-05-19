@@ -125,7 +125,7 @@ describe('LitSwitch Test', () => {
             cursor: not-allowed; 
         }
         </style>
-        <input type=\\"checkbox\\" id=\\"switch\\"><label id=\\"name\\" for=\\"switch\\"></label>
+        <input type="checkbox" id="switch"><label id="name" for="switch"></label>
         "
 `);
   });

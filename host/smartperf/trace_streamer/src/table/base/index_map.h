@@ -19,8 +19,8 @@
 #include <cstdint>
 #include <deque>
 #include <functional>
-#include <sqlite3.h>
 #include <vector>
+#include "sqlite3.h"
 #include "ts_common.h"
 
 namespace SysTuning {

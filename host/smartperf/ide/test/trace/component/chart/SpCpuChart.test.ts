@@ -17,25 +17,35 @@
 import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
 // @ts-ignore
 import { SpCpuChart } from '../../../../dist/trace/component/chart/SpCpuChart.js';
-import { queryCpuMax } from '../../../../src/trace/database/SqlLite.js';
+// @ts-ignore
+import { HeapNode } from '../../../../dist/js-heap/model/DatabaseStruct.js';
 
 const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-  window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-  }));
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
+
+jest.mock('../../../../dist/js-heap/utils/Utils.js', () => {
+    return {
+        HeapNodeToConstructorItem: (node: HeapNode) => {},
+    };
+});
 describe('SpCpuChart Test', () => {
-  let MockqueryCpuMax = sqlit.queryCpuMax;
-  MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
-  let ss = new SpChartManager();
-  let trace = new SpCpuChart(ss);
-  it('SpMpsChart01', function () {
-    trace.init();
-    expect(trace).toBeDefined();
-  });
+    let MockqueryCpuMax = sqlit.queryCpuMax;
+    MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
+
+    let mockCpuSlice = sqlit.queryCpuSchedSlice;
+    mockCpuSlice.mockResolvedValue([]);
+    let ss = new SpChartManager();
+    let trace = new SpCpuChart(ss);
+    it('SpMpsChart01', async function () {
+        await trace.init();
+        expect(trace).toBeDefined();
+    });
 });

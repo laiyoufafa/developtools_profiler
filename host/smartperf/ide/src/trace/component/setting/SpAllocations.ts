@@ -212,6 +212,7 @@ export class SpAllocations extends BaseElement {
         lineColor: 'var(--dark-color3,#46B1E3)',
         buttonColor: '#999999',
       };
+      intervalResultInput.style.color = 'var(--dark-color1,#000000)';
       if (this.recordStatisticsResult!.hasAttribute('percent')) {
         let step = Number(this.recordStatisticsResult!.getAttribute('percent')) / 450;
         this.recordStatisticsResult!.setAttribute('percentValue', stepValue[step] + '');
@@ -234,7 +235,6 @@ export class SpAllocations extends BaseElement {
       }
       let memorySize = Number(intervalResultInput.value);
       if (
-        !memorySize ||
         memorySize < statisticsSlider!.sliderStyle.minRange ||
         memorySize > statisticsSlider!.sliderStyle.maxRange
       ) {

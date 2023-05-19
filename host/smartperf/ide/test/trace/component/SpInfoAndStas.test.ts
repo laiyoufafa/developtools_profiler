@@ -158,28 +158,28 @@ describe('SpInfoAndStasTest', () => {
 
         </style>
 
-        <div class=\\"info-stats\\">
-            <div class=\\"metadata info\\">
+        <div class="info-stats">
+            <div class="metadata info">
                 <p>System info and metadata</p>
-                <div id=\\"dataKeyResult\\">
-                    <lit-table id=\\"metaData-table\\">
-                            <lit-table-column title=\\"name\\" data-index=\\"name\\" key=\\"name\\" align=\\"flex-start\\">
+                <div id="dataKeyResult">
+                    <lit-table id="metaData-table" hideDownload>
+                            <lit-table-column title="name" data-index="name" key="name" align="flex-start">
                             </lit-table-column>
-                            <lit-table-column title=\\"value\\" data-index=\\"value\\" key=\\"value\\" align=\\"flex-start\\">
+                            <lit-table-column title="value" data-index="value" key="value" align="flex-start">
                             </lit-table-column>
                     </lit-table>
                 </div>
-                <lit-progress-bar class=\\"load-metric\\"></lit-progress-bar>
+                <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
-            <div class=\\"metadata stats\\">
+            <div class="metadata stats">
                 <p>Debugging stats</p>
-                <div id=\\"dataValueResult\\">
-                    <lit-table id=\\"stats-table\\">
-                            <lit-table-column title=\\"name\\" data-index=\\"event_name\\" key=\\"name\\" align=\\"flex-start\\">
+                <div id="dataValueResult">
+                    <lit-table id="stats-table" hideDownload>
+                            <lit-table-column title="name" data-index="event_name" key="name" align="flex-start">
                             </lit-table-column>
-                            <lit-table-column title=\\"value\\" data-index=\\"count\\" key=\\"value\\" align=\\"flex-start\\">
+                            <lit-table-column title="value" data-index="count" key="value" align="flex-start">
                             </lit-table-column>
-                            <lit-table-column title=\\"type\\" data-index=\\"stat_type\\" key=\\"type\\" align=\\"flex-start\\">
+                            <lit-table-column title="type" data-index="stat_type" key="type" align="flex-start">
                             </lit-table-column>
                     </lit-table>
                 </div>
@@ -190,6 +190,9 @@ describe('SpInfoAndStasTest', () => {
   });
 
   it('SpInfoAndStasTest9', function () {
+    expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
+  });
+  it('SpInfoAndStasTest10', function () {
     expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
   });
 });

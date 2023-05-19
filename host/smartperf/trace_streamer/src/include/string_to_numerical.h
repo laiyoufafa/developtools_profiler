@@ -17,6 +17,7 @@
 #define INCLUDE_BASE_STRING_TO_NUMERICAL_H_
 
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 

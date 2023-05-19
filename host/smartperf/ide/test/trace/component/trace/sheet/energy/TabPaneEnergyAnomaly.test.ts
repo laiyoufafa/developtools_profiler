@@ -135,16 +135,16 @@ describe('TabPanePowerBattery Test', () => {
                 padding: 0 10px;
             }
         </style>
-        <div style=\\"width: 100%;height: auto;position: relative\\">
-            <div id=\\"anomaly-details\\" class=\\"current-title\\" style=\\"margin-left: 12px;display: block\\">
-                <h2 id=\\"leftTitle\\"></h2>
+        <div style="width: 100%;height: auto;position: relative">
+            <div id="anomaly-details" class="current-title" style="margin-left: 12px;display: block">
+                <h2 id="leftTitle"></h2>
             </div>
-            <div class=\\"bottom-scroll-area\\">
-                <div class=\\"left-table\\">
-                    <lit-table id=\\"anomalyselectionTbl\\" no-head style=\\"height: auto\\">
-                        <lit-table-column title=\\"name\\" data-index=\\"name\\" key=\\"name\\" align=\\"flex-start\\"  width=\\"180px\\">
+            <div class="bottom-scroll-area">
+                <div class="left-table">
+                    <lit-table id="anomalyselectionTbl" no-head style="height: auto">
+                        <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
                         </lit-table-column>
-                        <lit-table-column title=\\"value\\" data-index=\\"value\\" key=\\"value\\" align=\\"flex-start\\" >
+                        <lit-table-column title="value" data-index="value" key="value" align="flex-start" >
                         </lit-table-column>
                     </lit-table>
                 </div>

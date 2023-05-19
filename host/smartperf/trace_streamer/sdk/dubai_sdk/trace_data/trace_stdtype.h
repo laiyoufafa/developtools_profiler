@@ -70,7 +70,7 @@ class GpuCounterObject : public CacheBase {
 public:
     GpuCounterObject() = default;
     ~GpuCounterObject() = default;
-    void AppendNewData(int32_t counterId, std::string counterName);
+    void AppendNewData(int32_t counterId, const std::string counterName);
     const std::deque<int32_t>& CounterId() const;
     const std::deque<std::string>& CounterName() const;
 

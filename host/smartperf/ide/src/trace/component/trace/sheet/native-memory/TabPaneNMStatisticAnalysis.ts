@@ -116,8 +116,16 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   set data(val: SelectionParam | any) {
     if (val == this.currentSelection) {
+      this.eventTypeData.unshift(this.typeStatisticsData);
+      this.tableType!.recycleDataSource = this.eventTypeData;
+      // @ts-ignore
+      this.eventTypeData.shift(this.typeStatisticsData);
       return;
     }
+    // @ts-ignore
+    this.tableSo?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    // @ts-ignore
+    this.tableFunction?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     this.clearData();
     this.currentSelection = val;
     this.tableType!.style.display = 'grid';
@@ -152,7 +160,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
   getBack() {
     this.back!.addEventListener('click', () => {
-      if (this.tabName!.textContent === 'Statistic By Library Size') {
+      if (this.tabName!.textContent === 'Statistic By Library Existing') {
         this.tableType!.style.display = 'grid';
         this.tableSo!.style.display = 'none';
         this.back!.style.visibility = 'hidden';
@@ -161,7 +169,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         this.currentLevel = 0;
         this.currentLevelData = this.eventTypeData;
         this.typePieChart(this.currentSelection);
-      } else if (this.tabName!.textContent === 'Statistic By Function Size') {
+      } else if (this.tabName!.textContent === 'Statistic By Function Existing') {
         this.tableSo!.style.display = 'grid';
         this.tableFunction!.style.display = 'none';
         this.tableFunction!.setAttribute('hideDownload', '');
@@ -184,9 +192,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       },
       tip: (obj) => {
         return `<div>   
-                        <div>Type:${obj.obj.tableName}</div>
-                        <div>Exist Size:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
-                        <div>Exist Count:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Memory Type:${obj.obj.tableName}</div>
+                        <div>Existing:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
+                        <div># Existing:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Total Bytes:${obj.obj.applySizeFormat} (${obj.obj.applySizePercent}%)</div>
+                        <div># Total:${obj.obj.applyCount} (${obj.obj.applyCountPercent}%)</div>
+                        <div>Transient:${obj.obj.releaseSizeFormat} (${obj.obj.releaseSizePercent}%)</div>
+                        <div># Transient:${obj.obj.releaseCount} (${obj.obj.releaseCountPercent}%)</div>
                         </div>`;
       },
       angleClick: (it: any) => {
@@ -201,6 +213,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = it.typeName;
         // @ts-ignore
         this.type = it.typeName;
+        this.pie?.hideTip();
       },
       hoverHandler: (data) => {
         if (data) {
@@ -224,9 +237,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = '';
-    this.tabName!.textContent = 'Statistic By Event Type Size';
+    this.tabName!.textContent = 'Statistic By Event Type Existing';
     this.eventTypeData.unshift(this.typeStatisticsData);
     this.tableType!.recycleDataSource = this.eventTypeData;
     this.currentLevelData = JSON.parse(JSON.stringify(this.eventTypeData));
@@ -247,8 +261,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       tip: (obj) => {
         return `<div>
                         <div>Thread:${obj.obj.tableName}</div>
-                        <div>Exist Size:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
-                        <div>Exist Count:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Existing:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
+                        <div># Existing:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Total Bytes:${obj.obj.applySizeFormat} (${obj.obj.applySizePercent}%)</div>
+                        <div># Total:${obj.obj.applyCount} (${obj.obj.applyCountPercent}%)</div>
+                        <div>Transient:${obj.obj.releaseSizeFormat} (${obj.obj.releaseSizePercent}%)</div>
+                        <div># Transient:${obj.obj.releaseCount} (${obj.obj.releaseCountPercent}%)</div>
                     </div>`;
       },
       angleClick: (it: any) => {
@@ -262,6 +280,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = it.type + ' / ' + 'Thread ' + it.tid;
           // @ts-ignore
           this.tid = it.tid;
+          this.pie?.hideTip();
         }
       },
       hoverHandler: (data) => {
@@ -286,9 +305,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = this.type + '';
-    this.tabName!.textContent = 'Statistic By Thread Size';
+    this.tabName!.textContent = 'Statistic By Thread Existing';
     this.tableThread!.recycleDataSource = this.threadData;
     this.tableThread?.reMeauseHeight();
   }
@@ -305,8 +325,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       tip: (obj) => {
         return `<div>
                         <div>Library:${obj.obj.libName}</div>
-                        <div>Exist Size:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
-                        <div>Exist Count:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Existing:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
+                        <div># Existing:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Total Bytes:${obj.obj.applySizeFormat} (${obj.obj.applySizePercent}%)</div>
+                        <div># Total:${obj.obj.applyCount} (${obj.obj.applyCountPercent}%)</div>
+                        <div>Transient:${obj.obj.releaseSizeFormat} (${obj.obj.releaseSizePercent}%)</div>
+                        <div># Transient:${obj.obj.releaseCount} (${obj.obj.releaseCountPercent}%)</div>
                     </div>`;
       },
       angleClick: (it: any) => {
@@ -320,6 +344,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           this.getNMFunctionSize(it, val);
           // @ts-ignore
           this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = this.type + ' / ' + it.libName;
+          this.pie?.hideTip();
         }
       },
       hoverHandler: (data) => {
@@ -345,8 +370,9 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
-    this.tabName!.textContent = 'Statistic By Library Size';
+    this.tabName!.textContent = 'Statistic By Library Existing';
     this.soData.unshift(this.libStatisticsData);
     this.currentLevelData = JSON.parse(JSON.stringify(this.soData));
     this.tableSo!.recycleDataSource = this.soData;
@@ -372,8 +398,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       tip: (obj) => {
         return `<div>
                         <div>Function:${obj.obj.symbolName}</div>
-                        <div>Exist Size:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
-                        <div>Exist Count:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Existing:${obj.obj.existSizeFormat} (${obj.obj.existSizePercent}%)</div>
+                        <div># Existing:${obj.obj.existCount} (${obj.obj.existCountPercent}%)</div>
+                        <div>Total Bytes:${obj.obj.applySizeFormat} (${obj.obj.applySizePercent}%)</div>
+                        <div># Total:${obj.obj.applyCount} (${obj.obj.applyCountPercent}%)</div>
+                        <div>Transient:${obj.obj.releaseSizeFormat} (${obj.obj.releaseSizePercent}%)</div>
+                        <div># Transient:${obj.obj.releaseCount} (${obj.obj.releaseCountPercent}%)</div>
                     </div>`;
       },
       hoverHandler: (data) => {
@@ -398,6 +428,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.functionData.unshift(this.functionStatisticsData);
     this.currentLevelData = JSON.parse(JSON.stringify(this.functionData));
@@ -482,6 +513,38 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       } else if (column == 'existCountPercent') {
         currentTable!.recycleDataSource = arr.sort((a, b) => {
           return sort == 1 ? a.existCount - b.existCount : b.existCount - a.existCount;
+        });
+      } else if (column == 'releaseSizeFormat') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.releaseSize - b.releaseSize : b.releaseSize - a.releaseSize;
+        });
+      }else if (column == 'releaseSizePercent') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.releaseSize - b.releaseSize : b.releaseSize - a.releaseSize;
+        });
+      }else if (column == 'releaseCount') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.releaseCount - b.releaseCount : b.releaseCount - a.releaseCount;
+        });
+      }else if (column == 'releaseCountPercent') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.releaseCount - b.releaseCount : b.releaseCount - a.releaseCount;
+        });
+      }else if (column == 'applySizeFormat') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.applySize - b.applySize : b.applySize - a.applySize;
+        });
+      }else if (column == 'applySizePercent') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.applySize - b.applySize : b.applySize - a.applySize;
+        });
+      }else if (column == 'applyCount') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.applyCount - b.applyCount : b.applyCount - a.applyCount;
+        });
+      }else if (column == 'applyCountPercent') {
+        currentTable!.recycleDataSource = arr.sort((a, b) => {
+          return sort == 1 ? a.applyCount - b.applyCount : b.applyCount - a.applyCount;
         });
       }
       switch (this.currentLevel) {
@@ -656,7 +719,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   getNMFunctionSize(item: any, val: any) {
     this.progressEL!.loading = true;
-    this.shadowRoot!.querySelector<HTMLDivElement>('.subheading')!.textContent = 'Statistic By Function Size';
+    this.shadowRoot!.querySelector<HTMLDivElement>('.subheading')!.textContent = 'Statistic By Function Existing';
     let typeId = item.typeId;
     let typeName = item.typeName;
     let tid = item.tid;
@@ -793,7 +856,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
 
   private calPercent(item: AnalysisObj) {
-    item.applySizePercent = ((item.applySize / this.currentLevelApplyCount) * 100).toFixed(2);
+    item.applySizePercent = ((item.applySize / this.currentLevelApplySize) * 100).toFixed(2);
     item.applyCountPercent = ((item.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
     item.releaseSizePercent = ((item.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2);
     item.releaseCountPercent = ((item.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
@@ -891,6 +954,14 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       existSizePercent: ((this.currentLevelExistSize / this.currentLevelExistSize) * 100).toFixed(2),
       existCount: this.currentLevelExistCount,
       existCountPercent: ((this.currentLevelExistCount / this.currentLevelExistCount) * 100).toFixed(2),
+      releaseSizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelReleaseSize),
+      releaseSizePercent:((this.currentLevelReleaseSize / this.currentLevelReleaseSize) * 100).toFixed(2),
+      releaseCount:this.currentLevelReleaseCount,
+      releaseCountPercent:((this.currentLevelReleaseCount / this.currentLevelReleaseCount) * 100).toFixed(2),
+      applySizeFormat:Utils.getBinaryByteWithUnit(this.currentLevelApplySize),
+      applySizePercent:((this.currentLevelApplySize / this.currentLevelApplySize) * 100).toFixed(2),
+      applyCount:this.currentLevelApplyCount,
+      applyCountPercent:((this.currentLevelApplyCount / this.currentLevelApplyCount) * 100).toFixed(2),
       existSize: 0,
       tableName: '',
       libName: '',
@@ -1017,34 +1088,66 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
                          <div class="subheading"></div>
                          <lit-chart-pie  id="chart-pie"></lit-chart-pie>
                      </div>
-                     <div class="table-box" style="height:auto;width: 60%;">
-                    <lit-table id="tb-eventtype-usage"style="height:60vh;display: none">
-                        <lit-table-column width="1fr" title="Event Type" data-index="tableName" key="tableName" align="flex-start" ></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Size" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Count" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                     <div class="table-box" style="height:auto;">
+                    <lit-table id="tb-eventtype-usage" style="max-height:565px;min-height: 350px">
+                        <lit-table-column width="100px" title="Memory Type" data-index="tableName" key="tableName" align="flex-start" ></lit-table-column>
+                        <lit-table-column width="100px" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="100px" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-thread-usage" style="height: 60vh;display: none"hideDownload>
-                        <lit-table-column width="1fr" title="Thread" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Size" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Count" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                    <lit-table id="tb-thread-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
+                        <lit-table-column width="100px" title="Memory Type" data-index="tableName" key="tableName" align="flex-start" ></lit-table-column>
+                        <lit-table-column width="100px" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="100px" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-so-usage" style="height:60vh;display: none"hideDownload>
-                        <lit-table-column width="1fr" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Size" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Count" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                    <lit-table id="tb-so-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
+                        <lit-table-column width="200px" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="100px" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-function-usage" style="height:60vh;display: none"hideDownload>
-                        <lit-table-column width="1fr" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Size" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                        <lit-table-column width="1fr" title="Exist Count" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="1fr" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                    <lit-table id="tb-function-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
+                        <lit-table-column width="200px" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
+                         <lit-table-column width="100px" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="100px" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
+                        <lit-table-column width="100px" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
+                        <lit-table-column width="50px" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
                     </lit-table>
                     </div>
         </div>

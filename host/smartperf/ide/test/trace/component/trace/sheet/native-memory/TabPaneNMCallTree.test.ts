@@ -17,24 +17,30 @@ import '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPane
 import { TabPaneNMCallTree } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMCallTree.js';
 // @ts-ignore
 import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+// @ts-ignore
+import { FrameChart } from '../../../../../../dist/trace/component/chart/FrameChart.js';
+// @ts-ignore
+import { DisassemblingWindow } from '../../../../../../dist/trace/component/DisassemblingWindow.js';
 
 const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
-  window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-  }));
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+      disconnect: jest.fn(),
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+    }));
 
 describe('TabPaneNMCallTree Test', () => {
   document.body.innerHTML = '<div><tabpane-nm-calltree id="ddd"></tabpane-nm-calltree></div>';
   let tabPaneNMCallTree = document.querySelector<TabPaneNMCallTree>('#ddd');
-  let dom = document.createElement('div');
+  let dom = new FrameChart();
   dom.setAttribute('id', 'framechart');
   tabPaneNMCallTree.frameChart = dom;
+  tabPaneNMCallTree.modal = new DisassemblingWindow();
+  tabPaneNMCallTree.filter = new TabPaneFilter();
 
   it('TabPaneNMCallTreeTest01', function () {
     let hookLeft = {
@@ -130,7 +136,7 @@ describe('TabPaneNMCallTree Test', () => {
             
         </div>
         <lit-slicer-track ></lit-slicer-track>
-        <lit-table id="tb-filesystem-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
+        <lit-table id="tb-filesystem-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
             <span slot="head">Heaviest Stack Trace</span>
             <lit-table-column width="30px" title="" data-index="type" key="type"  align="flex-start" >
                 <template>
@@ -174,6 +180,9 @@ describe('TabPaneNMCallTree Test', () => {
     let table = document.querySelector('#filter');
     table!.setAttribute('tree', '1');
     tabPaneNMCallTree.filter = table;
+    tabPaneNMCallTree.filter.showThird = jest.fn(() => {
+      false;
+    });
     expect(tabPaneNMCallTree.showButtomMenu()).toBeUndefined();
   });
   it('TabPaneNMCallInfoTest08', function () {
@@ -182,6 +191,9 @@ describe('TabPaneNMCallTree Test', () => {
     let table = document.querySelector('#filter');
     table!.setAttribute('tree', '1');
     tabPaneNMCallTree.filter = table;
+    tabPaneNMCallTree.filter.showThird = jest.fn(() => {
+      false;
+    });
     expect(tabPaneNMCallTree.showButtomMenu(isShow)).toBeUndefined();
   });
 
@@ -196,5 +208,42 @@ describe('TabPaneNMCallTree Test', () => {
       nativeMemory: 'All Heap & Anonymous VM',
     };
     expect(tabPaneNMCallTree.data).toBeUndefined();
+  });
+  it('TabPaneNMCallTreeTest10', function () {
+    let data = [
+      { size: 10, count: 20, children: [] },
+      { size: 11, count: 21, children: [] },
+      { size: 21, count: 31, children: [] },
+    ];
+    expect(tabPaneNMCallTree.setLTableData(data)).toBe();
+  });
+  it('TabPaneNMCallTreeTest11', function () {
+    let data = [
+      { callTreeConstraints:{
+          inputs:[1]
+        }
+        , dataMining: 20, callTree: [] ,icon : 'block'},
+      { callTreeConstraints:{
+          inputs:[1]
+        }, dataMining: 21, callTree: [] ,icon : 'block'},
+      { callTreeConstraints:{
+          inputs:[1]
+        }, dataMining: 31, callTree: [] ,icon : 'block'},
+    ];
+    expect(tabPaneNMCallTree.switchFlameChart(data)).toBe();
+  });
+  it('TabPaneNMCallTreeTest12', function () {
+    expect(tabPaneNMCallTree.initFilterTypes()).toBe();
+  });
+  it('TabPaneNMCallTreeTest13', function () {
+    let data = [
+      { id: 0, count: 20, children: [] },
+      { id: 1, count: 21, children: [] },
+      { id: 2, count: 31, children: [] },
+    ];
+    expect(tabPaneNMCallTree.setRightTableData(data)).toBeTruthy();
+  });
+  it('TabPaneNMCallTreeTest14', function () {
+    expect(tabPaneNMCallTree.getDataByWorkerQuery({},{})).toBeUndefined();
   });
 });

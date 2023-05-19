@@ -572,4 +572,20 @@ describe('ProcedureLogicWorkerPerf Test', () => {
     perfCallChainMerageData.total = true;
     expect(perfCallChainMerageData.total).toBeTruthy();
   });
+  it('ProcedureLogicWorkerPerfTest53', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.hideSystemLibrary()).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerPerfTest54', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.hideNumMaxAndMin(1,'∞')).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerPerfTest55', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.findSearchNode([],'',true)).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerPerfTest56', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.splitAllProcess([])).toBeUndefined();
+  });
 });

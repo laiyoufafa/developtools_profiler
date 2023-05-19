@@ -114,21 +114,6 @@ describe('ProcedureLogicWorkerNativeNemory Test', () => {
     expect(procedureLogicWorkerNativeMemory.clearAll()).toBeUndefined();
   });
 
-  it('ProcedureLogicWorkerNativeNemoryTest10', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let target = {
-      pid: 0,
-      depth: 1,
-    };
-    let src = {
-      depth: 0,
-      children: {
-        push: jest.fn(() => true),
-      },
-    };
-    expect(procedureLogicWorkerNativeMemory.listToTree(target, src)).toBeUndefined();
-  });
-
   it('ProcedureLogicWorkerNativeNemoryTest11', function () {
     let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
     expect(procedureLogicWorkerNativeMemory.getTypeFromIndex(-1, '', '')).toBeFalsy();
@@ -282,132 +267,316 @@ describe('ProcedureLogicWorkerNativeNemory Test', () => {
     expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
   });
 
-  it('procedureLogicWorkerFileSystemTest22', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let data = {
-      id: 1,
-      params: [
-        {
-          list: '',
-        },
-      ],
-      action: '',
-      type: 'native-memory-action',
-    };
-    window.postMessage = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingAction = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
-  });
-  it('procedureLogicWorkerFileSystemTest23', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    window.postMessage = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.queryData()).toBeUndefined();
-  });
-  it('procedureLogicWorkerFileSystemTest24', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    window.postMessage = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.initDataDict()).toBeUndefined();
-  });
-  it('procedureLogicWorkerFileSystemTest25', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    window.postMessage = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.initNMChartData()).toBeUndefined();
-  });
-  it('procedureLogicWorkerFileSystemTest26', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    window.postMessage = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.initNMFrameData()).toBeUndefined();
-  });
-  it('procedureLogicWorkerFileSystemTest27', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    window.postMessage = jest.fn(() => true);
-    let frameArr = {
-      map: jest.fn(() => true),
-    };
-    expect(procedureLogicWorkerNativeMemory.initNMStack(frameArr)).toBeUndefined();
-  });
-  it('procedureLogicWorkerFileSystemTest28', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = {
-      get: jest.fn(() => 'call-info'),
-    };
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingAction(paramMap)).toBeTruthy();
-  });
-  it('procedureLogicWorkerFileSystemTest29', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = new Map();
-    paramMap.set('actionType', 'info');
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingAction(paramMap)).toBeTruthy();
-  });
-  it('procedureLogicWorkerFileSystemTest30', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = {
-      get: jest.fn(() => 'memory-stack'),
-    };
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingAction(paramMap)).toBeTruthy();
-  });
-  it('procedureLogicWorkerFileSystemTest31', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = {
-      get: jest.fn(() => 'memory-chart'),
-    };
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingAction(paramMap)).toBeTruthy();
-  });
-  it('procedureLogicWorkerFileSystemTest32', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = {
-      get: jest.fn(() => true),
-    };
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingAction(paramMap)).toBeTruthy();
-  });
-  it('procedureLogicWorkerFileSystemTest33', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = {
-      get: jest.fn(() => 0),
-    };
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingActionNativeMemoryChartData(paramMap)).toBeTruthy();
-  });
-  it('procedureLogicWorkerFileSystemTest34', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let paramMap = {
-      get: jest.fn(() => 1),
-    };
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource = jest.fn(() => true);
-    procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map = jest.fn(() => true);
-    expect(procedureLogicWorkerNativeMemory.resolvingActionNativeMemoryChartData(paramMap)).toBeTruthy();
-  });
-  it('ProcedureLogicWorkerNativeNemoryTest35', function () {
-    let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
-    let target = {
-      pid: 0,
-      depth: 1,
-    };
-    let src = {
-      depth: 0,
-      children: {
-        push: jest.fn(() => true),
-        length: 1,
-      },
-    };
-    expect(procedureLogicWorkerNativeMemory.listToTree(target, src)).toBeUndefined();
-  });
+    it('procedureLogicWorkerFileSystemTest22', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let data = {
+            id: 1,
+            params: [
+                {
+                    list: '',
+                },
+            ],
+            action: '',
+            type: 'native-memory-action',
+        };
+        window.postMessage = jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingAction = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest23', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.queryData()).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest24', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.initDataDict()).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest25', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.initNMChartData()
+        ).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest26', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.initNMFrameData()
+        ).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest27', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        let frameArr = {
+            map: jest.fn(() => true),
+        };
+        expect(
+            procedureLogicWorkerNativeMemory.initNMStack(frameArr)
+        ).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest28', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = {
+            get: jest.fn(() => 'call-info'),
+        };
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingAction(paramMap)
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest29', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = new Map();
+        paramMap.set('actionType', 'info');
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingAction(paramMap)
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest30', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = {
+            get: jest.fn(() => 'memory-stack'),
+        };
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingAction(paramMap)
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest31', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = {
+            get: jest.fn(() => 'memory-chart'),
+        };
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingAction(paramMap)
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest32', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = {
+            get: jest.fn(() => true),
+        };
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingAction(paramMap)
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest33', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = {
+            get: jest.fn(() => 0),
+        };
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingActionNativeMemoryChartData(
+                paramMap
+            )
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest34', function () {
+        let procedureLogicWorkerNativeMemory =
+            new ProcedureLogicWorkerNativeMemory();
+        let paramMap = {
+            get: jest.fn(() => 1),
+        };
+        // @ts-ignore
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo = jest.fn(
+            () => true
+        );
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource =
+            jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.resolvingActionCallInfo.dataSource.map =
+            jest.fn(() => true);
+        expect(
+            procedureLogicWorkerNativeMemory.resolvingActionNativeMemoryChartData(
+                paramMap
+            )
+        ).toBeTruthy();
+    });
+    it('procedureLogicWorkerFileSystemTest35', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.queryCallchainsSamples('',1,1,[''])).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest36', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.getCallChainData()).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest37', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.queryStatisticCallchainsSamples('',1,1,[''])).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest38', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.getFilterLevel(1000001)).toBe(100000);
+    });
+    it('procedureLogicWorkerFileSystemTest39', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.getFilterLevel(5000001)).toBe(100000);
+    });
+    it('procedureLogicWorkerFileSystemTest40', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.getFilterLevel(3000001)).toBe(100000);
+    });
+    it('procedureLogicWorkerFileSystemTest41', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.getFilterLevel(150000)).toBe(0);
+    });
+    it('procedureLogicWorkerFileSystemTest42', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        let params = [
+            {
+                length: 1
+            }
+        ]
+        expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+    });
+    it('procedureLogicWorkerFileSystemTest43', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        let params = {
+            symbol: '',
+            path:'',
+            symbolId:1,
+            fileId:1,
+            lib:'',
+            symbolName:'',
+            type:0,
+            }
+        expect(procedureLogicWorkerNativeMemory.setMerageName(params)).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest44', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.clearSplitMapData('')).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest49', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        let data = {
+            id: 1,
+            params: [
+                {
+                    list: '',
+                },
+            ],
+            action: '',
+            type: 'native-memory-calltree-action',
+        };
+        window.postMessage = jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.initNMStack = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest50', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        let data = {
+            id: 1,
+            params: [
+                {
+                    list: '',
+                },
+            ],
+            action: '',
+            type: 'native-memory-init-responseType',
+        };
+        window.postMessage = jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.initNMStack = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest51', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        let data = {
+            id: 1,
+            params: [
+                {
+                    list: '',
+                },
+            ],
+            action: '',
+            type: 'native-memory-get-responseType',
+        };
+        window.postMessage = jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.initNMStack = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest52', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        let data = {
+            id: 1,
+            params: [
+                {
+                    list: '',
+                },
+            ],
+            action: '',
+            type: 'native-memory-queryNativeHookStatistic',
+        };
+        window.postMessage = jest.fn(() => true);
+        procedureLogicWorkerNativeMemory.initNMStack = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+    });
+    it('procedureLogicWorkerFileSystemTest53', function () {
+        let procedureLogicWorkerNativeMemory = new ProcedureLogicWorkerNativeMemory();
+        window.postMessage = jest.fn(() => true);
+        expect(procedureLogicWorkerNativeMemory.queryNativeHookStatistic(1)).toBeUndefined();
+    });
 });

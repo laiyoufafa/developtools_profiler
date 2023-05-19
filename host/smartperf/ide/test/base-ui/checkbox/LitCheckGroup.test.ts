@@ -50,15 +50,15 @@ describe('LitCheckGroup Test', () => {
             flex-direction: column;
         }
         
-        :host([layout=\\"compact\\"]) {
+        :host([layout="compact"]) {
             gap:5px;
         }
-        :host([layout=\\"dispersion\\"]) {
+        :host([layout="dispersion"]) {
            gap:10px;
         }
         
         </style>
-        <slot class=\\"check-group\\"></slot>"
+        <slot class="check-group"></slot>"
 `);
   });
 });

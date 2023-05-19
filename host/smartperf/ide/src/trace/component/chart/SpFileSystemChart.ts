@@ -128,7 +128,7 @@ export class SpFileSystemChart {
       );
       row.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(row);
+    folder.addChildTraceRow(row);
   }
 
   async initLogicalWrite(folder: TraceRow<any>) {
@@ -159,7 +159,7 @@ export class SpFileSystemChart {
       );
       row.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(row);
+      folder.addChildTraceRow(row);
   }
 
   async initDiskIOLatency(folder: TraceRow<any>) {
@@ -191,7 +191,7 @@ export class SpFileSystemChart {
       );
       row.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(row);
+    folder.addChildTraceRow(row);
   }
 
   async initProcessDiskIOLatency(folder: TraceRow<any>) {
@@ -226,7 +226,7 @@ export class SpFileSystemChart {
         );
         rowRead.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(rowRead);
+      folder.addChildTraceRow(rowRead);
       let rowWrite = TraceRow.skeleton<FileSysChartStruct>();
       rowWrite.index = 5 + 2 * i + 1;
       rowWrite.rowId = `FileSystemDiskIOLatency-write-${process['ipid']}`;
@@ -255,7 +255,7 @@ export class SpFileSystemChart {
         );
         rowWrite.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(rowWrite);
+      folder.addChildTraceRow(rowWrite);
     }
   }
 
@@ -289,7 +289,7 @@ export class SpFileSystemChart {
       );
       row.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(row);
+    folder.addChildTraceRow(row);
   }
 
   focusHandler(row: TraceRow<FileSysChartStruct>) {

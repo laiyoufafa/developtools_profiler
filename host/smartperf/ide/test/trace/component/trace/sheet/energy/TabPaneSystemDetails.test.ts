@@ -433,27 +433,27 @@ describe('TabPanePowerBattery Test', () => {
             right: 0;
         }
         </style>
-        <div style=\\"display: flex;flex-direction: column\\">
-            <div style=\\"display: flex;flex-direction: row\\">
-                <lit-slicer style=\\"width:100%\\">
-                    <div class=\\"box-details\\" style=\\"width: 100%\\">
-                        <lit-table id=\\"tb-system-data\\" style=\\"height: auto\\">
-                            <lit-table-column width=\\"300px\\" title=\\"\\" data-index=\\"eventName\\" key=\\"eventName\\"  align=\\"flex-start\\" order>
+        <div style="display: flex;flex-direction: column">
+            <div style="display: flex;flex-direction: row">
+                <lit-slicer style="width:100%">
+                    <div class="box-details" style="width: 100%">
+                        <lit-table id="tb-system-data" style="height: auto">
+                            <lit-table-column width="300px" title="" data-index="eventName" key="eventName"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width=\\"300px\\" title=\\"\\" data-index=\\"ts\\" key=\\"ts\\"  align=\\"flex-start\\" order>
+                            <lit-table-column width="300px" title="" data-index="ts" key="ts"  align="flex-start" order>
                             </lit-table-column>
                         </lit-table>
                     </div>
                     <lit-slicer-track ></lit-slicer-track>
-                    <lit-table id=\\"tb-system-details-data\\" no-head style=\\"height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)\\">
-                        <lit-table-column width=\\"100px\\" title=\\"\\" data-index=\\"key\\" key=\\"key\\"  align=\\"flex-start\\" >
+                    <lit-table id="tb-system-details-data" no-head hideDownload style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
+                        <lit-table-column width="100px" title="" data-index="key" key="key"  align="flex-start" >
                         </lit-table-column>
-                        <lit-table-column width=\\"1fr\\" title=\\"\\" data-index=\\"value\\" key=\\"value\\"  align=\\"flex-start\\">
+                        <lit-table-column width="1fr" title="" data-index="value" key="value"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>
             </div>
-            <lit-progress-bar class=\\"progress\\"></lit-progress-bar>
+            <lit-progress-bar class="progress"></lit-progress-bar>
         </div>
         "
 `);

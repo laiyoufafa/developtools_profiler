@@ -42,10 +42,10 @@ describe('Sptext Test', () => {
             overflow: auto;
         }
         </style>
-        <div class=\\"root\\">
-            <div id=\\"trace-content\\" class=\\"trace-content\\">
-            <img src=\\"img/pic.png\\">
-            <lit-popover direction=\\"topleft\\" type=\\"multiple-text\\" title=\\"\\">
+        <div class="root">
+            <div id="trace-content" class="trace-content">
+            <img src="img/pic.png">
+            <lit-popover direction="topleft" type="multiple-text" title="">
               <button>test</button>
             </lit-popover>
             </div>

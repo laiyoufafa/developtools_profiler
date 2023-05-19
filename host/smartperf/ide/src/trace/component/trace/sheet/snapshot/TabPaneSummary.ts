@@ -18,20 +18,16 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import '../../../../../base-ui/table/lit-table.js';
 import { ConstructorItem, FileType } from '../../../../../js-heap/model/UiStruct.js';
 import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface.js';
-import { LitIcon } from '../../../../../base-ui/icon/LitIcon.js';
 import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column.js';
 import '../../../../../base-ui/table/lit-table-column.js';
 import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
 import '../TabPaneJsMemoryFilter.js';
-import { LoadDatabase } from '../../../../../js-heap/LoadDatabase.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { SpJsMemoryChart } from '../../../chart/SpJsMemoryChart.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { LitSlicer, LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer.js';
 import '../../../../../base-ui/slicer/lit-slicer.js';
 import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import { LitTabs } from '../../../../../base-ui/tabs/lit-tabs.js';
 
 @element('tabpane-summary')
 export class TabPaneSummary extends BaseElement {
@@ -40,11 +36,8 @@ export class TabPaneSummary extends BaseElement {
   private stackTable: LitTable | null | undefined;
   private summary: Array<ConstructorItem> = [];
   private retainsData: Array<ConstructorItem> = [];
-  private tblTree: HTMLDivElement | undefined | null;
-  private tbsTree: HTMLDivElement | undefined | null;
   private stackData: Array<any> = [];
   private stackText: HTMLElement | undefined;
-  private filter: any;
   static fileSize: number;
   private tabFilter: TabPaneJsMemoryFilter | undefined | null;
   private progressEL: LitProgressBar | null | undefined;
@@ -76,6 +69,7 @@ export class TabPaneSummary extends BaseElement {
     this.rightTheadTable = this.tbs!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.leftTheadTable = this.tbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.tbl!.addEventListener('row-click', (evt: any) => {
+      this.rightTheadTable!.removeAttribute('sort');
       this.tbsTable = this.tbs!.shadowRoot?.querySelector('.table') as HTMLDivElement;
       this.tbsTable!.scrollTop = 0;
       let data = evt.detail.data as ConstructorItem;
@@ -91,7 +85,7 @@ export class TabPaneSummary extends BaseElement {
           element.distance = '-';
         }
         let nodeId = element.nodeName + ` @${element.id}`;
-        element.nodeName = element.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+        element.objectName = element.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
       });
       if (this.retainsData.length > 0) {
         if (this.retainsData[0].distance > 1) {
@@ -107,7 +101,7 @@ export class TabPaneSummary extends BaseElement {
               row.shallowPercent = shallow;
               row.retainedPercent = retained;
               let nodeId = row.nodeName.concat(` @${row.id}`);
-              row.nodeName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+              row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
               if (row.distance >= 100000000 || row.distance === -5) {
                 row.distance = '-';
               }
@@ -132,12 +126,33 @@ export class TabPaneSummary extends BaseElement {
       if (SpJsMemoryChart.file.file_name.includes('Timeline')) {
         this.stackData = HeapDataInterface.getInstance().getAllocationStackData(data);
         if (this.stackData.length > 0) {
-          this.stackTable!.snapshotDataSource = this.stackData;
+          this.stackTable!.recycleDataSource = this.stackData;
+          this.stackText!.textContent = '';
+          this.stackText!.style.display = 'none';
+          if (this.stack!.className == 'active') {
+            this.stackTable!.style.display = 'grid';
+            this.tbs!.style.display = 'none';
+          }
+        } else {
+          this.stackText!.style.display = 'flex';
+          this.stackTable!.recycleDataSource = [];
+          this.stackTable!.style.display = 'none';
+          if (this.retainers!.className == 'active') {
+            this.stackText!.style.display = 'none';
+          }
+          if (this.retainsData === undefined || this.retainsData.length === 0) {
+            this.stackText!.textContent = '';
+          } else {
+            this.stackText!.textContent =
+              'Stack was not recorded for this object because it had been allocated before this profile recording started.';
+          }
         }
       }
       new ResizeObserver(() => {
         this.tbs!.style.height = 'calc(100% - 30px)';
         this.tbs!.reMeauseHeight();
+        this.stackTable!.style.height = 'calc(100% - 30px)';
+        this.stackTable!.reMeauseHeight();
       }).observe(this.parentElement!);
       if ((evt.detail as any).callBack) {
         // @ts-ignore
@@ -169,9 +184,9 @@ export class TabPaneSummary extends BaseElement {
             element.distance = '-';
           }
           let nodeId = element.nodeName.concat(` @${element.id}`);
-          element.nodeName = nodeId;
+          element.objectName = nodeId;
           if (element.edgeName != '') {
-            element.nodeName = element.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
+            element.objectName = element.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
           }
         });
       } else {
@@ -210,7 +225,7 @@ export class TabPaneSummary extends BaseElement {
               row.shallowPercent = shallow;
               row.retainedPercent = retained;
               let nodeId = row.nodeName.concat(` @${row.id}`);
-              row.nodeName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+              row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
               if (row.distance >= 100000000 || row.distance === -5) {
                 row.distance = '-';
               }
@@ -275,9 +290,11 @@ export class TabPaneSummary extends BaseElement {
     let dataList = HeapDataInterface.getInstance().getClassesListForSummary(SpJsMemoryChart.file.id);
     TabPaneSummary.fileSize = dataList.reduce((sum, e) => sum + e.shallowSize, 0);
     this.summary.forEach((element: any) => {
-      if (element.childCount > 1 && element.nodeName.indexOf('×') == -1) {
+      if (element.childCount > 1) {
         let count = element.nodeName + ` ×${element.childCount}`;
-        element.nodeName = count;
+        element.objectName = count;
+      } else {
+        element.objectName = element.nodeName;
       }
       let shallow = Math.round((element.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
       let retained = Math.round((element.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
@@ -395,19 +412,19 @@ export class TabPaneSummary extends BaseElement {
             });
             this.tbl!.snapshotDataSource = this.leftArray;
             break;
-          case 'nodeName':
+          case 'objectName':
             this.tbl!.snapshotDataSource = this.leftArray.sort((a, b) => {
               return sort === 1
-                ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                : (b.nodeName + '').localeCompare(a.nodeName + '');
+                ? (a.objectName + '').localeCompare(b.objectName + '')
+                : (b.objectName + '').localeCompare(a.objectName + '');
             });
             this.leftArray.forEach((list) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
                   list.sort((a: any, b: any) => {
                     return sort === 1
-                      ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                      : (b.nodeName + '').localeCompare(a.nodeName + '');
+                      ? (a.objectName + '').localeCompare(b.objectName + '')
+                      : (b.objectName + '').localeCompare(a.objectName + '');
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -500,19 +517,19 @@ export class TabPaneSummary extends BaseElement {
             });
             this.tbs!.snapshotDataSource = this.rightArray;
             break;
-          case 'nodeName':
+          case 'objectName':
             this.tbs!.snapshotDataSource = this.rightArray.sort((a, b) => {
               return sort === 1
-                ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                : (b.nodeName + '').localeCompare(a.nodeName + '');
+                ? (a.objectName + '').localeCompare(b.objectName + '')
+                : (b.objectName + '').localeCompare(a.objectName + '');
             });
             this.rightArray.forEach((list) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
                   list.sort((a: any, b: any) => {
                     return sort === 1
-                      ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                      : (b.nodeName + '').localeCompare(a.nodeName + '');
+                      ? (a.objectName + '').localeCompare(b.objectName + '')
+                      : (b.objectName + '').localeCompare(a.objectName + '');
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -550,7 +567,7 @@ export class TabPaneSummary extends BaseElement {
             if (that.stackData.length > 0) {
               that.stackText!.style.display = 'none';
               that.stackTable!.style.display = 'flex';
-              that.stackTable!.snapshotDataSource = that.stackData;
+              that.stackTable!.recycleDataSource = that.stackData;
             } else {
               that.stackText!.style.display = 'flex';
               if (that.retainsData === undefined || that.retainsData.length === 0) {
@@ -572,7 +589,7 @@ export class TabPaneSummary extends BaseElement {
     this.search!.addEventListener('keyup', () => {
       this.summaryFilter = [];
       this.summaryData.forEach((a: any, key: number) => {
-        if (a.nodeName.toLowerCase().includes(this.search!.value.toLowerCase())) {
+        if (a.objectName.toLowerCase().includes(this.search!.value.toLowerCase())) {
           this.summaryFilter.push(a);
         } else {
         }
@@ -585,7 +602,7 @@ export class TabPaneSummary extends BaseElement {
 
   clear() {
     this.tbs!.snapshotDataSource = [];
-    this.stackTable!.snapshotDataSource = [];
+    this.stackTable!.recycleDataSource = [];
     this.retainsData = [];
     this.stackText!.textContent = '';
     this.search!.value = '';
@@ -594,6 +611,8 @@ export class TabPaneSummary extends BaseElement {
     this.stackTable!.style.display = 'none';
     this.stackText!.style.display = 'none';
     this.tbs!.style.display = 'flex';
+    this.rightTheadTable!.removeAttribute('sort');
+    this.leftTheadTable!.removeAttribute('sort');
   }
 
   connectedCallback() {
@@ -717,7 +736,7 @@ export class TabPaneSummary extends BaseElement {
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
             <lit-table id="left" style="height: auto" tree>
-                <lit-table-column width="40%" title="Constructor" data-index="nodeName" key="nodeName" align="flex-start" order>
+                <lit-table-column width="40%" title="Constructor" data-index="objectName" key="objectName" align="flex-start" order>
                 </lit-table-column>
                 <lit-table-column width="2fr" title="Distance" data-index="distance" key="distance" align="flex-start" order>
                 </lit-table-column>
@@ -741,7 +760,7 @@ export class TabPaneSummary extends BaseElement {
                     </ul>
                 </div>
                 <lit-table id="right" tree>
-                    <lit-table-column width="40%" title="Object" data-index="nodeName" key="nodeName" align="flex-start" order>
+                    <lit-table-column width="40%" title="Object" data-index="objectName" key="objectName" align="flex-start" order>
                     </lit-table-column>
                     <lit-table-column width="2fr" title="Distance" data-index="distance" key="distance" align="flex-start" order>
                     </lit-table-column>

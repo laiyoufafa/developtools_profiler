@@ -57,20 +57,22 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
 #endif
 {
 }
-void HtraceParser::GetSymbols(std::unique_ptr<ElfFile> elfPtr, ElfSymbolTable& symbols, const std::string& filename)
+void HtraceParser::GetSymbols(std::unique_ptr<ElfFile> elfPtr,
+                              std::shared_ptr<ElfSymbolTable> symbols,
+                              const std::string& filename)
 {
-    symbols.filePath = std::move(filename);
-    symbols.textVaddr = (std::numeric_limits<uint64_t>::max)();
+    symbols->filePath = std::move(filename);
+    symbols->textVaddr = (std::numeric_limits<uint64_t>::max)();
     for (auto& item : elfPtr->phdrs_) {
         if ((item->type_ == PT_LOAD) && (item->flags_ & PF_X)) {
             // find the min addr
-            if (symbols.textVaddr != (std::min)(symbols.textVaddr, item->vaddr_)) {
-                symbols.textVaddr = (std::min)(symbols.textVaddr, item->vaddr_);
-                symbols.textOffset = item->offset_;
+            if (symbols->textVaddr != (std::min)(symbols->textVaddr, item->vaddr_)) {
+                symbols->textVaddr = (std::min)(symbols->textVaddr, item->vaddr_);
+                symbols->textOffset = item->offset_;
             }
         }
     }
-    if (symbols.textVaddr == (std::numeric_limits<uint64_t>::max)()) {
+    if (symbols->textVaddr == (std::numeric_limits<uint64_t>::max)()) {
         TS_LOGE("GetSymbols get textVaddr failed");
         return;
     }
@@ -98,16 +100,16 @@ void HtraceParser::GetSymbols(std::unique_ptr<ElfFile> elfPtr, ElfSymbolTable& s
             sym->secSize_, str->secSize_);
         return;
     }
-    symbols.symEntSize = sym->secEntrySize_;
+    symbols->symEntSize = sym->secEntrySize_;
     std::string symTable(symData, symData + sym->secSize_);
-    symbols.symTable = std::move(symTable);
+    symbols->symTable = std::move(symTable);
     std::string strTable(strData, strData + str->secSize_);
-    symbols.strTable = std::move(strTable);
+    symbols->strTable = std::move(strTable);
 }
 
 bool HtraceParser::ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths)
 {
-    elfSymbolTables_ = std::make_shared<std::vector<ElfSymbolTable>>();
+    elfSymbolTables_ = std::make_shared<std::vector<std::shared_ptr<ElfSymbolTable>>>();
     std::cout << "start Parser File so" << std::endl;
     for (auto relativeFilePath : relativeFilePaths) {
         if (relativeFilePath.compare(0, directory.length(), directory)) {
@@ -121,7 +123,7 @@ bool HtraceParser::ParserFileSO(std::string& directory, std::vector<std::string>
         } else {
             TS_LOGI("loaded elf %s", relativeFilePath.c_str());
         }
-        ElfSymbolTable symbolInfo;
+        auto symbolInfo = std::make_shared<ElfSymbolTable>();
         auto absoluteFilePath = relativeFilePath.substr(directory.length());
         GetSymbols(std::move(elfFile), symbolInfo, absoluteFilePath);
         elfSymbolTables_->emplace_back(symbolInfo);
@@ -148,10 +150,13 @@ bool HtraceParser::ReparseSymbolFilesAndResymbolization(std::string& symbolsPath
 #endif
     auto parseFileSOStatus = ParserFileSO(symbolsPath, symbolsPaths);
     if (!parseFileSOStatus) {
-        return parsePerfStatus || parseFileSOStatus;
+        return parsePerfStatus;
     }
     if (htraceNativeHookParser_->SupportImportSymbolTable()) {
         htraceNativeHookParser_->NativeHookReloadElfSymbolTable(elfSymbolTables_);
+    }
+    if (ebpfDataParser_->SupportImportSymbolTable()) {
+        ebpfDataParser_->EBPFReloadElfSymbolTable(elfSymbolTables_);
     }
     return true;
 }

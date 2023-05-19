@@ -34,7 +34,7 @@ describe('LitTableGroup Test', () => {
         <style>
         :host{ }
         </style>
-        <slot id=\\"sl\\"></slot>
+        <slot id="sl"></slot>
         "
 `);
   });

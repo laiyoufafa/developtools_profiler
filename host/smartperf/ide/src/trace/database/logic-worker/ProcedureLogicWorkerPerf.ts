@@ -143,7 +143,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   initPerfCalls() {
     this.queryData(
       'perf-queryPerfCalls',
-      `select count(callchain_id) as depth,callchain_id as sampleId,name from perf_callchain group by callchain_id`,
+      `select count(callchain_id) as depth,callchain_id as sampleId,name 
+from perf_callchain 
+where callchain_id != -1
+group by callchain_id`,
       {}
     );
   }
@@ -151,7 +154,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   initPerfCallchains() {
     this.queryData(
       'perf-queryPerfCallchains',
-      `select c.name,c.callchain_id as sampleId,c.vaddr_in_file as vaddrInFile,c.file_id as fileId,c.symbol_id as symbolId  from perf_callchain c`,
+      `select c.name,c.callchain_id as sampleId,c.vaddr_in_file as vaddrInFile,c.file_id as fileId,c.symbol_id as symbolId  
+from perf_callchain c
+where callchain_id != -1;`,
       {}
     );
   }
@@ -171,10 +176,16 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.queryData(
       'perf-queryCallchainsGroupSample',
       `
-select p.callchain_id as sampleId,p.thread_state as threadState,p.thread_id as tid,p.count,p.process_id as pid from (select callchain_id,s.thread_id,thread_state,process_id,count(callchain_id) as count
-from perf_sample s,trace_range t left join perf_thread thread on s.thread_id = thread.thread_id
-where timestamp_trace between $startTime + t.start_ts and $endTime  + t.start_ts and callchain_id != -1 and s.thread_id != 0 ${sql}
-group by callchain_id,s.thread_id,thread_state,process_id) p`,
+select p.callchain_id as sampleId, p.thread_state as threadState, p.thread_id as tid, p.count, p.process_id as pid
+from (select callchain_id, s.thread_id, thread_state, process_id, count(callchain_id) as count
+      from perf_sample s,
+           trace_range t
+               left join perf_thread thread on s.thread_id = thread.thread_id
+      where timestamp_trace between $startTime + t.start_ts and $endTime + t.start_ts
+        and callchain_id != -1
+        and s.thread_id != 0 
+        ${sql}
+      group by callchain_id, s.thread_id, thread_state, process_id) p`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,

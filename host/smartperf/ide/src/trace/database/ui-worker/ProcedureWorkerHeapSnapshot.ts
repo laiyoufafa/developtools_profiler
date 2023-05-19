@@ -91,7 +91,7 @@ export class HeapSnapshotStruct extends BaseStruct {
       let rectangle: Rect = new Rect(
         Math.floor(((node.start_time - startNS) / totalNS) * frame.width),
         0,
-        Math.floor(((node.end_time - node.start_time) / totalNS) * frame.width),
+        Math.ceil(((node.end_time - node.start_time) / totalNS) * frame.width),
         40
       );
       node.frame = rectangle;

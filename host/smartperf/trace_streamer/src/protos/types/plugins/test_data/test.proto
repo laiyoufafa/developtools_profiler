@@ -32,10 +32,25 @@ message Test {
     }
 }
 
+message NumberTest {
+    repeated int32 numberText = 1;
+}
+
+message Fixed64Test {
+    repeated double fixed64NumberText = 1;
+}
+
+message Fixed32Test {
+    repeated float fixed32NumberText = 1;
+}
+
 message CpuInfoTest {
     repeated Test test = 1;
 }
 message TestParser {
     int32 count = 1;
     CpuInfoTest cores = 2;
+    NumberTest numberTest = 3;
+    Fixed64Test fixed64Test = 4;
+    Fixed32Test fixed32Test = 5;
 }

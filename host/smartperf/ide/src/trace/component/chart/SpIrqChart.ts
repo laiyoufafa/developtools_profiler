@@ -75,7 +75,7 @@ export class SpIrqChart {
         );
         traceRow.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(traceRow);
+      folder.addChildTraceRow(traceRow);
     }
     let durTime = new Date().getTime() - irqStartTime;
     info('The time to load the ClockData is: ', durTime);

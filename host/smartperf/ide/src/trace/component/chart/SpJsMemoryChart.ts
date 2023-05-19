@@ -100,7 +100,7 @@ export class SpJsMemoryChart implements ParseListener {
           );
           heapTimelineRow.canvasRestore(context);
         };
-        this.trace.rowsEL?.appendChild(heapTimelineRow);
+        jsHeapRow.addChildTraceRow(heapTimelineRow);
       } else {
         let traceRange = await queryTraceRange();
         let heapSnapshotRow = TraceRow.skeleton<HeapSnapshotStruct>();
@@ -131,7 +131,7 @@ export class SpJsMemoryChart implements ParseListener {
           );
           heapSnapshotRow.canvasRestore(context);
         };
-        this.trace.rowsEL?.appendChild(heapSnapshotRow);
+        jsHeapRow.addChildTraceRow(heapSnapshotRow);
       }
     }
   }

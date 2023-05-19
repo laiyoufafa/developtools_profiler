@@ -24,7 +24,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 class SDKDataParser;
-enum TraceFileType { /*TRACE_FILETYPE_BY_TRACE, TRACE_FILETYPE_H_TRACE,*/ TRACE_FILETYPE_UN_KNOW };
+enum TraceFileType { TRACE_FILETYPE_UN_KNOW };
 class TraceStreamerSelector {
 public:
     TraceStreamerSelector();

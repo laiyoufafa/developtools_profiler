@@ -283,6 +283,21 @@ export class SpHelp extends BaseElement {
                 ' width="100%" height="100%"></object>';
             },
           },
+          {
+            title: 'Js Memory抓取和展示说明',
+            icon: '',
+            clickHandler: function (item: MenuItem) {
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'js_memory',
+                action: 'help_doc',
+              });
+              that.appContent!.innerHTML =
+                '<object type="text/html" data=' +
+                '/application/doc/quickstart_Js_memory.html?' +
+                that.dark +
+                ' width="100%" height="100%"></object>';
+            },
+          },
         ],
       },
       {

@@ -187,7 +187,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           break;
         case 'native-memory-queryNativeHookStatistic':
           if (data.params.list) {
-            postMessage(data.id, data.action, this.handleNativeHookStatisticData(convertJSON(data.params.list)));
+            let arr = this.statisticDataHandler(convertJSON(data.params.list));
+            postMessage(data.id, data.action, this.handleNativeHookStatisticData(arr));
           } else {
             this.totalNS = data.params.totalNS;
             this.queryNativeHookStatistic(data.params.type);
@@ -239,15 +240,63 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   }
   queryNativeHookStatistic(type: number) {
     let sql = `
-        select (ts - start_ts) startTime,
-                sum(apply_size - release_size) heapsize,
-                sum(apply_count - release_count) density
-        from native_hook_statistic,trace_range
-        where startTime >= 0 ${type === -1 ? '' : `and type = ${type}`}
-        group by startTime;
+select callchain_id callchainId,
+       ts - start_ts as ts,
+       apply_count applyCount,
+       apply_size applySize,
+       release_count releaseCount,
+       release_size releaseSize
+from native_hook_statistic,trace_range
+where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
         `;
     this.queryData('native-memory-queryNativeHookStatistic', sql, {});
   }
+
+  statisticDataHandler(arr: Array<any>) {
+    let callGroupMap : Map<number,any[]> = new Map<number, any[]>();
+    let obj = {};
+    for (let hook of arr) {
+      if ((obj as any)[hook.ts]) {
+        let data = (obj as any)[hook.ts] as any;
+        data.startTime = hook.ts;
+        data.dur = 0;
+        if (callGroupMap.has(hook.callchainId)) {
+          let calls = callGroupMap.get(hook.callchainId);
+          let last = calls![calls!.length - 1];
+          data.heapsize += ((hook.applySize - last.applySize) - (hook.releaseSize - last.releaseSize));
+          data.density += ((hook.applyCount - last.applyCount) - (hook.releaseCount - last.releaseCount));
+          calls!.push(hook);
+        } else {
+          data.heapsize += (hook.applySize - hook.releaseSize);
+          data.density += (hook.applyCount - hook.releaseCount);
+          callGroupMap.set(hook.callchainId,[hook]);
+        }
+      } else {
+        let data: any = {};
+        data.startTime = hook.ts;
+        data.dur = 0;
+        if (callGroupMap.has(hook.callchainId)) {
+          let calls = callGroupMap.get(hook.callchainId);
+          let last = calls![calls!.length - 1];
+          data.heapsize = (hook.applySize - last.applySize) - (hook.releaseSize - last.releaseSize);
+          data.density = (hook.applyCount - last.applyCount) - (hook.releaseCount - last.releaseCount);
+          calls!.push(hook);
+        } else {
+          data.heapsize = hook.applySize - hook.releaseSize;
+          data.density = hook.applyCount - hook.releaseCount;
+          callGroupMap.set(hook.callchainId,[hook]);
+        }
+        (obj as any)[hook.ts] = data;
+      }
+    }
+    return Object.values(obj) as {
+      startTime: number;
+      heapsize: number;
+      density: number;
+      dur: number;
+    }[];
+  }
+
   handleNativeHookStatisticData(
     arr: {
       startTime: number;
@@ -922,6 +971,10 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       let currentNode = groupMap[sample.tid + '-' + sample.eventId] || new NativeHookStatistics();
       if (currentNode.count == 0) {
         Object.assign(currentNode, sample);
+        if (filterAllocType == '1' && nativeHookType !== 'native-hook') {
+          currentNode.heapSize = sample.heapSize - sample.freeSize;
+          currentNode.count = sample.count - sample.freeCount;
+        }
         if (currentNode.count === 0) {
           currentNode.count++;
         }

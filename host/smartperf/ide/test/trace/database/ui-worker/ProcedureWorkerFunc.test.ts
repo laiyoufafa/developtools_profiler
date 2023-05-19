@@ -113,7 +113,10 @@ describe(' ProcedureWorkerFuncTest', () => {
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
-    FuncStruct.drawString(ctx, '1', 1, new Rect(0, 0, 100, 100));
+    let func = {
+      textMetricsWidth:1
+    }
+    FuncStruct.drawString(ctx, '1', 1, new Rect(0, 0, 100, 100),func);
   });
 
   it('FuncTest06', () => {
@@ -121,7 +124,10 @@ describe(' ProcedureWorkerFuncTest', () => {
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
-    FuncStruct.drawString(ctx, '1', 2, new Rect(1, 1, 150, 150));
+    let func = {
+      textMetricsWidth:1
+    }
+    FuncStruct.drawString(ctx, '1', 2, new Rect(1, 1, 150, 150),func);
   });
 
   it('FuncTest07', function () {

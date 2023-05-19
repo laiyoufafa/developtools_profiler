@@ -87,7 +87,6 @@ export class ProcessRender extends Render {
       }
       req.context.fill(path);
       drawSelection(req.context, req.params);
-      drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
       req.context.closePath();
       drawFlagLine(
         req.context,

@@ -37,7 +37,7 @@ public:
     void Parse(HtraceDataSegment& dataSeg);
     void FinishParseNativeHookData();
     void Finish();
-    bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables)
+    bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables)
     {
         return nativeHookFilter_->NativeHookReloadElfSymbolTable(elfSymbolTables);
     }

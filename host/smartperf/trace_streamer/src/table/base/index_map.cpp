@@ -21,7 +21,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-IndexMap::IndexMap(TableRowId start, TableRowId end) : current_(start), start_(start), end_(end), type_(COMPACT) {}
+IndexMap::IndexMap(TableRowId start, TableRowId end) : end_(end), current_(start), start_(start), type_(COMPACT) {}
 
 void IndexMap::CovertToIndexMap()
 {

@@ -19,9 +19,9 @@ extern "C" {
 RpcServer* rpcServer_;
 bool g_isUseExternalModify = true;
 int32_t SDK_SetTableName(const char* counterTableName,
-                     const char* counterObjectTableName,
-                     const char* sliceTableName,
-                     const char* sliceObjectName)
+                         const char* counterObjectTableName,
+                         const char* sliceTableName,
+                         const char* sliceObjectName)
 {
     rpcServer_->ts_->sdkDataParser_->SetTableName(counterTableName, counterObjectTableName, sliceTableName,
                                                   sliceObjectName);
@@ -43,7 +43,12 @@ int32_t SDK_AppendSliceObject(int32_t sliceId, const char* columnName)
 {
     return rpcServer_->ts_->sdkDataParser_->AppendSliceObject(sliceId, columnName);
 }
-int32_t SDK_AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, std::string start_time, std::string end_time,  double value)
+int32_t SDK_AppendSlice(int32_t sliceId,
+                        uint64_t ts,
+                        uint64_t endTs,
+                        std::string start_time,
+                        std::string end_time,
+                        double value)
 {
     return rpcServer_->ts_->sdkDataParser_->AppendSlice(sliceId, ts, endTs, start_time, end_time, value);
 }

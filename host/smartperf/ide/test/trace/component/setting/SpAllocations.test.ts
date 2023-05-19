@@ -119,6 +119,10 @@ describe('SpAllocations Test', () => {
             text-align: left;
             line-height: 20px;
             font-weight: 400;
+            display:flex;
+            width:75%; 
+            margin-top: 3px;
+           
         }
         input {
            width: 72%;
@@ -156,11 +160,6 @@ describe('SpAllocations Test', () => {
         .switchstyle{
            margin-top: 40px;
            display: flex;
-        }
-        #fp-unwind {
-          display:flex;
-          width:25%; 
-          margin-top: 3px;
         }
         .inputstyle{
             background: var(--dark-background5,#FFFFFF);
@@ -200,42 +199,113 @@ describe('SpAllocations Test', () => {
           line-height: 20px;
           font-weight: 400;
         }
+        .record-title{
+            margin-bottom: 16px;
+            grid-column: span 3;
+        }
+        #interval-slider {
+            margin: 0 8px;
+            grid-column: span 2;
+        }
+        .resultSize{
+            margin: 0 30px 0 0;
+            height: 40px;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            outline:0;
+            border:1px solid var(--dark-border,#c8cccf);
+            color:var(--dark-color,#6a6f77);
+            border-radius:20px;
+            display: grid;
+            grid-template-rows: 1fr;
+            grid-template-columns:  min-content min-content;
+            width: 150px;
+        }
+        .record-mode{
+            font-family: Helvetica-Bold;
+            font-size: 1em;
+            color: var(--dark-color1,#000000);
+            line-height: 28px;
+            font-weight: 400;
+            margin-bottom: 16px;
+            grid-column: span 1;
+        }
+        .record-prompt{
+              opacity: 0.6;
+              font-family: Helvetica;
+              font-size: 14px;
+              text-align: center;
+              line-height: 35px;
+              font-weight: 400;
+        }
+        .interval-result{
+            margin: 5px 0 5px 5px;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            outline:0;
+            font-size:14px;
+            color:var(--dark-color,#6a6f77);
+            border: none;
+            text-align: center;
+            width: 90px;
+        }
         
         </style>
-        <div class=\\"root\\">
-          <div class = \\"title\\">
-            <span class=\\"font-style\\">Native Memory</span>
+        <div class="root">
+          <div class = "title">
+            <span class="font-style">Native Memory</span>
           </div>
-          <div class=\\"application\\">
-             <span class=\\"inner-font-style\\">ProcessId or ProcessName</span>
-             <span class=\\"value-range\\">Record process</span>
-             <lit-allocation-select show-search class=\\"processSelect\\" rounded default-value=\\"\\" id=\\"pid\\" placement=\\"bottom\\" title=\\"process\\" placeholder=\\"please select process\\">
+          <div class="application">
+             <span class="inner-font-style">ProcessId or ProcessName</span>
+             <span class="value-range">Record process</span>
+             <lit-allocation-select show-search class="processSelect" rounded default-value="" id="pid" placement="bottom" title="process" placeholder="please select process">
              </lit-allocation-select>
           </div>
-          <div class=\\"application\\">
-            <span class=\\"inner-font-style\\" >Max unwind level</span>
-            <span class=\\"value-range\\">Max Unwind Level Rang is 0 - 512, default 10</span>
-            <input id= \\"unwind\\"  class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Max Unwind Level\\" oninput=\\"if(this.value > 512) this.value = '512'\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"10\\">
+          <div class="application">
+            <span class="inner-font-style" >Max unwind level</span>
+            <span class="value-range">Max Unwind Level Rang is 0 - 512, default 10</span>
+            <input id= "unwind"  class="inputstyle" type="text" placeholder="Enter the Max Unwind Level" oninput="if(this.value > 512) this.value = '512'" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="10">
           </div>
-          <div class=\\"application\\">
-            <span class=\\"inner-font-style\\">Shared Memory Size (One page equals 4 KB)</span>
-            <span class=\\"value-range\\">Shared Memory Size Range is 0 - 131072 page, default 16384 page</span>
+          <div class="application">
+            <span class="inner-font-style">Shared Memory Size (One page equals 4 KB)</span>
+            <span class="value-range">Shared Memory Size Range is 0 - 131072 page, default 16384 page</span>
             <div>
-              <input id = \\"shareMemory\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Shared Memory Size\\" oninput=\\"if(this.value > 131072) this.value = '131072'\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"16384\\">
+              <input id = "shareMemory" class="inputstyle" type="text" placeholder="Enter the Shared Memory Size" oninput="if(this.value > 131072) this.value = '131072'" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="16384">
               <span>Page</span>
             </div>
           </div>
-          <div class=\\"application\\">
-            <span class=\\"inner-font-style\\" >Filter Memory Size </span>
-            <span class=\\"value-range\\">Filter size Range is 0 - 65535 byte, default 4096 byte</span> 
+          <div class="application">
+            <span class="inner-font-style" >Filter Memory Size </span>
+            <span class="value-range">Filter size Range is 0 - 65535 byte, default 4096 byte</span> 
             <div>
-                <input id = \\"filterSized\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Filter Memory Size\\" oninput=\\"if(this.value > 65535) this.value = '65535'\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"4096\\">
+                <input id = "filterSized" class="inputstyle" type="text" placeholder="Enter the Filter Memory Size" oninput="if(this.value > 65535) this.value = '65535'" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="4096">
                  <span>Byte</span>
             </div>
           </div>
-          <div class=\\"switchstyle\\">
-              <span class=\\"inner-font-style\\" id=\\"fp-unwind\\">Use Fp Unwind :</span> 
-              <lit-switch id=\\"use_fp_unwind\\" title=\\"fp unwind\\" checked=\\"true\\"></lit-switch>
+          <div class="switchstyle">
+              <span class="inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
+              <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
+          </div>
+          <div class="switchstyle">
+              <span class="inner-font-style" id="record_accurately ">Use Record Accurately (Available on recent OpenHarmony 4.0)</span> 
+              <lit-switch   class="lts" id="use_record_accurately" title="record_accurately" checked="true"></lit-switch>
+          </div>
+          <div class="switchstyle">
+              <span class="inner-font-style" id="offline_symbolization">Use Offline Symbolization (Available on recent OpenHarmony 4.0)</span> 
+              <lit-switch   class="lts" id="use_offline_symbolization" title="offline_symbolization" checked="true"></lit-switch>
+          </div>
+            
+          <div class="switchstyle record-statistics-result" style="grid-row: 6; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
+            <div class="record-title">
+                <span class="record-mode">Use Record Statistics (Available on recent OpenHarmony 4.0)</span> 
+                <span class="record-prompt"> Time between following interval (0 = disabled) </span>
+            </div>
+            <lit-slider id="interval-slider" defaultColor="var(--dark-color3,#46B1E3)" open dir="right">
+            </lit-slider>
+            <div class='resultSize'>
+                <input class="interval-result" type="text" value='0' onkeyup="this.value=this.value.replace(/\\D/g,'')">
+                <span style="text-align: center; margin: 8px"> S </span>
+            </div>
           </div>
         </div>
         "

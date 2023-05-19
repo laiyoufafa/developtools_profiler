@@ -471,6 +471,10 @@ export class SpApplication extends BaseElement {
     };
 
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => showContent(spSystemTrace!));
+    window.subscribe(window.SmartEvent.UI.Loading, (loading) => {
+        litSearch.setPercent(loading ? 'Import So File' : '', loading ? -1 : 101);
+        progressEL.loading = loading
+    });
     litSearch.addEventListener('focus', () => {
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
@@ -1138,21 +1142,33 @@ export class SpApplication extends BaseElement {
       { passive: false }
     );
 
+    const openMenu = (open: boolean) => {
+      if (mainMenu) {
+        mainMenu.style.width = open ? `248px` : '0px';
+        mainMenu.style.zIndex = open ? '2000' : '0';
+      }
+      if (sidebarButton) {
+        sidebarButton.style.width = open ? `0px` : '48px';
+      }
+    }
+
     let urlParams = this.getUrlParams(window.location.href);
     if (urlParams && urlParams.trace && urlParams.link) {
       openFileInit();
+      openMenu(false);
       litSearch.clear();
       showContent(spSystemTrace!);
       that.search = true;
       progressEL.loading = true;
-      setProgress('download trace file');
-      this.downloadOnLineFile(urlParams.trace, (localPath) => {
+      let downloadLineFile = false;
+      setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
+      this.downloadOnLineFile(urlParams.trace, downloadLineFile,(localPath) => {
         let path = urlParams.trace as string;
         let fileName = path.split('/').reverse()[0];
         let showFileName =
           fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
         TraceRow.rangeSelectObject = undefined;
-        let localUrl = `${window.location.origin}${localPath}`;
+        let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.trace;
         fetch(localUrl).then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
             let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
@@ -1163,29 +1179,35 @@ export class SpApplication extends BaseElement {
           });
         });
       });
+    } else {
+      openMenu(true);
     }
   }
 
-  private downloadOnLineFile(url: string, openFileHandler: (path: string) => void) {
-    let api = `${window.location.origin}/download-file`;
-    fetch(api, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        url: url,
-      }),
-    })
-      .then((response) => response.json())
-      .then((res) => {
-        if (res.code === 0 && res.success) {
-          let resultUrl = res.data.url;
-          if (resultUrl) {
-            openFileHandler(resultUrl.toString().replace(/\\/g, '/'));
+  private downloadOnLineFile(url: string, download: boolean, openFileHandler: (path: string) => void) {
+    if (download) {
+      let api = `${window.location.origin}/download-file`;
+      fetch(api, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          url: url,
+        }),
+      })
+        .then((response) => response.json())
+        .then((res) => {
+          if (res.code === 0 && res.success) {
+            let resultUrl = res.data.url;
+            if (resultUrl) {
+              openFileHandler(resultUrl.toString().replace(/\\/g, '/'));
+            }
           }
-        }
-      });
+        });
+    } else {
+      openFileHandler(url);
+    }
   }
 
   private getUrlParams(url: string) {

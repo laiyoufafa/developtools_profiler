@@ -766,6 +766,5 @@ HWTEST_F(JsMemoryTest, timelineParserTraceTreeByJsmemory, TestSize.Level1)
     auto parentId10 = stream_.traceDataCache_->GetConstJsHeapTraceNodeData().ParentIds()[10];
     EXPECT_EQ(1, parentId10);
 }
-
 } // namespace TraceStreamer
 } // namespace SysTuning

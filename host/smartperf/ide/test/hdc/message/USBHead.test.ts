@@ -17,53 +17,53 @@
 import { USBHead } from '../../../dist/hdc/message/USBHead.js';
 
 describe('USBHead Test', () => {
-    let usbHead = new USBHead();
-    it('USBHeadTest01', function () {
-        expect(usbHead).not.toBeUndefined();
-    });
+  let usbHead = new USBHead();
+  it('USBHeadTest01', function () {
+    expect(usbHead).not.toBeUndefined();
+  });
 
-    it('USBHeadTest02', function () {
-        expect(usbHead.flag).toBeUndefined();
-    });
+  it('USBHeadTest02', function () {
+    expect(usbHead.flag).toBeUndefined();
+  });
 
-    it('USBHeadTest03', function () {
-        usbHead.flag = true;
-        expect(usbHead.flag).toBeTruthy();
-    });
+  it('USBHeadTest03', function () {
+    usbHead.flag = true;
+    expect(usbHead.flag).toBeTruthy();
+  });
 
-    it('USBHeadTest04', function () {
-        expect(usbHead.option).toBeUndefined();
-    });
+  it('USBHeadTest04', function () {
+    expect(usbHead.option).toBeUndefined();
+  });
 
-    it('USBHeadTest05', function () {
-        usbHead.option = true;
-        expect(usbHead.option).toBeTruthy();
-    });
+  it('USBHeadTest05', function () {
+    usbHead.option = true;
+    expect(usbHead.option).toBeTruthy();
+  });
 
-    it('USBHeadTest06', function () {
-        expect(usbHead.sessionId).toBeUndefined();
-    });
+  it('USBHeadTest06', function () {
+    expect(usbHead.sessionId).toBeUndefined();
+  });
 
-    it('USBHeadTest07', function () {
-        usbHead.sessionId = true;
-        expect(usbHead.sessionId).toBeTruthy();
-    });
+  it('USBHeadTest07', function () {
+    usbHead.sessionId = true;
+    expect(usbHead.sessionId).toBeTruthy();
+  });
 
-    it('USBHeadTest08', function () {
-        expect(usbHead.dataSize).toBeFalsy();
-    });
+  it('USBHeadTest08', function () {
+    expect(usbHead.dataSize).toBeFalsy();
+  });
 
-    it('USBHeadTest09', function () {
-        usbHead.dataSize = true;
-        expect(usbHead.dataSize).toBeTruthy();
-    });
+  it('USBHeadTest09', function () {
+    usbHead.dataSize = true;
+    expect(usbHead.dataSize).toBeTruthy();
+  });
 
-    it('USBHeadTest10', function () {
-        expect(usbHead.toString()).not.toBeUndefined();
-    });
+  it('USBHeadTest10', function () {
+    expect(usbHead.toString()).not.toBeUndefined();
+  });
 
-    it('USBHeadTest11', function () {
-        usbHead.parseHeadData = jest.fn(() => undefined);
-        expect(usbHead.parseHeadData()).toBeUndefined();
-    });
+  it('USBHeadTest11', function () {
+    usbHead.parseHeadData = jest.fn(() => undefined);
+    expect(usbHead.parseHeadData()).toBeUndefined();
+  });
 });

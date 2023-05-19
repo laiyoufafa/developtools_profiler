@@ -18,12 +18,12 @@
 
 #include <log.h>
 #include <memory>
-#include <sqlite3.h>
 #include <string>
 #include <vector>
 
 #include "filter_constraints.h"
 #include "index_map.h"
+#include "sqlite3.h"
 #include "trace_data_cache.h"
 
 #define UNUSED(expr)             \
@@ -121,9 +121,6 @@ protected:
         return;
     };
 
-public:
-    std::string name_;
-
 protected:
     std::vector<ColumnInfo> tableColumn_ = {};
     std::vector<std::string> tablePriKey_ = {};
@@ -135,6 +132,7 @@ private:
     uint16_t bestIndexNum_ = 0;
     int32_t cacheIdxNum_ = 0;
     FilterConstraints cacheConstraint_;
+    std::string name_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

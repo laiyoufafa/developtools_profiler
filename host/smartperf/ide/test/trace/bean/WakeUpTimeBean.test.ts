@@ -26,18 +26,15 @@ describe('WakeUpTimeBean Test', () => {
     };
     expect(wakeUpTimeBean).not.toBeUndefined();
     expect(wakeUpTimeBean).toMatchInlineSnapshot(
-      {
-        wakeTs: expect.any(Number),
-        startTs: expect.any(Number),
-        preRow: expect.any(Number),
-      },
-      `
-Object {
+{
+  wakeTs: expect.any(Number),
+  startTs: expect.any(Number),
+  preRow: expect.any(Number) }, `
+{
   "preRow": Any<Number>,
   "startTs": Any<Number>,
   "wakeTs": Any<Number>,
 }
-`
-    );
+`);
   });
 });

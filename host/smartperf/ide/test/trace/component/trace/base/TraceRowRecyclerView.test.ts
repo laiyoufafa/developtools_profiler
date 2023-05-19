@@ -121,8 +121,8 @@ describe('TraceRow Test', () => {
             left: 0;
         }
         </style>
-        <div class=\\"container\\">
-            <div class=\\"gasket\\"></div>
+        <div class="container">
+            <div class="gasket"></div>
         </div>
 
         "

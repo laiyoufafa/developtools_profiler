@@ -47,13 +47,11 @@ describe('CpuStruct Test', () => {
   it('CpuStructTest01', function () {
     expect(CpuStruct.draw(ctx, data)).toBeUndefined();
     expect(data).toMatchInlineSnapshot(
-      {
-        startNS: expect.any(Number),
-        value: expect.any(Number),
-      },
-      `
-Object {
-  "frame": Object {
+{
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+{
+  "frame": {
     "height": 100,
     "width": 100,
     "x": 20,
@@ -62,8 +60,7 @@ Object {
   "startNS": Any<Number>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('CpuStructTest02', function () {
@@ -81,13 +78,11 @@ Object {
   it('CpuStructTest05', function () {
     expect(CpuStruct.draw(ctx, data1)).toBeUndefined();
     expect(data1).toMatchInlineSnapshot(
-      {
-        startNS: expect.any(Number),
-        value: expect.any(Number),
-      },
-      `
-Object {
-  "frame": Object {
+{
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+{
+  "frame": {
     "height": 10,
     "width": 10,
     "x": 100,
@@ -96,21 +91,18 @@ Object {
   "startNS": Any<Number>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('CpuStructTest06', function () {
     expect(CpuStruct.equals({}, data)).toBeTruthy();
     expect(CpuStruct.draw(ctx, data1)).toBeUndefined();
     expect(data1).toMatchInlineSnapshot(
-      {
-        startNS: expect.any(Number),
-        value: expect.any(Number),
-      },
-      `
-Object {
-  "frame": Object {
+{
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+{
+  "frame": {
     "height": 10,
     "width": 10,
     "x": 100,
@@ -119,7 +111,6 @@ Object {
   "startNS": Any<Number>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 });

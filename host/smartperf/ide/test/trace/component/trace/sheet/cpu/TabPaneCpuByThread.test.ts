@@ -74,22 +74,9 @@ describe('TabPaneCpuByThread Test', () => {
             padding: 10px 10px;
         }
         </style>
-        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
-        <lit-table id=\\"tb-cpu-thread\\" style=\\"height:calc( 30vh - 25px )\\" >
-            <lit-table-column order width=\\"25%\\" title=\\"Process\\" data-index=\\"process\\" key=\\"process\\" align=\\"flex-start\\" order >
-            </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"PID\\" data-index=\\"pid\\" key=\\"pid\\" align=\\"flex-start\\" order >
-            </lit-table-column>
-            <lit-table-column order width=\\"25%\\" title=\\"Thread\\" data-index=\\"thread\\" key=\\"thread\\" align=\\"flex-start\\" order >
-            </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"TID\\" data-index=\\"tid\\" key=\\"tid\\" align=\\"flex-start\\" order >
-            </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"Wall duration(ms)\\" data-index=\\"wallDuration\\" key=\\"wallDuration\\" align=\\"flex-start\\" order >
-            </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"Avg Wall duration(ms)\\" data-index=\\"avgDuration\\" key=\\"avgDuration\\" align=\\"flex-start\\" order >
-            </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"Occurrences\\" data-index=\\"occurrences\\" key=\\"occurrences\\" align=\\"flex-start\\" order >
-            </lit-table-column>
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-cpu-thread" style="height:calc( 30vh - 25px )" >
+            
         </lit-table>
         "
 `);

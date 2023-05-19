@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "trace_data_cache.h"
-#include <sqlite3.h>
+#include "sqlite3.h"
 #include "../table/gpu_counter_object_table.h"
 #include "../table/gpu_counter_table.h"
 #include "../table/slice_object_table.h"
