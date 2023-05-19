@@ -142,6 +142,7 @@ static void ProcessResult(FILE *fp, FpsConfig &fpsConfig, FpsInfo &fpsInfo)
         long long frameReadyTime = 0;
         std::stringstream sstream;
         sstream << tmp;
+        std::cout << "sstream---" << sstream << std::endl;
         sstream >> frameReadyTime;
         fpsConfig.cnt++;
         if (frameReadyTime == 0) {
@@ -327,6 +328,7 @@ int main(int argc, char *argv[])
             FpsConfig fpsConfig;
             FpsConfig fpsUniteConfig;
             gfpsInfo = GetSurfaceFrame(layerName, fpsConfig);
+           
             gfpsUniteInfo = GetSurfaceFrame(uniteLayer, fpsUniteConfig);
             if (gfpsUniteInfo.fps > gfpsInfo.fps)
             {
