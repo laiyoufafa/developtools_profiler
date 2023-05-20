@@ -64,7 +64,6 @@ struct FpsConfig {
     }
 };
 }
-
 static void StrSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out)
 {
     size_t index = 0;
@@ -92,13 +91,11 @@ static std::string GetLayer()
         int lineNum = 0;
         std::string line;
         char buf[1024] = {'\0'};
-
         const int paramFifteen = 15;
         const int paramThree = 3;
         const int windowNameIndex = 0;
         const int windowIdIndex = 3;
         const int focusNameIndex = 2;
-
         while ((fgets(buf, sizeof(buf), fd)) != nullptr) {
             line = buf;
             if (line[0] == '-' || line[0] == ' ') {
@@ -122,7 +119,6 @@ static std::string GetLayer()
         }
         pclose(fd);
     }
-
     std::string resultWindowName = "NA";
     int curId = std::stoi(curFocusId);
     for (size_t i = 0; i < dumpEntityList.size(); i++) {
@@ -134,7 +130,6 @@ static std::string GetLayer()
     }
     return resultWindowName;
 }
-
 static void ProcessResult(FILE *fp, FpsConfig &fpsConfig, FpsInfo &fpsInfo) 
 {
     char tmp[1024];
@@ -148,7 +143,6 @@ static void ProcessResult(FILE *fp, FpsConfig &fpsConfig, FpsInfo &fpsInfo)
             fpsConfig.zeroNum++;
             continue;
         }
-        
         if (fpsConfig.lastReadyTime >= frameReadyTime) {
             fpsConfig.lastReadyTime = -1;
             continue;
@@ -200,11 +194,9 @@ static FpsInfo GetSurfaceFrame(std::string name, FpsConfig &fpsConfig)
     }
     FpsInfo &fpsInfo = fpsMap[name];
     fpsInfo.fps = 0;
-
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     fpsInfo.currentFpsTime = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
-
     std::string cmd = "hidumper -s 10 -a \"fps " + name + "\"";
     std::string cmdExc = cmd;
     FILE *fp = popen(cmdExc.c_str(), "r");
@@ -285,7 +277,6 @@ static bool LoadCmd(const std::string &cmd, std::string &result)
     ReplaceString(result);
     return ret >= 0 ? true : false;
 }
-
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
