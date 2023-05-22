@@ -32,9 +32,9 @@ ohos_source_set("lib") {
   sources = [ "main.cpp" ]
   deps = [
     ":trace_streamer_sdk",
-    "protos:ts_proto_data_cpp",
     "${THIRD_PARTY}/protobuf:protobuf",
     "${THIRD_PARTY}/protobuf:protobuf_lite",
+    "protos:ts_proto_data_cpp",
   ]
   include_dirs = [
     "base",
@@ -134,12 +134,12 @@ source_set("trace_streamer_sdk") {
     include_dirs += []
   }
   deps = [
+    "${THIRD_PARTY}/sqlite:sqlite",
     "base:base",
     "ext:sqliteext",
     "include:ibase",
     "plugin:sdk_plugin",
     "protos:ts_proto_data_cpp",
-    "${THIRD_PARTY}/sqlite:sqlite",
   ]
   if (with_perf) {
   }
