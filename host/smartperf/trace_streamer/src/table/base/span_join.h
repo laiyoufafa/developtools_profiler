@@ -51,7 +51,7 @@ public:
     ~SpanJoin() override{};
     void Parse(const std::string& tablePartition, TableParse& tableParse);
     std::vector<std::string> TableNameSplitToVec(std::string& str, const std::string& pat);
-    void GetTableField(TableParse& tableParse, TableDesc& tableDesc);
+    void GetTableField(const TableParse& tableParse, TableDesc& tableDesc);
     void GetColumns(const TraceDataCache* dataCache,
                     const std::string& tableName,
                     std::vector<TableBase::ColumnInfo>& columns);

@@ -90,11 +90,6 @@ void TraceStreamerConfig::PrintInfo() const
     printf("\n");
 }
 
-uint32_t TraceStreamerConfig::GetStateValue(uint32_t state) const
-{
-    return (state > CPU_IDEL_INVALID_VALUE ? 0 : (state + 1));
-}
-
 void TraceStreamerConfig::InitEventNameMap()
 {
     eventNameMap_ = {{TRACE_EVENT_BINDER_TRANSACTION, TRACE_ACTION_BINDER_TRANSACTION},

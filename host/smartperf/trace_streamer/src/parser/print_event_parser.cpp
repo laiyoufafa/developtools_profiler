@@ -177,7 +177,7 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint& ou
         if (space != std::string::npos) {
             outPoint.funcPrefix_ = outPoint.name_.substr(0, space);
             outPoint.funcPrefixId_ = traceDataCache_->GetDataIndex(outPoint.funcPrefix_);
-            outPoint.funcArgs_ = outPoint.name_.substr(space + 1, -1);
+            outPoint.funcArgs_ = outPoint.name_.substr(space + 1);
         } else {
             outPoint.funcPrefixId_ = traceDataCache_->GetDataIndex(outPoint.name_);
         }

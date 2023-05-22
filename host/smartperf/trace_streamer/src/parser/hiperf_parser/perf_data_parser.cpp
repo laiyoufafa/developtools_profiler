@@ -243,7 +243,7 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     return true;
 }
 
-uint32_t PerfDataParser::UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample)
+uint32_t PerfDataParser::UpdatePerfCallChainData(const std::unique_ptr<PerfRecordSample>& sample)
 {
     uint64_t depth = 0;
     bool callStackNotExist = false;

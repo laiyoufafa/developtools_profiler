@@ -23,7 +23,7 @@ EbpfDataParser::EbpfDataParser(TraceDataCache* dataCache, const TraceStreamerFil
       FileSystemDataParser(dataCache, ctx),
       PagedMemoryDataParser(dataCache, ctx),
       BioLatencyDataParser(dataCache, ctx),
-      reader_(std::make_unique<EbpfDataReader>(dataCache, ctx))
+      ebpfDataReader_(std::make_unique<EbpfDataReader>(dataCache, ctx))
 {
 }
 EbpfDataParser::~EbpfDataParser()
@@ -35,12 +35,12 @@ EbpfDataParser::~EbpfDataParser()
 bool EbpfDataParser::Init(const std::deque<uint8_t> dequeBuffer, uint64_t size)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF, STAT_EVENT_RECEIVED);
-    if (!reader_->InitEbpfData(dequeBuffer, size)) {
+    if (!ebpfDataReader_->InitEbpfData(dequeBuffer, size)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF, STAT_EVENT_NOTSUPPORTED);
         TS_LOGE("InitEbpfData failed!");
         return false;
     }
-    if (!InitEbpfDataParser(reader_.get())) {
+    if (!InitEbpfDataParser(ebpfDataReader_.get())) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF, STAT_EVENT_NOTSUPPORTED);
         return false;
     }
@@ -52,13 +52,13 @@ void EbpfDataParser::InitAndParseEbpfData(const std::deque<uint8_t>& dequeBuffer
     if (!Init(dequeBuffer, size)) {
         return;
     }
-    if (reader_->GetFileSystemEventMap().size()) {
+    if (ebpfDataReader_->GetFileSystemEventMap().size()) {
         ParseFileSystemEvent();
     }
-    if (reader_->GetPagedMemoryMap().size()) {
+    if (ebpfDataReader_->GetPagedMemoryMap().size()) {
         ParsePagedMemoryEvent();
     }
-    if (reader_->GetBIOSampleMap().size()) {
+    if (ebpfDataReader_->GetBIOSampleMap().size()) {
         ParseBioLatencyEvent();
     }
 }

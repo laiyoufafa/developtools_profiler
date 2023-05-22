@@ -49,7 +49,7 @@ public:
 
 private:
     std::string GetBinderFlagsDesc(uint32_t flag);
-    bool IsValidUint32(uint32_t value) const
+    static bool IsValidUint32(uint32_t value)
     {
         return (value != INVALID_UINT32);
     }

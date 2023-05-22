@@ -57,19 +57,19 @@ ohos_source_set("hiperf_src") {
     "include/nonlinux/linux",
   ]
   include_dirs += [
-    "//third_party/perf_include/libbpf",
-    "//third_party/perf_include/musl",
-    "//third_party/libunwind/include",
-    "//third_party/libunwind/src",
-    "//third_party/libunwind/include/tdep-x86_64",
+    "${THIRD_PARTY}/perf_include/libbpf",
+    "${THIRD_PARTY}/perf_include/musl",
+    "${THIRD_PARTY}/libunwind/include",
+    "${THIRD_PARTY}/libunwind/src",
+    "${THIRD_PARTY}/libunwind/include/tdep-x86_64",
   ]
 }
 
 group("hiperf") {
   deps = [
     ":hiperf_src",
-    "//third_party/protobuf:protobuf",
-    "//third_party/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/protobuf:protobuf",
+    "${THIRD_PARTY}/protobuf:protobuf_lite",
   ]
   if (target != "test" && !is_openharmony) {
     deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]

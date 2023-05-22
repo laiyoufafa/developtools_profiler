@@ -18,12 +18,12 @@ ohos_source_set("hiperf_parser_src") {
   part_name = "hiperf_parser_src"
   sources = [ "perf_data_parser.cpp" ]
   include_dirs = [
-    "//third_party/hiperf/include/nonlinux/linux",
+    "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
     ".",
     "../../base",
     "../../cfg",
-    "//third_party/hiperf/include/nonlinux",
-    "//third_party/hiperf/include",
+    "${THIRD_PARTY}/hiperf/include/nonlinux",
+    "${THIRD_PARTY}/hiperf/include",
     "../../include",
     "../../",
     "../../filter",
@@ -31,13 +31,13 @@ ohos_source_set("hiperf_parser_src") {
     "..",
     "../htrace_parser",
     "../../trace_streamer",
-    "//third_party/sqlite/include",
+    "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "//third_party/protobuf/src",
-    "//third_party/perf_include",
-    "//third_party/perf_include/libbpf",
+    "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/perf_include",
+    "${THIRD_PARTY}/perf_include/libbpf",
   ]
-  include_dirs += [ "//third_party/libunwind/include" ]
+  include_dirs += [ "${THIRD_PARTY}/libunwind/include" ]
 
   if (enable_ts_utest && !use_wasm) {
     cflags = [
@@ -58,11 +58,11 @@ ohos_source_set("hiperf_parser_src") {
 group("hiperf_parser") {
   deps = [
     ":hiperf_parser_src",
-    "//third_party/hiperf:hiperf",
-    "//third_party/protobuf:protobuf",
-    "//third_party/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/hiperf:hiperf",
+    "${THIRD_PARTY}/protobuf:protobuf",
+    "${THIRD_PARTY}/protobuf:protobuf_lite",
   ]
   if (target != "test" && !is_openharmony) {
-    deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
+    deps += [ "${PREBUILTS}/protos:ts_proto_data_cpp" ]
   }
 }

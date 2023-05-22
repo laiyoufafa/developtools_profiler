@@ -33,8 +33,8 @@ ohos_source_set("lib") {
   deps = [
     ":trace_streamer_sdk",
     "protos:ts_proto_data_cpp",
-    "//third_party/protobuf:protobuf",
-    "//third_party/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/protobuf:protobuf",
+    "${THIRD_PARTY}/protobuf:protobuf_lite",
   ]
   include_dirs = [
     "base",
@@ -49,10 +49,10 @@ ohos_source_set("lib") {
     "./",
     "parser",
     "cfg",
-    "//third_party/sqlite/include",
+    "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/mock_data",
     "${OHOS_PROTO_GEN}",
-    "//third_party/protobuf/src",
+    "${THIRD_PARTY}/protobuf/src",
   ]
   if (with_perf) {
     include_dirs += []
@@ -116,17 +116,17 @@ source_set("trace_streamer_sdk") {
     "./",
     "parser",
     "cfg",
-    "//third_party/sqlite/include",
+    "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}",
     "${OHOS_PROTO_GEN}/types/plugins/mock_data",
-    "//third_party/protobuf/src",
-    "//third_party/json-master/include",
-    "//third_party/json-master/include/nlohmann",
+    "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/json-master/include",
+    "${THIRD_PARTY}/json-master/include/nlohmann",
   ]
   if (!use_wasm) {
     include_dirs += [
-      "//third_party/libunwind/include",
-      "//third_party/libunwind/src",
+      "${THIRD_PARTY}/libunwind/include",
+      "${THIRD_PARTY}/libunwind/src",
     ]
   }
   if (with_perf) {
@@ -139,7 +139,7 @@ source_set("trace_streamer_sdk") {
     "include:ibase",
     "plugin:sdk_plugin",
     "protos:ts_proto_data_cpp",
-    "//third_party/sqlite:sqlite",
+    "${THIRD_PARTY}/sqlite:sqlite",
   ]
   if (with_perf) {
   }

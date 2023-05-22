@@ -80,7 +80,7 @@ void BioLatencyDataParser::ParseBioLatencyEvent()
         auto size = bioFixedHeadrAddr->size;
         const int32_t FOUR_KB = 1024 * 4;
         uint32_t durPer4K = INVALID_UINT32;
-        if (size > 0) {
+        if (size) {
             durPer4K = duration / (size / FOUR_KB);
         }
 

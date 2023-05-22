@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//src/ts.gni")
+import("../ts.gni")
 
 ohos_source_set("trace_data") {
   subsystem_name = "trace_streamer"
@@ -47,21 +47,21 @@ ohos_source_set("trace_data") {
     }
   }
   include_dirs = [
-    "//third_party/sqlite/include",
-    "//src",
-    "//src/base",
-    "//src/include",
-    "//src/table",
-    "//src/table/base",
-    "//src/table/ebpf",
-    "//src/table/ftrace",
-    "//src/table/hiperf",
-    "//src/table/hi_sysevent",
-    "//src/table/js_memory",
-    "//src/table/monitor",
-    "//src/table/native_hook",
+    "${THIRD_PARTY}/sqlite/include",
+    "${SRC}",
+    "${SRC}/base",
+    "${SRC}/include",
+    "${SRC}/table",
+    "${SRC}/table/base",
+    "${SRC}/table/ebpf",
+    "${SRC}/table/ftrace",
+    "${SRC}/table/hiperf",
+    "${SRC}/table/hi_sysevent",
+    "${SRC}/table/js_memory",
+    "${SRC}/table/monitor",
+    "${SRC}/table/native_hook",
     ".",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "//third_party/protobuf/src",
+    "${THIRD_PARTY}/protobuf/src",
   ]
 }

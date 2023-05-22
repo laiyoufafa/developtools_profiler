@@ -11,9 +11,7 @@ v412.pb.h 大约第36行，添加如下内容：
 #undef minor
 #endif
 ```
-js_heap_result.pb.cc文件中schemas替换成resultSchemas。
-js_heap_result.pb.cc文件中file_default_instances替换成result_file_default_instances。
-gtest-port.h 第286行。
+
 ```
 #include <sstream>
 ```

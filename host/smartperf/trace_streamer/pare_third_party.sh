@@ -16,7 +16,6 @@ patch='patch'
 sed='sed'
 cp='cp'
 rm='rm'
-
 case "$OSTYPE" in
   darwin*)  sed="gsed" ;;
 esac

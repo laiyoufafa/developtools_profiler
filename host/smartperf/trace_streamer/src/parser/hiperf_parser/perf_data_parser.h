@@ -51,7 +51,7 @@ private:
     void UpdateClockType();
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
     void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
-    uint32_t UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample);
+    uint32_t UpdatePerfCallChainData(const std::unique_ptr<PerfRecordSample>& sample);
 
     class CallStackTemp {
     public:

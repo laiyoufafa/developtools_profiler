@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
-import("//src/ts.gni")
+import("../../build/ohos.gni")
+import("../ts.gni")
 ohos_source_set("proto_reader") {
   subsystem_name = "trace_streamer"
   part_name = "proto_reader"

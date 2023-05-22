@@ -55,7 +55,7 @@ public:
         uint64_t cancelled_wbytes_;
     };
     struct PssInfo {
-        PssInfo(int32_t pss_info) : pss_info_(pss_info) {}
+        explicit PssInfo(int32_t pss_info) : pss_info_(pss_info) {}
         int32_t pss_info_;
     };
     struct CpuInfo {

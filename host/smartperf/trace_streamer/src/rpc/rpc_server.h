@@ -41,7 +41,7 @@ public:
     int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
 #if IS_WASM
-    int32_t DownloadELFCallback(const std::string fileName,
+    int32_t DownloadELFCallback(const std::string& fileName,
                                 size_t totalLen,
                                 const uint8_t* data,
                                 size_t len,

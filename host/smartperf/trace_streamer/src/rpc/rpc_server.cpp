@@ -197,7 +197,7 @@ int32_t RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 }
 
 #if IS_WASM
-int32_t RpcServer::DownloadELFCallback(const std::string fileName,
+int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
                                        size_t totalLen,
                                        const uint8_t* data,
                                        size_t len,
@@ -220,7 +220,6 @@ int32_t RpcServer::DownloadELFCallback(const std::string fileName,
         fd = fopen(fileName.c_str(), "a+");
         if (fd == nullptr) {
             TS_LOGE("wasm file create failed");
-            fclose(fd);
             return false;
         }
         int32_t writeLength = fwrite(data, len, 1, fd);
@@ -235,17 +234,16 @@ int32_t RpcServer::DownloadELFCallback(const std::string fileName,
     g_fileLen = 0;
     fd = fopen(fileName.c_str(), "a+");
     if (fd == nullptr) {
-        fclose(fd);
         TS_LOGE("wasm file open failed");
         return false;
     }
 
     int32_t writeLength = fwrite(data, len, 1, fd);
+    (void)fclose(fd);
     if (!writeLength) {
         TS_LOGE("wasm write file failed");
         return false;
     }
-    (void)fclose(fd);
     TS_LOGI("symbolsPath = %s, fileName = %s", symbolsPath.c_str(), fileName.c_str());
     symbolsPathFiles_.emplace_back(fileName);
     parseELFFile("file send over\r\n", SEND_FINISH);

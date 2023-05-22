@@ -54,7 +54,7 @@ void IndexMap::Init()
 {
     intersectEable_ = HasData();
 }
-bool IndexMap::HasData()
+bool IndexMap::HasData() const
 {
     return !empty_;
 }
@@ -91,9 +91,6 @@ void IndexMap::Next()
 {
     if (desc_) {
         if (current_ > start_ - 1) {
-            if (current_ == 0) {
-                current_ = 0;
-            }
             current_--;
         }
     } else {

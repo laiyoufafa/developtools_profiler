@@ -13,8 +13,8 @@
 
 import("//build/ohos.gni")
 import("../../src/ts.gni")
-OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR = "//third_party/protobuf"
-proto_dir = "//third_party/protogen"
+OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR = "${THIRD_PARTY}/protobuf"
+proto_dir = "${THIRD_PARTY}/protogen"
 services_dir = "$proto_dir/services"
 ftrace_data_dir = "$proto_dir/types/plugins/ftrace_data/${kernel_version}"
 memory_data_dir = "$proto_dir/types/plugins/memory_data"

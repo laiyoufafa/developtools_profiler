@@ -12,6 +12,9 @@
 # limitations under the License.
 OHOS_PROTO_DIR = ""
 kernel_version = "."
+THIRD_PARTY = "//third_party"
+SRC = "//src"
+PREBUILTS = "//prebuilts"
 if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
   OHOS_FTRACE_PROTO_DIR = "//src/multi_platform"
   OHOS_MEMORY_PROTO_DIR = "//src/multi_platform"

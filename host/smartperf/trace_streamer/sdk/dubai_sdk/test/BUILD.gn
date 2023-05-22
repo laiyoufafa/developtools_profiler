@@ -20,12 +20,12 @@ if (target == "sdkdemotest") {
     sources = [ "unittest/sdk_api_test.cpp" ]
     deps = [
       "../:trace_streamer_sdk",
-      "//prebuilts/protos:ts_proto_data_cpp",
-      "//third_party/googletest:gtest",
-      "//third_party/googletest:gtest_main",
-      "//third_party/protobuf:protobuf",
-      "//third_party/protobuf:protobuf_lite",
-      "//third_party/sqlite:sqlite",
+      "${PREBUILTS}/protos:ts_proto_data_cpp",
+      "${THIRD_PARTY}/googletest:gtest",
+      "${THIRD_PARTY}/googletest:gtest_main",
+      "${THIRD_PARTY}/protobuf:protobuf",
+      "${THIRD_PARTY}/protobuf:protobuf_lite",
+      "${THIRD_PARTY}/sqlite:sqlite",
     ]
     include_dirs = [
       "../base",
@@ -41,14 +41,14 @@ if (target == "sdkdemotest") {
       "./",
       "../parser",
       "../cfg",
-      "//prebuilts/emsdk/emsdk/emscripten/system/include",
-      "//third_party/sqlite/include",
+      "${PREBUILTS}/emsdk/emsdk/emscripten/system/include",
+      "${THIRD_PARTY}/sqlite/include",
       "${OHOS_PROTO_GEN}",
       "${OHOS_PROTO_GEN}/types/plugins/mock_data",
-      "//third_party/googletest/googletest/include/gtest",
-      "//third_party/protobuf/src",
-      "//third_party/json-master/include",
-      "//third_party/json-master/include/nlohmann",
+      "${THIRD_PARTY}/googletest/googletest/include/gtest",
+      "${THIRD_PARTY}/protobuf/src",
+      "${THIRD_PARTY}/json-master/include",
+      "${THIRD_PARTY}/json-master/include/nlohmann",
     ]
     cflags = [
       "-Wno-inconsistent-missing-override",

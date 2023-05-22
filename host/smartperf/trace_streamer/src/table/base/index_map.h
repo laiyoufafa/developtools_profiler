@@ -32,7 +32,7 @@ public:
 
     IndexMap(TableRowId start, TableRowId end);
     void CovertToIndexMap();
-    void Sort();
+    static void Sort();
     void Print();
     void Init();
     void Merge(IndexMap* other);
@@ -341,7 +341,7 @@ public:
         FixSize();
         return;
     }
-    bool HasData();
+    bool HasData() const;
     std::vector<TableRowId> rowIndex_ = {};
     std::vector<TableRowId> rowIndexBak_ = {};
 

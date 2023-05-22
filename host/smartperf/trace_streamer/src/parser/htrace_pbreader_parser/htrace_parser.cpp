@@ -43,7 +43,6 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
       networkParser_(std::make_unique<HtraceNetworkParser>(dataCache, filters)),
       diskIOParser_(std::make_unique<HtraceDiskIOParser>(dataCache, filters)),
       processParser_(std::make_unique<HtraceProcessParser>(dataCache, filters)),
-      ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
       hisyseventParser_(std::make_unique<HtraceHisyseventParser>(dataCache, filters)),
       jsMemoryParser_(std::make_unique<HtraceJSMemoryParser>(dataCache, filters)),
 #if WITH_PERF
@@ -53,6 +52,7 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
       supportThread_(true),
       dataSegArray_(std::make_unique<HtraceDataSegment[]>(MAX_SEG_ARRAY_SIZE))
 #else
+      ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
       dataSegArray_(std::make_unique<HtraceDataSegment[]>(1))
 #endif
 {
@@ -171,7 +171,6 @@ void HtraceParser::WaitForParserEnd()
     htraceCpuDetailParser_->FilterAllEvents();
     htraceNativeHookParser_->FinishParseNativeHookData();
     htraceHiLogParser_->Finish();
-    htraceNativeHookParser_->Finish();
     htraceHidumpParser_->Finish();
     cpuUsageParser_->Finish();
     networkParser_->Finish();
@@ -184,6 +183,7 @@ void HtraceParser::WaitForParserEnd()
 #if WITH_PERF
     perfDataParser_->Finish();
 #endif
+    htraceNativeHookParser_->Finish();
     htraceMemParser_->Finish();
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_TRACE,
                                                                       dataSourceTypeTraceClockid_);

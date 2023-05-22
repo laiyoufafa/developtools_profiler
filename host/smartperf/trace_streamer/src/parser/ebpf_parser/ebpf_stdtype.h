@@ -166,7 +166,7 @@ const std::map<uint32_t, uint32_t> ebpfToTSClockType_ = {
 
 struct SymbolAndFilePathIndex {
     SymbolAndFilePathIndex() {}
-    SymbolAndFilePathIndex(bool invalidValue) : flag(invalidValue) {}
+    explicit SymbolAndFilePathIndex(bool invalidValue) : flag(invalidValue) {}
     bool flag = false;
     DataIndex symbolIndex = INVALID_UINT64;
     DataIndex filePathIndex = INVALID_UINT64;

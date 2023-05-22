@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-import("//src/ts.gni")
+import("../../ts.gni")
 ohos_source_set("hi_sysevent_tables") {
   subsystem_name = "trace_streamer"
   part_name = "table"
@@ -25,14 +25,14 @@ ohos_source_set("hi_sysevent_tables") {
   ]
   include_dirs = [
     "../base",
-    "//third_party/sqlite/include",
-    "//src/base",
+    "${THIRD_PARTY}/sqlite/include",
+    "${SRC}/base",
     "../../parser",
-    "//src/trace_data",
-    "//src/include",
-    "//src",
+    "${SRC}/trace_data",
+    "${SRC}/include",
+    "${SRC}",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "//third_party/protobuf/src",
+    "${THIRD_PARTY}/protobuf/src",
   ]
 
   if (enable_ts_utest && !use_wasm) {

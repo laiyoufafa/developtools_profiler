@@ -134,7 +134,7 @@ public:
     void SetParserToolPublishDateTime(const std::string& datetime);
     const std::string& Value(uint64_t row) const;
     const std::string& Name(uint64_t row) const;
-    virtual void Clear() override
+    void Clear() override
     {
         columnNames_.clear();
         values_.clear();

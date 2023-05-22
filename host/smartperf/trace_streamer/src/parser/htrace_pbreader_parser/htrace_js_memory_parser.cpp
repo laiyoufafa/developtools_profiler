@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "htrace_js_memory_parser.h"
 #include <dirent.h>
 #include <memory>
 #include <regex>
-#include "htrace_js_memory_parser.h"
 #include "clock_filter.h"
 #include "fcntl.h"
 #include "file.h"

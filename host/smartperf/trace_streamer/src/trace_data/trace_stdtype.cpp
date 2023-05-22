@@ -18,6 +18,7 @@
 #include <ctime>
 namespace SysTuning {
 namespace TraceStdtype {
+const int32_t MAX_SIZE_LEN = 80;
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
@@ -1145,7 +1146,9 @@ void MetaData::SetTraceDataSize(uint64_t dataSize)
     struct tm* timeinfo = nullptr;
     void(time(&rawtime));
     timeinfo = localtime(&rawtime);
-    values_[METADATA_ITEM_PARSERTIME] = asctime(timeinfo);
+    char buffer[MAX_SIZE_LEN];
+    strftime(buffer, MAX_SIZE_LEN, "%Y-%m-%d %H:%M:%S", timeinfo);
+    values_[METADATA_ITEM_PARSERTIME].append(buffer);
     // sometimes there will be a extra \n at last
     values_[METADATA_ITEM_PARSERTIME].pop_back();
 }
