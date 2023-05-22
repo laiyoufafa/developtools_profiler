@@ -295,7 +295,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
     int64_t systemCpuTime = 0;
     int64_t systemBootTime = 0;
     int64_t Hz = cpuPlugin.GetUserHz();
-    int64_t processCpuTime = (g_pidStat.utime + g_pidStat.stime + g_pidStat.cutime + g_pidStat.cstime) * Hz;
+    int64_t processCpuTime = (g_pidStat.utime + g_pidStat.stime) * Hz;
     GetSystemCpuTime(g_systemStat[0], Hz, systemCpuTime, systemBootTime);
     GetCpuUsage(cpuUsage, Hz);
 
@@ -351,8 +351,7 @@ HWTEST_F(CpuDataPluginTest, TestPlugin, TestSize.Level1)
     int64_t threadCpuTime;
     ASSERT_EQ(cpuData.thread_info_size(), 7);
     for (int i = 0; i < THREAD_NUM && i < cpuData.thread_info().size(); i++) {
-        threadCpuTime = (g_tidStat[i].stat.utime + g_tidStat[i].stat.stime +
-            g_tidStat[i].stat.cutime + g_tidStat[i].stat.cstime) * Hz;
+        threadCpuTime = (g_tidStat[i].stat.utime + g_tidStat[i].stat.stime) * Hz;
         ThreadInfo threadInfo = cpuData.thread_info()[i];
         EXPECT_EQ(threadInfo.tid(), g_tidStat[i].tid);
         EXPECT_STREQ(threadInfo.thread_name().c_str(), g_tidStat[i].name.c_str());
@@ -433,8 +432,8 @@ HWTEST_F(CpuDataPluginTest, TestPluginProcessInfo, TestSize.Level1)
     int64_t Hz = cpuPlugin.GetUserHz();
     std::string proStr1 = "2000 (ibus-x11) S 1 1865 1780 1025 1780 4194304 3233 0 457 0 50 10 40 10 20 0 7";
     std::string proStr2 = "2000 (ibus-x12) R 1 1865 1780 1025 1780 4194304 3233 0 457 0 70 0 10 20 20 0 7";
-    int64_t processCpuTime1 = (g_pidStat1.utime + g_pidStat1.stime + g_pidStat1.cutime + g_pidStat1.cstime) * Hz;
-    int64_t processCpuTime2 = (g_pidStat2.utime + g_pidStat2.stime + g_pidStat2.cutime + g_pidStat2.cstime) * Hz;
+    int64_t processCpuTime1 = (g_pidStat1.utime + g_pidStat1.stime) * Hz;
+    int64_t processCpuTime2 = (g_pidStat2.utime + g_pidStat2.stime) * Hz;
 
     // 存入proStr1
     auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
@@ -469,7 +468,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginProcessBoundary, TestSize.Level1)
     CpuDataPlugin cpuPlugin;
     std::string proStr;
     int64_t Hz = cpuPlugin.GetUserHz();
-    int64_t processCpuTime = (g_pidStat1.utime + g_pidStat1.stime + g_pidStat1.cutime + g_pidStat1.cstime) * Hz;
+    int64_t processCpuTime = (g_pidStat1.utime + g_pidStat1.stime) * Hz;
 
     // 空字符串
     proStr = "";
@@ -762,8 +761,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginThreadInfo, TestSize.Level1)
     ASSERT_EQ(cpuData.thread_info_size(), FIRST_THREAD_NUM);
     int64_t threadCpuTime1;
     for (int i = 0; i < FIRST_THREAD_NUM; i++) {
-        threadCpuTime1 = (g_tidStat1[i].stat.utime + g_tidStat1[i].stat.stime +
-            g_tidStat1[i].stat.cutime + g_tidStat1[i].stat.cstime) * Hz;
+        threadCpuTime1 = (g_tidStat1[i].stat.utime + g_tidStat1[i].stat.stime) * Hz;
         ThreadInfo threadInfo1 = cpuData.thread_info()[i];
         EXPECT_EQ(threadInfo1.tid(), g_tidStat1[i].tid);
         EXPECT_STREQ(threadInfo1.thread_name().c_str(), g_tidStat1[i].name.c_str());
@@ -781,8 +779,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginThreadInfo, TestSize.Level1)
     ASSERT_EQ(cpuData.thread_info_size(), FIRST_THREAD_NUM+SECOND_THREAD_NUM);
     std::vector<int64_t> threadCpuTime2;
     for (int i = 0; i < SECOND_THREAD_NUM; i++) {
-        threadCpuTime2.push_back((g_tidStat2[i].stat.utime + g_tidStat2[i].stat.stime +
-            g_tidStat2[i].stat.cutime + g_tidStat2[i].stat.cstime) * Hz);
+        threadCpuTime2.push_back((g_tidStat2[i].stat.utime + g_tidStat2[i].stat.stime) * Hz);
         ThreadInfo threadInfo2 = cpuData.thread_info()[i+FIRST_THREAD_NUM];
         EXPECT_EQ(threadInfo2.tid(), g_tidStat2[i].tid);
         EXPECT_STREQ(threadInfo2.thread_name().c_str(), g_tidStat2[i].name.c_str());
@@ -801,8 +798,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginThreadInfo, TestSize.Level1)
     ASSERT_EQ(cpuData.thread_info_size(), FIRST_THREAD_NUM+SECOND_THREAD_NUM*2);
     int64_t threadCpuTime3;
     for (int i = 0; i < SECOND_THREAD_NUM; i++) {
-        threadCpuTime3 = (g_tidStat2[i].stat.utime + g_tidStat2[i].stat.stime +
-            g_tidStat2[i].stat.cutime + g_tidStat2[i].stat.cstime) * Hz;
+        threadCpuTime3 = (g_tidStat2[i].stat.utime + g_tidStat2[i].stat.stime) * Hz;
         ThreadInfo threadInfo3 = cpuData.thread_info()[i+FIRST_THREAD_NUM+SECOND_THREAD_NUM];
         EXPECT_EQ(threadInfo3.tid(), g_tidStat2[i].tid);
         EXPECT_STREQ(threadInfo3.thread_name().c_str(), g_tidStat2[i].name.c_str());
@@ -824,8 +820,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginThreadBoundary, TestSize.Level1)
     std::string threadStr;
     int thread_info_count = 0;
     int64_t Hz = cpuPlugin.GetUserHz();
-    int64_t threadCpuTime = (g_tidStat1[0].stat.utime + g_tidStat1[0].stat.stime + g_tidStat1[0].stat.cutime
-                                + g_tidStat1[0].stat.cstime) * Hz;
+    int64_t threadCpuTime = (g_tidStat1[0].stat.utime + g_tidStat1[0].stat.stime) * Hz;
 
     // 空字符串
     threadStr = "";
