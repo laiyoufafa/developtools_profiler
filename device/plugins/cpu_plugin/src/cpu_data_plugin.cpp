@@ -231,14 +231,11 @@ int64_t CpuDataPlugin::GetCpuUsageTime(std::vector<std::string>& cpuUsageVec)
 {
     int64_t utime = 0;
     int64_t stime = 0;
-    int64_t cutime = 0;
-    int64_t cstime = 0;
     int64_t usageTime = 0;
     utime = atoi(cpuUsageVec[PROCESS_UTIME].c_str());
     stime = atoi(cpuUsageVec[PROCESS_STIME].c_str());
-    cutime = atoi(cpuUsageVec[PROCESS_CUTIME].c_str());
-    cstime = atoi(cpuUsageVec[PROCESS_CSTIME].c_str());
-    usageTime = (utime + stime + cutime + cstime) * GetUserHz();
+    // 进程，线程CPU占用率不计算cutime + cstime
+    usageTime = (utime + stime) * GetUserHz();
 
     return usageTime;
 }
