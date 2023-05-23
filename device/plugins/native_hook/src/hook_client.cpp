@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <sys/prctl.h>
+#include <unordered_map>
 #include <unordered_set>
 #include "common.h"
 #include "hook_common.h"
@@ -35,6 +36,7 @@
 
 static pthread_key_t g_disableHookFlag;
 static pthread_key_t g_hookTid;
+static pthread_key_t g_updateThreadNameCount;
 namespace {
 static std::atomic<uint64_t> g_timeCost = 0;
 static std::atomic<uint64_t> g_mallocTimes = 0;
@@ -42,15 +44,18 @@ static std::atomic<uint64_t> g_dataCounts = 0;
 using OHOS::HiviewDFX::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
+std::mutex g_tagMapMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
 constexpr int PRINT_INTERVAL = 5000;
+constexpr int UPDATE_THEARD_NAME = 1000;
 constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
 static pid_t g_hookPid = 0;
 static ClientConfig g_ClientConfig = {0};
 static uint32_t g_minSize = 0;
 static uint32_t g_maxSize = INT_MAX;
 static std::unordered_set<void*> g_mallocIgnoreSet;
+static std::unordered_map<std::string, uint32_t> g_memTagMap;
 constexpr int PID_STR_SIZE = 4;
 constexpr int STATUS_LINE_SIZE = 512;
 constexpr int PID_NAMESPACE_ID = 1; // 1: pid is 1 after pid namespace used
@@ -118,6 +123,51 @@ pid_t inline __attribute__((always_inline)) GetCurThreadId()
     return reinterpret_cast<long>((pthread_getspecific(g_hookTid)));
 }
 
+void inline __attribute__((always_inline)) UpdateThreadName(std::shared_ptr<HookSocketClient>& client)
+{
+    long updateCount = reinterpret_cast<long>(pthread_getspecific(g_updateThreadNameCount));
+    if (updateCount == 0) {
+        StackRawData tnameData = {{{{0}}}};
+        tnameData.tid = GetCurThreadId();
+        tnameData.type = THREAD_NAME_MSG;
+        prctl(PR_GET_NAME, tnameData.name);
+        client->SendStackWithPayload(&tnameData, sizeof(BaseStackRawData) + strlen(tnameData.name), nullptr, 0);
+    }
+    pthread_setspecific(g_updateThreadNameCount,
+                        reinterpret_cast<void *>(updateCount == UPDATE_THEARD_NAME ? 0 : updateCount + 1));
+}
+
+uint32_t inline __attribute__((always_inline)) GetTagId(std::shared_ptr<HookSocketClient>& client, const char* tagName)
+{
+    if (tagName == nullptr) {
+        return 0;
+    }
+    uint32_t tagId = 0;
+    bool isNewTag = false;
+    std::unique_lock<std::mutex> lock(g_tagMapMutex);
+    auto it = g_memTagMap.find(tagName);
+    if (it == g_memTagMap.end()) {
+        isNewTag = true;
+        tagId = g_memTagMap.size() + 1;
+        g_memTagMap[tagName] = tagId;
+    } else {
+        tagId = it->second;
+    }
+    lock.unlock();
+    if (isNewTag) {
+        StackRawData tagData = {{{{0}}}};
+        tagData.type = MEMORY_TAG;
+        tagData.tagId = tagId;
+        if (strcpy_s(tagData.name, PATH_MAX + 1, tagName) != 0) {
+            HILOG_ERROR(LOG_CORE, "Set tag name failed");
+        }
+        if (client != nullptr) {
+            client->SendStackWithPayload(&tagData, sizeof(BaseStackRawData) + strlen(tagName), nullptr, 0);
+        }
+    }
+    return tagId;
+}
+
 static bool IsPidChanged(void);
 
 bool ohos_malloc_hook_on_start(void)
@@ -138,6 +188,8 @@ bool ohos_malloc_hook_on_start(void)
     pthread_setspecific(g_disableHookFlag, nullptr);
     pthread_key_create(&g_hookTid, nullptr);
     pthread_setspecific(g_hookTid, nullptr);
+    pthread_key_create(&g_updateThreadNameCount, nullptr);
+    pthread_setspecific(g_updateThreadNameCount, reinterpret_cast<void *>(0));
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
     g_minSize = g_ClientConfig.filterSize;
@@ -163,6 +215,7 @@ void* ohos_release_on_end(void*)
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
     pthread_key_delete(g_hookTid);
+    pthread_key_delete(g_updateThreadNameCount);
     g_mallocIgnoreSet.clear();
     g_ClientConfig.Reset();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
@@ -224,7 +277,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
 #endif
-    StackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -265,10 +318,10 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = ret;
-    prctl(PR_GET_NAME, rawdata.tname);
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
+        UpdateThreadName(holder);
         int realSize = 0;
         if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
@@ -314,7 +367,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
         return pRet;
     }
 
-    StackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -356,7 +409,6 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = number * size;
     rawdata.addr = pRet;
-    prctl(PR_GET_NAME, rawdata.tname);
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
@@ -394,8 +446,8 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         return pRet;
     }
 
-    StackRawData rawdata = {{{0}}};
-    StackRawData freeData = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
+    StackRawData freeData = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -445,7 +497,6 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = pRet;
-    prctl(PR_GET_NAME, rawdata.tname);
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
@@ -456,8 +507,6 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         freeData.mallocSize = 0;
         freeData.addr = ptr;
         freeData.ts = rawdata.ts;
-        (void)memcpy_s(freeData.tname, sizeof(freeData.tname) / sizeof(char),
-                       rawdata.tname, sizeof(rawdata.tname) / sizeof(char));
         if (g_ClientConfig.fpunwind) {
             realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
         } else {
@@ -496,7 +545,7 @@ void hook_free(void (*free_func)(void*), void* p)
         }
     }
 
-    StackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -540,7 +589,6 @@ void hook_free(void (*free_func)(void*), void* p)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = 0;
     rawdata.addr = p;
-    prctl(PR_GET_NAME, rawdata.tname);
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
@@ -557,7 +605,7 @@ void hook_free(void (*free_func)(void*), void* p)
 inline void SendMmapFileRawData(int prot, int flags, off_t offset, const std::string& filePath,
                                 const StackRawData& rawdata, std::shared_ptr<HookSocketClient>& holder)
 {
-    StackRawData curRawdata = {{{0}}};
+    StackRawData curRawdata = {{{{0}}}};
     curRawdata.addr = rawdata.addr;
     curRawdata.mallocSize = rawdata.mallocSize;
     curRawdata.mmapArgs.offset = offset;
@@ -567,11 +615,11 @@ inline void SendMmapFileRawData(int prot, int flags, off_t offset, const std::st
     }
     if (flags & MAP_FIXED) {
         curRawdata.mmapArgs.flags |= MAP_FIXED;
-        curRawdata.filePath[0] = '\0';
+        curRawdata.name[0] = '\0';
         holder->SendStackWithPayload(&curRawdata, sizeof(BaseStackRawData) + 1, nullptr, 0);
     } else {
         size_t len = strlen(filePath.c_str()) + 1;
-        (void)strncpy_s(curRawdata.filePath, PATH_MAX + 1, filePath.c_str(), len);
+        (void)strncpy_s(curRawdata.name, PATH_MAX + 1, filePath.c_str(), len);
         holder->SendStackWithPayload(&curRawdata, sizeof(BaseStackRawData) + len, nullptr, 0);
     }
 }
@@ -586,7 +634,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (g_ClientConfig.mmapDisable || IsPidChanged()) {
         return ret;
     }
-    StackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -633,21 +681,20 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (holder == nullptr) {
         return ret;
     }
-    if (fd < 0) {
-        prctl(PR_GET_NAME, rawdata.tname);
-    } else {
+    if (fd >= 0) {
+        rawdata.type = MMAP_FILE_PAGE_MSG;
         char path[FD_PATH_LENGTH] = {0};
         char fileName[PATH_MAX + 1] = {0};
         (void)snprintf_s(path, FD_PATH_LENGTH, FD_PATH_LENGTH - 1, "/proc/self/fd/%d", fd);
         ssize_t len = readlink(path, fileName, sizeof(fileName) - 1);
         if (len != -1) {
             fileName[len] = '\0';
+            SendMmapFileRawData(prot, flags, offset, fileName, rawdata, holder);
             char* p = strrchr(fileName, '/');
             if (p != nullptr) {
-                SendMmapFileRawData(prot, flags, offset, fileName, rawdata, holder);
-                (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, &fileName[p - fileName], MAX_THREAD_NAME - 1);
+                rawdata.tagId = GetTagId(holder, &fileName[p - fileName + 1]);
             } else {
-                (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, fileName, MAX_THREAD_NAME - 1);
+                rawdata.tagId = GetTagId(holder, fileName);
             }
         } else {
             HILOG_ERROR(LOG_CORE, "Set mmap fd linked file name failed!");
@@ -659,6 +706,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     } else {
         realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
     }
+    UpdateThreadName(holder);
     holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     return ret;
 }
@@ -673,7 +721,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
         return ret;
     }
     int stackSize = 0;
-    StackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int fpStackDepth = 0;
@@ -716,7 +764,6 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = length;
     rawdata.addr = addr;
-    prctl(PR_GET_NAME, rawdata.tname);
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
     if (holder != nullptr) {
@@ -742,22 +789,22 @@ int hook_prctl(int(*fn)(int, ...),
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
-        BaseStackRawData rawdata = {{0}};
+        StackRawData rawdata = {{{{0}}}};
         clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = static_cast<uint32_t>(g_hookPid);
         rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
         rawdata.mallocSize = arg4;
         rawdata.addr = reinterpret_cast<void*>(arg3);
-        size_t tagLen = strlen(reinterpret_cast<char*>(arg5)) + 1;
-        if (memcpy_s(rawdata.tname, sizeof(rawdata.tname), reinterpret_cast<char*>(arg5), tagLen) != EOK) {
-            HILOG_ERROR(LOG_CORE, "memcpy_s tag failed");
-        }
-        rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
+
         std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
         auto holder = weakClient.lock();
+        if (strcpy_s(rawdata.name, PATH_MAX + 1, reinterpret_cast<char*>(arg5))) {
+            HILOG_ERROR(LOG_CORE, "Set tag name failed");
+        }
         if (holder != nullptr) {
-            holder->SendStackWithPayload(&rawdata, sizeof(rawdata), nullptr, 0);
+            holder->SendStackWithPayload(&rawdata,
+                                         sizeof(rawdata) + strlen(reinterpret_cast<char*>(arg5)), nullptr, 0);
         }
     }
     return ret;
@@ -769,58 +816,59 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
         return;
     }
     int stackSize = 0;
-    StackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
+    int fpStackDepth = 0;
     clock_gettime(g_ClientConfig.clockId, &rawdata.ts);
 
-    if (g_ClientConfig.fpunwind) {
+    if (isUsing) {
+        if (g_ClientConfig.fpunwind) {
 #ifdef __aarch64__
-        stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
-        stackSize = stackendptr - stackptr;
-        FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
-        stackSize = 0;
+            stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+            stackSize = stackendptr - stackptr;
+            fpStackDepth = FpUnwind(g_ClientConfig.maxStackDepth, rawdata.ip, stackSize);
+            stackSize = 0;
 #endif
-    } else {
-        unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
-        unw_context_t context;
-        unw_getcontext(&context);
+        } else {
+            unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+            unw_context_t context;
+            unw_getcontext(&context);
 #if defined(__arm__)
-        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
-                     sizeof(context.regs)) != EOK) {
-            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
-        }
+            if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                         sizeof(context.regs)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+            }
 #elif defined(__aarch64__)
-        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
-                     sizeof(context.uc_mcontext.regs)) != EOK) {
-            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
-        }
-        regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
-        regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
+            if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                         sizeof(context.uc_mcontext.regs)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+            }
+            regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+            regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
-        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
-        stackSize = stackendptr - stackptr;
+            stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+            stackSize = stackendptr - stackptr;
+        }
     }
-    rawdata.type = isUsing ? MMAP_MSG : MUNMAP_MSG;
+    rawdata.type = isUsing ? MEMORY_USING_MSG : MEMORY_UNUSING_MSG;
     rawdata.pid = static_cast<uint32_t>(g_hookPid);
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = addr;
-    if (isUsing) {
-        if (strcpy_s(rawdata.tname, MAX_THREAD_NAME, tag) != EOK) {
-            HILOG_ERROR(LOG_CORE, "strcpy_s tag failed!");
-        }
-        rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
-    } else {
-        prctl(PR_GET_NAME, rawdata.tname);
-    }
-
     std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
     auto holder = weakClient.lock();
+    rawdata.tagId = isUsing ? GetTagId(holder, tag) : 0;
     if (holder != nullptr) {
-        holder->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        int realSize = 0;
+        if (g_ClientConfig.fpunwind) {
+            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+        } else {
+            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
+        }
+        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     }
 }
 

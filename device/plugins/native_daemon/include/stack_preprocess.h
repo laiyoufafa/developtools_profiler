@@ -51,6 +51,9 @@ public:
     bool StopTakeResults();
     bool FlushRecordStatistics();
     void SetSerializeMode(bool protobufSerialize);
+    void SaveMemTag(uint32_t tagId, const std::string& tagName);
+    bool GetMemTag(uint32_t tagId, std::string& tagName);
+    void SaveThreadName(uint32_t tid, const std::string& tname);
 
 private:
     using CallFrame = OHOS::Developtools::NativeDaemon::CallFrame;
@@ -77,7 +80,7 @@ private:
     void ReportSymbolNameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     void ReportFilePathMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     void ReportFrameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
-    uint32_t GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData);
+    void ReportThreadNameMap();
     void SetMapsInfo(pid_t pid);
     void SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,
         BatchNativeHookData& batchNativeHookData);
@@ -106,7 +109,8 @@ private:
     bool isStopTakeData_ = false;
     std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
     DISALLOW_COPY_AND_MOVE(StackPreprocess);
-    std::unordered_map<std::string, uint32_t> threadMap_;
+    std::unordered_map<uint32_t, std::string> memTagMap_ = {};
+    std::unordered_map<uint32_t, std::string> threadNameMap_ = {};
     NativeHookConfig hookConfig_;
     std::unique_ptr<FILE, decltype(&fclose)> fpHookData_;
     uint32_t ignoreCnts_ = 0;
