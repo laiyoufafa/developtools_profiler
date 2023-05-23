@@ -80,7 +80,7 @@ private:
     void ReportSymbolNameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     void ReportFilePathMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
     void ReportFrameMap(CallFrame& callFrame, BatchNativeHookData& batchNativeHookData);
-    void ReportThreadNameMap();
+    void ReportThreadNameMap(uint32_t tid, const std::string& tname, BatchNativeHookData& batchNativeHookData);
     void SetMapsInfo(pid_t pid);
     void SetSymbolInfo(uint32_t filePathId, ElfSymbolTable& symbolInfo,
         BatchNativeHookData& batchNativeHookData);
