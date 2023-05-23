@@ -698,12 +698,13 @@ describe('TraceRow Test', () => {
             margin-left: 10px;
             font-size: .9rem;
             font-weight: normal;
-            width: 100%;
+            width: 80%;
             max-height: 100%;
             text-align: left;
             overflow: hidden;
             user-select: none;
             text-overflow: ellipsis;
+            white-space:nowrap
         }
         :host([highlight]) .name{
             color: #4b5766;
@@ -813,7 +814,7 @@ describe('TraceRow Test', () => {
         :host(:not([folder])) .describe:hover .collect{
             display: block;
         }
-        :host([row-type=\\"native-memory\\"]) #nativeRadioList{
+        :host([row-type="native-memory"]) #nativeRadioList{
             display: flex;
         }
         .popover{
@@ -837,7 +838,7 @@ describe('TraceRow Test', () => {
             background-color: #ffe263;
         }
         
-        :host([row-type=\\"energy\\"]) #appNameList{
+        :host([row-type="energy"]) #appNameList{
             display: flex;
         }
         
@@ -853,26 +854,26 @@ describe('TraceRow Test', () => {
         }
 
         </style>
-        <div class=\\"root\\">
-            <div class=\\"describe flash\\">
-                <lit-icon class=\\"icon\\" name=\\"caret-down\\" size=\\"13\\"></lit-icon>
-                <label class=\\"name\\"></label>
-                <lit-icon class=\\"collect\\" name=\\"star-fill\\" size=\\"17\\"></lit-icon>
-                <lit-popover placement=\\"bottomLeft\\" trigger=\\"click\\" id = \\"nativeRadioList\\" class=\\"popover\\" haveRadio=\\"true\\">
-                    <div style=\\"display: block\\" slot=\\"content\\">
-                        <div id=\\"first-radio\\" style=\\"margin-bottom: 5px\\">
-                        <input class=\\"radio\\" name=\\"status\\" type=\\"radio\\" value=\\"0\\" />Current Bytes</div>
-                        <div id=\\"second-radio\\" style=\\"margin-bottom: 5px\\">
-                        <input class=\\"radio\\" name=\\"status\\" type=\\"radio\\" value=\\"1\\" />Native Memory Density</div>
+        <div class="root">
+            <div class="describe flash" style="position: inherit">
+                <lit-icon class="icon" name="caret-down" size="19"></lit-icon>
+                <label class="name"></label>
+                <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
+                <lit-popover placement="bottomLeft" trigger="click" id = "nativeRadioList" class="popover" haveRadio="true" style="z-index: 1;position: absolute;left: 230px">
+                    <div style="display: block" slot="content">
+                        <div id="first-radio" style="margin-bottom: 5px">
+                        <input class="radio" name="status" type="radio" value="0" />Current Bytes</div>
+                        <div id="second-radio" style="margin-bottom: 5px">
+                        <input class="radio" name="status" type="radio" value="1" />Native Memory Density</div>
                     </div>
-                    <lit-icon name=\\"setting\\" size=\\"17\\" id=\\"setting\\"></lit-icon>
+                    <lit-icon name="setting" size="19" id="setting"></lit-icon>
                 </lit-popover>
-                <lit-popover placement=\\"bottomLeft\\" trigger=\\"click\\" id=\\"appNameList\\" class=\\"popover\\" haveRadio=\\"true\\">
-                    <div slot=\\"content\\" id=\\"listprocess\\" style=\\"height:200px;overflow-y:auto\\">
+                <lit-popover placement="bottomLeft" trigger="click" id="appNameList" class="popover" haveRadio="true" style="z-index: 1;position: absolute;left: 230px">
+                    <div slot="content" id="listprocess" style="height:200px;overflow-y:auto">
                     </div>
-                    <lit-icon name=\\"setting\\" size=\\"17\\" id=\\"setting\\"></lit-icon>
+                    <lit-icon name="setting" size="19" id="setting"></lit-icon>
                 </lit-popover>
-                <lit-check-box class=\\"lit-check-box\\"></lit-check-box>
+                <lit-check-box class="lit-check-box" style="margin-right: 10px;"></lit-check-box>
             </div>
         </div>
         "

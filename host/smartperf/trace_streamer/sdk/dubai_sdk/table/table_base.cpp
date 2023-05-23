@@ -101,7 +101,8 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
         return static_cast<TableBase*>(pVTab)->BestIndex(idxInfo);
     };
 
-    module.xFilter = [](sqlite3_vtab_cursor* vc, int32_t idxNum, const char* idxStr, int32_t argc, sqlite3_value** argv) {
+    module.xFilter = [](sqlite3_vtab_cursor* vc, int32_t idxNum, const char* idxStr, int32_t argc,
+                        sqlite3_value** argv) {
         auto* c = static_cast<Cursor*>(vc);
         c->Reset();
         TS_LOGD("xFilter %s: [%d]%s", static_cast<Cursor*>(vc)->table_->name_.c_str(), idxNum, idxStr);

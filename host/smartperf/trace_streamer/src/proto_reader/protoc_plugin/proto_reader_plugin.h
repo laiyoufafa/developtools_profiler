@@ -88,7 +88,7 @@ public:
 
 private:
     template <class T>
-    inline std::string GetDescriptorName(const T* descriptor)
+    inline std::string GetDescriptorName(const T* descriptor) const
     {
         if (!package_.empty()) {
             auto strTmp = package_ + ".";

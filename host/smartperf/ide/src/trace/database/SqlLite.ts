@@ -935,18 +935,14 @@ export const queryCpuData = (cpu: number, startNS: number, endNS: number): Promi
     SELECT
     B.pid as processId,
     B.cpu,
-    C.id as schedId,
     B.tid,
     B.itid as id,
     B.dur,
     B.ts - TR.start_ts AS startTime,
-    C.priority,
-    C.end_state,
     B.arg_setid as argSetID
 from thread_state AS B
-    left join sched_slice AS C on B.itid = C.itid and B.ts = C.ts
     left join trace_range AS TR
-where C.itid is not null
+where B.itid is not null
     and
       B.cpu = $cpu
     and
@@ -1547,7 +1543,8 @@ export const queryHiPerfEventListData = (eventTypeId: number): Promise<Array<any
         from perf_sample s,trace_range t 
         where 
             event_type_id=${eventTypeId} 
-            and s.thread_id != 0;
+            and s.thread_id != 0
+            and s.callchain_id != -1;
 `,
     { $eventTypeId: eventTypeId }
   );
@@ -1561,7 +1558,8 @@ export const queryHiPerfEventData = (eventTypeId: number, cpu: number): Promise<
     where
         event_type_id=${eventTypeId} 
         and cpu_id=${cpu} 
-        and s.thread_id != 0;
+        and s.thread_id != 0
+        and s.callchain_id != -1;
 `,
     { $eventTypeId: eventTypeId, $cpu: cpu }
   );
@@ -1574,13 +1572,15 @@ export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
     from perf_sample s,trace_range t 
     where 
         cpu_id=${cpu} 
-        and s.thread_id != 0;`,
+        and s.thread_id != 0
+        and s.callchain_id != -1;`,
     { $cpu: cpu }
   );
 export const queryHiPerfCpuMergeData = (): Promise<Array<any>> =>
   query(
     'queryHiPerfCpuData',
-    `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where s.thread_id != 0;`,
+    `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t 
+where s.thread_id != 0 and s.callchain_id != -1;`,
     {}
   );
 export const queryHiPerfCpuMergeData2 = (): Promise<Array<any>> =>
@@ -1602,7 +1602,7 @@ SELECT sp.callchain_id,
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
-where pid = ${pid} and sp.thread_id != 0;`,
+where pid = ${pid} and sp.thread_id != 0 and sp.callchain_id != -1;`,
     { $pid: pid }
   );
 
@@ -1618,7 +1618,7 @@ SELECT sp.callchain_id,
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
-where tid = ${tid} and sp.thread_id != 0;`,
+where tid = ${tid} and sp.thread_id != 0 and sp.callchain_id != -1;`,
     { $tid: tid }
   );
 
@@ -3889,8 +3889,11 @@ export const queryGpuDur = (id: number): Promise<any> =>
     { $id: id }
   );
 
-export const queryHeapFile = (): Promise<Array<any>> =>
-  query('queryHeapFile', `SELECT id,file_name,start_time,end_time,pid FROM js_heap_files`);
+  export const queryHeapFile = (): Promise<Array<any>> =>
+  query('queryHeapFile',
+        `SELECT f.id, f.file_name, f.start_time, f.end_time, f.pid, t.start_ts, t.end_ts
+        FROM js_heap_files f,trace_range t
+        where t.end_ts >= f.end_time`);
 
 export const queryHeapInfo = (fileId: number): Promise<Array<any>> =>
   query(

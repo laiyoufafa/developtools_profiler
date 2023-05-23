@@ -14,8 +14,6 @@
  */
 
 #include "trace_data_cache.h"
-#include <sqlite3.h>
-
 #include "appname_table.h"
 #include "args_table.h"
 #include "bio_latency_sample_table.h"
@@ -79,6 +77,7 @@
 #include "sched_slice_table.h"
 #include "smaps_table.h"
 #include "span_join.h"
+#include "sqlite3.h"
 #include "stat_table.h"
 #include "symbols_table.h"
 #include "sysevent_measure_table.h"

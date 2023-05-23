@@ -22,15 +22,6 @@ OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache* dataCache
       filePathIdAndStValueToSymAddr_(nullptr)
 {
 }
-OfflineSymbolizationFilter::~OfflineSymbolizationFilter()
-{
-    startAddrToMapsInfoMap_.clear();
-    symbolTablePtrAndStValueToSymAddr_.Clear();
-    filePathIdAndStValueToSymAddr_.Clear();
-    filePathIdToSymbolTableMap_.clear();
-    ipToFrameInfo_.clear();
-    segs_.clear();
-}
 std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolizationFilter::OfflineSymbolization(
     const std::shared_ptr<std::vector<uint64_t>> ips)
 {
@@ -46,11 +37,11 @@ std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolizationFil
     return result;
 }
 template <class T>
-void OfflineSymbolizationFilter::UpdateSymbol(T* elfSym,
-                                              uint32_t& symbolStart,
-                                              uint64_t symVaddr,
-                                              uint64_t ip,
-                                              FrameInfo* frameInfo)
+void OfflineSymbolizationFilter::UpdateFrameInfo(T* elfSym,
+                                                 uint32_t& symbolStart,
+                                                 uint64_t symVaddr,
+                                                 uint64_t ip,
+                                                 FrameInfo* frameInfo)
 {
     if (elfSym->st_value + elfSym->st_size >= symVaddr) {
         symbolStart = elfSym->st_name;
@@ -115,9 +106,11 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolization(uint
     if (length > 0) {
         end--;
         if (symEntLen == ELF32_SYM) {
-            UpdateSymbol(reinterpret_cast<const Elf32_Sym*>(end->second), symbolStart, symVaddr, ip, frameInfo.get());
+            UpdateFrameInfo(reinterpret_cast<const Elf32_Sym*>(end->second), symbolStart, symVaddr, ip,
+                            frameInfo.get());
         } else {
-            UpdateSymbol(reinterpret_cast<const Elf64_Sym*>(end->second), symbolStart, symVaddr, ip, frameInfo.get());
+            UpdateFrameInfo(reinterpret_cast<const Elf64_Sym*>(end->second), symbolStart, symVaddr, ip,
+                            frameInfo.get());
         }
     }
 
@@ -130,14 +123,9 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolization(uint
         return frameInfo;
     }
 
-    auto originSymbolName = reinterpret_cast<const char*>(symbolTable->str_table().Data() + symbolStart);
-    int32_t status = 0;
-    auto symbolName = abi::__cxa_demangle(originSymbolName, nullptr, nullptr, &status);
-    if (status) { // status != 0 failed
-        frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(originSymbolName);
-    } else {
-        frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(symbolName);
-    }
+    auto mangle = reinterpret_cast<const char*>(symbolTable->str_table().Data() + symbolStart);
+    auto demangle = GetDemangleSymbolIndex(mangle);
+    frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(demangle);
     ipToFrameInfo_.insert(std::make_pair(ip, frameInfo));
     return frameInfo;
 }
@@ -172,9 +160,9 @@ void OfflineSymbolizationFilter::OfflineSymbolization(const std::set<uint64_t>& 
         }
         auto& symbolTable = filePathIdToImportSymbolTableMap_.at(frameInfo->filePathId_);
         // Calculate virtual address
-        uint64_t symVaddr = ip - vmStart + vmOffset + symbolTable.textVaddr - symbolTable.textOffset;
+        uint64_t symVaddr = ip - vmStart + vmOffset + symbolTable->textVaddr - symbolTable->textOffset;
         // pase sym_table to Elf32_Sym or Elf64_Sym array decided by sym_entry_size.
-        auto symEntLen = symbolTable.symEntSize;
+        auto symEntLen = symbolTable->symEntSize;
         auto startValueToSymAddrMap = filePathIdAndStValueToSymAddr_.Find(frameInfo->filePathId_);
         if (!startValueToSymAddrMap) {
             // find matching SymbolTable failed, but symVaddr is availiable
@@ -190,39 +178,24 @@ void OfflineSymbolizationFilter::OfflineSymbolization(const std::set<uint64_t>& 
         if (length > 0) {
             end--;
             if (symEntLen == ELF32_SYM) {
-                Elf32_Sym elf32Sym;
-                memcpy(&elf32Sym, end->second, symEntLen);
-                if (end->first + elf32Sym.st_size >= symVaddr) {
-                    symbolStart = elf32Sym.st_name;
-                    frameInfo->offset_ = elf32Sym.st_value != 0 ? elf32Sym.st_value : ip;
-                    frameInfo->symbolOffset_ = symVaddr - elf32Sym.st_value;
-                }
+                UpdateFrameInfo(reinterpret_cast<const Elf32_Sym*>(end->second), symbolStart, symVaddr, ip,
+                                frameInfo.get());
             } else {
-                Elf64_Sym elf64Sym;
-                memcpy(&elf64Sym, end->second, symEntLen);
-                if (elf64Sym.st_value + elf64Sym.st_size >= symVaddr) {
-                    symbolStart = elf64Sym.st_name;
-                    frameInfo->offset_ = elf64Sym.st_value != 0 ? elf64Sym.st_value : ip;
-                    frameInfo->symbolOffset_ = symVaddr - elf64Sym.st_value;
-                }
+                UpdateFrameInfo(reinterpret_cast<const Elf64_Sym*>(end->second), symbolStart, symVaddr, ip,
+                                frameInfo.get());
             }
         }
-        if (symbolStart == INVALID_UINT32 || symbolStart >= symbolTable.strTable.size()) {
+        if (symbolStart == INVALID_UINT32 || symbolStart >= symbolTable->strTable.size()) {
             // find symbolStart failed, but some data is availiable.
             frameInfo->offset_ = ip;
             frameInfo->symbolOffset_ = 0;
             ipToFrameInfo_.insert(std::make_pair(ip, frameInfo));
-            TS_LOGD("symbolStart is : %lu invaliable!!!", symbolStart);
+            TS_LOGD("symbolStart is : %u invaliable!!!", symbolStart);
             continue;
         }
-        auto originSymbolName = symbolTable.strTable.c_str() + symbolStart;
-        int status = 0;
-        auto symbolName = abi::__cxa_demangle(originSymbolName, nullptr, nullptr, &status);
-        if (status) { // status != 0 failed
-            frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(originSymbolName);
-        } else {
-            frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(symbolName);
-        }
+        auto mangle = symbolTable->strTable.c_str() + symbolStart;
+        auto demangle = GetDemangleSymbolIndex(mangle);
+        frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(demangle);
         ipToFrameInfo_.insert(std::make_pair(ip, frameInfo));
     }
 }

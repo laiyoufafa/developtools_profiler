@@ -227,7 +227,7 @@ describe('LitSelect Test', () => {
             top: 100%;
             transform-origin: top center;
         }
-        :host([placement=\\"bottom\\"]) .body{
+        :host([placement="bottom"]) .body{
             bottom:unset;
             top: 100%;
             transition: none;
@@ -341,17 +341,17 @@ describe('LitSelect Test', () => {
         }
 
         </style>
-        <div class=\\"root noSelect\\" tabindex=\\"0\\" hidefocus=\\"true\\">
-            <div class=\\"multipleRoot\\">
-            <input placeholder=\\"请选择\\" autocomplete=\\"off\\" readonly tabindex=\\"0\\"></div>
-            <lit-loading class=\\"loading\\" size=\\"12\\"></lit-loading>
-            <lit-icon class=\\"icon\\" name='down' color=\\"#c3c3c3\\"></lit-icon>
-            <lit-icon class=\\"clear\\" name='close-circle-fill'></lit-icon>
-            <lit-icon class=\\"search\\" name='search'></lit-icon>
+        <div class="root noSelect" tabindex="0" hidefocus="true">
+            <div class="multipleRoot">
+            <input placeholder="请选择" autocomplete="off" readonly tabindex="0"></div>
+            <lit-loading class="loading" size="12"></lit-loading>
+            <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
+            <lit-icon class="clear" name='close-circle-fill'></lit-icon>
+            <lit-icon class="search" name='search'></lit-icon>
         </div>
-        <div class=\\"body\\">
+        <div class="body">
             <slot></slot>
-            <slot name=\\"footer\\"></slot>
+            <slot name="footer"></slot>
         </div>
         "
 `);

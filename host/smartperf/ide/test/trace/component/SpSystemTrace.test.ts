@@ -25,8 +25,8 @@ const intersectionObserverMock = () => ({
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
-window.ResizeObserver =
-  window.ResizeObserver ||
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
@@ -161,7 +161,6 @@ describe('SpSystemTrace Test', () => {
             max-height: calc(100vh - 147px - 48px);
         }
         .rows{
-            min-height: 100%;
             color: #fff;
             display: flex;
             box-sizing: border-box;
@@ -240,18 +239,18 @@ describe('SpSystemTrace Test', () => {
         }
 
         </style>
-        <div class=\\"container\\">
-            <timer-shaft-element class=\\"timer-shaft\\" style=\\"position: relative;top: 0\\"></timer-shaft-element>
-            <div class=\\"rows-pane\\" style=\\"position: relative;display: block;flex-direction: column;overflow-x: hidden;\\">
-                <div class=\\"favorite-rows\\" ondragstart=\\"return false\\">
-                    <canvas id=\\"canvas-panel-favorite\\" class=\\"panel-canvas-favorite\\" ondragstart=\\"return false\\"></canvas>
+        <div class="container">
+            <timer-shaft-element class="timer-shaft" style="position: relative;top: 0"></timer-shaft-element>
+            <div class="rows-pane" style="position: relative;flex-direction: column;overflow-x: hidden;">
+                <div class="favorite-rows">
+                    <canvas id="canvas-panel-favorite" class="panel-canvas-favorite" ondragstart="return false"></canvas>
                 </div>
-                <canvas id=\\"canvas-panel\\" class=\\"panel-canvas\\" ondragstart=\\"return false\\"></canvas>
-                <div class=\\"spacer\\" ondragstart=\\"return false\\"></div>
-                <div class=\\"rows\\" ondragstart=\\"return false\\"></div>
-                <div id=\\"tip\\" class=\\"tip\\"></div>
+                <canvas id="canvas-panel" class="panel-canvas" ondragstart="return false"></canvas>
+                <div class="spacer" ondragstart="return false"></div>
+                <div class="rows" ondragstart="return false"></div>
+                <div id="tip" class="tip"></div>
             </div>
-            <trace-sheet class=\\"trace-sheet\\" mode=\\"hidden\\" ondragstart=\\"return false\\"></trace-sheet>
+            <trace-sheet class="trace-sheet" mode="hidden" ondragstart="return false"></trace-sheet>
         </div>
         "
 `);
@@ -358,5 +357,161 @@ describe('SpSystemTrace Test', () => {
       isOffScreen: true,
     });
     expect(spSystemTrace.searchThreadsAndProcesses()).toStrictEqual([]);
+  });
+  it('SpSystemTraceTest28', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(spSystemTrace.refreshFavoriteCanvas()).toBeUndefined();
+  });
+  it('SpSystemTraceTest29', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(spSystemTrace.expansionAllParentRow({id:1})).toBeUndefined();
+  });
+  it('SpSystemTraceTest30', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    let it = {
+      name:'',
+      rowType:'',
+      rowId:'FileSystemLogicalWrite',
+      rowParentId:'frameTime'
+  }
+    expect(spSystemTrace.createPointEvent(it)).toBe('');
+  });
+  it('SpSystemTraceTest31', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    let a = {
+      rowEL:{
+        translateY:1,
+        offsetTop:0,
+      },
+      y:1,
+      offsetY:0
+    }
+    let b = {
+      rowEL:{
+        translateY:1,
+        offsetTop:0,
+      },
+      y:1,
+      offsetY:0
+    }
+    expect(spSystemTrace.addPointPair(a,b)).toBeUndefined();
+  });
+  it('SpSystemTraceTest32', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(spSystemTrace.setSLiceMark()).toBeUndefined();
+  });
+  it('SpSystemTraceTest33', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(spSystemTrace.clickEmptyArea()).toBeUndefined();
+  });
+  it('SpSystemTraceTest34', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(spSystemTrace.isWASDKeyPress()).toBeFalsy();
+  });
+  it('SpSystemTraceTest35', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    let endParentRow = {
+      expansion: true
+    }
+    let selectJankStruct = {
+      frame_type:'frameTime',
+      type:'',
+      pid:1,
+      ts:1,
+      dur:0,
+      depth:1,
+    }
+    let data = {
+      frame_type:'frameTime',
+      type:'',
+      pid:1,
+      name:'',
+      children:{
+        frame_type:'frameTime',
+        pid:1,
+        length:1
+      }
+    }
+    expect(spSystemTrace.drawJankLine(endParentRow, selectJankStruct, data)).toBeUndefined();
+  });
+  it('SpSystemTraceTest36', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    let ev = {
+      maxDuration:1,
+      timestamp:''
+    }
+    expect(spSystemTrace.sliceMarkEventHandler(ev)).toBeUndefined();
+  });
+  it('SpSystemTraceTest37', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(spSystemTrace.searchSdk([''],'')).toStrictEqual(['']);
+  });
+  it('SpSystemTraceTest38', function () {
+    let spSystemTrace = new SpSystemTrace<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    let funcStract = {
+      tid:1,
+      pid:0,
+      cookie:'',
+      funName:'',
+      type:'',
+      startTime:2,
+      depth:1
+    }
+    expect(spSystemTrace.scrollToActFunc(funcStract,true)).toBeUndefined();
   });
 });

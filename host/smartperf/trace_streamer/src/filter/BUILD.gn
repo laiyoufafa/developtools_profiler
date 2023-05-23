@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
-import("//src/ts.gni")
+import("../../build/ohos.gni")
+import("../ts.gni")
 
 ohos_source_set("filter") {
   subsystem_name = "trace_streamer"
@@ -64,16 +64,16 @@ ohos_source_set("filter") {
   }
   deps = []
   include_dirs = [
-    "//src/base",
-    "//src/trace_streamer",
-    "//src/trace_data",
-    "//src/include",
-    "//src/filter",
-    "//src/cfg",
+    "${SRC}/base",
+    "${SRC}/trace_streamer",
+    "${SRC}/trace_data",
+    "${SRC}/include",
+    "${SRC}/filter",
+    "${SRC}/cfg",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "//src",
-    "//third_party/protobuf/src",
-    "//third_party/sqlite/include",
+    "${SRC}",
+    "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/sqlite/include",
     ".",
   ]
 
@@ -87,7 +87,7 @@ ohos_source_set("filter") {
     include_dirs += [
       "../proto_reader/include",
       "${OHOS_PROTO_GEN}/types/plugins/native_hook",
-      "//third_party/perf_include/musl",
+      "${THIRD_PARTY}/perf_include/musl",
     ]
   }
 

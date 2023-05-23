@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
-import("//build/test.gni")
+import("../build/ohos.gni")
+import("../build/test.gni")
 import("test_ts.gni")
 
 if (is_test) {
@@ -29,6 +29,7 @@ if (is_test) {
           "unittest/ebpf_parser_test.cpp",
           "unittest/event_parser_test.cpp",
           "unittest/filter_filter_test.cpp",
+          "unittest/frame_filter_test.cpp",
           "unittest/hidump_parser_test.cpp",
           "unittest/hilog_parser_test.cpp",
           "unittest/hisys_event_parser_test.cpp",
@@ -66,13 +67,13 @@ if (is_test) {
       }
     }
     deps = [
+      "${THIRD_PARTY}/googletest:gtest",
+      "${THIRD_PARTY}/googletest:gtest_main",
+      "${THIRD_PARTY}/protobuf:protobuf",
+      "${THIRD_PARTY}/protobuf:protobuf_lite",
+      "${THIRD_PARTY}/sqlite:sqlite",
+      "../prebuilts/protos:ts_proto_data_cpp",
       "../src:trace_streamer_source",
-      "//prebuilts/protos:ts_proto_data_cpp",
-      "//third_party/googletest:gtest",
-      "//third_party/googletest:gtest_main",
-      "//third_party/protobuf:protobuf",
-      "//third_party/protobuf:protobuf_lite",
-      "//third_party/sqlite:sqlite",
     ]
     if (is_test) {
       if (is_pbdecoder) {
@@ -102,14 +103,14 @@ if (is_test) {
       "../src/proto_reader/include",
       "../prebuilts/emsdk/emsdk/emscripten/system/include",
       "..",
-      "//third_party/googletest/googletest/include/gtest",
-      "//third_party/protobuf/src",
-      "//third_party/hiperf/include",
-      "//third_party/hiperf/include/nonlinux/linux",
-      "//third_party/protobuf/src/google/protobuf",
-      "//third_party/json-master/include",
-      "//third_party/json-master/include/nlohmann",
-      "//third_party/perf_include/musl",
+      "${THIRD_PARTY}/googletest/googletest/include/gtest",
+      "${THIRD_PARTY}/protobuf/src",
+      "${THIRD_PARTY}/hiperf/include",
+      "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
+      "${THIRD_PARTY}/protobuf/src/google/protobuf",
+      "${THIRD_PARTY}/json-master/include",
+      "${THIRD_PARTY}/json-master/include/nlohmann",
+      "${THIRD_PARTY}/perf_include/musl",
       "${OHOS_PROTO_GEN}",
       "${OHOS_FTRACE_PROTO_DIR}",
       "${OHOS_MEMORY_PROTO_DIR}",

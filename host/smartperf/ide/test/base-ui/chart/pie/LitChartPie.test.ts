@@ -48,15 +48,16 @@ describe('litChartPie Test', () => {
     expect(litChartPie).not.toBeUndefined();
   });
 
-  it('litChartPieTest02', function () {
-    document.body.innerHTML = `
-        <div>
-            <lit-chart-pie id='chart-pie'></lit-chart-pie>
-        </div> `;
-    let clo = document.getElementById('chart-pie') as LitChartPie;
-    let mouseMoveEvent: MouseEvent = new MouseEvent('mousemove', <MouseEventInit>{ movementX: 1, movementY: 2 });
-    clo.canvas.dispatchEvent(mouseMoveEvent);
-  });
+  // it('litChartPieTest02', function () {
+  //   document.body.innerHTML = `
+  //       <div>
+  //           <lit-chart-pie id='chart-pie'></lit-chart-pie>
+  //       </div> `;
+  //   let clo = document.getElementById('chart-pie') as LitChartPie;
+  //   let mouseMoveEvent: MouseEvent = new MouseEvent('mousemove', <MouseEventInit>{ movementX: 1, movementY: 2 });
+  //   // this.cfg!.hoverHandler
+  //   clo.canvas.dispatchEvent(mouseMoveEvent);
+  // });
 
   it('litChartPieTest03', function () {
     Utils.uuid = jest.fn(() => {

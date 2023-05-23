@@ -26,19 +26,16 @@ describe('SdkSummary Test', () => {
     };
     expect(counterSummary).not.toBeUndefined();
     expect(counterSummary).toMatchInlineSnapshot(
-      {
-        value: expect.any(Number),
-        ts: expect.any(Number),
-        counter_id: expect.any(Number),
-      },
-      `
-Object {
+{
+  value: expect.any(Number),
+  ts: expect.any(Number),
+  counter_id: expect.any(Number) }, `
+{
   "counter_id": Any<Number>,
   "ts": Any<Number>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('SdkSliceSummaryTest02', function () {
@@ -52,22 +49,19 @@ Object {
     };
     expect(sdkSliceSummary).not.toBeUndefined();
     expect(sdkSliceSummary).toMatchInlineSnapshot(
-      {
-        start_ts: expect.any(Number),
-        end_ts: expect.any(Number),
-        value: expect.any(Number),
-        column_id: expect.any(Number),
-        slice_message: expect.any(String),
-      },
-      `
-Object {
+{
+  start_ts: expect.any(Number),
+  end_ts: expect.any(Number),
+  value: expect.any(Number),
+  column_id: expect.any(Number),
+  slice_message: expect.any(String) }, `
+{
   "column_id": Any<Number>,
   "end_ts": Any<Number>,
   "slice_message": Any<String>,
   "start_ts": Any<Number>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 });

@@ -171,13 +171,13 @@ describe('LitPopover Test', () => {
             position:relative;
             overflow:visible;
         }
-        :host([direction=\\"top\\"]) ::slotted(lit-pop-content){
+        :host([direction="top"]) ::slotted(lit-pop-content){
             bottom:100%;
             left:50%;
             transform:translate(-50%,-10px) scale(0);
             transform-origin: center bottom;
         }
-        :host([direction=\\"top\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="top"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
             top: 100%;
@@ -187,19 +187,19 @@ describe('LitPopover Test', () => {
             border-left: 10px solid transparent;
 
         }
-        :host([direction=\\"top\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"top\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"top\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="top"]) ::slotted(lit-pop-content[open]),
+        :host([direction="top"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="top"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(-50%,-10px) scale(1);
         }
         
-        :host([direction=\\"bottom\\"]) ::slotted(lit-pop-content){
+        :host([direction="bottom"]) ::slotted(lit-pop-content){
             top:100%;
             left:50%;
             transform:translate(-50%,10px) scale(0);
             transform-origin: center top;
         }
-        :host([direction=\\"bottom\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="bottom"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute;
             bottom: 100%;
@@ -208,20 +208,20 @@ describe('LitPopover Test', () => {
             border-right: 10px solid transparent;
             border-left: 10px solid transparent;
         }
-        :host([direction=\\"bottom\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"bottom\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"bottom\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="bottom"]) ::slotted(lit-pop-content[open]),
+        :host([direction="bottom"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="bottom"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(-50%,10px) scale(1);
         }
         
         
-        :host([direction=\\"left\\"]) ::slotted(lit-pop-content){
+        :host([direction="left"]) ::slotted(lit-pop-content){
             right:100%;
             top:50%;
             transform:translate(-10px,-50%) scale(0);
             transform-origin: right;
         }
-        :host([direction=\\"left\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="left"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute;
             bottom: 40%;
@@ -230,18 +230,18 @@ describe('LitPopover Test', () => {
             border-bottom: 10px solid transparent;
             border-top: 10px solid transparent;
         }
-        :host([direction=\\"left\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"left\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"left\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="left"]) ::slotted(lit-pop-content[open]),
+        :host([direction="left"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="left"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(-10px,-50%) scale(1);
         }
-        :host([direction=\\"right\\"]) ::slotted(lit-pop-content){
+        :host([direction="right"]) ::slotted(lit-pop-content){
             left:100%;
             top:50%;
             transform:translate(10px,-50%) scale(0);
             transform-origin: left;
         }
-        :host([direction=\\"right\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="right"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute;
             bottom: 40%;
@@ -250,26 +250,26 @@ describe('LitPopover Test', () => {
             border-bottom: 10px solid transparent;
             border-top: 10px solid transparent;
         }
-        :host([direction=\\"right\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"right\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"right\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="right"]) ::slotted(lit-pop-content[open]),
+        :host([direction="right"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="right"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(10px,-50%) scale(1);
         }
         
         
         
-        :host([direction=\\"leftbottom\\"]) ::slotted(lit-pop-content){
+        :host([direction="leftbottom"]) ::slotted(lit-pop-content){
             right:100%;
             top:0;
             transform:translate(-10px) scale(0);
         }
-        :host([direction=\\"leftbottom\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"leftbottom\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"leftbottom\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="leftbottom"]) ::slotted(lit-pop-content[open]),
+        :host([direction="leftbottom"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="leftbottom"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(-10px) scale(1);
         }
         
-        :host([direction=\\"leftbottom\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="leftbottom"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute;
             top: 10%;
@@ -278,13 +278,13 @@ describe('LitPopover Test', () => {
             border-bottom: 10px solid transparent;
         }
         
-        :host([direction=\\"lefttop\\"]) ::slotted(lit-pop-content){
+        :host([direction="lefttop"]) ::slotted(lit-pop-content){
             right:100%;
             bottom:0;
             transform:translate(-10px) scale(0);
             transform-origin: right bottom;
         }
-        :host([direction=\\"lefttop\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="lefttop"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute;
             bottom: 10%;
@@ -292,18 +292,18 @@ describe('LitPopover Test', () => {
             border-left: 10px solid #FFF; 
             border-top: 10px solid transparent;
         }
-        :host([direction=\\"lefttop\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"lefttop\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"lefttop\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="lefttop"]) ::slotted(lit-pop-content[open]),
+        :host([direction="lefttop"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="lefttop"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(-10px) scale(1);
         }
-        :host([direction=\\"topright\\"]) ::slotted(lit-pop-content){
+        :host([direction="topright"]) ::slotted(lit-pop-content){
             bottom:100%;
             left:50%;
             transform:translate(0,-10px) scale(0);
             transform-origin: left bottom;
         }
-        :host([direction=\\"topright\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="topright"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
             top: 100%;
@@ -311,20 +311,20 @@ describe('LitPopover Test', () => {
             border-top: 10px solid #FFF;
             border-right: 10px solid transparent;
         }
-        :host([direction=\\"topright\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"topright\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"topright\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="topright"]) ::slotted(lit-pop-content[open]),
+        :host([direction="topright"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="topright"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(0,-10px) scale(1);
         }
         
         
-        :host([direction=\\"topleft\\"]) ::slotted(lit-pop-content){
+        :host([direction="topleft"]) ::slotted(lit-pop-content){
             bottom:100%;
             right:50%;
             transform:translate(0,-10px) scale(0);
             transform-origin: right bottom;
         }
-        :host([direction=\\"topleft\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="topleft"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
             top: 100%;
@@ -332,20 +332,20 @@ describe('LitPopover Test', () => {
             border-top: 10px solid #FFF;
             border-left: 10px solid transparent;
         }
-        :host([direction=\\"topleft\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"topleft\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"topleft\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="topleft"]) ::slotted(lit-pop-content[open]),
+        :host([direction="topleft"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="topleft"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(0,-10px) scale(1);
         }
         
        
-        :host([direction=\\"rightbottom\\"]) ::slotted(lit-pop-content){
+        :host([direction="rightbottom"]) ::slotted(lit-pop-content){
             left:100%;
             top:0;
             transform:translate(10px) scale(0);
             transform-origin: left top;
         }
-        :host([direction=\\"rightbottom\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="rightbottom"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
             top: 10%;
@@ -353,23 +353,23 @@ describe('LitPopover Test', () => {
             border-top: 10px solid #FFF;
             border-left: 10px solid transparent;
         }
-        :host([direction=\\"rightbottom\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"rightbottom\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"rightbottom\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="rightbottom"]) ::slotted(lit-pop-content[open]),
+        :host([direction="rightbottom"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="rightbottom"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(10px) scale(1);
         }
-        :host([direction=\\"righttop\\"]) ::slotted(lit-pop-content){
+        :host([direction="righttop"]) ::slotted(lit-pop-content){
             left:100%;
             bottom:0;
             transform:translate(10px) scale(0);
             transform-origin: left bottom;
         }
-        :host([direction=\\"righttop\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"righttop\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"righttop\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="righttop"]) ::slotted(lit-pop-content[open]),
+        :host([direction="righttop"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="righttop"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(10px) scale(1);
         }
-        :host([direction=\\"righttop\\"]) ::slotted(lit-pop-content)::after{
+        :host([direction="righttop"]) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
             bottom: 10%;
@@ -378,14 +378,14 @@ describe('LitPopover Test', () => {
             border-left: 10px solid transparent;
         }
         
-        :host([direction=\\"bottomright\\"]) ::slotted(lit-pop-content),
+        :host([direction="bottomright"]) ::slotted(lit-pop-content),
         :host(:not([direction])) ::slotted(lit-pop-content){
             left:0;
             top:100%;
             transform:translate(0,10px) scale(0);
             transform-origin: left top;
         }
-        :host([direction=\\"bottomright\\"]) ::slotted(lit-pop-content)::after,
+        :host([direction="bottomright"]) ::slotted(lit-pop-content)::after,
         :host(:not([direction])) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
@@ -395,21 +395,21 @@ describe('LitPopover Test', () => {
             border-right: 10px solid transparent;
         }
         :host(:not([direction])) ::slotted(lit-pop-content[open]),
-        :host(:not([direction])[trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host(:not([direction])[trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content),
-        :host([direction=\\"bottomright\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"bottomright\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"bottomright\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host(:not([direction])[trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host(:not([direction])[trigger="focus"]:focus-within) ::slotted(lit-pop-content),
+        :host([direction="bottomright"]) ::slotted(lit-pop-content[open]),
+        :host([direction="bottomright"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="bottomright"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(0,10px) scale(1);
         }
         
-        :host([direction=\\"bottomleft\\"]) ::slotted(lit-pop-content){
+        :host([direction="bottomleft"]) ::slotted(lit-pop-content){
             right:0;
             top:100%;
             transform:translate(0,10px) scale(0);
             transform-origin: right top;
         }
-        :host([direction=\\"bottomleft\\"]) ::slotted(lit-pop-content)::after,
+        :host([direction="bottomleft"]) ::slotted(lit-pop-content)::after,
         :host(:not([direction])) ::slotted(lit-pop-content)::after{
             content: '';
             position: absolute; 
@@ -418,15 +418,15 @@ describe('LitPopover Test', () => {
             border-bottom: 10px solid #FFF;
             border-left: 10px solid transparent;
         }
-        :host([direction=\\"bottomleft\\"]) ::slotted(lit-pop-content[open]),
-        :host([direction=\\"bottomleft\\"][trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([direction=\\"bottomleft\\"][trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([direction="bottomleft"]) ::slotted(lit-pop-content[open]),
+        :host([direction="bottomleft"][trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([direction="bottomleft"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(0,10px) scale(1);
         }
         
         :host ::slotted(lit-pop-content[open]),
-        :host([trigger=\\"hover\\"]:hover) ::slotted(lit-pop-content),
-        :host([trigger=\\"focus\\"]:focus-within) ::slotted(lit-pop-content){
+        :host([trigger="hover"]:hover) ::slotted(lit-pop-content),
+        :host([trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             opacity:1;
             visibility:visible;
         }

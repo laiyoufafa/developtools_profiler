@@ -48,6 +48,7 @@ declare global {
         TraceRowComplete: string; //Triggered after the row component has finished loading data
         KeyboardEnable: string; // SystemTrace Keyboard enable
         UploadSOFile: string; // Upload so file
+        Loading: string; // Upload so file
       };
     };
 
@@ -93,6 +94,7 @@ window.SmartEvent = {
     TraceRowComplete: 'SmartEvent-UI-TraceRowComplete',
     KeyboardEnable: 'SmartEvent-UI-StopWASD',
     UploadSOFile: 'SmartEvent-UI-UploadSoFile',
+    Loading: 'SmartEvent-UI-Loading',
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

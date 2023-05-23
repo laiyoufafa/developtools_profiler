@@ -29,7 +29,7 @@ public:
     TraceDataCache(const TraceDataCache* dataCache) = delete;
     TraceDataCache* operator=(const TraceDataCache* dataCache) = delete;
     ~TraceDataCache() override;
-    virtual void InitDB() override;
+    void InitDB() override;
     bool dbInited = false;
 };
 } // namespace TraceStreamer

@@ -164,8 +164,11 @@ export class HeapLoader {
         if (!childNode) {
           continue;
         }
-        childNode.retainsNodeIdx.push(node.nodeIndex);
-        childNode.retainsEdgeIdx.push(edge.edgeIndex);
+        if (node.nodeIndex !== this.rootNode?.nodeIndex){
+          childNode.retainsNodeIdx.push(node.nodeIndex);
+          childNode.retainsEdgeIdx.push(edge.edgeIndex);
+        }
+
         let firstRetainerSlotIndex = this.firstRetainerIndex[childNode.nodeIndex];
 
         let nextUnusedRetainerSlotIndex = firstRetainerSlotIndex + --this.retainingNodes[firstRetainerSlotIndex];
@@ -623,7 +626,7 @@ export class HeapLoader {
         if (
           !childNode ||
           childNode.flag & flag ||
-		  // @ts-ignore
+          // @ts-ignore
           [EdgeType.HIDDEN, EdgeType.INVISIBLE, EdgeType.INTERNAL, EdgeType.WEAK].includes(edge.type)
         ) {
           continue;
@@ -759,7 +762,9 @@ export class HeapLoader {
         return true;
       }
     }
-
+    if (!hasFiler && this.allClasses) {
+      return this.allClasses;
+    }
     let classes = new Map<string, ConstructorItem>();
     // combine node with className
     for (let node of this.nodes) {
@@ -784,6 +789,7 @@ export class HeapLoader {
         instanceItem.childCount = node.edgeCount;
         instanceItem.retainedSize = node.retainedSize;
         instanceItem.hasNext = instanceItem.childCount > 0;
+        instanceItem.traceNodeId = node.traceNodeId;
         classItem.classChildren.push(instanceItem);
       } else {
         let classItem = classes.get(node.className());
@@ -912,6 +918,7 @@ export class HeapLoader {
       instanceItem.childCount = instanceItem.edgeCount = childNode.edgeCount;
       instanceItem.edgeName = edge.nameOrIndex;
       instanceItem.hasNext = instanceItem.childCount > 0;
+      instanceItem.traceNodeId = childNode.traceNodeId;
       instanceItem.type = ConstructorType.FiledType;
       instanceItem.parent = item;
       childNodes.push(instanceItem);
@@ -976,12 +983,27 @@ export class HeapLoader {
         retainsItem.type = ConstructorType.RetainersType;
         retainsItem.childCount = retainsNode.retainsNodeIdx.length;
         retainsItem.hasNext = retainsNode.retainsNodeIdx.length > 0;
-        retainsItem.parent = item;
+        if (item!.type == ConstructorType.RetainersType) {
+          retainsItem.parent = item;
+        }
         retains.push(retainsItem);
       }
     }
 
-    if (retains.length > 0) {
+    // Because the node with id 1 needs to be deleted, there is only one child and id 1 does not need to expand the symbol
+    for (let childNode of retains) {
+      let node = this.nodes[childNode.index];
+      if (node && node.retainsEdgeIdx.length === node.retainsNodeIdx.length) {
+        for (let i = 0; i < node.retainsNodeIdx.length; i++) {
+          let retainsNode = this.nodes[node.retainsNodeIdx[i]];
+          if (node.retainsNodeIdx.length == 1 && retainsNode.id == this.rootNode!.id) {
+            childNode.hasNext = false;
+          }
+        }
+      }
+    }
+
+    if (retains.length > 0 && retains[0].parent) {
       let clickNode = retains[0].parent;
       // If there are duplicate IDs in the third layer and beyond, they will not be expanded again
       if (clickNode!.type == ConstructorType.RetainersType) {

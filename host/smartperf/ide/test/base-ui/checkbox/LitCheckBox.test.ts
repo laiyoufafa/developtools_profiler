@@ -17,60 +17,60 @@
 import { LitCheckBox } from '../../../dist/base-ui/checkbox/LitCheckBox.js';
 
 describe('checkBox Test', () => {
-    it('checkBoxTest01', function () {
-        let litCheckBox = new LitCheckBox();
-        expect(litCheckBox).not.toBeUndefined();
-        expect(litCheckBox).not.toBeNull();
-    });
+  it('checkBoxTest01', function () {
+    let litCheckBox = new LitCheckBox();
+    expect(litCheckBox).not.toBeUndefined();
+    expect(litCheckBox).not.toBeNull();
+  });
 
-    it('checkBoxTest02', function () {
-        let litCheckBox = new LitCheckBox();
-        expect(litCheckBox.checked).toBeFalsy();
-    });
+  it('checkBoxTest02', function () {
+    let litCheckBox = new LitCheckBox();
+    expect(litCheckBox.checked).toBeFalsy();
+  });
 
-    it('checkBoxTest03', function () {
-        let litCheckBox = new LitCheckBox();
-        litCheckBox.checked = true;
-        expect(litCheckBox.checked).toBeTruthy();
-    });
+  it('checkBoxTest03', function () {
+    let litCheckBox = new LitCheckBox();
+    litCheckBox.checked = true;
+    expect(litCheckBox.checked).toBeTruthy();
+  });
 
-    it('checkBoxTest04', function () {
-        let litCheckBox = new LitCheckBox();
-        expect(litCheckBox.value).toEqual('');
-    });
+  it('checkBoxTest04', function () {
+    let litCheckBox = new LitCheckBox();
+    expect(litCheckBox.value).toEqual('');
+  });
 
-    it('checkBoxTest04', function () {
-        let litCheckBox = new LitCheckBox();
-        litCheckBox.value = 'test';
-        expect(litCheckBox.value).toEqual('test');
-    });
+  it('checkBoxTest04', function () {
+    let litCheckBox = new LitCheckBox();
+    litCheckBox.value = 'test';
+    expect(litCheckBox.value).toEqual('test');
+  });
 
-    it('checkBoxTest05', function () {
-        document.body.innerHTML = `<lit-check-box></lit-check-box>
+  it('checkBoxTest05', function () {
+    document.body.innerHTML = `<lit-check-box></lit-check-box>
         `;
-        let litCheckBox = new LitCheckBox();
-        litCheckBox.checked = false;
-        expect(litCheckBox.checked).toBeFalsy();
-    });
-    it('checkBoxTest06', function () {
-        document.body.innerHTML = `<lit-check-box></lit-check-box>
+    let litCheckBox = new LitCheckBox();
+    litCheckBox.checked = false;
+    expect(litCheckBox.checked).toBeFalsy();
+  });
+  it('checkBoxTest06', function () {
+    document.body.innerHTML = `<lit-check-box></lit-check-box>
         `;
-        let litCheckBox = new LitCheckBox();
-        litCheckBox.indeterminate = false;
-        expect(litCheckBox.indeterminate).toBeFalsy();
-    });
+    let litCheckBox = new LitCheckBox();
+    litCheckBox.indeterminate = false;
+    expect(litCheckBox.indeterminate).toBeFalsy();
+  });
 
-    it('checkBoxTest07', function () {
-        document.body.innerHTML = `<lit-check-box></lit-check-box>
+  it('checkBoxTest07', function () {
+    document.body.innerHTML = `<lit-check-box></lit-check-box>
         `;
-        let litCheckBox = new LitCheckBox();
-        litCheckBox.indeterminate = true;
-        expect(litCheckBox.indeterminate).toBeTruthy();
-    });
+    let litCheckBox = new LitCheckBox();
+    litCheckBox.indeterminate = true;
+    expect(litCheckBox.indeterminate).toBeTruthy();
+  });
 
-    it('checkBoxTest08', function () {
-        let litCheckBox = new LitCheckBox();
-        expect(litCheckBox.initHtml()).toMatchInlineSnapshot(`
+  it('checkBoxTest08', function () {
+    let litCheckBox = new LitCheckBox();
+    expect(litCheckBox.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{ 
@@ -137,20 +137,20 @@ describe('checkBox Test', () => {
             transform:scale(1);
         }
         .icon{
-            width: 90%;
-            height: 55%;
+            width: 100%;
+            height: 94%;
             transform: scale(0);
         }
         </style>
-        <input type=\\"checkbox\\" id=\\"checkbox\\">
-        <label for=\\"checkbox\\">
-          <span class=\\"chekebox\\">
-          <lit-icon name=\\"checkmark\\" class=\\"icon\\" color=\\"#3391FF\\" size=\\"8\\">
+        <input type="checkbox" id="checkbox">
+        <label for="checkbox">
+          <span class="chekebox">
+          <lit-icon name="checkmark" class="icon" color="#3391FF" size="15">
           </lit-icon>
           </span>
-          <slot id=\\"slot\\"></slot>
+          <slot id="slot"></slot>
        </label>
         "
 `);
-    });
+  });
 });

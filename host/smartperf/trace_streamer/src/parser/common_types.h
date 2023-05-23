@@ -124,7 +124,10 @@ public:
           spanId_(point.spanId_),
           parentSpanId_(point.parentSpanId_),
           flag_(point.flag_),
-          args_(point.args_)
+          args_(point.args_),
+          funcPrefixId_(point.funcPrefixId_),
+          funcPrefix_(point.funcPrefix_),
+          funcArgs_(point.funcArgs_)
     {
     }
     void operator=(const TracePoint& point)

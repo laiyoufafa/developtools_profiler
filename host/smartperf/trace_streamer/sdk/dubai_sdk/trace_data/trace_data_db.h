@@ -19,10 +19,7 @@
 #include <functional>
 #include <list>
 #include <string>
-
-extern "C" {
 #include "sqlite3.h"
-}
 
 namespace SysTuning {
 namespace TraceStreamer {

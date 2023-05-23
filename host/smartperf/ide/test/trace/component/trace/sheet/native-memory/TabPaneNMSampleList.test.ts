@@ -173,32 +173,32 @@ describe('TabPaneNMSampleList Test', () => {
             padding: 10px 10px 0 10px;
         }
         </style>
-        <lit-slicer style=\\"width:100%\\">
-        <div style=\\"width: 65%\\">
-            <lit-table id=\\"tb-native-sample\\" style=\\"height: auto\\" tree>
-                <lit-table-column width=\\"25%\\" title=\\"Snapshot\\" data-index=\\"snapshot\\" key=\\"snapshot\\"  align=\\"flex-start\\" >
+        <lit-slicer style="width:100%">
+        <div style="width: 65%">
+            <lit-table id="tb-native-sample" style="height: auto" tree>
+                <lit-table-column width="25%" title="Snapshot" data-index="snapshot" key="snapshot"  align="flex-start" >
                 </lit-table-column>
-                <lit-table-column width=\\"1fr\\" title=\\"Timestamp\\" data-index=\\"timestamp\\" key=\\"timestamp\\"  align=\\"flex-start\\"  >
+                <lit-table-column width="1fr" title="Timestamp" data-index="timestamp" key="timestamp"  align="flex-start"  >
                 </lit-table-column>
-                <lit-table-column width=\\"1fr\\" title=\\"Net Growth\\" data-index=\\"growth\\" key=\\"growth\\"  align=\\"flex-start\\"  >
+                <lit-table-column width="1fr" title="Net Growth" data-index="growth" key="growth"  align="flex-start"  >
                 </lit-table-column>
-                <lit-table-column width=\\"1fr\\" title=\\"Total Growth\\" data-index=\\"totalGrowth\\" key=\\"totalGrowth\\"  align=\\"flex-start\\"  >
+                <lit-table-column width="1fr" title="Total Growth" data-index="totalGrowth" key="totalGrowth"  align="flex-start"  >
                 </lit-table-column>
-                <lit-table-column width=\\"1fr\\" title=\\"# Existing\\" data-index=\\"existing\\" key=\\"existing\\"  align=\\"flex-start\\"  >
+                <lit-table-column width="1fr" title="# Existing" data-index="existing" key="existing"  align="flex-start"  >
                 </lit-table-column>
             </lit-table>
-            <tab-pane-filter id=\\"filter\\" first></tab-pane-filter>
+            <tab-pane-filter id="filter" first></tab-pane-filter>
         </div>
         <lit-slicer-track ></lit-slicer-track>
-        <lit-table id=\\"tb-native-data\\" no-head style=\\"height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)\\">
-            <lit-table-column width=\\"80px\\" title=\\"\\" data-index=\\"type\\" key=\\"type\\"  align=\\"flex-start\\" >
+        <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+            <lit-table-column width="80px" title="" data-index="type" key="type"  align="flex-start" >
                 <template>
-                    <div v-if=\\" type == -1 \\">Thread:</div>
-                    <img src=\\"img/library.png\\" size=\\"20\\" v-if=\\" type == 1 \\">
-                    <img src=\\"img/function.png\\" size=\\"20\\" v-if=\\" type == 0 \\">
+                    <div v-if=" type == -1 ">Thread:</div>
+                    <img src="img/library.png" size="20" v-if=" type == 1 ">
+                    <img src="img/function.png" size="20" v-if=" type == 0 ">
                 </template>
             </lit-table-column>
-            <lit-table-column width=\\"1fr\\" title=\\"\\" data-index=\\"title\\" key=\\"title\\"  align=\\"flex-start\\">
+            <lit-table-column width="1fr" title="" data-index="title" key="title"  align="flex-start">
             </lit-table-column>
         </lit-table>
         </lit-slicer>

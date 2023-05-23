@@ -56,6 +56,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   private functionStatisticsData!: any;
   set data(val: SelectionParam | any) {
     if (val == this.currentSelection) {
+      this.pidData.unshift(this.processStatisticsData);
+      this.tableProcess!.recycleDataSource = this.pidData;
+      // @ts-ignore
+      this.pidData.shift(this.processStatisticsData);
       return;
     }
     this.clearData();
@@ -172,6 +176,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
           // @ts-ignore
           this.processName = it.tableName;
           this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = this.processName;
+          this.pie?.hideTip();
         }
       },
       hoverHandler: (data) => {
@@ -196,6 +201,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = '';
     this.tabName!.textContent = 'Statistic By Process AllDuration';
@@ -240,6 +246,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         this.typeName = it.tableName;
         this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent =
           this.processName + ' / ' + this.typeName;
+        this.pie?.hideTip();
       },
       hoverHandler: (data) => {
         if (data) {
@@ -263,6 +270,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = this.processName;
     this.tabName!.textContent = 'Statistic By type AllDuration';
@@ -310,6 +318,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
           this.threadName = it.tableName;
           this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent =
             this.processName + ' / ' + this.typeName + ' / ' + this.threadName;
+          this.pie?.hideTip();
         }
       },
       hoverHandler: (data) => {
@@ -334,6 +343,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent = this.processName + ' / ' + this.typeName;
     this.tabName!.textContent = 'Statistic By Thread AllDuration';
@@ -380,6 +390,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
           this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent =
             // @ts-ignore
             this.processName + ' / ' + this.typeName + ' / ' + this.threadName + ' / ' + it.tableName;
+          this.pie?.hideTip();
         }
       },
       hoverHandler: (data) => {
@@ -404,6 +415,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.shadowRoot!.querySelector<HTMLDivElement>('.title')!.textContent =
       this.processName + ' / ' + this.typeName + ' / ' + this.threadName;
@@ -803,6 +815,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       }
       this.pie?.showHover();
+      this.pie?.hideTip();
     });
     this.functionData.unshift(this.functionStatisticsData);
     this.tableFunction!.recycleDataSource = this.functionData;
@@ -935,28 +948,28 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
                          <div class="subheading"></div>                     
                          <lit-chart-pie  id="chart-pie"></lit-chart-pie>     
                      </div>
-                     <div class="table-box" style="height:auto;">
-                    <lit-table id="tb-process-usage" style="height:60vh;">
+                     <div class="table-box" style="height:auto;overflow: auto">
+                    <lit-table id="tb-process-usage" style="max-height:565px;min-height: 350px">
                         <lit-table-column width="1fr" title="ProcessName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-type-usage" style="height:60vh;"hideDownload>
+                    <lit-table id="tb-type-usage" style="max-height:565px;min-height: 350px"hideDownload>
                         <lit-table-column width="1fr" title="Type" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-thread-usage" style="height:60vh;display: none"hideDownload>
+                    <lit-table id="tb-thread-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
                         <lit-table-column width="1fr" title="ThreadName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                     <lit-table id="tb-so-usage" style="height:60vh;display: none"hideDownload>
+                     <lit-table id="tb-so-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
                         <lit-table-column width="1fr" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-function-usage" style="height:60vh;display: none"hideDownload>
+                    <lit-table id="tb-function-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
                         <lit-table-column width="1fr" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>

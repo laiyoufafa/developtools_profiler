@@ -19,7 +19,8 @@ import { LitTable } from '../../../dist/base-ui/table/lit-table.js';
 import { LitTableColumn } from '../../../dist/base-ui/table/lit-table-column.js';
 // @ts-ignore
 import { TableRowObject } from '../../../dist/base-ui/table/TableRowObject.js';
-
+// @ts-ignore
+import { LitProgressBar } from '../../../dist/base-ui/progress-bar/LitProgressBar.js';
 describe('LitTable Test', () => {
   window.ResizeObserver =
     window.ResizeObserver ||
@@ -389,35 +390,44 @@ describe('LitTable Test', () => {
             background-color: var(--dark-background6,#DEEDFF);
         }
         .export{
-            height:40px;
-            width: 40px;
+            height:32px;
+            width: 32px;
             cursor:pointer;
             display:none;
-            color:var(--dark-background6,#262626);
-            border-radius:40px;
-            border: 1px solid var(--dark-background6,#262626);
-            box-sizing: border-box;
-            position:absolute;
-            right:40px;
-            bottom:30px;
-            z-index: 9999999;
-        }
-        :host([download]) .export{
-            display: flex;
             align-items:center;
             justify-content:center;
+            border-radius:5px;
+            box-sizing: border-box;
+            background-color: #000000;
+            opacity: 0.3;
+            position:absolute;
+            right:20px;
+            bottom:20px;
+            z-index: 999999;
+        }
+        .progress{
+            position: absolute;
+            height: 1px;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999999;
+        } 
+        :host([hideDownload]) .export{
+            display: none;
         }
         </style>
-
-        <slot id=\\"slot\\" style=\\"display: none\\"></slot>
-        <slot name=\\"head\\"></slot>
-        <div class=\\"export\\"><lit-icon size=\\"25\\" name=\\"download\\"></lit-icon></div>
-       
-        <div class=\\"table\\" style=\\"overflow-x:auto;\\">
-            <div class=\\"thead\\"></div>
-            <div class=\\"tbody\\">
-                <div class=\\"tree\\"></div>
-                <div class=\\"body\\"></div>
+        <lit-progress-bar id="export_progress_bar" class="progress"></lit-progress-bar>
+        <slot id="slot" style="display: none"></slot>
+        <slot name="head"></slot>
+        <div class="export">
+            <lit-icon size="18" style="color: #ffffff" name="copyhovered"></lit-icon>
+        </div>
+        <div class="table" style="overflow-x:auto;">
+            <div class="thead"></div>
+            <div class="tbody">
+                <div class="tree"></div>
+                <div class="body"></div>
         </div>
         </div>
         "
@@ -425,7 +435,7 @@ describe('LitTable Test', () => {
   });
 
   it('LitTableTest18', () => {
-    expect(litTable.createExpandBtn({ expanded: false })).not.toBeUndefined();
+    expect(litTable.createExpandBtn({ expanded: false,data:{status:true} })).not.toBeUndefined();
   });
 
   it('LitTableTest19', () => {
@@ -592,6 +602,9 @@ describe('LitTable Test', () => {
     htmlElement.setAttribute('align', 'flex-start');
     htmlElement.setAttribute('height', '32px');
     litTable.columns = [htmlElement];
+    document.body.innerHTML = `<lit-table id="aaa"> <lit-progress-bar id="export_progress_bar" class="progress"></lit-progress-bar></lit-table>`;
+    let progressBar = document.querySelector('#export_progress_bar') as LitProgressBar;
+    litTable.exportProgress = progressBar;
     expect(litTable.exportData()).toBeUndefined();
   });
 
@@ -805,5 +818,25 @@ describe('LitTable Test', () => {
     tableColmn1.setAttribute('height', '32px');
     litTable.columns = [tableColmn, tableColmn1];
     expect(litTable.freshCurrentLine(element, rowObject, firstElement)).toBeUndefined();
+  });
+  it('LitTableTest45', () => {
+    litTable.hideDownload = true;
+    expect(litTable.hideDownload).toBeTruthy();
+  });
+  it('LitTableTest46', () => {
+    litTable.hideDownload = false;
+    expect(litTable.hideDownload).not.toBeUndefined();
+  });
+  it('LitTableTest47', () => {
+    expect(litTable.createBtn({ expanded: false,data:{status:true} })).not.toBeUndefined();
+  });
+  it('LitTableTest48', () => {
+    expect(litTable.mouseOut()).toBeUndefined();
+  });
+  it('LitTableTest49', () => {
+    expect(litTable.setCurrentHover({})).toBeUndefined();
+  });
+  it('LitTableTest50', () => {
+    expect(litTable.clearAllHover({})).toBeUndefined();
   });
 });

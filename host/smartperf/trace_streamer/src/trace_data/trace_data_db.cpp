@@ -20,7 +20,6 @@
 #include <cstring>
 #include <fcntl.h>
 #include <functional>
-#include <sqlite3.h>
 #include <string_view>
 #include <unistd.h>
 
@@ -28,6 +27,7 @@
 #include "ext/sqlite_ext_funcs.h"
 #include "file.h"
 #include "log.h"
+#include "sqlite3.h"
 #include "string_help.h"
 
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
@@ -218,10 +218,10 @@ std::vector<std::string> TraceDataDB::SearchData()
         size_t pos = std::string::npos;
         if ((pos = line.find(" ")) != std::string::npos) {
             option = line.substr(0, pos);
-            auto left = line.substr(pos + 1, -1);
+            auto left = line.substr(pos + 1);
             while ((pos = left.find(",")) != std::string::npos) {
                 values.push_back(left.substr(0, pos + 1));
-                left = left.substr(pos + 1, -1);
+                left = left.substr(pos + 1);
             }
             values.push_back(left);
         }
@@ -248,7 +248,7 @@ std::vector<std::string> TraceDataDB::SearchData()
             std::cout << "will not print result of query" << std::endl;
             printResult = false;
             continue;
-        } else if (line.find("-c:") == 0) {
+        } else if (line.find("-c:") != std::string::npos) {
             line = line.substr(strlen("-c:"));
             if (OperateDatabase(line) == SQLITE_OK) {
                 printf("operate SQL success\n");

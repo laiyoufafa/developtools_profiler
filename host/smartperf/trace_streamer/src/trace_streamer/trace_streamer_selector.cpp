@@ -227,16 +227,17 @@ int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName, Tra
 
 bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vector<std::string>& symbolsPaths)
 {
-    if (fileType_ == TRACE_FILETYPE_H_TRACE) {
-        TS_LOGE("directory is %s", directory.c_str());
-        for (auto file : symbolsPaths) {
-            TS_LOGE("files is %s", file.c_str());
-        }
-#ifndef IS_PBDECODER
-        htraceParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
-#endif
+    if (fileType_ != TRACE_FILETYPE_H_TRACE) {
+        return false;
     }
-    return true;
+    TS_LOGE("directory is %s", directory.c_str());
+    for (auto file : symbolsPaths) {
+        TS_LOGE("files is %s", file.c_str());
+    }
+#ifndef IS_PBDECODER
+    return htraceParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
+#endif
+    return false;
 }
 void TraceStreamerSelector::Clear()
 {

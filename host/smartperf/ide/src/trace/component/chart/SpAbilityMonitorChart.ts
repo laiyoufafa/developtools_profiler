@@ -196,7 +196,7 @@ export class SpAbilityMonitorChart {
       );
       traceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(traceRow);
+    processRow.addChildTraceRow(traceRow);
     let userTraceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
     userTraceRow.rowParentId = `abilityMonitor`;
     userTraceRow.rowHidden = !processRow.expansion;
@@ -232,7 +232,7 @@ export class SpAbilityMonitorChart {
       );
       userTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(userTraceRow);
+    processRow.addChildTraceRow(userTraceRow);
     let sysTraceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
     sysTraceRow.rowParentId = `abilityMonitor`;
     sysTraceRow.rowHidden = !processRow.expansion;
@@ -268,7 +268,7 @@ export class SpAbilityMonitorChart {
       );
       sysTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(sysTraceRow);
+    processRow.addChildTraceRow(sysTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Cpu is: ', durTime);
   };
@@ -315,8 +315,7 @@ export class SpAbilityMonitorChart {
       );
       memoryUsedTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(memoryUsedTraceRow);
-
+    processRow.addChildTraceRow(memoryUsedTraceRow);
     let cached = await queryMemoryMaxData('sys.mem.cached');
     let cachedValue = cached[0].maxValue;
     let cachedValueName = this.memoryMath(cachedValue);
@@ -355,8 +354,7 @@ export class SpAbilityMonitorChart {
       );
       cachedFilesTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(cachedFilesTraceRow);
-
+    processRow.addChildTraceRow(cachedFilesTraceRow);
     let swap = await queryMemoryMaxData('sys.mem.swap.total');
     let swapValue = swap[0].maxValue;
     let swapValueName = this.memoryMath(swapValue);
@@ -395,7 +393,7 @@ export class SpAbilityMonitorChart {
       );
       compressedTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(compressedTraceRow);
+    processRow.addChildTraceRow(compressedTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Memory is: ', durTime);
   };
@@ -440,8 +438,7 @@ export class SpAbilityMonitorChart {
       );
       bytesReadTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(bytesReadTraceRow);
-
+    processRow.addChildTraceRow(bytesReadTraceRow);
     let maxBytesWrite = maxList[0].bytesWrite;
     let maxBytesWriteName = this.diskIOMath(maxBytesWrite);
     let bytesWrittenTraceRow = TraceRow.skeleton<DiskAbilityMonitorStruct>();
@@ -478,8 +475,7 @@ export class SpAbilityMonitorChart {
       );
       bytesWrittenTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(bytesWrittenTraceRow);
-
+    processRow.addChildTraceRow(bytesWrittenTraceRow);
     let maxReadOps = maxList[0].readOps;
     let maxReadOpsName = this.diskIOMath(maxReadOps);
     let readOpsTraceRow = TraceRow.skeleton<DiskAbilityMonitorStruct>();
@@ -516,7 +512,7 @@ export class SpAbilityMonitorChart {
       );
       readOpsTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(readOpsTraceRow);
+    processRow.addChildTraceRow(readOpsTraceRow);
     let maxWriteOps = maxList[0].writeOps;
     let maxWriteOpsName = this.diskIOMath(maxWriteOps);
     let writtenOpsTraceRow = TraceRow.skeleton<DiskAbilityMonitorStruct>();
@@ -553,7 +549,7 @@ export class SpAbilityMonitorChart {
       );
       writtenOpsTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(writtenOpsTraceRow);
+    processRow.addChildTraceRow(writtenOpsTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability DiskIO is: ', durTime);
   };
@@ -598,7 +594,7 @@ export class SpAbilityMonitorChart {
       );
       bytesInTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(bytesInTraceRow);
+    processRow.addChildTraceRow(bytesInTraceRow);
     let bytesOutTraceRow = TraceRow.skeleton<NetworkAbilityMonitorStruct>();
     let maxBytesOut = maxList[0].maxOut;
     let maxOutByteName = this.networkMath(maxBytesOut);
@@ -635,7 +631,7 @@ export class SpAbilityMonitorChart {
       );
       bytesOutTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(bytesOutTraceRow);
+    processRow.addChildTraceRow(bytesOutTraceRow);
     let packetInTraceRow = TraceRow.skeleton<NetworkAbilityMonitorStruct>();
     let maxPacketIn = maxList[0].maxPacketIn;
     let maxInPacketName = this.networkMath(maxPacketIn);
@@ -672,7 +668,7 @@ export class SpAbilityMonitorChart {
       );
       packetInTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(packetInTraceRow);
+    processRow.addChildTraceRow(packetInTraceRow);
     let packetOutTraceRow = TraceRow.skeleton<NetworkAbilityMonitorStruct>();
     let maxPacketOut = maxList[0].maxPacketOut;
     let maxOutPacketName = this.networkMath(maxPacketOut);
@@ -711,7 +707,7 @@ export class SpAbilityMonitorChart {
       );
       packetOutTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(packetOutTraceRow);
+    processRow.addChildTraceRow(packetOutTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Network is: ', durTime);
   };

@@ -201,7 +201,7 @@ export class SpHiSysEventChart {
       );
       anomalyTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(anomalyTraceRow);
+    this.energyTraceRow?.addChildTraceRow(anomalyTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the anomaly is: ', durTime);
   };
@@ -255,7 +255,7 @@ export class SpHiSysEventChart {
       );
       systemTraceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(systemTraceRow);
+    this.energyTraceRow?.addChildTraceRow(systemTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Memory is: ', durTime);
   };
@@ -462,7 +462,7 @@ export class SpHiSysEventChart {
       );
       powerTraceRow!.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(powerTraceRow);
+    this.energyTraceRow?.addChildTraceRow(powerTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the energy power is: ', durTime);
   };
@@ -623,7 +623,7 @@ export class SpHiSysEventChart {
         );
         stateTraceRow.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(stateTraceRow);
+      this.energyTraceRow?.addChildTraceRow(stateTraceRow);
       let durTime = new Date().getTime() - time;
       info('The time to load the Ability Memory is: ', durTime);
     }

@@ -115,10 +115,9 @@ public:
             currentValueValid_ = false;
             return;
         }
-
         auto itor = fixedTypeToSizeMap_.find(wireType);
-        if (itor != fixedTypeToSizeMap_.end() && length != itor->second) {
-            *parseStatus_ = true;
+        if (itor != fixedTypeToSizeMap_.end() && (length % itor->second)) {
+            *parseStatus_ = false;
             currentValueValid_ = false;
             return;
         }
@@ -189,7 +188,7 @@ struct ParseDataAreaResult {
 
 class ProtoReaderBase {
 public:
-    ProtoReaderBase() : startAddr_(0), endAddr_(0) {}
+    ProtoReaderBase() : startAddr_(0), endAddr_(0), dataAreas_(nullptr), dataAreasCount_(0), size_(0), volume_(0) {}
     ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, const uint8_t* buffer, size_t length);
     const uint8_t* GetStartAddr() const
     {

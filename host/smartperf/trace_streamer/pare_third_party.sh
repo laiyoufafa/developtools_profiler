@@ -16,7 +16,9 @@ patch='patch'
 sed='sed'
 cp='cp'
 rm='rm'
-
+case "$OSTYPE" in
+  darwin*)  sed="gsed" ;;
+esac
 if [ ! -d "third_party" ];then
     mkdir third_party
 fi
@@ -83,7 +85,7 @@ fi
 if [ ! -f "perf_include/libbpf/linux/perf_event.h" ];then
    mkdir -p perf_include/libbpf/linux
    rm -rf perf_event.h
-   curl https://gitee.com/openharmony/third_party_libbpf/raw/master/include/uapi/linux/perf_event.h > perf_event.h
+   curl https://gitee.com/openharmony/third_party_libbpf/raw/20221117/github.com/libbpf/libbpf/refs/tags/v0.7.0/include/uapi/linux/perf_event.h > perf_event.h
    mv perf_event.h perf_include/libbpf/linux/perf_event.h
    $patch -p0 perf_include/libbpf/linux/perf_event.h ../prebuilts/patch_perf_event/perf_event.h.patch
 fi
@@ -97,7 +99,7 @@ fi
 
 if [ ! -f "hiperf/BUILD.gn" ];then
     rm -rf hiperf developtools_hiperf
-    git clone git@gitee.com:openharmony/developtools_hiperf.git
+    git clone -b OpenHarmony-3.2-Release --depth=1 git@gitee.com:openharmony/developtools_hiperf.git
     if [ -d "developtools_hiperf" ];then
         mv developtools_hiperf hiperf
         $cp ../prebuilts/patch_hiperf/BUILD.gn ../third_party/hiperf/BUILD.gn

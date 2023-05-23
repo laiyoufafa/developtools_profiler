@@ -46,6 +46,7 @@ export class TabPaneComparison extends BaseElement {
   private leftArray: Array<any> = [];
   private rightArray: Array<any> = [];
   private rightTheadTable: HTMLDivElement | undefined | null;
+  private leftTheadTable: HTMLDivElement | undefined | null;
 
   initElements(): void {
     this.comparisonTableEl = this.shadowRoot!.querySelector<LitTable>('#tb-comparison') as LitTable;
@@ -54,6 +55,7 @@ export class TabPaneComparison extends BaseElement {
     this.selectEl = this.filterEl?.shadowRoot?.querySelector<LitSelect>('lit-select');
     this.search = this.filterEl?.shadowRoot?.querySelector('#filter-input') as HTMLInputElement;
     this.rightTheadTable = this.retainerTableEl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.leftTheadTable = this.comparisonTableEl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.comparisonTableEl!.addEventListener('icon-click', (e) => {
       // @ts-ignore
       this.clickRow = e.detail.data;
@@ -64,11 +66,11 @@ export class TabPaneComparison extends BaseElement {
         if (this.clickRow.children.length > 0) {
           for (let item of this.clickRow.children) {
             let nodeName = item.nodeName.concat(` @${item.id}`);
-            item.nodeName = nodeName;
+            item.objectName = nodeName;
             item.deltaCount = '-';
             item.deltaSize = '-';
             if (item.edgeName != '') {
-              item.nodeName = item.edgeName + '\xa0' + '::' + '\xa0' + nodeName;
+              item.objectName = item.edgeName + '\xa0' + '::' + '\xa0' + nodeName;
             } else {
               if (item.fileId == this.baseFileId) {
                 item.addedCount = '•';
@@ -96,9 +98,17 @@ export class TabPaneComparison extends BaseElement {
         this.clickRow.status = true;
       }
       if (this.search!.value != '') {
-        this.comparisonTableEl!.snapshotDataSource = this.comparisonFilter;
+        if (this.leftTheadTable!.hasAttribute('sort')) {
+          this.comparisonTableEl!.snapshotDataSource = this.leftArray;
+        } else {
+          this.comparisonTableEl!.snapshotDataSource = this.comparisonFilter;
+        }
       } else {
-        this.comparisonTableEl!.snapshotDataSource = this.comparisonsData;
+        if (this.leftTheadTable!.hasAttribute('sort')) {
+          this.comparisonTableEl!.snapshotDataSource = this.leftArray;
+        } else {
+          this.comparisonTableEl!.snapshotDataSource = this.comparisonsData;
+        }
       }
       new ResizeObserver(() => {
         this.comparisonTableEl!.style.height = '100%';
@@ -122,7 +132,7 @@ export class TabPaneComparison extends BaseElement {
                   row.shallowPercent = shallow;
                   row.retainedPercent = retained;
                   let nodeId = row.nodeName.concat(` @${row.id}`);
-                  row.nodeName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+                  row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
                   if (row.distance >= 100000000 || row.distance == -5) {
                     row.distance = '-';
                   }
@@ -166,6 +176,7 @@ export class TabPaneComparison extends BaseElement {
       this.sortRetainerByColumn(e.detail.key, e.detail.sort);
     });
     this.comparisonTableEl!.addEventListener('row-click', (e: any) => {
+      this.rightTheadTable!.removeAttribute('sort');
       // @ts-ignore
       let item = e.detail.data as ConstructorItem;
       (item as any).isSelected = true;
@@ -180,7 +191,7 @@ export class TabPaneComparison extends BaseElement {
             element.distance = '-';
           }
           let nodeId = element.nodeName + ` @${element.id}`;
-          element.nodeName = element.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+          element.objectName = element.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
         });
         let i = 0;
         let that = this;
@@ -195,7 +206,7 @@ export class TabPaneComparison extends BaseElement {
               row.shallowPercent = shallow;
               row.retainedPercent = retained;
               let nodeId = row.nodeName.concat(` @${row.id}`);
-              row.nodeName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+              row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
               if (row.distance >= 100000000 || row.distance === -5) {
                 row.distance = '-';
               }
@@ -249,6 +260,7 @@ export class TabPaneComparison extends BaseElement {
   }
 
   initComparison(data: HeapSnapshotStruct, dataList: Array<HeapSnapshotStruct>) {
+    this.clear();
     this.retainerTableEl!.snapshotDataSource = [];
     let fileArr: any[] = [];
     let that = this;
@@ -270,6 +282,9 @@ export class TabPaneComparison extends BaseElement {
 
   updateComparisonData(baseFileId: number, targetFileId: number) {
     this.comparisonsData = HeapDataInterface.getInstance().getClassListForComparison(baseFileId, targetFileId);
+    this.comparisonsData.forEach((dataList: any) => {
+      dataList.objectName = dataList.nodeName;
+    });
     if (this.comparisonsData.length > 0) {
       this.comparisonData = this.comparisonsData;
       this.comparisonTableEl!.snapshotDataSource = this.comparisonsData;
@@ -335,11 +350,11 @@ export class TabPaneComparison extends BaseElement {
               return sort === 1 ? a.deltaCount - b.deltaCount : b.deltaCount - a.deltaCount;
             });
             break;
-          case 'nodeName':
+          case 'objectName':
             this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
               return sort === 1
-                ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                : (b.nodeName + '').localeCompare(a.nodeName + '');
+                ? (a.objectName + '').localeCompare(b.objectName + '')
+                : (b.objectName + '').localeCompare(a.objectName + '');
             });
             break;
           case 'addedSize':
@@ -438,19 +453,19 @@ export class TabPaneComparison extends BaseElement {
             });
             this.retainerTableEl!.snapshotDataSource = this.rightArray;
             break;
-          case 'nodeName':
+          case 'objectName':
             this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((a, b) => {
               return sort === 1
-                ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                : (b.nodeName + '').localeCompare(a.nodeName + '');
+                ? (a.objectName + '').localeCompare(b.objectName + '')
+                : (b.objectName + '').localeCompare(a.objectName + '');
             });
             this.rightArray.forEach((list) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
                   list.sort((a: any, b: any) => {
                     return sort === 1
-                      ? (a.nodeName + '').localeCompare(b.nodeName + '')
-                      : (b.nodeName + '').localeCompare(a.nodeName + '');
+                      ? (a.objectName + '').localeCompare(b.objectName + '')
+                      : (b.objectName + '').localeCompare(a.objectName + '');
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -473,7 +488,7 @@ export class TabPaneComparison extends BaseElement {
     this.search!.addEventListener('keyup', () => {
       this.comparisonFilter = [];
       this.comparisonData.forEach((a: any, key: number) => {
-        if (a.nodeName.toLowerCase().includes(this.search!.value.toLowerCase())) {
+        if (a.objectName.toLowerCase().includes(this.search!.value.toLowerCase())) {
           this.comparisonFilter.push(a);
         } else {
         }
@@ -486,6 +501,8 @@ export class TabPaneComparison extends BaseElement {
 
   clear() {
     this.search!.value = '';
+    this.rightTheadTable!.removeAttribute('sort');
+    this.leftTheadTable!.removeAttribute('sort');
   }
 
   connectedCallback() {
@@ -547,7 +564,7 @@ export class TabPaneComparison extends BaseElement {
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
                         <lit-table id="tb-comparison" style="height: auto" tree>
-                            <lit-table-column width="30%" title="#Constructor" data-index="nodeName" key="nodeName"  align="flex-start" order>
+                            <lit-table-column width="30%" title="#Constructor" data-index="objectName" key="objectName"  align="flex-start" order>
                             </lit-table-column>
                             <lit-table-column width="1fr" title="#New" data-index="addedCount" key="addedCount"  align="flex-start" order>
                             </lit-table-column>
@@ -568,7 +585,7 @@ export class TabPaneComparison extends BaseElement {
                         <div style="flex: 1;display: flex; flex-direction: column;">
                             <span slot="head" >Retainers</span>
                             <lit-table id="tb-retainer" style="height: calc(100% - 21px);" tree>
-                                <lit-table-column width="30%" title="Object" data-index="nodeName" key="nodeName"  align="flex-start" order>
+                                <lit-table-column width="30%" title="Object" data-index="objectName" key="objectName"  align="flex-start" order>
                                 </lit-table-column>
                                 <lit-table-column width="1fr" title="distance" data-index="distance" key="distance"  align="flex-start" order>
                                 </lit-table-column>

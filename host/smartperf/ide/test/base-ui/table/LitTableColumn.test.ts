@@ -37,7 +37,7 @@ describe('LitTableGroup Test', () => {
             width: 100%;
          }
         </style>
-        <slot id=\\"slot\\"></slot>
+        <slot id="slot"></slot>
         "
 `);
   });

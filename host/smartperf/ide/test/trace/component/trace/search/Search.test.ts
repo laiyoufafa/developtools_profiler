@@ -159,16 +159,16 @@ describe(' SearchTest', () => {
         }       
         
         </style>
-        <div class=\\"root\\" style=\\"display: none\\">
-            <lit-icon id=\\"search-icon\\" name=\\"search\\" size=\\"20\\" color=\\"#aaaaaa\\">
+        <div class="root" style="display: none">
+            <lit-icon id="search-icon" name="search" size="22" color="#aaaaaa">
             </lit-icon>
-            <input class=\\"readonly\\" placeholder=\\"Search\\" readonly/>
-            <div class=\\"search-info\\">
-                <span id=\\"index\\">0</span><span>/</span><span id=\\"total\\">0</span>
-                <lit-icon class=\\"icon\\" id=\\"arrow-left\\" name=\\"caret-left\\" color=\\"#AAAAAA\\" size=\\"22\\">
+            <input class="readonly" placeholder="Search" readonly/>
+            <div class="search-info">
+                <span id="index">0</span><span>/</span><span id="total">0</span>
+                <lit-icon class="icon" id="arrow-left" name="caret-left" color="#AAAAAA" size="26">
                 </lit-icon>
                 <span>|</span>
-                <lit-icon class=\\"icon\\" id=\\"arrow-right\\"  name=\\"caret-right\\" color=\\"#AAAAAA\\" size=\\"22\\">
+                <lit-icon class="icon" id="arrow-right"  name="caret-right" color="#AAAAAA" size="26">
                 </lit-icon>
             </div>
         </div>

@@ -68,9 +68,9 @@ describe('LitProgressBar Test', () => {
             }
 
         </style>
-        <div class=\\"root\\">
-            <div class=\\"track1\\"></div>
-            <div class=\\"track2\\"></div>
+        <div class="root">
+            <div class="track1"></div>
+            <div class="track2"></div>
         </div>
         "
 `);

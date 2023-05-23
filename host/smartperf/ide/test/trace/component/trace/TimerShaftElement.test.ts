@@ -161,7 +161,7 @@ describe('TimerShaftElement Test', () => {
             position: relative;
         }
         .time-total::after{
-            content: \\" +\\";
+            content: " +";
         }
         .time-collect{
             position:absolute;
@@ -175,18 +175,18 @@ describe('TimerShaftElement Test', () => {
         }
 
         </style>
-        <div class=\\"root\\">
-            <div class=\\"total\\">
-                <div style=\\"width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6)\\"></div>
-                <div class=\\"time-div\\">
-                    <span class=\\"time-total\\">10</span>
-                    <span class=\\"time-offset\\">0</span>
-                    <div class=\\"time-collect\\">
-                        <lit-icon class=\\"time-collect-arrow\\" name=\\"caret-down\\" size=\\"17\\"></lit-icon>
+        <div class="root">
+            <div class="total">
+                <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6)"></div>
+                <div class="time-div">
+                    <span class="time-total">10</span>
+                    <span class="time-offset">0</span>
+                    <div class="time-collect">
+                        <lit-icon class="time-collect-arrow" name="caret-down" size="23"></lit-icon>
                     </div>
                 </div>
             </div>
-            <canvas class=\\"panel\\"></canvas>
+            <canvas class="panel"></canvas>
         </div>
         "
 `);

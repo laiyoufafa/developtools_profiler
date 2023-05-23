@@ -17,8 +17,12 @@
 import { SpQuerySQL } from '../../../dist/trace/component/SpQuerySQL.js';
 // @ts-ignore
 import { queryCustomizeSelect } from '../../../dist/trace/database/SqlLite.js';
+// @ts-ignore
+import { SpStatisticsHttpUtil } from '../../../dist/statistics/util/SpStatisticsHttpUtil.js';
 const sqlite = require('../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../dist/trace/database/SqlLite.js');
+
+SpStatisticsHttpUtil.addOrdinaryVisitAction = jest.fn(() => true);
 describe('SpQuerySQL Test', () => {
   let spQuerySQL = new SpQuerySQL();
 
@@ -124,7 +128,6 @@ describe('SpQuerySQL Test', () => {
         p{
             display: table-cell;
             padding: 7px 10px;
-            color: #999999;
             font-size:0.875em;
             line-height: 20px;
             font-weight: 400;
@@ -186,23 +189,27 @@ describe('SpQuerySQL Test', () => {
            font-weight: 400;
            border:0 solid;
         }
+        .pagination-box {
+            opacity: 0;
+        }
 
         </style>
-        <div class=\\"query\\">
-            <div class=\\"query-message request\\">
-                <p class=\\"query_select\\">Enter query and press cmd/ctrl + Enter</p>
-                <textarea class=\\"sql-select\\"></textarea>
-                <lit-progress-bar class=\\"load-metric\\"></lit-progress-bar>
+        <div class="query">
+            <div class="query-message request">
+                <p class="query_select" style="color: #999999">Enter query and press cmd/ctrl + Enter</p>
+                <textarea class="sql-select"></textarea>
+                <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
-            <div class=\\"query-message response\\">
-                   <div style=\\"display: flex;justify-content: space-between\\">
-                       <p class=\\"query_size\\">Query result - 0 counts</p>
-                       <div style=\\"display: flex; align-items: center\\">
-                           <button id=\\"copy-button\\" class=\\"button-option\\">Copy as.tsv</button>
-                           <button id=\\"close-button\\" class=\\"button-option\\">Close</button>
+            <div class="query-message response">
+                   <div style="display: flex;justify-content: space-between">
+                       <p class="query_size" style="color: #999999">Query result - 0 counts</p>
+                       <div style="display: flex; align-items: center">
+                           <button id="copy-button" class="button-option">Copy as.tsv</button>
+                           <button id="close-button" class="button-option">Close</button>
                         </div>
                     </div>
-                   <div id=\\"dataResult\\"></div>
+                   <div id="dataResult"></div>
+                   <pagination-box class="pagination-box"></pagination-box>
             </div>
         </div>
         "
@@ -211,16 +218,16 @@ describe('SpQuerySQL Test', () => {
 
   it('SpQuerySQLTest09', function () {
     expect(
-      spQuerySQL.initDataTableStyle({
-        children: [
-          {
-            length: 3,
-            style: {
-              backgroundColor: 'var(--dark-background5,#F6F6F6)',
+        spQuerySQL.initDataTableStyle({
+          children: [
+            {
+              length: 3,
+              style: {
+                backgroundColor: 'var(--dark-background5,#F6F6F6)',
+              },
             },
-          },
-        ],
-      })
+          ],
+        })
     ).toBeUndefined();
   });
 
@@ -235,16 +242,16 @@ describe('SpQuerySQL Test', () => {
   it('SpQuerySQLTest012', function () {
     let spQuerySQL = new SpQuerySQL();
     expect(
-      spQuerySQL.initDataTableStyle({
-        children: [
-          {
-            length: 1,
-            style: {
-              backgroundColor: 'var(--dark-background5,#F6F6F6)',
+        spQuerySQL.initDataTableStyle({
+          children: [
+            {
+              length: 1,
+              style: {
+                backgroundColor: 'var(--dark-background5,#F6F6F6)',
+              },
             },
-          },
-        ],
-      })
+          ],
+        })
     ).toBeUndefined();
   });
 

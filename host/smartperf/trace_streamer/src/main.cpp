@@ -117,8 +117,8 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
-    fprintf(stdout, "\nParserDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    fprintf(stdout, "ParserSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
+    (void)fprintf(stdout, "\nParserDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
+    (void)fprintf(stdout, "ParserSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
     return true;
 }
 int OpenAndParserFile(TraceStreamerSelector& ts, const std::string& traceFilePath)

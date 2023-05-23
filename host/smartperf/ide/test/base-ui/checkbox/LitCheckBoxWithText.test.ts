@@ -88,9 +88,9 @@ describe('checkBoxWithText Test', () => {
         }
 
         </style>
-        <check-des-box id ='checkbox' value=\\"\\"></check-des-box>
-        <input class=\\"input-style\\" id=\\"textLowerLimit\\" value=\\"0\\"/>
-        <input class=\\"input-style\\" id=\\"_upLimit\\" value=\\"∞\\"/>
+        <check-des-box id ='checkbox' value=""></check-des-box>
+        <input class="input-style" id="textLowerLimit" value="0"/>
+        <input class="input-style" id="_upLimit" value="∞"/>
         "
 `);
   });

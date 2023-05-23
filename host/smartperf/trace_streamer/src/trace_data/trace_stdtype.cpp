@@ -18,6 +18,7 @@
 #include <ctime>
 namespace SysTuning {
 namespace TraceStdtype {
+const int32_t MAX_SIZE_LEN = 80;
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
@@ -231,9 +232,9 @@ void CallStack::SetDuration(size_t index, uint64_t timeStamp)
 {
     durs_[index] = timeStamp - timeStamps_[index];
 }
-void CallStack::SetDurationWithFlag(size_t index, uint64_t timestamp)
+void CallStack::SetDurationWithFlag(size_t index, uint64_t timeStamp)
 {
-    durs_[index] = timestamp - timeStamps_[index];
+    durs_[index] = timeStamp - timeStamps_[index];
     flags_[index] = "1";
 }
 
@@ -1145,7 +1146,9 @@ void MetaData::SetTraceDataSize(uint64_t dataSize)
     struct tm* timeinfo = nullptr;
     void(time(&rawtime));
     timeinfo = localtime(&rawtime);
-    values_[METADATA_ITEM_PARSERTIME] = asctime(timeinfo);
+    char buffer[MAX_SIZE_LEN];
+    strftime(buffer, MAX_SIZE_LEN, "%Y-%m-%d %H:%M:%S", timeinfo);
+    values_[METADATA_ITEM_PARSERTIME].append(buffer);
     // sometimes there will be a extra \n at last
     values_[METADATA_ITEM_PARSERTIME].pop_back();
 }
@@ -1587,9 +1590,9 @@ const std::deque<DataIndex>& PagedMemorySampleData::Addr() const
 
 size_t EbpfCallStackData::AppendNewData(uint32_t callChainId,
                                         uint32_t depth,
-                                        uint64_t ip,
-                                        uint64_t symbolId,
-                                        uint64_t filePathId)
+                                        DataIndex ip,
+                                        DataIndex symbolId,
+                                        DataIndex filePathId)
 {
     callChainIds_.emplace_back(callChainId);
     depths_.emplace_back(depth);
@@ -1599,6 +1602,15 @@ size_t EbpfCallStackData::AppendNewData(uint32_t callChainId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
+void EbpfCallStackData::UpdateSymbolAndFilePathIndex(size_t row, DataIndex symbolId, DataIndex filePathId)
+{
+    if (row >= Size()) {
+        TS_LOGE("The updated row does not exist!");
+        return;
+    }
+    symbolIds_[row] = symbolId;
+    filePathIds_[row] = filePathId;
+}
 const std::deque<uint32_t>& EbpfCallStackData::CallChainIds() const
 {
     return callChainIds_;
@@ -1607,15 +1619,15 @@ const std::deque<uint32_t>& EbpfCallStackData::Depths() const
 {
     return depths_;
 }
-const std::deque<uint64_t>& EbpfCallStackData::Ips() const
+const std::deque<DataIndex>& EbpfCallStackData::Ips() const
 {
     return ips_;
 }
-const std::deque<uint64_t>& EbpfCallStackData::SymbolIds() const
+const std::deque<DataIndex>& EbpfCallStackData::SymbolIds() const
 {
     return symbolIds_;
 }
-const std::deque<uint64_t>& EbpfCallStackData::FilePathIds() const
+const std::deque<DataIndex>& EbpfCallStackData::FilePathIds() const
 {
     return filePathIds_;
 }
@@ -2618,14 +2630,14 @@ const std::deque<uint32_t>& JsHeapTraceFuncInfo::Columns() const
 }
 
 size_t JsHeapTraceNode::AppendNewData(uint32_t fileId,
-                                      uint32_t traceNodeIds,
+                                      uint32_t traceNodeId,
                                       uint32_t functionInfoIndex,
                                       uint32_t count,
                                       uint32_t size,
                                       int32_t parentId)
 {
     fileIds_.emplace_back(fileId);
-    traceNodeIds_.emplace_back(traceNodeIds);
+    traceNodeIds_.emplace_back(traceNodeId);
     functionInfoIndexs_.emplace_back(functionInfoIndex);
     counts_.emplace_back(count);
     sizes_.emplace_back(size);

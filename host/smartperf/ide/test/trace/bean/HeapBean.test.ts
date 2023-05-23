@@ -33,19 +33,17 @@ describe('HeapBean Test', () => {
     };
     expect(heapBean).not.toBeUndefined();
     expect(heapBean).toMatchInlineSnapshot(
-      {
-        MoudleName: expect.any(String),
-        AllocationFunction: expect.any(String),
-        Allocations: expect.any(Number),
-        Deallocations: expect.any(Number),
-        AllocationSize: expect.any(Number),
-        DeAllocationSize: expect.any(Number),
-        Total: expect.any(Number),
-        RemainingSize: expect.any(Number),
-        depth: expect.any(Number),
-      },
-      `
-Object {
+{
+  MoudleName: expect.any(String),
+  AllocationFunction: expect.any(String),
+  Allocations: expect.any(Number),
+  Deallocations: expect.any(Number),
+  AllocationSize: expect.any(Number),
+  DeAllocationSize: expect.any(Number),
+  Total: expect.any(Number),
+  RemainingSize: expect.any(Number),
+  depth: expect.any(Number) }, `
+{
   "AllocationFunction": Any<String>,
   "AllocationSize": Any<Number>,
   "Allocations": Any<Number>,
@@ -56,7 +54,6 @@ Object {
   "Total": Any<Number>,
   "depth": Any<Number>,
 }
-`
-    );
+`);
   });
 });

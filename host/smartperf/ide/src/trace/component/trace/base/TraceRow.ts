@@ -129,6 +129,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   asyncFuncName: string | undefined | null;
   asyncFuncNamePID: number | undefined | null;
   translateY: number = 0; //single canvas offsetY;
+  childrenList: Array<TraceRow<any>> = [];
+  depth: number = 1;
   focusHandler?: (ev: MouseEvent) => void | undefined;
 
   constructor(
@@ -274,30 +276,33 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return this.hasAttribute('expansion');
   }
 
-  expansionChildrenNode(fragment: DocumentFragment, parentId: string, value: boolean) {
-    this.parentElement?.querySelectorAll<any>(`[row-parent-id='${parentId}']`).forEach((it) => {
-      fragment.appendChild(it);
-      if (!it.collect) {
-        it.rowHidden = !value;
-      }
-      if (it.folder && !value && it.expansion) {
-        it.expansion = value;
-      }
-      if (it.folder) {
-        this.expansionChildrenNode(fragment, it.rowId, it.expansion);
-      }
-    });
-  }
-
   set expansion(value) {
+    if (value === this.expansion) {
+      return;
+    }
+    if (value) {
+      let fragment = document.createDocumentFragment();
+      this.childrenList.forEach((child: any) => {
+        child.rowHidden = false;
+        fragment.appendChild(child);
+      });
+      this.insertAfter(fragment, this);
+    } else {
+      let fragment = document.createDocumentFragment();
+      this.childrenList.length = 0;
+      this.parentElement?.querySelectorAll<any>(`[row-parent-id='${this.rowId!}']`).forEach((it) => {
+        this.childrenList.push(it);
+        if (it.folder) {
+          it.expansion = value;
+        }
+        fragment.appendChild(it);
+      });
+    }
     if (value) {
       this.setAttribute('expansion', '');
     } else {
       this.removeAttribute('expansion');
     }
-    const fragment = document.createDocumentFragment();
-    this.expansionChildrenNode(fragment, this.rowId!, value);
-    this.insertAfter(fragment, this);
     this.dispatchEvent(
       new CustomEvent('expansion-change', {
         detail: {
@@ -310,6 +315,27 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     );
   }
 
+  addChildTraceRow(child: TraceRow<any>) {
+    this.depth = 2;
+    if (child.rowType == TraceRow.ROW_TYPE_HIPERF_PROCESS) {
+      this.depth = 3;
+    }
+    this.childrenList.push(child);
+  }
+
+  addChildTraceRowAfter(child: TraceRow<any>, targetRow: TraceRow<any>) {
+    this.depth = 2;
+    let index = this.childrenList.indexOf(targetRow);
+    if (index != -1) {
+      this.childrenList.splice(index + 1, 0, child);
+    } else {
+      this.childrenList.push(child);
+    }
+  }
+
+  addChildTraceRowSpecifyLocation(child: TraceRow<any>, index: number) {
+    this.childrenList.splice(index, 0, child);
+  }
   insertAfter(newEl: DocumentFragment, targetEl: HTMLElement) {
     let parentEl = targetEl.parentNode;
     if (parentEl!.lastChild == targetEl) {
@@ -646,35 +672,62 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   setCheckBox(isCheck: boolean) {
     if (this.folder) {
-      let allRow = this.parentElement?.querySelectorAll<TraceRow<any>>(
-        `trace-row[row-parent-id='${this.rowId}'][check-type]`
-      );
-      allRow!.forEach((ck) => {
+      this.childrenList!.forEach((ck) => {
         ck.setAttribute('check-type', isCheck ? '2' : '0');
         let allCheck: LitCheckBox | null | undefined = ck?.shadowRoot?.querySelector('.lit-check-box');
         allCheck!.checked = isCheck;
       });
     } else if (this.rowParentId == '' && !this.folder) {
-      this.selectChangeHandler?.([...this.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']")]);
+      let traceRowList: Array<TraceRow<any>> = [];
+      this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2'][folder]").forEach(
+        (it) => {
+          traceRowList.push(
+            ...it.childrenList.filter((it) => {
+              return it.checkType === '2';
+            })
+          );
+        }
+      );
+      this.selectChangeHandler?.([
+        ...this.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+        ...traceRowList,
+      ]);
       return;
     }
     let checkList = this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(
       `trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="2"]`
     );
+    let checkList2: Array<TraceRow<any>> = [];
+    if (this.folder && !this.expansion) {
+      checkList2 = this.childrenList.filter((it) => {
+        return it.checkType === '2';
+      });
+    }
     let unselectedList = this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(
       `trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="0"]`
     );
+    let unselectedList2: Array<TraceRow<any>> = [];
+    if (this.folder && !this.expansion) {
+      unselectedList2 = this.childrenList.filter((it) => {
+        return it.checkType === '0';
+      });
+    }
     let parentRow = this.parentElement?.querySelector<TraceRow<any>>(
       `trace-row[row-id='${this.folder ? this.rowId : this.rowParentId}'][folder]`
     );
     let parentCheck: LitCheckBox | null | undefined = parentRow?.shadowRoot?.querySelector('.lit-check-box');
-    if (unselectedList?.length == 0) {
+    if (unselectedList?.length == 0 && unselectedList.length === 0) {
       parentRow?.setAttribute('check-type', '2');
       if (parentCheck) {
         parentCheck!.checked = true;
         parentCheck!.indeterminate = false;
       }
       checkList?.forEach((it) => {
+        it.checkType = '2';
+        it.rangeSelect = true;
+        it.draw();
+      });
+      checkList2?.forEach((it) => {
         it.checkType = '2';
         it.rangeSelect = true;
         it.draw();
@@ -690,14 +743,24 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         it.rangeSelect = true;
         it.draw();
       });
+      checkList2?.forEach((it) => {
+        it.checkType = '2';
+        it.rangeSelect = true;
+        it.draw();
+      });
       unselectedList?.forEach((it) => {
+        it.checkType = '0';
+        it.rangeSelect = false;
+        it.draw();
+      });
+      unselectedList2?.forEach((it) => {
         it.checkType = '0';
         it.rangeSelect = false;
         it.draw();
       });
     }
 
-    if (checkList?.length == 0) {
+    if (checkList?.length == 0 && checkList2?.length === 0) {
       parentRow?.setAttribute('check-type', '0');
       if (parentCheck) {
         parentCheck!.checked = false;
@@ -708,9 +771,25 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         it.rangeSelect = false;
         it.draw();
       });
+      unselectedList2?.forEach((it) => {
+        it.checkType = '0';
+        it.rangeSelect = false;
+        it.draw();
+      });
     }
+    let traceRowList: Array<TraceRow<any>> = [];
+    this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2'][folder]").forEach(
+      (it) => {
+        traceRowList.push(
+          ...it.childrenList.filter((it) => {
+            return it.checkType === '2';
+          })
+        );
+      }
+    );
     this.selectChangeHandler?.([
       ...this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+      ...traceRowList,
     ]);
   }
 

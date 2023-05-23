@@ -75,3 +75,37 @@ int32_t sprintf_s(char* strDest, size_t destMax, const char* format, ...)
     __builtin_va_end(ap);
     return ret;
 }
+
+const char* GetDemangleSymbolIndex(const char* mangled)
+{
+    int status = 0;
+    auto demangle = abi::__cxa_demangle(mangled, nullptr, nullptr, &status);
+    if (status) { // status != 0 failed
+        return mangled;
+    } else {
+        return demangle;
+    }
+}
+int GetProcessorNumFromString(char* str)
+{
+    int processorNum = 0;
+    int lastNum = -1;
+    char* s = str;
+    while (*s != '\0') {
+        if (isdigit(*s)) {
+            int currentNum = strtol(s, &s, 10);
+            if (lastNum == -1) {
+                processorNum++;
+            } else {
+                processorNum += currentNum - lastNum;
+            }
+            lastNum = currentNum;
+        } else {
+            if (*s == ',') {
+                lastNum = -1;
+            }
+            s++;
+        }
+    }
+    return processorNum;
+}

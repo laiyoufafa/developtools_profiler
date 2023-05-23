@@ -141,16 +141,16 @@ describe('TabPaneCounterSample Test', () => {
             z-index: 999999;
         }
         </style>
-        <lit-table id=\\"tb-states\\" style=\\"height: auto\\" >
-            <lit-table-column width=\\"20%\\" title=\\"Cpu\\" data-index=\\"counter\\" key=\\"counter\\" align=\\"flex-start\\" order>
+        <lit-table id="tb-states" style="height: auto" >
+            <lit-table-column width="20%" title="Cpu" data-index="counter" key="counter" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width=\\"1fr\\" title=\\"Time\\" data-index=\\"timeStr\\" key=\\"timeStr\\" align=\\"flex-start\\" order>
+            <lit-table-column width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width=\\"1fr\\" title=\\"Value\\" data-index=\\"value\\" key=\\"value\\" align=\\"flex-start\\" order>
+            <lit-table-column width="1fr" title="Value" data-index="value" key="value" align="flex-start" order>
             </lit-table-column>
         </lit-table>
-        <lit-progress-bar class=\\"progress\\"></lit-progress-bar>
-        <div class=\\"loading\\"></div>
+        <lit-progress-bar class="progress"></lit-progress-bar>
+        <div class="loading"></div>
         "
 `);
   });

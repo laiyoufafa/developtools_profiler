@@ -48,13 +48,11 @@ describe('CpuFreqStruct Test', () => {
   it('CpuFreqStructTest01', function () {
     expect(CpuFreqStruct.draw(ctx, data)).toBeUndefined();
     expect(data).toMatchInlineSnapshot(
-      {
-        startNS: expect.any(Number),
-        value: expect.any(Number),
-      },
-      `
-Object {
-  "frame": Object {
+{
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+{
+  "frame": {
     "height": 100,
     "width": 100,
     "x": 20,
@@ -63,8 +61,7 @@ Object {
   "startNS": Any<Number>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('CpuFreqStructTest02', function () {

@@ -73,28 +73,28 @@ ohos_source_set("htrace_pbreader_parser_src") {
     "../../trace_data",
     "../../cfg",
     "../../trace_streamer",
-    "//third_party/protobuf/src",
-    "//third_party/sqlite/include",
-    "//third_party/json-master/include",
-    "//third_party/json-master/include/nlohmann",
+    "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/sqlite/include",
+    "${THIRD_PARTY}/json-master/include",
+    "${THIRD_PARTY}/json-master/include/nlohmann",
     "../../filter",
     "../../base",
     "../ebpf_parser",
   ]
   include_dirs += [
-    "//third_party/libunwind/include",
-    "//third_party/libunwind/src",
+    "${THIRD_PARTY}/libunwind/include",
+    "${THIRD_PARTY}/libunwind/src",
   ]
   if (with_perf) {
     include_dirs += [
-      "//third_party/perf_include/musl",
-      "//third_party/hiperf/include",
-      "//third_party/hiperf/include/nonlinux",
-      "//third_party/hiperf/include/nonlinux/linux",
-      "//third_party/perf_include/libbpf",
-      "//third_party/perf_include/include",
-      "//third_party/perf_include",
-      "//third_party/perf_include/linux",
+      "${THIRD_PARTY}/perf_include/musl",
+      "${THIRD_PARTY}/hiperf/include",
+      "${THIRD_PARTY}/hiperf/include/nonlinux",
+      "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
+      "${THIRD_PARTY}/perf_include/libbpf",
+      "${THIRD_PARTY}/perf_include/include",
+      "${THIRD_PARTY}/perf_include",
+      "${THIRD_PARTY}/perf_include/linux",
       "../hiperf_parser",
       "../hiperf_parser/include",
     ]
@@ -116,13 +116,13 @@ ohos_source_set("htrace_pbreader_parser_src") {
 group("htrace_pbreader_parser") {
   deps = [
     ":htrace_pbreader_parser_src",
-    "//third_party/protobuf:protobuf",
-    "//third_party/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/protobuf:protobuf",
+    "${THIRD_PARTY}/protobuf:protobuf_lite",
   ]
   if (!use_wasm && !is_win && !is_macx && !is_test) {
-    deps += [ "//third_party/libunwind:libunwind" ]
+    deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
   }
   if (target != "test" && !is_openharmony) {
-    deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
+    deps += [ "${PREBUILTS}/protos:ts_proto_data_cpp" ]
   }
 }

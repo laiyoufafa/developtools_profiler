@@ -185,40 +185,40 @@ describe('SpRecordSetting Test', () => {
         }
 
         </style>
-        <div class=\\"root\\">
-          <div class=\\"record\\">
-            <span class=\\"record-mode\\">Record mode</span>
-            <lit-radio name=\\"Stop when full\\" dis=\\"round\\" id=\\"litradio\\" checked>Stop when full</lit-radio>
+        <div class="root">
+          <div class="record">
+            <span class="record-mode">Record mode</span>
+            <lit-radio name="Stop when full" dis="round" id="litradio" checked>Stop when full</lit-radio>
           </div>
-          <div class=\\"output\\">
-            <span class=\\"record-mode\\">output file path</span>
+          <div class="output">
+            <span class="record-mode">output file path</span>
             <div>
-              <span class=\\"trace_file_span\\">/data/local/tmp/</span>
-              <input id=\\"trace_path\\" type=\\"text\\" value='hiprofiler_data.htrace'onkeydown=\\"this.value.length >= 100 ? this.value = this.value.substring(0,99): 0\\" oninput=\\"this.value= this.value.replace('__','_')\\" onkeyup=\\"this.value=this.value.replace(/[^\\\\w\\\\.]/g,'')\\">
+              <span class="trace_file_span">/data/local/tmp/</span>
+              <input id="trace_path" type="text" value='hiprofiler_data.htrace'onkeydown="this.value.length >= 100 ? this.value = this.value.substring(0,99): 0" oninput="this.value= this.value.replace('__','_')" onkeyup="this.value=this.value.replace(/[^\\w\\.]/g,'')">
             </div>
           </div>
-          <div class=\\"buffer-size\\">
-            <div class=\\"record-title\\">
-                <span class=\\"record-mode\\">In-memory buffer size</span> 
-                <span class=\\"record-prompt\\"> (max memory buffer size is 512 MB) </span>
+          <div class="buffer-size">
+            <div class="record-title">
+                <span class="record-mode">In-memory buffer size</span> 
+                <span class="record-prompt"> (max memory buffer size is 512 MB) </span>
             </div>
-            <lit-slider id=\\"memory-buffer\\" defaultColor=\\"var(--dark-color3,#46B1E3)\\" open dir=\\"right\\">
+            <lit-slider id="memory-buffer" defaultColor="var(--dark-color3,#46B1E3)" open dir="right">
             </lit-slider>
             <div class='resultSize'>
-                <input class=\\"memory_buffer_result\\" type=\\"text\\" value='64' onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\">
-                <span style=\\"text-align: center; margin: 8px\\"> MB </span>
+                <input class="memory_buffer_result" type="text" value='64' onkeyup="this.value=this.value.replace(/\\D/g,'')">
+                <span style="text-align: center; margin: 8px"> MB </span>
             </div>
           </div>
-          <div class=\\"max-duration\\">
-            <div class=\\"record-title\\">
-                <span class=\\"record-mode\\" >Max duration</span>
-                <span class=\\"record-prompt\\"> (max duration value is 01:00:00) </span>
+          <div class="max-duration">
+            <div class="record-title">
+                <span class="record-mode" >Max duration</span>
+                <span class="record-prompt"> (max duration value is 01:00:00) </span>
             </div>
-            <lit-slider id=\\"max-duration\\" defaultColor=\\"var(--dark-color4,#61CFBE)\\" open dir=\\"right\\">
+            <lit-slider id="max-duration" defaultColor="var(--dark-color4,#61CFBE)" open dir="right">
             </lit-slider>
             <div class='resultValue'>
-                <input class=\\"max_duration_result\\" type=\\"text\\" value = '00:00:30' >
-                <span style=\\"text-align: center; margin: 8px 8px 8px 0\\"> h:m:s </span>
+                <input class="max_duration_result" type="text" value = '00:00:30' >
+                <span style="text-align: center; margin: 8px 8px 8px 0"> h:m:s </span>
             </div>
             
           </div>

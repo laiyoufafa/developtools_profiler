@@ -11,7 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 OHOS_PROTO_DIR = ""
-
+THIRD_PARTY = "//third_party"
+SRC = "//src"
+PREBUILTS = "//prebuilts"
 if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
   #  OHOS_FTRACE_PROTO_DIR="//third_party/protogen"
   OHOS_FTRACE_PROTO_DIR = "//src/multi_platform"
@@ -34,7 +36,7 @@ if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
 
   # kernel_version = "5.10.79_aarch64"
   kernel_version = "."
-  if (target == "test") {
+  if (target == "test" || target == "testpb") {
     enable_ts_utest = true
   } else {
     enable_ts_utest = false

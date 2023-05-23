@@ -21,9 +21,11 @@ jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
 import {
   HiPerfReport,
   HiPerfReportStruct,
+  HiperfReportRender,
 } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHiPerfReport.js';
 // @ts-ignore
 import { Rect } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon';
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 
 describe('ProcedureWorkerHiPerfReport Test', () => {
   it('ProcedureWorkerHiPerfReportTest01', () => {

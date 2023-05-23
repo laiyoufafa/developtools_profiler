@@ -144,7 +144,7 @@ export class SpNativeMemoryChart {
         );
         allHeapRow.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(allHeapRow);
+      nativeRow.addChildTraceRow(allHeapRow);
     }
     let durTime = new Date().getTime() - time;
     info('The time to load the Native Memory data is: ', durTime);

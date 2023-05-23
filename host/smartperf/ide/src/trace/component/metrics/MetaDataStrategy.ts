@@ -52,6 +52,7 @@ export const initMetaDataStrategy = (metricData: Array<any>): TraceMetadata => {
 export interface TraceMetadata {
   traceMetadata: Array<TraceMetadataItem>;
 }
+
 export interface TraceMetadataItem {
   name: string;
   value: string;

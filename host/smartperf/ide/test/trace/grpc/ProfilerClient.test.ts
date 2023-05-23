@@ -17,33 +17,33 @@
 import { ProfilerClient } from '../../../dist/trace/grpc/ProfilerClient.js';
 
 describe('HiProfilerClient Test', () => {
-    it('HiProfilerClientTest01 ', function () {
-        expect(ProfilerClient.client).toBeUndefined();
-    });
-    it('HiProfilerClientTest02', function () {
-        ProfilerClient.client = true;
-        expect(ProfilerClient.client).toBeTruthy();
-    });
-    it('HiProfilerClientTest03 ', function () {
-        expect(ProfilerClient.filePaths).toBeUndefined();
-    });
-    it('HiProfilerClientTest04', function () {
-        ProfilerClient.filePaths = true;
-        expect(ProfilerClient.filePaths).toBeTruthy();
-    });
-    it('HiProfilerClientTest05', function () {
-        expect(ProfilerClient.profiler_proto).toBeUndefined();
-    });
-    it('HiProfilerClientTest06', function () {
-        ProfilerClient.profiler_proto = true;
-        expect(ProfilerClient.profiler_proto).toBeTruthy();
-    });
+  it('HiProfilerClientTest01 ', function () {
+    expect(ProfilerClient.client).toBeUndefined();
+  });
+  it('HiProfilerClientTest02', function () {
+    ProfilerClient.client = true;
+    expect(ProfilerClient.client).toBeTruthy();
+  });
+  it('HiProfilerClientTest03 ', function () {
+    expect(ProfilerClient.filePaths).toBeUndefined();
+  });
+  it('HiProfilerClientTest04', function () {
+    ProfilerClient.filePaths = true;
+    expect(ProfilerClient.filePaths).toBeTruthy();
+  });
+  it('HiProfilerClientTest05', function () {
+    expect(ProfilerClient.profiler_proto).toBeUndefined();
+  });
+  it('HiProfilerClientTest06', function () {
+    ProfilerClient.profiler_proto = true;
+    expect(ProfilerClient.profiler_proto).toBeTruthy();
+  });
 
-    it('HiProfilerClientTest07 ', function () {
-        expect(ProfilerClient.shutdown).toBeUndefined();
-    });
-    it('HiProfilerClientTest08', function () {
-        ProfilerClient.getChannel = jest.fn(() => true);
-        expect(ProfilerClient.getChannel()).toBeTruthy();
-    });
+  it('HiProfilerClientTest07 ', function () {
+    expect(ProfilerClient.shutdown).toBeUndefined();
+  });
+  it('HiProfilerClientTest08', function () {
+    ProfilerClient.getChannel = jest.fn(() => true);
+    expect(ProfilerClient.getChannel()).toBeTruthy();
+  });
 });

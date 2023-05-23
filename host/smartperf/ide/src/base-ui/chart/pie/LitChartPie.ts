@@ -189,12 +189,12 @@ export class LitChartPie extends BaseElement {
           it.hover = degree >= it.startDegree! && degree <= it.endDegree!;
           this.updateHoverItemStatus(it);
           it.obj.isHover = it.hover;
-          if (it.hover) {
-            this.cfg!.hoverHandler?.(it.obj);
+          if (it.hover && this.cfg) {
+            this.cfg.hoverHandler?.(it.obj);
             this.showTip(
               ev.pageX - rect.left + 10,
               ev.pageY - this.offsetTop - 10,
-              this.cfg!.tip ? this.cfg!.tip(it) : `${it.key}: ${it.value}`
+              this.cfg.tip ? this.cfg!.tip(it) : `${it.key}: ${it.value}`
             );
           }
         });
@@ -205,7 +205,7 @@ export class LitChartPie extends BaseElement {
           it.obj.isHover = false;
           this.updateHoverItemStatus(it);
         });
-        this.cfg!.hoverHandler?.(undefined);
+        this.cfg?.hoverHandler?.(undefined);
       }
       this.render();
     };

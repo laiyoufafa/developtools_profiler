@@ -1124,11 +1124,11 @@ export class LitTable extends HTMLElement {
         }
         if (rowData.data.children && rowData.data.children.length > 0) {
           let btn = this.createExpandBtn(rowData);
-          td.title = rowData.data.nodeName;
+          td.title = rowData.data.objectName;
           td.insertBefore(btn, td.firstChild);
           td.style.paddingLeft = rowData.depth * 15 + 'px';
         } else if (rowData.data.hasNext) {
-          td.title = rowData.data.nodeName;
+          td.title = rowData.data.objectName;
           let btn = this.createBtn(rowData);
           td.insertBefore(btn, td.firstChild);
           td.style.paddingLeft = 15 * rowData.depth + 'px';
@@ -1452,7 +1452,7 @@ export class LitTable extends HTMLElement {
           firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
         } else if (rowObject.data.hasNext) {
           let btn = this.createBtn(rowObject);
-          firstElement.title = rowObject.data.nodeName;
+          firstElement.title = rowObject.data.objectName;
           firstElement.insertBefore(btn, firstElement.firstChild);
           firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
           btn.onclick = () => {

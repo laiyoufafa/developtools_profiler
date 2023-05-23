@@ -30,15 +30,14 @@ public:
     ~EbpfDataParser();
     void InitAndParseEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
     void Finish();
-    bool EBPFReloadElfSymbolTable(std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables);
     bool SupportImportSymbolTable()
     {
-        return reader_ ? true : false;
+        return ebpfDataReader_ ? true : false;
     }
 
 private:
     bool Init(const std::deque<uint8_t> dequeBuffer, uint64_t size);
-    std::unique_ptr<EbpfDataReader> reader_;
+    std::unique_ptr<EbpfDataReader> ebpfDataReader_;
     uint64_t ebpfAllEventStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ebpfAllEventEndTime_ = 0;
 };

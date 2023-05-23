@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "htrace_js_memory_parser.h"
 #include <dirent.h>
 #include <memory>
-#include "htrace_js_memory_parser.h"
+#include <regex>
 #include "clock_filter.h"
 #include "fcntl.h"
 #include "file.h"
@@ -281,6 +282,9 @@ void from_json(const json& j, TraceTree& v)
 }
 } // namespace jsonns
 
+const int32_t END_POS = 3;
+const int32_t CHUNK_POS = 8;
+
 HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : HtracePluginTimeParser(dataCache, ctx)
 {
@@ -316,9 +320,13 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
     auto result = jsHeapResult.result().ToStdString();
     std::string fileName = "";
     if (result == snapshotEnd_ || result == timeLineEnd_) {
+        std::regex strEscapeInvalid("\\\\n");
+        std::regex strInvalid("\\\\\"");
+        auto strEscape = std::regex_replace(jsMemoryString_, strEscapeInvalid, "");
+        auto str = std::regex_replace(strEscape, strInvalid, "\"");
         if (type_ == ProtoReader::JsHeapConfig_HeapType::JsHeapConfig_HeapType_SNAPSHOT) {
             fileName = "Snapshot" + std::to_string(fileId_);
-            ParseSnapshot(fileId_, jsMemoryString_);
+            ParseSnapshot(fileId_, str);
             jsMemoryString_ = "";
         } else if (type_ == ProtoReader::JsHeapConfig_HeapType::JsHeapConfig_HeapType_TIMELINE) {
             if (result == snapshotEnd_) {
@@ -328,7 +336,7 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
                 return;
             }
             fileName = "Timeline";
-            ParseTimeLine(fileId_, jsMemoryString_);
+            ParseTimeLine(fileId_, str);
             jsMemoryString_ = "";
         }
         ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
@@ -338,21 +346,16 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
         isFirst_ = true;
         return;
     }
-    json jMessage = json::parse(result);
-    if (jMessage.is_discarded()) {
-        streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_DATA_INVALID);
-        TS_LOGE("json::parse error!\n");
-        return;
-    }
-
-    if (jMessage["params"]["chunk"].is_string()) {
+    auto pos = result.find("chunk");
+    if (pos != string::npos) {
         if (isFirst_ && type_ == ProtoReader::JsHeapConfig_HeapType::JsHeapConfig_HeapType_SNAPSHOT) {
             ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
             UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
             startTime_ = ts;
             isFirst_ = false;
         }
-        jsMemoryString_ += jMessage["params"]["chunk"];
+        auto resultJson = result.substr(pos + CHUNK_POS, result.size() - pos - CHUNK_POS - END_POS);
+        jsMemoryString_ += resultJson;
     }
 }
 

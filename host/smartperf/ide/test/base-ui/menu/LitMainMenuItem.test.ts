@@ -83,7 +83,7 @@ describe('litMainMenuItem Test', () => {
                 display: flex;
                 font-family: Helvetica;
                 font-size: 14px;
-                color: var(--dark-color,rgba(0,0,0,0.6));
+                color: black;
                 text-align: left;
                 line-height: 20px;
                 font-weight: 400
@@ -119,6 +119,7 @@ describe('litMainMenuItem Test', () => {
             .name{
                 padding-left: 10px;
                 cursor: pointer;
+                overflow-wrap: anywhere;
             }
             .icon{
                 pointer-events: none;
@@ -141,10 +142,10 @@ describe('litMainMenuItem Test', () => {
             } 
             
         </style>
-        <input id=\\"file\\" class=\\"file\\" type=\\"file\\" style=\\"display:none;pointer-events: none\\" />
-        <label class=\\"root\\" for=\\"file\\">
-            <lit-icon class=\\"icon\\" name=\\"user\\" size=\\"20\\"></lit-icon>
-            <label class=\\"name\\"></label>
+        <input id="file" class="file" type="file" style="display:none;pointer-events: none" />
+        <label class="root" for="file">
+            <lit-icon class="icon" name="user" size="20"></lit-icon>
+            <label class="name"></label>
         </label>
         "
 `);

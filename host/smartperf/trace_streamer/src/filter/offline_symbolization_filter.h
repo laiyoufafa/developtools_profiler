@@ -15,12 +15,12 @@
 
 #ifndef OFFLINE_SYMBOLIZATION_FILTER_H
 #define OFFLINE_SYMBOLIZATION_FILTER_H
-#include <cxxabi.h>
 #include <elf.h>
 #include <unordered_map>
 #include "native_hook_result.pbreader.h"
 #include "process_filter.h"
 #include "proto_reader.h"
+#include "string_help.h"
 #include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
@@ -54,9 +54,7 @@ struct NativeHookMetaData {
 class OfflineSymbolizationFilter : public FilterBase {
 public:
     OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    ~OfflineSymbolizationFilter();
-    template <class T>
-    void UpdateSymbol(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr, uint64_t ip, FrameInfo* frameInfo);
+    ~OfflineSymbolizationFilter() = default;
     std::shared_ptr<FrameInfo> OfflineSymbolization(uint64_t ip);
     std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolization(
         const std::shared_ptr<std::vector<uint64_t>> ips);
@@ -66,12 +64,16 @@ protected:
     enum SYSTEM_ENTRY_VALUE { ELF32_SYM = 16, ELF64_SYM = 24 };
     std::map<uint64_t, std::shared_ptr<ProtoReader::MapsInfo_Reader>> startAddrToMapsInfoMap_ = {};
     std::unordered_map<uint32_t, std::shared_ptr<ProtoReader::SymbolTable_Reader>> filePathIdToSymbolTableMap_ = {};
-    std::unordered_map<uint32_t, ElfSymbolTable> filePathIdToImportSymbolTableMap_ = {};
+    std::unordered_map<uint32_t, std::shared_ptr<ElfSymbolTable>> filePathIdToImportSymbolTableMap_ = {};
     DoubleMap<uint32_t, uint64_t, const uint8_t*> filePathIdAndStValueToSymAddr_;
     DoubleMap<std::shared_ptr<ProtoReader::SymbolTable_Reader>, uint64_t, const uint8_t*>
         symbolTablePtrAndStValueToSymAddr_;
     std::map<uint64_t, std::shared_ptr<FrameInfo>> ipToFrameInfo_ = {};
     std::vector<std::shared_ptr<const std::string>> segs_ = {};
+
+private:
+    template <class T>
+    void UpdateFrameInfo(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr, uint64_t ip, FrameInfo* frameInfo);
 };
 
 } // namespace TraceStreamer

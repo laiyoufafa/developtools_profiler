@@ -77,7 +77,7 @@ describe('LitPopCont Test', () => {
             border: 1px solid #000000;
         }
         </style>
-        <div class=\\"pop-content-body\\" >
+        <div class="pop-content-body" >
             <slot></slot>
         </div>
         "

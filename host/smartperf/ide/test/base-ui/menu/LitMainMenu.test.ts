@@ -18,53 +18,53 @@ import { LitMainMenu } from '../../../dist/base-ui/menu/LitMainMenu.js';
 import { MenuItem } from '../../../src/base-ui/menu/LitMainMenu.js';
 
 describe('LitMainMenu Test', () => {
-    it('LitMainMenu01', () => {
-        let litMainMenu = new LitMainMenu();
-        expect(litMainMenu).not.toBeUndefined();
-        expect(litMainMenu).not.toBeNull();
-    });
+  it('LitMainMenu01', () => {
+    let litMainMenu = new LitMainMenu();
+    expect(litMainMenu).not.toBeUndefined();
+    expect(litMainMenu).not.toBeNull();
+  });
 
-    it('LitMainMenu01', () => {
-        let litMainMenu = new LitMainMenu();
-        expect(litMainMenu).not.toBeUndefined();
-        expect(litMainMenu).not.toBeNull();
-    });
+  it('LitMainMenu01', () => {
+    let litMainMenu = new LitMainMenu();
+    expect(litMainMenu).not.toBeUndefined();
+    expect(litMainMenu).not.toBeNull();
+  });
 
-    it('LitMainMenu02', () => {
-        let litMainMenu = new LitMainMenu();
-        litMainMenu.menus = [
-            {
-                collapsed: false,
-                title: 'Navigation',
-                describe: 'Open or record a new trace',
-                children: [
-                    {
-                        title: 'Open trace file',
-                        icon: 'folder',
-                        fileChoose: true,
-                        fileHandler: function (ev: InputEvent) {},
-                    },
-                    {
-                        title: 'Record new trace',
-                        icon: 'copyhovered',
-                        clickHandler: function (item: MenuItem) {},
-                    },
-                ],
-            },
-        ];
-        expect(litMainMenu.menus.length).toBe(1);
-    });
+  it('LitMainMenu02', () => {
+    let litMainMenu = new LitMainMenu();
+    litMainMenu.menus = [
+      {
+        collapsed: false,
+        title: 'Navigation',
+        describe: 'Open or record a new trace',
+        children: [
+          {
+            title: 'Open trace file',
+            icon: 'folder',
+            fileChoose: true,
+            fileHandler: function (ev: InputEvent) {},
+          },
+          {
+            title: 'Record new trace',
+            icon: 'copyhovered',
+            clickHandler: function (item: MenuItem) {},
+          },
+        ],
+      },
+    ];
+    expect(litMainMenu.menus.length).toBe(1);
+  });
 
-    it('LitMainMenu03', () => {
-        let litMainMenu = new LitMainMenu();
-        expect(litMainMenu.initHtml()).toMatchInlineSnapshot(`
+  it('LitMainMenu03', () => {
+    let litMainMenu = new LitMainMenu();
+    expect(litMainMenu.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
         :host{
             display: flex;
             flex-direction: column;
             width: 248px;
-            background-color: var(--dark-background,#FFFFFF);
+            background-color: null;
             height: 100vh;
         }
         .menu-body ::-webkit-scrollbar-track
@@ -80,7 +80,7 @@ describe('LitMainMenu Test', () => {
         }
         .header{
             display: grid;
-            background-color: var(--dark-background1,#FFFFFF);
+            background-color: var(--dark-background1);
             border-bottom: 1px solid var(--dark-background1,#EFEFEF);
             color: #47A7E0;
             font-size: 1.4rem;
@@ -97,12 +97,23 @@ describe('LitMainMenu Test', () => {
             align-self: center;
             user-select: none;
         }
-        .version{
-            color: #94979d;
+        .bottom{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        .color{
             padding: 20px;
             font-size: 0.6rem;
-            width: 100%;
-            text-align: right;
+            cursor: pointer;
+        }
+        
+        .version{
+            color: #94979d;
+            padding: 20px 0;
+            font-size: 0.6rem;
+            width: 15rem;
+            text-align: center;
         }
         *{
             box-sizing: border-box;
@@ -116,43 +127,47 @@ describe('LitMainMenu Test', () => {
             cursor: pointer;
         }
         </style>
-        <div name=\\"header\\" class=\\"header\\">
-            <img src=\\"img/logo.png\\"/>
-                <div class=\\"menu-button\\">
-                    <lit-icon name=\\"menu\\" size=\\"20\\" color=\\"var(--dark-color1,#4D4D4D)\\"></lit-icon>
+        <div name="header" class="header">
+            <img src="img/logo.png"/>
+                <div class="menu-button">
+                    <lit-icon name="menu" size="20" color="var(blue,#4D4D4D)"></lit-icon>
                 </div>
             </div>
-            <div class=\\"menu-body\\" style=\\"overflow: auto;overflow-x:hidden;height: 100%\\">
-                <slot id=\\"st\\" ></slot>
-            </div>
-        <div class=\\"version\\" style=\\"\\">
-        </div>
-        "
+            <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
+                <slot id="st" ></slot>
+                </div>
+        <div class="bottom">        
+             <div class="color" style="">
+                <lit-icon name="bg-colors" size="20" color="gray"></lit-icon>
+             </div>
+             <div class="version" style="">
+             </div>
+        </div>"
 `);
-    });
+  });
 
-    it('LitMainMenu04', () => {
-        let litMainMenu = new LitMainMenu();
-        litMainMenu.menus = [
-            {
-                collapsed: true,
-                title: 'Navigation',
-                describe: 'Open or record a new trace',
-                children: [
-                    {
-                        title: 'Open trace file',
-                        icon: 'folder',
-                        fileChoose: true,
-                        fileHandler: function (ev: InputEvent) {},
-                    },
-                    {
-                        title: 'Record new trace',
-                        icon: 'copyhovered',
-                        clickHandler: function (item: MenuItem) {},
-                    },
-                ],
-            },
-        ];
-        expect(litMainMenu.menus.length).toBe(1);
-    });
+  it('LitMainMenu04', () => {
+    let litMainMenu = new LitMainMenu();
+    litMainMenu.menus = [
+      {
+        collapsed: true,
+        title: 'Navigation',
+        describe: 'Open or record a new trace',
+        children: [
+          {
+            title: 'Open trace file',
+            icon: 'folder',
+            fileChoose: true,
+            fileHandler: function (ev: InputEvent) {},
+          },
+          {
+            title: 'Record new trace',
+            icon: 'copyhovered',
+            clickHandler: function (item: MenuItem) {},
+          },
+        ],
+      },
+    ];
+    expect(litMainMenu.menus.length).toBe(1);
+  });
 });

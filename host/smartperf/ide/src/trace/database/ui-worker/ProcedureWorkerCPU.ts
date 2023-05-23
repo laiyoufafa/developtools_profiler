@@ -160,17 +160,6 @@ export class CpuRender {
         req.frame,
         req.slicesTime
       );
-      let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-      drawWakeUp(
-        req.context,
-        req.wakeupBean,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined,
-        currentCpu
-      );
     }
     // @ts-ignore
     self.postMessage({

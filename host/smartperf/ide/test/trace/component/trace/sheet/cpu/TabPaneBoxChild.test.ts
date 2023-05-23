@@ -76,23 +76,23 @@ describe('TabPaneBoxChild Test', () => {
             padding: 10px 10px;
         }
         </style>
-        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
-        <lit-table id=\\"tb-cpu-thread\\" style=\\"height: auto\\">
-            <lit-table-column order width=\\"15%\\" title=\\"StartTime(Relative)\\" data-index=\\"startTime\\" key=\\"startTime\\" align=\\"flex-start\\" order >
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-cpu-thread" style="height: auto">
+            <lit-table-column order width="15%" title="StartTime(Relative)" data-index="startTime" key="startTime" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"15%\\" title=\\"StartTime(Absolute)\\" data-index=\\"absoluteTime\\" key=\\"absoluteTime\\" align=\\"flex-start\\" order >
+            <lit-table-column order width="15%" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"20%\\" title=\\"Process\\" data-index=\\"processName\\" key=\\"processName\\" align=\\"flex-start\\" order >
+            <lit-table-column order width="20%" title="Process" data-index="processName" key="processName" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"20%\\" title=\\"Thread\\" data-index=\\"threadName\\" key=\\"threadName\\" align=\\"flex-start\\" order >
+            <lit-table-column order width="20%" title="Thread" data-index="threadName" key="threadName" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"State\\" data-index=\\"state\\" key=\\"state\\" align=\\"flex-start\\" order >
+            <lit-table-column order width="1fr" title="State" data-index="state" key="state" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"Core\\" data-index=\\"core\\" key=\\"core\\" align=\\"flex-start\\" order >
+            <lit-table-column order width="1fr" title="Core" data-index="core" key="core" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"Priority\\" data-index=\\"prior\\" key=\\"prior\\" align=\\"flex-start\\" order >
+            <lit-table-column order width="1fr" title="Priority" data-index="prior" key="prior" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width=\\"1fr\\" title=\\"Note\\" data-index=\\"note\\" key=\\"note\\" align=\\"flex-start\\" >
+            <lit-table-column order width="1fr" title="Note" data-index="note" key="note" align="flex-start" >
             </lit-table-column>
         </lit-table>
         "

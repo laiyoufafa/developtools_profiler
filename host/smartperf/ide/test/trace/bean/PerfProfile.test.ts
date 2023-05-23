@@ -45,21 +45,18 @@ describe('PerfProfile Test', () => {
 
     expect(perfFile).not.toBeUndefined();
     expect(perfFile).toMatchInlineSnapshot(
-      {
-        fileId: expect.any(Number),
-        symbol: expect.any(String),
-        path: expect.any(String),
-        fileName: expect.any(String),
-      },
-      `
-Object {
+{
+  fileId: expect.any(Number),
+  symbol: expect.any(String),
+  path: expect.any(String),
+  fileName: expect.any(String) }, `
+{
   "fileId": Any<Number>,
   "fileName": Any<String>,
   "path": Any<String>,
   "symbol": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('PerfThread Test', function () {
@@ -72,21 +69,18 @@ Object {
 
     expect(perfThread).not.toBeUndefined();
     expect(perfThread).toMatchInlineSnapshot(
-      {
-        tid: expect.any(Number),
-        pid: expect.any(Number),
-        threadName: expect.any(String),
-        processName: expect.any(String),
-      },
-      `
-Object {
+{
+  tid: expect.any(Number),
+  pid: expect.any(Number),
+  threadName: expect.any(String),
+  processName: expect.any(String) }, `
+{
   "pid": Any<Number>,
   "processName": Any<String>,
   "threadName": Any<String>,
   "tid": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('perfCallChain Test', function () {
@@ -114,29 +108,27 @@ Object {
 
     expect(perfCallChain).not.toBeUndefined();
     expect(perfCallChain).toMatchInlineSnapshot(
-      {
-        tid: expect.any(Number),
-        pid: expect.any(Number),
-        name: expect.any(String),
-        fileName: expect.any(String),
-        threadState: expect.any(String),
-        startNS: expect.any(Number),
-        dur: expect.any(Number),
-        sampleId: expect.any(Number),
-        callChainId: expect.any(Number),
-        vaddrInFile: expect.any(Number),
-        fileId: expect.any(Number),
-        symbolId: expect.any(Number),
-        parentId: expect.any(String),
-        id: expect.any(String),
-        topDownMerageId: expect.any(String),
-        topDownMerageParentId: expect.any(String),
-        bottomUpMerageId: expect.any(String),
-        bottomUpMerageParentId: expect.any(String),
-        depth: expect.any(Number),
-      },
-      `
-Object {
+{
+  tid: expect.any(Number),
+  pid: expect.any(Number),
+  name: expect.any(String),
+  fileName: expect.any(String),
+  threadState: expect.any(String),
+  startNS: expect.any(Number),
+  dur: expect.any(Number),
+  sampleId: expect.any(Number),
+  callChainId: expect.any(Number),
+  vaddrInFile: expect.any(Number),
+  fileId: expect.any(Number),
+  symbolId: expect.any(Number),
+  parentId: expect.any(String),
+  id: expect.any(String),
+  topDownMerageId: expect.any(String),
+  topDownMerageParentId: expect.any(String),
+  bottomUpMerageId: expect.any(String),
+  bottomUpMerageParentId: expect.any(String),
+  depth: expect.any(Number) }, `
+{
   "bottomUpMerageId": Any<String>,
   "bottomUpMerageParentId": Any<String>,
   "callChainId": Any<Number>,
@@ -157,8 +149,7 @@ Object {
   "topDownMerageParentId": Any<String>,
   "vaddrInFile": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('perfCallChain Test', function () {
@@ -180,23 +171,21 @@ Object {
 
     expect(perfCallChainMerageData).not.toBeUndefined();
     expect(perfCallChainMerageData).toMatchInlineSnapshot(
-      {
-        id: expect.any(String),
-        parentId: expect.any(String),
-        symbolName: expect.any(String),
-        symbol: expect.any(String),
-        libName: expect.any(String),
-        self: expect.any(String),
-        weight: expect.any(String),
-        selfDur: expect.any(Number),
-        dur: expect.any(Number),
-        tid: expect.any(Number),
-        pid: expect.any(Number),
-        type: expect.any(Number),
-        isSelected: expect.any(Boolean),
-      },
-      `
-Object {
+{
+  id: expect.any(String),
+  parentId: expect.any(String),
+  symbolName: expect.any(String),
+  symbol: expect.any(String),
+  libName: expect.any(String),
+  self: expect.any(String),
+  weight: expect.any(String),
+  selfDur: expect.any(Number),
+  dur: expect.any(Number),
+  tid: expect.any(Number),
+  pid: expect.any(Number),
+  type: expect.any(Number),
+  isSelected: expect.any(Boolean) }, `
+{
   "dur": Any<Number>,
   "id": Any<String>,
   "isSelected": Any<Boolean>,
@@ -211,8 +200,7 @@ Object {
   "type": Any<Number>,
   "weight": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('perfSample Test', function () {
@@ -234,24 +222,22 @@ Object {
     };
     expect(perfSample).not.toBeUndefined();
     expect(perfSample).toMatchInlineSnapshot(
-      {
-        sampleId: expect.any(Number),
-        time: expect.any(Number),
-        timeString: expect.any(String),
-        core: expect.any(Number),
-        coreName: expect.any(String),
-        state: expect.any(String),
-        pid: expect.any(Number),
-        processName: expect.any(String),
-        tid: expect.any(Number),
-        threadName: expect.any(String),
-        depth: expect.any(Number),
-        addr: expect.any(String),
-        fileId: expect.any(Number),
-        symbolId: expect.any(Number),
-      },
-      `
-Object {
+{
+  sampleId: expect.any(Number),
+  time: expect.any(Number),
+  timeString: expect.any(String),
+  core: expect.any(Number),
+  coreName: expect.any(String),
+  state: expect.any(String),
+  pid: expect.any(Number),
+  processName: expect.any(String),
+  tid: expect.any(Number),
+  threadName: expect.any(String),
+  depth: expect.any(Number),
+  addr: expect.any(String),
+  fileId: expect.any(Number),
+  symbolId: expect.any(Number) }, `
+{
   "addr": Any<String>,
   "core": Any<Number>,
   "coreName": Any<String>,
@@ -267,8 +253,7 @@ Object {
   "time": Any<Number>,
   "timeString": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('perfStack Test', function () {
@@ -280,21 +265,18 @@ Object {
     };
     expect(perfStack).not.toBeUndefined();
     expect(perfStack).toMatchInlineSnapshot(
-      {
-        symbol: expect.any(String),
-        path: expect.any(String),
-        fileId: expect.any(Number),
-        type: expect.any(Number),
-      },
-      `
-Object {
+{
+  symbol: expect.any(String),
+  path: expect.any(String),
+  fileId: expect.any(Number),
+  type: expect.any(Number) }, `
+{
   "fileId": Any<Number>,
   "path": Any<String>,
   "symbol": Any<String>,
   "type": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('perfCall Test', function () {
@@ -305,19 +287,16 @@ Object {
     };
     expect(perfCall).not.toBeUndefined();
     expect(perfCall).toMatchInlineSnapshot(
-      {
-        sampleId: expect.any(Number),
-        depth: expect.any(Number),
-        name: expect.any(String),
-      },
-      `
-Object {
+{
+  sampleId: expect.any(Number),
+  depth: expect.any(Number),
+  name: expect.any(String) }, `
+{
   "depth": Any<Number>,
   "name": Any<String>,
   "sampleId": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('PerfFile Test01', function () {
@@ -342,14 +321,11 @@ Object {
     };
     expect(perfCmdLine).not.toBeUndefined();
     expect(perfCmdLine).toMatchInlineSnapshot(
-      {
-        report_value: expect.any(String),
-      },
-      `
-Object {
+{
+  report_value: expect.any(String) }, `
+{
   "report_value": Any<String>,
 }
-`
-    );
+`);
   });
 });

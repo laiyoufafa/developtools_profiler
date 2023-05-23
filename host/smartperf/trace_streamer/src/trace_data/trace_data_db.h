@@ -21,10 +21,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-extern "C" {
 #include "sqlite3.h"
-}
+
 struct ElfSymbolTable {
     std::string filePath;
     uint64_t textVaddr;

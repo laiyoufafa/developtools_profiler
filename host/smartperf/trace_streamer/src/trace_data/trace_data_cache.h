@@ -32,7 +32,7 @@ public:
     ~TraceDataCache() override;
 
 private:
-    virtual void InitDB() override;
+    void InitDB() override;
     bool dbInited = false;
 };
 } // namespace TraceStreamer

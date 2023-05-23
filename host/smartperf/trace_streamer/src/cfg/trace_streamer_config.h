@@ -165,7 +165,10 @@ public:
     TraceStreamerConfig();
     ~TraceStreamerConfig() = default;
     void PrintInfo() const;
-    uint32_t GetStateValue(uint32_t state) const;
+    static uint32_t GetStateValue(uint32_t state)
+    {
+        return (state > CPU_IDEL_INVALID_VALUE ? 0 : (state + 1));
+    }
 
 public:
     std::map<SupportedTraceEventType, std::string> eventNameMap_ = {};

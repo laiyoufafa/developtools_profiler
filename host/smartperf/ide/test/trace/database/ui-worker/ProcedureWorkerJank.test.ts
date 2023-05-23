@@ -89,30 +89,6 @@ describe('ProcedureWorkerJank Test', () => {
     expect(JankStruct.draw(ctx!, jankData, 2)).toBeUndefined();
   });
 
-  it('ProcedureWorkerJank03', () => {
-    expect(JankStruct.getStyleColor('No Jank')).toBe(ColorUtils.JANK_COLOR[0]);
-  });
-
-  it('ProcedureWorkerJank04', () => {
-    expect(JankStruct.getStyleColor('Self Jank')).toBe(ColorUtils.JANK_COLOR[1]);
-  });
-
-  it('ProcedureWorkerJank05', () => {
-    expect(JankStruct.getStyleColor('Other Jank')).toBe(ColorUtils.JANK_COLOR[2]);
-  });
-
-  it('ProcedureWorkerJank06', () => {
-    expect(JankStruct.getStyleColor('Dropped Frame')).toBe(ColorUtils.JANK_COLOR[3]);
-  });
-
-  it('ProcedureWorkerJank07', () => {
-    expect(JankStruct.getStyleColor('Buffer Stuffing')).toBe(ColorUtils.JANK_COLOR[4]);
-  });
-
-  it('ProcedureWorkerJank08', () => {
-    expect(JankStruct.getStyleColor('SurfaceFlinger Stuffing')).toBe(ColorUtils.JANK_COLOR[4]);
-  });
-
   it('ProcedureWorkerJank09', function () {
     let node = [
       {

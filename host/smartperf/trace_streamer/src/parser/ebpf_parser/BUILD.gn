@@ -54,13 +54,13 @@ ohos_source_set("ebpf_parser_src") {
     "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "${OHOS_PROTO_GEN}/types/plugins/hisysevent_data",
     "${OHOS_PROTO_GEN}/types/plugins/js_memory",
-    "//third_party/protobuf/src",
-    "//third_party/sqlite/include",
+    "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/sqlite/include",
   ]
   if (is_win || is_macx) {
     include_dirs += [
-      "//third_party/perf_include/linux",
-      "//third_party/perf_include/musl",
+      "${THIRD_PARTY}/perf_include/linux",
+      "${THIRD_PARTY}/perf_include/musl",
     ]
   }
 
@@ -83,7 +83,7 @@ ohos_source_set("ebpf_parser_src") {
 group("ebpf_parser") {
   deps = [
     ":ebpf_parser_src",
-    "//third_party/protobuf:protobuf",
-    "//third_party/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/protobuf:protobuf",
+    "${THIRD_PARTY}/protobuf:protobuf_lite",
   ]
 }

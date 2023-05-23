@@ -29,7 +29,7 @@ export class TraceRowConfig extends BaseElement {
   private sceneTable: HTMLDivElement | null | undefined;
   private chartTable: HTMLDivElement | null | undefined;
   private inputElement: HTMLInputElement | null | undefined;
-  private allTraceRowList: NodeListOf<TraceRow<any>> | undefined;
+  private allTraceRowList: any;
   private traceRowList: NodeListOf<TraceRow<any>> | undefined;
   private selectTypeMap: any = {};
   private selectTypeOption: any = {};
@@ -58,9 +58,33 @@ export class TraceRowConfig extends BaseElement {
     this.selectTypeList = [];
     this.sceneTable!.innerHTML = '';
     this.chartTable!.innerHTML = '';
+    this.allTraceRowList = [];
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
-    this.allTraceRowList =
-      this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows]')!.querySelectorAll<TraceRow<any>>('trace-row');
+    let parentRows =
+      this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows]')!.querySelectorAll<TraceRow<any>>('trace-row[row-parent-id=""]');
+    if (parentRows && parentRows.length > 0) {
+      parentRows.forEach((traceRow: TraceRow<any>) => {
+        let temporaryRows: Array<TraceRow<any>> = traceRow.childrenList;
+        let temporary: Array<TraceRow<any>> = [];
+        traceRow.setAttribute('scene', '');
+        this.allTraceRowList.push(traceRow);
+        for (let index = 1; index < traceRow.depth; index++) {
+          temporary = [];
+          for (let childIndex = 0; childIndex < temporaryRows.length; childIndex++) {
+            let childrenListEl = temporaryRows[childIndex];
+            childrenListEl.setAttribute('scene', '');
+            this.allTraceRowList.push(childrenListEl);
+            if (1 !== childrenListEl.depth) {
+              temporary.push(...childrenListEl.childrenList);
+            }
+            if (childIndex === temporaryRows.length - 1) {
+              temporaryRows = [];
+              temporaryRows.push(...temporary);
+            }
+          }
+        }
+      })
+    }
     this.traceRowList =
       this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows-pane]')!.querySelectorAll<TraceRow<any>>(
         "trace-row[row-parent-id='']"
@@ -79,24 +103,21 @@ export class TraceRowConfig extends BaseElement {
         let parentRow: any = {};
         let selectParentOption: any = {};
         let selectParentRow: any = {};
-        this.allTraceRowList!.forEach((traceRow) => {
-          traceRow.setAttribute('scene', '');
-          if (traceRow.rowParentId == '') {
-            parentRow['parent'] = traceRow;
-          }
-          if (traceRow.rowType == it.name && !selectParentRow[traceRow.rowParentId!]) {
-            selectParentOption[traceRow.rowParentId!] = parentRow['parent'].name;
-            selectParentRow[traceRow.rowParentId!] = parentRow['parent'];
+        this.allTraceRowList!.forEach((traceRow: TraceRow<any>) => {
+          if (traceRow) {
+            if (traceRow.rowParentId == '') {
+              parentRow['parent'] = traceRow;
+            }
+            if (traceRow.rowType == it.name && !selectParentRow[traceRow.rowParentId!]) {
+              selectParentOption[traceRow.rowParentId!] = parentRow['parent'].name;
+              selectParentRow[traceRow.rowParentId!] = parentRow['parent'];
+            }
           }
         });
         // @ts-ignore
         this.selectTypeMap[it.name] = Object.values(selectParentRow);
         // @ts-ignore
         this.selectTypeOption[it.name] = Object.values(selectParentOption);
-      } else {
-        this.allTraceRowList!.forEach((traceRow) => {
-          traceRow.setAttribute('scene', '');
-        });
       }
     });
   }
@@ -431,7 +452,6 @@ export class TraceRowConfig extends BaseElement {
                     cursor: col-resize;
                 }
             </style>
-<!--            <div class="processBar"></div>-->
             <div class="config-title">
                <span class="title-text">Display Template</span>
                <lit-icon class="config-close" name="config-close" title="Config Close"></lit-icon>

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//src/ts.gni")
+import("../ts.gni")
 
 ohos_source_set("parser") {
   subsystem_name = "trace_streamer"
@@ -37,7 +37,7 @@ ohos_source_set("parser") {
     deps += [ "htrace_pbreader_parser:htrace_pbreader_parser" ]
   }
   include_dirs = [
-    "//third_party/protobuf/src",
+    "${THIRD_PARTY}/protobuf/src",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "${OHOS_PROTO_GEN}/types/plugins/ftrace_data/${kernel_version}",
     "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
@@ -51,17 +51,17 @@ ohos_source_set("parser") {
     "${OHOS_PROTO_GEN}/types/plugins/js_memory",
     "${OHOS_PROTO_GEN}/types/plugins/",
     "${OHOS_PROTO_GEN}",
-    "//third_party/sqlite/include",
-    "//src/base",
-    "//src/cfg",
-    "//src/trace_streamer",
-    "//src/trace_data",
-    "//src/include",
-    "//src/filter",
-    "//src",
+    "${THIRD_PARTY}/sqlite/include",
+    "${SRC}/base",
+    "${SRC}/cfg",
+    "${SRC}/trace_streamer",
+    "${SRC}/trace_data",
+    "${SRC}/include",
+    "${SRC}/filter",
+    "${SRC}",
     ".",
-    "//third_party/json-master/include",
-    "//third_party/json-master/include/nlohmann",
+    "${THIRD_PARTY}/json-master/include",
+    "${THIRD_PARTY}/json-master/include/nlohmann",
   ]
   if (is_pbdecoder) {
     include_dirs += [ "htrace_parser" ]

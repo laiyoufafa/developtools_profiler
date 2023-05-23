@@ -42,21 +42,18 @@ describe('EnergyStruct Test', () => {
     };
     expect(energyAnomalyStruct).not.toBeUndefined();
     expect(energyAnomalyStruct).toMatchInlineSnapshot(
-      {
-        type: expect.any(Number),
-        startNS: expect.any(Number),
-        height: expect.any(Number),
-        eventName: expect.any(String),
-      },
-      `
-Object {
+{
+  type: expect.any(Number),
+  startNS: expect.any(Number),
+  height: expect.any(Number),
+  eventName: expect.any(String) }, `
+{
   "eventName": Any<String>,
   "height": Any<Number>,
   "startNS": Any<Number>,
   "type": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('energySystemStructTest', function () {
@@ -70,16 +67,14 @@ Object {
     };
     expect(energySystemStruct).not.toBeUndefined();
     expect(energySystemStruct).toMatchInlineSnapshot(
-      {
-        type: expect.any(Number),
-        startNs: expect.any(Number),
-        dur: expect.any(Number),
-        workScheduler: expect.any(String),
-        power: expect.any(String),
-        location: expect.any(String),
-      },
-      `
-Object {
+{
+  type: expect.any(Number),
+  startNs: expect.any(Number),
+  dur: expect.any(Number),
+  workScheduler: expect.any(String),
+  power: expect.any(String),
+  location: expect.any(String) }, `
+{
   "dur": Any<Number>,
   "location": Any<String>,
   "power": Any<String>,
@@ -87,8 +82,7 @@ Object {
   "type": Any<Number>,
   "workScheduler": Any<String>,
 }
-`
-    );
+`);
   });
 
   it('energyPowerStructTest', function () {
@@ -108,22 +102,20 @@ Object {
     };
     expect(energyPowerStruct).not.toBeUndefined();
     expect(energyPowerStruct).toMatchInlineSnapshot(
-      {
-        type: expect.any(Number),
-        name: expect.any(String),
-        ts: expect.any(Number),
-        cpu: expect.any(Number),
-        location: expect.any(Number),
-        gpu: expect.any(Number),
-        display: expect.any(Number),
-        camera: expect.any(Number),
-        bluetooth: expect.any(Number),
-        flashlight: expect.any(Number),
-        audio: expect.any(Number),
-        wifiscan: expect.any(Number),
-      },
-      `
-Object {
+{
+  type: expect.any(Number),
+  name: expect.any(String),
+  ts: expect.any(Number),
+  cpu: expect.any(Number),
+  location: expect.any(Number),
+  gpu: expect.any(Number),
+  display: expect.any(Number),
+  camera: expect.any(Number),
+  bluetooth: expect.any(Number),
+  flashlight: expect.any(Number),
+  audio: expect.any(Number),
+  wifiscan: expect.any(Number) }, `
+{
   "audio": Any<Number>,
   "bluetooth": Any<Number>,
   "camera": Any<Number>,
@@ -137,8 +129,7 @@ Object {
   "type": Any<Number>,
   "wifiscan": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('energyStateStructTest', function () {
@@ -150,21 +141,18 @@ Object {
     };
     expect(energyStateStruct).not.toBeUndefined();
     expect(energyStateStruct).toMatchInlineSnapshot(
-      {
-        type: expect.any(String),
-        startNs: expect.any(Number),
-        dur: expect.any(Number),
-        value: expect.any(Number),
-      },
-      `
-Object {
+{
+  type: expect.any(String),
+  startNs: expect.any(Number),
+  dur: expect.any(Number),
+  value: expect.any(Number) }, `
+{
   "dur": Any<Number>,
   "startNs": Any<Number>,
   "type": Any<String>,
   "value": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('powerDetailsEnergyTest', function () {
@@ -198,36 +186,34 @@ Object {
     };
     expect(powerDetailsEnergy).not.toBeUndefined();
     expect(powerDetailsEnergy).toMatchInlineSnapshot(
-      {
-        event: expect.any(String),
-        charge: expect.any(Number),
-        background_time: expect.any(Number),
-        screen_on_time: expect.any(Number),
-        screen_off_time: expect.any(Number),
-        load: expect.any(String),
-        usage: expect.any(Number),
-        duration: expect.any(Number),
-        camera_id: expect.any(Number),
-        foreground_count: expect.any(Number),
-        background_count: expect.any(Number),
-        screen_on_count: expect.any(Number),
-        screen_off_count: expect.any(Number),
-        count: expect.any(Number),
-        appName: expect.any(String),
-        uid: expect.any(Number),
-        foreground_duration: expect.any(Number),
-        foreground_energy: expect.any(Number),
-        background_duration: expect.any(Number),
-        background_energy: expect.any(Number),
-        screen_on_duration: expect.any(Number),
-        screen_on_energy: expect.any(Number),
-        screen_off_duration: expect.any(Number),
-        screen_off_energy: expect.any(Number),
-        energy: expect.any(Number),
-        energyConsumptionRatio: expect.any(String),
-      },
-      `
-Object {
+{
+  event: expect.any(String),
+  charge: expect.any(Number),
+  background_time: expect.any(Number),
+  screen_on_time: expect.any(Number),
+  screen_off_time: expect.any(Number),
+  load: expect.any(String),
+  usage: expect.any(Number),
+  duration: expect.any(Number),
+  camera_id: expect.any(Number),
+  foreground_count: expect.any(Number),
+  background_count: expect.any(Number),
+  screen_on_count: expect.any(Number),
+  screen_off_count: expect.any(Number),
+  count: expect.any(Number),
+  appName: expect.any(String),
+  uid: expect.any(Number),
+  foreground_duration: expect.any(Number),
+  foreground_energy: expect.any(Number),
+  background_duration: expect.any(Number),
+  background_energy: expect.any(Number),
+  screen_on_duration: expect.any(Number),
+  screen_on_energy: expect.any(Number),
+  screen_off_duration: expect.any(Number),
+  screen_off_energy: expect.any(Number),
+  energy: expect.any(Number),
+  energyConsumptionRatio: expect.any(String) }, `
+{
   "appName": Any<String>,
   "background_count": Any<Number>,
   "background_duration": Any<Number>,
@@ -255,8 +241,7 @@ Object {
   "uid": Any<Number>,
   "usage": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('powerBatteryEnergyTest', function () {
@@ -272,18 +257,16 @@ Object {
     };
     expect(powerBatteryEnergy).not.toBeUndefined();
     expect(powerBatteryEnergy).toMatchInlineSnapshot(
-      {
-        gasGauge: expect.any(Number),
-        charge: expect.any(Number),
-        screen: expect.any(Number),
-        level: expect.any(Number),
-        current: expect.any(Number),
-        capacity: expect.any(Number),
-        appName: expect.any(String),
-        uid: expect.any(Number),
-      },
-      `
-Object {
+{
+  gasGauge: expect.any(Number),
+  charge: expect.any(Number),
+  screen: expect.any(Number),
+  level: expect.any(Number),
+  current: expect.any(Number),
+  capacity: expect.any(Number),
+  appName: expect.any(String),
+  uid: expect.any(Number) }, `
+{
   "appName": Any<String>,
   "capacity": Any<Number>,
   "charge": Any<Number>,
@@ -293,8 +276,7 @@ Object {
   "screen": Any<Number>,
   "uid": Any<Number>,
 }
-`
-    );
+`);
   });
 
   it('systemDetailsEnergyTest', function () {
@@ -314,22 +296,20 @@ Object {
     };
     expect(systemDetailsEnergy).not.toBeUndefined();
     expect(systemDetailsEnergy).toMatchInlineSnapshot(
-      {
-        eventName: expect.any(String),
-        type: expect.any(String),
-        pid: expect.any(Number),
-        uid: expect.any(Number),
-        state: expect.any(Number),
-        workId: expect.any(String),
-        name: expect.any(String),
-        interval: expect.any(Number),
-        level: expect.any(Number),
-        tag: expect.any(String),
-        message: expect.any(String),
-        log_level: expect.any(String),
-      },
-      `
-Object {
+{
+  eventName: expect.any(String),
+  type: expect.any(String),
+  pid: expect.any(Number),
+  uid: expect.any(Number),
+  state: expect.any(Number),
+  workId: expect.any(String),
+  name: expect.any(String),
+  interval: expect.any(Number),
+  level: expect.any(Number),
+  tag: expect.any(String),
+  message: expect.any(String),
+  log_level: expect.any(String) }, `
+{
   "eventName": Any<String>,
   "interval": Any<Number>,
   "level": Any<Number>,
@@ -343,7 +323,6 @@ Object {
   "uid": Any<Number>,
   "workId": Any<String>,
 }
-`
-    );
+`);
   });
 });

@@ -33,6 +33,8 @@ SpanJoin::SpanJoin(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_ = {};
     tablePriKey_ = {};
+    tableFirstDesc_ = {};
+    tableSecondDesc_ = {};
 }
 
 void SpanJoin::Init(int32_t argc, const char* const* argv)
@@ -134,7 +136,7 @@ bool SpanJoin::IsTsOrDurCol(const std::string& name)
     return false;
 }
 
-void SpanJoin::GetTableField(TableParse& tableParse, TableDesc& tableDesc)
+void SpanJoin::GetTableField(const TableParse& tableParse, TableDesc& tableDesc)
 {
     std::vector<TableBase::ColumnInfo> cols;
     GetColumns(dataCache_, tableParse.name, cols);

@@ -70,7 +70,7 @@ class GpuCounterObject : public CacheBase {
 public:
     GpuCounterObject() = default;
     ~GpuCounterObject() = default;
-    void AppendNewData(int32_t counterId, std::string counterName);
+    void AppendNewData(int32_t counterId, const std::string counterName);
     const std::deque<int32_t>& CounterId() const;
     const std::deque<std::string>& CounterName() const;
 
@@ -134,7 +134,7 @@ public:
     void SetParserToolPublishDateTime(const std::string& datetime);
     const std::string& Value(uint64_t row) const;
     const std::string& Name(uint64_t row) const;
-    virtual void Clear() override
+    void Clear() override
     {
         columnNames_.clear();
         values_.clear();

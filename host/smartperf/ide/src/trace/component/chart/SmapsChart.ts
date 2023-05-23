@@ -115,6 +115,6 @@ export class SmapsChart {
       );
       traceRow.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(traceRow);
+    nodeRow.addChildTraceRow(traceRow);
   };
 }

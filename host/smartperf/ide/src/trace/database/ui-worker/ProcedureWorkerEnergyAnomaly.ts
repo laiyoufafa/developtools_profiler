@@ -15,344 +15,281 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
-    BaseStruct,
-    drawFlagLine,
-    drawLines,
-    drawLoading,
-    drawSelection,
-    isFrameContainPoint,
-    PerfRender,
-    RequestMessage,
+  BaseStruct,
+  drawFlagLine,
+  drawLines,
+  drawLoading,
+  drawSelection,
+  isFrameContainPoint,
+  PerfRender,
+  RequestMessage,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
 export class EnergyAnomalyRender extends PerfRender {
-    renderMainThread(
-        req: {
-            useCache: boolean;
-            context: CanvasRenderingContext2D;
-            type: string;
-            appName: string;
-            canvasWidth: number;
-        },
-        row: TraceRow<EnergyAnomalyStruct>
-    ) {
-        let list = row.dataList;
-        let filter = row.dataListCache;
-        anomaly(
-            list,
-            filter,
-            TraceRow.range!.startNS,
-            TraceRow.range!.endNS,
-            TraceRow.range!.totalNS,
-            row.frame,
-            req.appName,
-            req.useCache || !TraceRow.range!.refresh
-        );
-        req.context.beginPath();
-        let find = false;
-        let spApplication = document.getElementsByTagName('sp-application')[0];
-        let isDark = spApplication.hasAttribute('dark');
-        drawLegend(req, isDark);
-        for (let re of filter) {
-            EnergyAnomalyStruct.draw(req.context, re);
-            if (
-                row.isHover &&
-                re.frame &&
-                isFrameContainPoint(re.frame, row.hoverX, row.hoverY)
-            ) {
-                EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
-                find = true;
-            }
-        }
-        if (!find && row.isHover)
-            EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
-        req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-        req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
-        req.context.closePath();
+  renderMainThread(
+    req: {
+      useCache: boolean;
+      context: CanvasRenderingContext2D;
+      type: string;
+      appName: string;
+      canvasWidth: number;
+    },
+    row: TraceRow<EnergyAnomalyStruct>
+  ) {
+    let list = row.dataList;
+    let filter = row.dataListCache;
+    anomaly(
+      list,
+      filter,
+      TraceRow.range!.startNS,
+      TraceRow.range!.endNS,
+      TraceRow.range!.totalNS,
+      row.frame,
+      req.appName,
+      req.useCache || !TraceRow.range!.refresh
+    );
+    req.context.beginPath();
+    let find = false;
+    let spApplication = document.getElementsByTagName('sp-application')[0];
+    let isDark = spApplication.hasAttribute('dark');
+    drawLegend(req, isDark);
+    for (let re of filter) {
+      EnergyAnomalyStruct.draw(req.context, re);
+      if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+        EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
+        find = true;
+      }
     }
+    if (!find && row.isHover) EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
+    req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+    req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+    req.context.closePath();
+  }
 
-    render(
-        req: RequestMessage,
-        list: Array<any>,
-        filter: Array<any>,
-        dataList2: Array<any>
-    ) {
-        if (req.lazyRefresh) {
-            anomaly(
-                list,
-                filter,
-                req.startNS,
-                req.endNS,
-                req.totalNS,
-                req.frame,
-                req.params.appName,
-                req.useCache || !req.range.refresh
-            );
-        } else {
-            if (!req.useCache) {
-                anomaly(
-                    list,
-                    filter,
-                    req.startNS,
-                    req.endNS,
-                    req.totalNS,
-                    req.frame,
-                    req.params.appName,
-                    false
-                );
-            }
-        }
-        if (req.canvas) {
-            req.context.clearRect(0, 0, req.canvas.width, req.canvas.height);
-            let arr = filter;
-            if (
-                arr.length > 0 &&
-                !req.range.refresh &&
-                !req.useCache &&
-                req.lazyRefresh
-            ) {
-                drawLoading(
-                    req.context,
-                    req.startNS,
-                    req.endNS,
-                    req.totalNS,
-                    req.frame,
-                    arr[0].startNS,
-                    arr[arr.length - 1].startNS
-                );
-            }
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-            req.context.stroke();
-            req.context.beginPath();
-            EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
-            if (req.isHover) {
-                let offset = 3;
-                for (let re of filter) {
-                    if (
-                        re.frame &&
-                        req.hoverX >= re.frame.x - offset &&
-                        req.hoverX <= re.frame.x + re.frame.width + offset
-                    ) {
-                        EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
-                        break;
-                    }
-                }
-            } else {
-                EnergyAnomalyStruct.hoverEnergyAnomalyStruct =
-                    req.params.hoverStruct;
-            }
-            EnergyAnomalyStruct.selectEnergyAnomalyStruct =
-                req.params.selectEnergyAnomalyStruct;
-            req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-            req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
-            for (let re of filter) {
-                EnergyAnomalyStruct.draw(req.context, re);
-            }
-            drawLegend(req);
-            drawSelection(req.context, req.params);
-            req.context.closePath();
-            drawFlagLine(
-                req.context,
-                req.flagMoveInfo,
-                req.flagSelectedInfo,
-                req.startNS,
-                req.endNS,
-                req.totalNS,
-                req.frame,
-                req.slicesTime
-            );
-        }
-        // @ts-ignore
-        self.postMessage({
-            id: req.id,
-            type: req.type,
-            results: req.canvas ? undefined : filter,
-            hover: EnergyAnomalyStruct.hoverEnergyAnomalyStruct,
-        });
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    if (req.lazyRefresh) {
+      anomaly(
+        list,
+        filter,
+        req.startNS,
+        req.endNS,
+        req.totalNS,
+        req.frame,
+        req.params.appName,
+        req.useCache || !req.range.refresh
+      );
+    } else {
+      if (!req.useCache) {
+        anomaly(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.params.appName, false);
+      }
     }
+    if (req.canvas) {
+      req.context.clearRect(0, 0, req.canvas.width, req.canvas.height);
+      let arr = filter;
+      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+        drawLoading(
+          req.context,
+          req.startNS,
+          req.endNS,
+          req.totalNS,
+          req.frame,
+          arr[0].startNS,
+          arr[arr.length - 1].startNS
+        );
+      }
+      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      req.context.stroke();
+      req.context.beginPath();
+      EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
+      if (req.isHover) {
+        let offset = 3;
+        for (let re of filter) {
+          if (re.frame && req.hoverX >= re.frame.x - offset && req.hoverX <= re.frame.x + re.frame.width + offset) {
+            EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
+            break;
+          }
+        }
+      } else {
+        EnergyAnomalyStruct.hoverEnergyAnomalyStruct = req.params.hoverStruct;
+      }
+      EnergyAnomalyStruct.selectEnergyAnomalyStruct = req.params.selectEnergyAnomalyStruct;
+      req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+      req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+      for (let re of filter) {
+        EnergyAnomalyStruct.draw(req.context, re);
+      }
+      drawLegend(req);
+      drawSelection(req.context, req.params);
+      req.context.closePath();
+      drawFlagLine(
+        req.context,
+        req.flagMoveInfo,
+        req.flagSelectedInfo,
+        req.startNS,
+        req.endNS,
+        req.totalNS,
+        req.frame,
+        req.slicesTime
+      );
+    }
+    // @ts-ignore
+    self.postMessage({
+      id: req.id,
+      type: req.type,
+      results: req.canvas ? undefined : filter,
+      hover: EnergyAnomalyStruct.hoverEnergyAnomalyStruct,
+    });
+  }
 }
 
 export function drawLegend(req: any, isDark?: boolean) {
-    req.context.font = '12px Arial';
-    let text = req.context.measureText('System Abnormality');
-    req.context.fillStyle = '#E64566';
-    req.context.strokeStyle = '#E64566';
-    let textColor = isDark ? '#FFFFFF' : '#333';
-    let canvasEndX =
-        req.context.canvas.clientWidth - EnergyAnomalyStruct.OFFSET_WIDTH;
-    let rectPadding: number;
-    let textPadding: number;
-    let textMargin: number;
-    let currentTextWidth: number;
-    let lastTextMargin: number;
-    rectPadding = 280;
-    textPadding = 270;
-    textMargin = 250;
-    currentTextWidth = canvasEndX - textMargin + text.width;
-    lastTextMargin = currentTextWidth + 12;
-    req!.context.fillRect(canvasEndX - rectPadding, 12, 8, 8);
-    req.context.globalAlpha = 1;
-    req.context.fillStyle = textColor;
-    req.context.textBaseline = 'middle';
-    req.context.fillText('System Abnormality', canvasEndX - textPadding, 18);
-    req.context.fillStyle = '#FFC880';
-    req.context.strokeStyle = '#FFC880';
-    req.context.fillRect(currentTextWidth, 12, 8, 8);
-    req.context.globalAlpha = 1;
-    req.context.fillStyle = textColor;
-    req.context.textBaseline = 'middle';
-    req.context.fillText('Application Abnormality', lastTextMargin, 18);
-    req.context.fillStyle = '#333';
+  req.context.font = '12px Arial';
+  let text = req.context.measureText('System Abnormality');
+  req.context.fillStyle = '#E64566';
+  req.context.strokeStyle = '#E64566';
+  let textColor = isDark ? '#FFFFFF' : '#333';
+  let canvasEndX = req.context.canvas.clientWidth - EnergyAnomalyStruct.OFFSET_WIDTH;
+  let rectPadding: number;
+  let textPadding: number;
+  let textMargin: number;
+  let currentTextWidth: number;
+  let lastTextMargin: number;
+  rectPadding = 280;
+  textPadding = 270;
+  textMargin = 250;
+  currentTextWidth = canvasEndX - textMargin + text.width;
+  lastTextMargin = currentTextWidth + 12;
+  req!.context.fillRect(canvasEndX - rectPadding, 12, 8, 8);
+  req.context.globalAlpha = 1;
+  req.context.fillStyle = textColor;
+  req.context.textBaseline = 'middle';
+  req.context.fillText('System Abnormality', canvasEndX - textPadding, 18);
+  req.context.fillStyle = '#FFC880';
+  req.context.strokeStyle = '#FFC880';
+  req.context.fillRect(currentTextWidth, 12, 8, 8);
+  req.context.globalAlpha = 1;
+  req.context.fillStyle = textColor;
+  req.context.textBaseline = 'middle';
+  req.context.fillText('Application Abnormality', lastTextMargin, 18);
+  req.context.fillStyle = '#333';
 }
 
 export function anomaly(
-    arr: Array<any>,
-    res: Array<any>,
-    startNS: number,
-    endNS: number,
-    totalNS: number,
-    frame: any,
-    appName: string | undefined,
-    use: boolean
+  arr: Array<any>,
+  res: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any,
+  appName: string | undefined,
+  use: boolean
 ) {
-    if (use && res.length > 0) {
-        let pns = (endNS - startNS) / frame.width;
-        let y = frame.y;
-        for (let i = 0; i < res.length; i++) {
-            let it = res[i];
-            if ((it.startNS || 0) > startNS && (it.startNS || 0) < endNS) {
-                if (!it.frame) {
-                    it.frame = {};
-                    it.frame.y = y;
-                }
-                it.frame.height = it.height;
-                EnergyAnomalyStruct.setAnomalyFrame(
-                    it,
-                    pns,
-                    startNS,
-                    endNS,
-                    frame
-                );
-            } else {
-                it.frame = null;
-            }
+  if (use && res.length > 0) {
+    let pns = (endNS - startNS) / frame.width;
+    let y = frame.y;
+    for (let i = 0; i < res.length; i++) {
+      let it = res[i];
+      if ((it.startNS || 0) > startNS && (it.startNS || 0) < endNS) {
+        if (!it.frame) {
+          it.frame = {};
+          it.frame.y = y;
         }
-        return;
+        it.frame.height = it.height;
+        EnergyAnomalyStruct.setAnomalyFrame(it, pns, startNS, endNS, frame);
+      } else {
+        it.frame = null;
+      }
     }
+    return;
+  }
 
-    res.length = 0;
-    if (arr) {
-        let y = frame.y;
-        let pns = (endNS - startNS) / frame.width;
-        for (let index = 0; index < arr.length; index++) {
-            let item = arr[index];
-            if (!item.frame) {
-                item.frame = {};
-                item.frame.y = y;
-            }
-            item.frame.height = item.height;
-            if (
-                item.startNS + 50000 > (startNS || 0) &&
-                (item.startNS || 0) < (endNS || 0)
-            ) {
-                EnergyAnomalyStruct.setAnomalyFrame(
-                    item,
-                    pns,
-                    startNS || 0,
-                    endNS || 0,
-                    frame
-                );
-                if (
-                    item.appKey === 'APPNAME' &&
-                    item.Value.split(',').indexOf(appName) >= 0
-                ) {
-                    res.push(item);
-                }
-                if (item.appKey != 'APPNAME') {
-                    res.push(item);
-                }
-            }
+  res.length = 0;
+  if (arr) {
+    let y = frame.y;
+    let pns = (endNS - startNS) / frame.width;
+    for (let index = 0; index < arr.length; index++) {
+      let item = arr[index];
+      if (!item.frame) {
+        item.frame = {};
+        item.frame.y = y;
+      }
+      item.frame.height = item.height;
+      if (item.startNS + 50000 > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
+        EnergyAnomalyStruct.setAnomalyFrame(item, pns, startNS || 0, endNS || 0, frame);
+        if (item.appKey === 'APPNAME' && item.Value.split(',').indexOf(appName) >= 0) {
+          res.push(item);
         }
+        if (item.appKey != 'APPNAME') {
+          res.push(item);
+        }
+      }
     }
+  }
 }
 
 export class EnergyAnomalyStruct extends BaseStruct {
-    static hoverEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
-    static selectEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
-    static SYSTEM_EXCEPTION = new Set([
-        'ANOMALY_SCREEN_OFF_ENERGY',
-        'ANOMALY_ALARM_WAKEUP',
-        'ANOMALY_KERNEL_WAKELOCK',
-        'ANOMALY_CPU_HIGH_FREQUENCY',
-        'ANOMALY_WAKEUP',
-    ]);
-    static OFFSET_WIDTH: number = 266;
-    type: number | undefined;
-    startNS: number | undefined;
-    height: number | undefined;
-    eventName: string | undefined;
+  static hoverEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
+  static selectEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
+  static SYSTEM_EXCEPTION = new Set([
+    'ANOMALY_SCREEN_OFF_ENERGY',
+    'ANOMALY_ALARM_WAKEUP',
+    'ANOMALY_KERNEL_WAKELOCK',
+    'ANOMALY_CPU_HIGH_FREQUENCY',
+    'ANOMALY_WAKEUP',
+  ]);
+  static OFFSET_WIDTH: number = 266;
+  type: number | undefined;
+  startNS: number | undefined;
+  height: number | undefined;
+  eventName: string | undefined;
 
-    static draw(ctx: CanvasRenderingContext2D, data: EnergyAnomalyStruct) {
-        if (data.frame) {
-            EnergyAnomalyStruct.drawRoundRectPath(
-                ctx,
-                data.frame.x - 7,
-                20 - 7,
-                12,
-                data
-            );
-        }
+  static draw(ctx: CanvasRenderingContext2D, data: EnergyAnomalyStruct) {
+    if (data.frame) {
+      EnergyAnomalyStruct.drawRoundRectPath(ctx, data.frame.x - 7, 20 - 7, 12, data);
     }
+  }
 
-    static drawRoundRectPath(
-        ctx: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-        radius: number,
-        data: EnergyAnomalyStruct
-    ) {
-        ctx.beginPath();
-        ctx.arc(x + 7, y + 22, radius, 0, Math.PI * 2);
-        ctx.closePath();
-        let color = '';
-        if (EnergyAnomalyStruct.SYSTEM_EXCEPTION.has(<string>data.eventName)) {
-            color = '#E64566';
-        } else {
-            color = '#FFC880';
-        }
-        // 填充背景颜色
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.stroke();
-        // 填充文字颜色
-        ctx.font = '12px Arial';
-        ctx.fillStyle = ColorUtils.GREY_COLOR;
-        ctx.textAlign = 'center';
-        ctx.fillText('E', x + 7, y + 23);
+  static drawRoundRectPath(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    radius: number,
+    data: EnergyAnomalyStruct
+  ) {
+    ctx.beginPath();
+    ctx.arc(x + 7, y + 22, radius, 0, Math.PI * 2);
+    ctx.closePath();
+    let color = '';
+    if (EnergyAnomalyStruct.SYSTEM_EXCEPTION.has(<string>data.eventName)) {
+      color = '#E64566';
+    } else {
+      color = '#FFC880';
     }
+    // 填充背景颜色
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.stroke();
+    // 填充文字颜色
+    ctx.font = '12px Arial';
+    ctx.fillStyle = ColorUtils.GREY_COLOR;
+    ctx.textAlign = 'center';
+    ctx.fillText('E', x + 7, y + 23);
+  }
 
-    static setAnomalyFrame(
-        node: any,
-        pns: number,
-        startNS: number,
-        endNS: number,
-        frame: any
-    ) {
-        if ((node.startNS || 0) < startNS) {
-            node.frame.x = 0;
-        } else {
-            node.frame.x = Math.floor(((node.startNS || 0) - startNS) / pns);
-        }
-        if ((node.startNS || 0) > endNS) {
-            node.frame.width = frame.width - node.frame.x;
-        } else {
-            node.frame.width = Math.ceil(
-                ((node.startNS || 0) - startNS) / pns - node.frame.x
-            );
-        }
-        if (node.frame.width < 1) {
-            node.frame.width = 1;
-        }
+  static setAnomalyFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+    if ((node.startNS || 0) < startNS) {
+      node.frame.x = 0;
+    } else {
+      node.frame.x = Math.floor(((node.startNS || 0) - startNS) / pns);
     }
+    if ((node.startNS || 0) > endNS) {
+      node.frame.width = frame.width - node.frame.x;
+    } else {
+      node.frame.width = Math.ceil(((node.startNS || 0) - startNS) / pns - node.frame.x);
+    }
+    if (node.frame.width < 1) {
+      node.frame.width = 1;
+    }
+  }
 }

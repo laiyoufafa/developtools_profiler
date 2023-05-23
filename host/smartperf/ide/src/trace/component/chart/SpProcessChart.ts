@@ -141,7 +141,7 @@ export class SpProcessChart {
           );
           funcRow.canvasRestore(context);
         };
-        this.trace.rowsEL?.appendChild(funcRow);
+        row.addChildTraceRow(funcRow);
       }
     });
   };
@@ -309,7 +309,7 @@ export class SpProcessChart {
             );
             expectedRow!.canvasRestore(context);
           };
-          this.insertAfter(expectedRow, processRow);
+          processRow.addChildTraceRow(expectedRow);
           let actualData = allActualProcess.filter((ite) => ite.pid == it.pid);
           if (actualData.length > 0) {
             let isIntersect = (a: any, b: any) =>
@@ -354,6 +354,7 @@ export class SpProcessChart {
             actualRow.name = `Actual Timeline`;
             actualRow.setAttribute('frame_type', actualData[0].frame_type);
             actualRow.setAttribute('children', '');
+            actualRow.dataList = actualData;
             actualRow.supplier = () => new Promise((resolve) => resolve(actualData));
             actualRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             actualRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -370,74 +371,92 @@ export class SpProcessChart {
               );
               actualRow!.canvasRestore(context);
             };
-            this.insertAfter(actualRow, expectedRow);
-            processRow.addEventListener('expansion-change', (e: any) => {
-              if (e.detail.expansion) {
-                if (JankStruct!.selectJankStruct) {
-                  JankStruct.delJankLineFlag = true;
-                } else {
-                  JankStruct.delJankLineFlag = false;
-                }
-                this.trace.linkNodes.forEach((linkNode) => {
-                  JankStruct.selectJankStructList?.forEach((dat: any) => {
-                    if (e.detail.rowId == dat.pid) {
-                      JankStruct.selectJankStruct = dat;
-                      JankStruct.hoverJankStruct = dat;
-                    }
-                  });
-                  if (linkNode[0].rowEL.rowId == e.detail.rowId) {
-                    linkNode[0] = {
-                      x: ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!),
-                      y: actualRow!.translateY! + linkNode[0].offsetY * 2,
-                      offsetY: linkNode[0].offsetY * 2,
-                      ns: linkNode[0].ns,
-                      rowEL: actualRow!,
-                      isRight: true,
-                    };
-                  } else if (linkNode[1].rowEL.rowId == e.detail.rowId) {
-                    linkNode[1] = {
-                      x: ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!),
-                      y: actualRow!.translateY! + linkNode[1].offsetY * 2,
-                      offsetY: linkNode[1].offsetY * 2,
-                      ns: linkNode[1].ns,
-                      rowEL: actualRow!,
-                      isRight: true,
-                    };
-                  }
-                });
-                this.trace.refreshCanvas(true);
-              } else {
-                JankStruct.delJankLineFlag = false;
-                if (JankStruct!.selectJankStruct) {
-                  JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
-                }
-                this.trace.linkNodes?.forEach((linkNode) => {
-                  if (linkNode[0].rowEL.rowParentId == e.detail.rowId) {
-                    linkNode[0] = {
-                      x: ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!),
-                      y: processRow!.translateY! + linkNode[0].offsetY / 2,
-                      offsetY: linkNode[0].offsetY / 2,
-                      ns: linkNode[0].ns,
-                      rowEL: processRow,
-                      isRight: true,
-                    };
-                  } else if (linkNode[1].rowEL.rowParentId == e.detail.rowId) {
-                    linkNode[1] = {
-                      x: ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!),
-                      y: processRow!.translateY! + linkNode[1].offsetY / 2,
-                      offsetY: linkNode[1].offsetY / 2,
-                      ns: linkNode[1].ns,
-                      rowEL: processRow,
-                      isRight: true,
-                    };
-                  }
-                });
-                this.trace.refreshCanvas(true);
-              }
-            });
+            processRow.addChildTraceRow(actualRow);
           }
         }
       }
+      let offsetYTimeOut: any = undefined;
+      processRow.addEventListener('expansion-change', (e: any) => {
+        if (offsetYTimeOut) {
+          clearTimeout(offsetYTimeOut);
+        }
+        if (e.detail.expansion) {
+          if (JankStruct!.selectJankStruct) {
+            JankStruct.delJankLineFlag = true;
+          } else {
+            JankStruct.delJankLineFlag = false;
+          }
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes.forEach((linkNode) => {
+              JankStruct.selectJankStructList?.forEach((dat: any) => {
+                if (e.detail.rowId == dat.pid) {
+                  JankStruct.selectJankStruct = dat;
+                  JankStruct.hoverJankStruct = dat;
+                }
+              });
+              if (linkNode[0].rowEL.collect) {
+                linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
+              if (linkNode[1].rowEL.collect) {
+                linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+              if (linkNode[0].rowEL.rowId == e.detail.rowId) {
+                linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
+                linkNode[0].y = actualRow!.translateY! + linkNode[0].offsetY * 2;
+                linkNode[0].offsetY = linkNode[0].offsetY * 2;
+                linkNode[0].rowEL = actualRow!;
+              } else if (linkNode[1].rowEL.rowId == e.detail.rowId) {
+                linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
+                linkNode[1].y = actualRow!.translateY! + linkNode[1].offsetY * 2;
+                linkNode[1].offsetY = linkNode[1].offsetY * 2;
+                linkNode[1].rowEL = actualRow!;
+              }
+            });
+          }, 300);
+        } else {
+          JankStruct.delJankLineFlag = false;
+          if (JankStruct!.selectJankStruct) {
+            JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
+          }
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes?.forEach((linkNode) => {
+              if (linkNode[0].rowEL.collect) {
+                linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
+              if (linkNode[1].rowEL.collect) {
+                linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+              if (linkNode[0].rowEL.rowParentId == e.detail.rowId) {
+                linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
+                linkNode[0].y = processRow!.translateY! + linkNode[0].offsetY / 2;
+                linkNode[0].offsetY = linkNode[0].offsetY / 2;
+                linkNode[0].rowEL = processRow!;
+              } else if (linkNode[1].rowEL.rowParentId == e.detail.rowId) {
+                linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
+                linkNode[1].y = processRow!.translateY! + linkNode[1].offsetY / 2;
+                linkNode[1].offsetY = linkNode[1].offsetY / 2;
+                linkNode[1].rowEL = processRow!;
+              }
+            });
+          }, 300);
+        }
+        let refreshTimeOut = setTimeout(() => {
+          this.trace.refreshCanvas(true);
+          clearTimeout(refreshTimeOut);
+        }, 360);
+      });
       /**
        * Async Function
        */
@@ -497,7 +516,7 @@ export class SpProcessChart {
             );
             funcRow.canvasRestore(context);
           };
-          this.trace.rowsEL?.appendChild(funcRow);
+          processRow.addChildTraceRow(funcRow);
         }
       });
 
@@ -555,7 +574,7 @@ export class SpProcessChart {
           );
           row.canvasRestore(context);
         };
-        this.trace.rowsEL?.appendChild(row);
+        processRow.addChildTraceRow(row);
       });
       /**
        * add thread list
@@ -600,14 +619,14 @@ export class SpProcessChart {
         };
         if (threadRow.rowId == threadRow.rowParentId) {
           if (actualRow != null) {
-            this.insertAfter(threadRow, actualRow);
+            processRow.addChildTraceRowAfter(threadRow, actualRow);
           } else if (expectedRow != null) {
-            this.insertAfter(threadRow, expectedRow);
+            processRow.addChildTraceRowAfter(threadRow, expectedRow);
           } else {
-            this.insertAfter(threadRow, processRow);
+            processRow.addChildTraceRowSpecifyLocation(threadRow, 0);
           }
         } else {
-          this.trace.rowsEL?.appendChild(threadRow);
+          processRow.addChildTraceRow(threadRow);
         }
         if (this.threadFuncMaxDepthMap.get(thread.tid!) != undefined) {
           let max = this.threadFuncMaxDepthMap.get(thread.tid!) || 1;
@@ -663,7 +682,7 @@ export class SpProcessChart {
             );
             funcRow.canvasRestore(context);
           };
-          this.insertAfter(funcRow, threadRow);
+          processRow.addChildTraceRowAfter(funcRow, threadRow);
         }
       }
     }

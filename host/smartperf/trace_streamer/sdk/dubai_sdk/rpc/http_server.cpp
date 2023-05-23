@@ -101,7 +101,7 @@ void HttpServer::Run(int32_t port)
         }
     }
 
-    for (auto& it : clientThreads_) {
+    for (const auto& it : clientThreads_) {
         if (it->thread_.joinable()) {
             it->sock_.Close();
             it->thread_.join();

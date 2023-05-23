@@ -255,12 +255,12 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
         codePrinter_->Print("bool has_$name$() const { return at<$id$>().DataAreaValid(); }\n", "name",
                             field->lowercase_name(), "id", std::to_string(field->number()));
         if (field->is_packed()) {
-            TypeDesc typeDesc{};
-            auto t = fieldTypeDesc_.find(field->type());
-            if (t != fieldTypeDesc_.end()) {
-                typeDesc = t->second;
+            TypeDesc fieldTypeDesc{};
+            auto fieldType = fieldTypeDesc_.find(field->type());
+            if (fieldType != fieldTypeDesc_.end()) {
+                fieldTypeDesc = fieldType->second;
             }
-            const char* protoReaderWireType = typeDesc.packedBufferType.c_str();
+            const char* protoReaderWireType = fieldTypeDesc.packedBufferType.c_str();
             codePrinter_->Print(
                 "PackedRepeatedDataAreaIterator<ProtoWireType::$protoReaderWireType$, $type$> "
                 "$name$(bool* parseErrorInfo) const { return "

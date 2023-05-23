@@ -17,54 +17,54 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-popover')
 export class LitPopover extends BaseElement {
-    static get observedAttributes() {
-        return ['title', 'trigger', 'width', 'placement', 'visible'];
+  static get observedAttributes() {
+    return ['title', 'trigger', 'width', 'placement', 'visible'];
+  }
+
+  get visible() {
+    return this.getAttribute('visible') || 'false';
+  }
+
+  set visible(value) {
+    if (value) {
+      this.setAttribute('visible', 'true');
+    } else {
+      this.setAttribute('visible', 'false');
     }
+  }
 
-    get visible() {
-        return this.getAttribute('visible') || 'false';
-    }
+  get trigger() {
+    return this.getAttribute('trigger') || 'hover';
+  }
 
-    set visible(value) {
-        if (value) {
-            this.setAttribute('visible', 'true');
-        } else {
-            this.setAttribute('visible', 'false');
-        }
-    }
+  set trigger(value) {
+    this.setAttribute('trigger', value);
+  }
 
-    get trigger() {
-        return this.getAttribute('trigger') || 'hover';
-    }
+  get title() {
+    return this.getAttribute('title');
+  }
 
-    set trigger(value) {
-        this.setAttribute('trigger', value);
-    }
+  set title(value: any) {
+    this.setAttribute('title', value);
+  }
 
-    get title() {
-        return this.getAttribute('title');
-    }
+  get width() {
+    return this.getAttribute('width') || 'max-content';
+  }
 
-    set title(value: any) {
-        this.setAttribute('title', value);
-    }
+  set width(value) {
+    this.setAttribute('width', value);
+  }
 
-    get width() {
-        return this.getAttribute('width') || 'max-content';
-    }
+  get haveRadio() {
+    return this.getAttribute('haveRadio');
+  }
 
-    set width(value) {
-        this.setAttribute('width', value);
-    }
+  initElements(): void {}
 
-    get haveRadio() {
-        return this.getAttribute('haveRadio');
-    }
-
-    initElements(): void {}
-
-    initHtml() {
-        return `
+  initHtml() {
+    return `
         <style>
         :host{ 
             outline: none;
@@ -416,60 +416,58 @@ export class LitPopover extends BaseElement {
         </div>
         <slot></slot>
         `;
-    }
+  }
 
-    connectedCallback() {
-        let popover: any = this.shadowRoot!.querySelector('.popover');
-        let checkbox: any = this.shadowRoot!.querySelector('.trigger-click');
-        this.setAttribute('tabindex', '1');
-        popover.onclick = (e: any) => {
-            e.stopPropagation();
-        };
-        popover.addEventListener('mousemove', (e: any) => {
-            e.stopPropagation();
-        });
-        this.onclick = (e: any) => {
-            e.stopPropagation();
-            if (e.relatedTarget?.hasAttribute('not-close')) {
-                this.focus();
-            }
-            checkbox.checked = !checkbox.checked;
-            this.visible = checkbox.checked;
-        };
-        popover.onmouseleave = () => {
-            this.focus();
-        };
-        this.onblur = (ev: any) => {
-            if (ev.relatedTarget && this.haveRadio) {
-                if (ev.relatedTarget.hasAttribute('not-close')) {
-                } else if (ev.relatedTarget.type === 'radio') {
-                    this.focus();
-                } else {
-                    // @ts-ignore
-                    this.visible = false;
-                }
-            } else {
-                // @ts-ignore
-                this.visible = false;
-            }
-        };
-    }
-
-    disconnectedCallback() {}
-
-    adoptedCallback() {}
-
-    attributeChangedCallback(name: any, oldValue: any, newValue: any) {
-        if (name === 'visible') {
-            if (newValue === 'false') {
-                // @ts-ignore
-                this.shadowRoot!.querySelector('.trigger-click')!.checked =
-                    false;
-            } else {
-                // @ts-ignore
-                this.shadowRoot!.querySelector('.trigger-click')!.checked =
-                    true;
-            }
+  connectedCallback() {
+    let popover: any = this.shadowRoot!.querySelector('.popover');
+    let checkbox: any = this.shadowRoot!.querySelector('.trigger-click');
+    this.setAttribute('tabindex', '1');
+    popover.onclick = (e: any) => {
+      e.stopPropagation();
+    };
+    popover.addEventListener('mousemove', (e: any) => {
+      e.stopPropagation();
+    });
+    this.onclick = (e: any) => {
+      e.stopPropagation();
+      if (e.relatedTarget?.hasAttribute('not-close')) {
+        this.focus();
+      }
+      checkbox.checked = !checkbox.checked;
+      this.visible = checkbox.checked;
+    };
+    popover.onmouseleave = () => {
+      this.focus();
+    };
+    this.onblur = (ev: any) => {
+      if (ev.relatedTarget && this.haveRadio) {
+        if (ev.relatedTarget.hasAttribute('not-close')) {
+        } else if (ev.relatedTarget.type === 'radio') {
+          this.focus();
+        } else {
+          // @ts-ignore
+          this.visible = false;
         }
+      } else {
+        // @ts-ignore
+        this.visible = false;
+      }
+    };
+  }
+
+  disconnectedCallback() {}
+
+  adoptedCallback() {}
+
+  attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+    if (name === 'visible') {
+      if (newValue === 'false') {
+        // @ts-ignore
+        this.shadowRoot!.querySelector('.trigger-click')!.checked = false;
+      } else {
+        // @ts-ignore
+        this.shadowRoot!.querySelector('.trigger-click')!.checked = true;
+      }
     }
+  }
 }

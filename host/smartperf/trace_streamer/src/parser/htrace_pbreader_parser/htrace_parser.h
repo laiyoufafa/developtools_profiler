@@ -66,7 +66,9 @@ public:
     void WaitForParserEnd();
     void EnableFileSeparate(bool enabled);
 
-    void GetSymbols(std::unique_ptr<ElfFile> elfPtr, ElfSymbolTable& symbols, const std::string& filename);
+    void GetSymbols(std::unique_ptr<ElfFile> elfPtr,
+                    std::shared_ptr<ElfSymbolTable> symbols,
+                    const std::string& filename);
     bool ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths);
 
 private:
@@ -145,7 +147,7 @@ private:
     ClockId dataSourceTypeProcessClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeHisyseventClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeJSMemoryClockid_ = TS_CLOCK_UNKNOW;
-    std::shared_ptr<std::vector<ElfSymbolTable>> elfSymbolTables_;
+    std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

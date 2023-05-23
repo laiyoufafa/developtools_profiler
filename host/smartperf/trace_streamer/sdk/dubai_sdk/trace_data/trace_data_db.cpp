@@ -20,13 +20,13 @@
 #include <cstring>
 #include <fcntl.h>
 #include <functional>
-#include <sqlite3.h>
 #include <string_view>
 #include <unistd.h>
 
 #include "ext/sqlite_ext_funcs.h"
 #include "file.h"
 #include "log.h"
+#include "sqlite3.h"
 #include "string_help.h"
 
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;

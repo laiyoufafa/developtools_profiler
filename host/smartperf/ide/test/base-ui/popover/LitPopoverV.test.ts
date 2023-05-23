@@ -428,10 +428,10 @@ describe('LitPopoverV Test', () => {
             display: none;
         }
         </style>
-        <input class=\\"trigger-click\\" type=\\"checkbox\\">
-        <div class=\\"popover\\" title=\\"\\">
-            <div class=\\"title\\">null</div>
-            <div class=\\"content\\"><slot name=\\"content\\" ></slot></div>
+        <input class="trigger-click" type="checkbox">
+        <div class="popover" title="">
+            <div class="title">null</div>
+            <div class="content"><slot name="content" ></slot></div>
         </div>
         <slot></slot>
         "

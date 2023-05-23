@@ -21,7 +21,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-IndexMap::IndexMap(TableRowId start, TableRowId end) : current_(start), start_(start), end_(end), type_(COMPACT) {}
+IndexMap::IndexMap(TableRowId start, TableRowId end) : end_(end), current_(start), start_(start), type_(COMPACT) {}
 
 void IndexMap::CovertToIndexMap()
 {
@@ -54,7 +54,7 @@ void IndexMap::Init()
 {
     intersectEable_ = HasData();
 }
-bool IndexMap::HasData()
+bool IndexMap::HasData() const
 {
     return !empty_;
 }
@@ -91,9 +91,6 @@ void IndexMap::Next()
 {
     if (desc_) {
         if (current_ > start_ - 1) {
-            if (current_ == 0) {
-                current_ = 0;
-            }
             current_--;
         }
     } else {

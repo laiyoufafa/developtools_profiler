@@ -19,7 +19,6 @@ import {
   drawLines,
   drawLoading,
   drawSelection,
-  drawWakeUp,
   isFrameContainPoint,
   ns2x,
   Rect,
@@ -125,7 +124,6 @@ export class FpsRender extends Render {
       req.context.fillStyle = '#333';
       req.context.textBaseline = 'middle';
       req.context.fillText(maxFps, 4, 5 + 9);
-      drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
       drawFlagLine(
         req.context,
         req.flagMoveInfo,

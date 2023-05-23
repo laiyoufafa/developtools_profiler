@@ -37,7 +37,7 @@ export class SpStatisticsHttpUtil {
     let req = new XMLHttpRequest();
     req.open(
       'GET',
-      `https://${window.location.host.split(':')[0]}:${window.location.port}/application/serverInfo`,
+      `${window.location.protocol}//${window.location.host.split(':')[0]}:${window.location.port}/application/serverInfo`,
       false
     );
     req.send(null);

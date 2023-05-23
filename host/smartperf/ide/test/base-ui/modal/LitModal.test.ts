@@ -95,4 +95,38 @@ describe('LitModal Test', () => {
     let mouseOutEvent: MouseEvent = new MouseEvent('mousemove', <MouseEventInit>{ clientX: 1, clientY: 2 });
     litmode.dispatchEvent(mouseOutEvent);
   });
+  it('LitModalTest08', function () {
+    let litModal = new LitModal();
+    litModal.okText = 'ok-text';
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest09', function () {
+    let litModal = new LitModal();
+    litModal.cancelText = 'cancel-text';
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest10', function () {
+    let litModal = new LitModal();
+    litModal.title = 'title';
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest11', function () {
+    let litModal = new LitModal();
+    litModal.visible = false;
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest12', function () {
+    let litModal = new LitModal();
+    litModal.visible = true;
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest13', function () {
+    let litModal = new LitModal();
+    litModal.width = 'width';
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest14', function () {
+    let litModal = new LitModal();
+    expect(litModal.adoptedCallback()).toBeUndefined();
+  });
 });

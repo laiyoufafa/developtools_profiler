@@ -656,17 +656,33 @@ export class LitTabs extends HTMLElement {
   activeByKey(key: string, isValid: boolean = true) {
     if (key === null || key === undefined) return; //如果没有key 不做相应
     this.nav!.querySelectorAll('.nav-item').forEach((a) => {
+      if (a.querySelector('span')?.innerText === 'Comparison') {
+        a.setAttribute('id', 'nav-comparison');
+      }
       if (a.getAttribute('data-key') === key) {
         a.setAttribute('data-selected', 'true');
         if (isValid) {
           let span = a.querySelector('span') as HTMLSpanElement;
           let title = span.innerText;
-          if (title === 'Counters' || title === 'Thread States') {
-            let rowType = document
+          let rowType = document
               .querySelector<HTMLElement>('sp-application')!
               .shadowRoot?.querySelector<HTMLElement>('sp-system-trace')!
               .getAttribute('clickRow');
+          if (title === 'Counters' || title === 'Thread States') {
             title += `(${rowType})`;
+          }
+          if (title === 'Analysis') {
+            let rowId = document
+                .querySelector<HTMLElement>('sp-application')!
+                .shadowRoot?.querySelector<HTMLElement>('sp-system-trace')!
+                .getAttribute('rowId');
+            if (rowId!.indexOf('DiskIOLatency') > -1) {
+              title += '(disk-io)';
+            } else if (rowId!.indexOf('VirtualMemory') > -1) {
+              title += '(virtual-memory-cell)';
+            } else {
+              title += `(${rowType})`;
+            }
           }
           if (title === 'Slices' || title === 'Current Selection') {
             let rowName = document

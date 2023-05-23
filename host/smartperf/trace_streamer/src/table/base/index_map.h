@@ -19,8 +19,8 @@
 #include <cstdint>
 #include <deque>
 #include <functional>
-#include <sqlite3.h>
 #include <vector>
+#include "sqlite3.h"
 #include "ts_common.h"
 
 namespace SysTuning {
@@ -32,7 +32,7 @@ public:
 
     IndexMap(TableRowId start, TableRowId end);
     void CovertToIndexMap();
-    void Sort();
+    static void Sort();
     void Print();
     void Init();
     void Merge(IndexMap* other);
@@ -341,7 +341,7 @@ public:
         FixSize();
         return;
     }
-    bool HasData();
+    bool HasData() const;
     std::vector<TableRowId> rowIndex_ = {};
     std::vector<TableRowId> rowIndexBak_ = {};
 

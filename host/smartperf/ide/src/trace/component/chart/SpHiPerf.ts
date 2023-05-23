@@ -60,7 +60,9 @@ export class SpHiPerf {
   private perfThreads: Array<PerfThread> | undefined;
   private trace: SpSystemTrace;
   private group: any;
+  private rowList: TraceRow<any>[] | undefined;
   private eventTypeList: Array<{ id: number; report_value: string }> = [];
+
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -68,6 +70,7 @@ export class SpHiPerf {
 
   async init() {
     await this.initCmdLine();
+    this.rowList = [];
     this.perfThreads = await queryPerfThread();
     this.eventTypeList = await queryHiPerfEventList();
     info('PerfThread Data size is: ', this.perfThreads!.length);
@@ -181,7 +184,8 @@ export class SpHiPerf {
       );
       row.canvasRestore(context);
     };
-    this.trace.rowsEL?.appendChild(row);
+    this.rowFolder.addChildTraceRow(row);
+    this.rowList?.push(row);
   }
 
   async initCpu() {
@@ -217,7 +221,8 @@ export class SpHiPerf {
         );
         row.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(row);
+      this.rowFolder.addChildTraceRow(row);
+      this.rowList?.push(row);
     }
   }
 
@@ -253,6 +258,7 @@ export class SpHiPerf {
         fold.canvasRestore(context);
       };
       this.trace.rowsEL?.appendChild(fold);
+      this.rowList?.push(fold);
       for (let i = 0; i <= this.maxCpuId; i++) {
         let row = TraceRow.skeleton<HiPerfEventStruct>();
         row.rowId = `HiPerf-Report-Event-${it.report_value}-${i}`;
@@ -286,6 +292,7 @@ export class SpHiPerf {
           fold.canvasRestore(context);
         };
         this.trace.rowsEL?.appendChild(row);
+        this.rowList?.push(row);
       }
     });
   }
@@ -328,7 +335,8 @@ export class SpHiPerf {
         }
         row.canvasRestore(context);
       };
-      this.trace.rowsEL?.appendChild(row);
+      this.rowFolder.addChildTraceRow(row);
+      this.rowList?.push(row);
       array.forEach((thObj, thIdx) => {
         let thread = TraceRow.skeleton<HiPerfThreadStruct>();
         thread.rowId = `${thObj.tid}-Perf-Thread`;
@@ -361,9 +369,19 @@ export class SpHiPerf {
           );
           thread.canvasRestore(context);
         };
-        this.trace.rowsEL?.appendChild(thread);
+        row.addChildTraceRow(thread);
+        this.rowList?.push(thread);
       });
     });
+  }
+
+  updateChartData() {
+    this.rowList?.forEach((it)=>{
+      it.dataList = [];
+      it.dataList2 = [];
+      it.dataListCache = [];
+      it.isComplete = false;
+    })
   }
 
   hoverTip(

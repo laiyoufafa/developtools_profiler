@@ -83,11 +83,11 @@ describe('LitSelectOption Test', () => {
             display: none;
         }
         </style>
-        <div class=\\"selected-box\\">
-            <lit-icon class=\\"selected\\" name=\\"check\\"></lit-icon>
+        <div class="selected-box">
+            <lit-icon class="selected" name="check" size="20"></lit-icon>
         </div>
         <slot></slot>
-<!--        <lit-icon class=\\"check\\" name=\\"check\\"></lit-icon>-->
+<!--        <lit-icon class="check" name="check"></lit-icon>-->
         "
 `);
   });

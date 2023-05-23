@@ -110,7 +110,6 @@ export class MemRender extends Render {
         ProcessMemStruct.draw(req.context, re);
       }
       drawSelection(req.context, req.params);
-      drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
       req.context.closePath();
       drawFlagLine(
         req.context,

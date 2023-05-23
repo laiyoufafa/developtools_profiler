@@ -98,6 +98,7 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
     return source;
   }
 }
+
 export class CpuState {
   startTs: number = 0;
   endTs: number = 0;

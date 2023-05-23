@@ -133,11 +133,11 @@ describe('TabPaneContextSwitch Test', () => {
             padding: 10px 10px;
         }
         </style>
-        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
-        <lit-table id=\\"tb-cs\\" style=\\"height: auto\\" tree>
-            <lit-table-column width=\\"500px\\" title=\\"Process/Thread/Event\\" data-index=\\"title\\" key=\\"title\\" align=\\"flex-start\\">
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-cs" style="height: auto" tree>
+            <lit-table-column width="500px" title="Process/Thread/Event" data-index="title" key="title" align="flex-start">
             </lit-table-column>
-            <lit-table-column width=\\"1fr\\" title=\\"Count\\" data-index=\\"count\\" key=\\"count\\" align=\\"flex-start\\" >
+            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" >
             </lit-table-column>
         </lit-table>
         "

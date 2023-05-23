@@ -118,12 +118,12 @@ describe('TabPanePowerBattery Test', () => {
                 font-weight: 700;
             }
         </style>
-        <div style=\\"width: 100%;height: auto;position: relative\\">
-            <div class=\\"bottom-scroll-area\\">
-                <div class=\\"battery-canvas\\">
-                    <lit-table id=\\"tb-power-battery-energy\\" no-head style=\\"height: auto\\">
-                        <lit-table-column title=\\"name\\" data-index=\\"name\\" key=\\"name\\" align=\\"flex-start\\"  width=\\"180px\\"></lit-table-column>
-                        <lit-table-column title=\\"value\\" data-index=\\"value\\" key=\\"value\\" align=\\"flex-start\\" ></lit-table-column>
+        <div style="width: 100%;height: auto;position: relative">
+            <div class="bottom-scroll-area">
+                <div class="battery-canvas">
+                    <lit-table id="tb-power-battery-energy" no-head style="height: auto">
+                        <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px"></lit-table-column>
+                        <lit-table-column title="value" data-index="value" key="value" align="flex-start" ></lit-table-column>
                     </lit-table>
                 </div>
             </div>

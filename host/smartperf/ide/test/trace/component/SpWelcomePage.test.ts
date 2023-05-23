@@ -40,7 +40,7 @@ describe('SpWelcomePage Test', () => {
         }
         </style>
         <div>
-            <img class=\\"lit-icon\\" >
+            <img class="lit-icon" >
         </div>
         "
 `);

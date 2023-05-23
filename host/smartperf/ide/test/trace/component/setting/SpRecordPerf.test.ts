@@ -196,10 +196,10 @@ describe('SpRecordPerf Test', () => {
             text-align: center;
         }
         </style>
-        <div class=\\"root\\">
-            <div class=\\"configList\\">
+        <div class="root">
+            <div class="configList">
             </div>
-            <button id =\\"addOptions\\">Advance Options</button>
+            <button id ="addOptions">Advance Options</button>
         </div>
         "
 `);

@@ -44,61 +44,61 @@ describe(' ProcedureWorkerTimelineTest', () => {
     timeline(canvas, ctx, 1, 100254, 100254, rect, null, null, null, null, null, null, 0, 0, (e: any) => {});
   });
 
-  it('SportRulerTest01', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    let rect = new Rect(0, 10, 10, 10);
-    let sportRuler = new SportRuler(canvas, ctx, rect);
-    sportRuler.modifyFlagList('amend');
-    sportRuler.modifyFlagList('remove');
-    sportRuler.drawTheFlag(0, '#999999', false, !'');
-    sportRuler.randomRgbColor();
-    sportRuler.mouseMove(new MouseEvent(''));
-    sportRuler.mouseUp(new MouseEvent(''));
-    sportRuler.onFlagRangeEvent('1', 2);
-  });
+    it('SportRulerTest01', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        let rect = new Rect(0, 10, 10, 10);
+        let sportRuler = new SportRuler(canvas, ctx, rect);
+        sportRuler.modifyFlagList('amend');
+        sportRuler.modifyFlagList('remove');
+        sportRuler.drawTheFlag(0, '#999999', false, '');
+        sportRuler.randomRgbColor();
+        sportRuler.mouseMove(new MouseEvent(''));
+        sportRuler.mouseUp(new MouseEvent(''));
+        sportRuler.onFlagRangeEvent('1', 2);
+    });
 
-  it('SportRulerTest02', () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    let rect = new Rect(0, 10, 10, 10);
-    let rangeRuler = new RangeRuler(
-      canvas,
-      ctx,
-      rect,
-      {
-        startX: 0,
-        endX: rect.width,
-        startNS: 0,
-        endNS: 111,
-        totalNS: 111,
-        xs: [],
-        xsTxt: [],
-      },
-      (a: any) => {}
-    );
-    rangeRuler.draw();
-    rangeRuler.drawCpuUsage();
-    rangeRuler.mouseDown({ offsetX: 1, offsetY: 1 });
-    rangeRuler.mouseUp(new MouseEvent(''));
-    rangeRuler.mouseMove(new MouseEvent(''));
-    rangeRuler.mouseOut(new MouseEvent(''));
-    rangeRuler.range.startNS = -2;
-    rangeRuler.range.endNS = -2;
-    rangeRuler.range.totalNS = -7;
-    rangeRuler.fillX();
-    rangeRuler.keyPress(new KeyboardEvent(''));
-    rangeRuler.pressFrameId = !-1;
-    rangeRuler.keyUp(new KeyboardEvent(''));
-    rangeRuler.keyUp({ key: 'w' });
-    rangeRuler.keyUp({ key: 's' });
-    rangeRuler.keyUp({ key: 'a' });
-    rangeRuler.keyUp({ key: 'd' });
-  });
+    it('SportRulerTest02', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        let rect = new Rect(0, 10, 10, 10);
+        let rangeRuler = new RangeRuler(
+            canvas,
+            ctx,
+            rect,
+            {
+                startX: 0,
+                endX: rect.width,
+                startNS: 0,
+                endNS: 111,
+                totalNS: 111,
+                xs: [],
+                xsTxt: [],
+            },
+            (a: any) => {}
+        );
+        rangeRuler.draw();
+        rangeRuler.drawCpuUsage();
+        rangeRuler.mouseDown({ offsetX: 1, offsetY: 1 });
+        rangeRuler.mouseUp(new MouseEvent(''));
+        rangeRuler.mouseMove(new MouseEvent(''));
+        rangeRuler.mouseOut(new MouseEvent(''));
+        rangeRuler.range.startNS = -2;
+        rangeRuler.range.endNS = -2;
+        rangeRuler.range.totalNS = -7;
+        rangeRuler.fillX();
+        rangeRuler.keyPress(new KeyboardEvent(''));
+        rangeRuler.pressFrameId != -1;
+        rangeRuler.keyUp(new KeyboardEvent(''));
+        rangeRuler.keyUp({ key: 'w' });
+        rangeRuler.keyUp({ key: 's' });
+        rangeRuler.keyUp({ key: 'a' });
+        rangeRuler.keyUp({ key: 'd' });
+    });
 
   it('SportRulerTest03', () => {
     const canvas = document.createElement('canvas');

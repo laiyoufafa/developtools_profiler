@@ -142,7 +142,6 @@ export class CpuStateRender extends PerfRender {
       }
       req.context.fill(path);
       drawSelection(req.context, req.params);
-      drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
       drawFlagLine(
         req.context,
         req.flagMoveInfo,

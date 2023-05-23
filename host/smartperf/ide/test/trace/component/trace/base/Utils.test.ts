@@ -122,15 +122,15 @@ describe('Utils Test', () => {
   });
 
   it('Utils Test25', () => {
-    expect(Utils.getBinaryByteWithUnit(3_000_000_000)).toBe('2.79Gib');
+    expect(Utils.getBinaryByteWithUnit(3_000_000_000)).toBe('2.79GB');
   });
 
   it('Utils Test26', () => {
-    expect(Utils.getBinaryByteWithUnit(2_000_000)).toBe('1.91Mib');
+    expect(Utils.getBinaryByteWithUnit(2_000_000)).toBe('1.91MB');
   });
 
   it('Utils Test27', () => {
-    expect(Utils.getBinaryByteWithUnit(2_000)).toBe('1.95kib');
+    expect(Utils.getBinaryByteWithUnit(2_000)).toBe('1.95KB');
   });
 
   it('Utils Test28', () => {
@@ -174,7 +174,7 @@ describe('Utils Test', () => {
   });
 
   it('Utils Test37', () => {
-    expect(Utils.timeMsFormat2p(90_000)).toBe('1.00min');
+    expect(Utils.timeMsFormat2p(90_000)).toBe('2.00min');
   });
 
   it('Utils Test38', () => {

@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("../../../build/ohos.gni")
 
-import("//src/ts.gni")
+import("../..//ts.gni")
 ohos_source_set("base_tables") {
   subsystem_name = "trace_streamer"
   part_name = "table"
@@ -46,14 +46,14 @@ ohos_source_set("base_tables") {
     "trace_config_table.h",
   ]
   include_dirs = [
-    "//third_party/sqlite/include",
-    "../../../src/base",
+    "${THIRD_PARTY}/sqlite/include",
+    "${SRC}/base",
     "../../parser",
-    "../../../src/trace_data",
-    "../../../src/include",
-    "../../../src",
+    "${SRC}/trace_data",
+    "${SRC}/include",
+    "${SRC}",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "//third_party/protobuf/src",
+    "${THIRD_PARTY}/protobuf/src",
   ]
 
   if (enable_ts_utest && !use_wasm) {

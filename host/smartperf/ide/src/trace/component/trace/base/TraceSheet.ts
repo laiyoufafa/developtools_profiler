@@ -49,12 +49,14 @@ export class TraceSheet extends BaseElement {
   private nav: HTMLDivElement | undefined | null;
   private selection: SelectionParam | undefined | null;
   private currentPaneID: string = 'current-selection';
+  private fragment: DocumentFragment | undefined;
 
   static get observedAttributes() {
     return ['mode'];
   }
 
   buildTabs(litTabs: LitTabs | undefined | null) {
+    this.fragment = document.createDocumentFragment();
     Reflect.ownKeys(tabConfig).forEach((key, index) => {
       let pane = new LitTabpane();
       pane.id = key.toString();
@@ -65,8 +67,9 @@ export class TraceSheet extends BaseElement {
       let cls = tabConfig[key].type;
       let node = new cls();
       pane.append(node);
-      litTabs!.append(pane);
+      this.fragment?.appendChild(pane);
     });
+    litTabs!.appendChild(this.fragment);
   }
 
   displayTab<T>(...names: string[]): T {
@@ -256,7 +259,7 @@ export class TraceSheet extends BaseElement {
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = initialHeight.node));
       }
     };
-    importFileBt!.addEventListener('change', () => {
+    importFileBt!.addEventListener('change', (event) => {
       let files = importFileBt?.files;
       if (files) {
         let fileList: Array<File> = [];
@@ -265,16 +268,21 @@ export class TraceSheet extends BaseElement {
             fileList.push(file);
           }
         }
-        threadPool.submit(
-          'upload-so',
-          '',
-          fileList,
-          (res: any) => {
-            window.publish(window.SmartEvent.UI.UploadSOFile, {});
-          },
-          'upload-so'
-        );
+        if (fileList.length > 0) {
+          window.publish(window.SmartEvent.UI.Loading, true);
+          threadPool.submit(
+            'upload-so',
+            '',
+            fileList,
+            (res: any) => {
+              window.publish(window.SmartEvent.UI.UploadSOFile, {});
+            },
+            'upload-so'
+          );
+        }
       }
+      importFileBt!.files = null;
+      importFileBt!.value = '';
     });
     exportDataBt!.onclick = () => {
       let currentTab = this.getTabpaneByKey(this.litTabs?.activekey!);
@@ -311,10 +319,10 @@ export class TraceSheet extends BaseElement {
                     background-color: var(--dark-background,#FFFFFF);
                 }
             </style>
-            <div style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
+            <div id="container" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
-                        <div style="width: 20px;height: 20px;display: none;flex-direction: row;margin-right: 10px">
+                        <div style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="import-file" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="import-file">
                                 <lit-icon id="import-btn" name="import-so" style="pointer-events: none" size="20">
@@ -348,7 +356,8 @@ export class TraceSheet extends BaseElement {
     val.nativeMemoryStatistic.push(rowType);
     val.nativeMemory = [];
     val.leftNs = data.startTime!;
-    val.rightNs = data.startTime! + data.dur!;
+    val.rightNs = data.startTime! + data.dur! -1;
+    this.selection = val;
     this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
   };
 
@@ -376,7 +385,7 @@ export class TraceSheet extends BaseElement {
         scrollCallback
       );
       let nav = this.shadowRoot!.querySelector('#tabs')!.shadowRoot!.querySelector(
-        '#nav > div:nth-child(62)'
+        '#nav > #nav-comparison'
       ) as HTMLDivElement;
       let tabPaneComparison = this.shadowRoot!.querySelector(
         '#box-heap-comparison > tabpane-comparison'
