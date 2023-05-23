@@ -234,7 +234,7 @@ int64_t CpuDataPlugin::GetCpuUsageTime(std::vector<std::string>& cpuUsageVec)
     int64_t usageTime = 0;
     utime = atoi(cpuUsageVec[PROCESS_UTIME].c_str());
     stime = atoi(cpuUsageVec[PROCESS_STIME].c_str());
-    // 进程，线程CPU占用率不计算cutime + cstime
+    // 进程，线程CPU占用率只计算utime(用户态时间),stime(核心态时间)
     usageTime = (utime + stime) * GetUserHz();
 
     return usageTime;
