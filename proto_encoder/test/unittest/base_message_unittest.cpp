@@ -1527,7 +1527,7 @@ HWTEST_F(BaseMessageUnittest, ProtobufferSimple, TestSize.Level1)
         msgProtobuf.set_vint_uint64(static_cast<uint64_t>(g_fakeInputSimple[index++]));
         msgProtobuf.set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
 
-        msgProtobuf.SerializeToArray(&g_buf[0], SIZE_BUFFER);
+        ASSERT_TRUE(msgProtobuf.SerializeToArray(&g_buf[0], SIZE_BUFFER) > 0);
     }
     printf("%d times\n", TEST_TIMES);
 }
@@ -1546,7 +1546,7 @@ HWTEST_F(BaseMessageUnittest, ProtoEncoderSimple, TestSize.Level1)
         msgOpt.set_vint_uint64(static_cast<uint64_t>(g_fakeInputSimple[index++]));
         msgOpt.set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
 
-        msgOpt.Finish();
+        ASSERT_TRUE(msgOpt.Finish() > 0);
     }
     printf("%d times\n", TEST_TIMES);
 }
@@ -1564,6 +1564,7 @@ HWTEST_F(BaseMessageUnittest, ProtobufferNested, TestSize.Level1)
         msgProtobuf.set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
         // fisrt nested
         ExampleMessage* nested1 = msgProtobuf.add_repeated_example();
+        ASSERT_TRUE(nested1 != nullptr);
         index = 0;
         nested1->set_vint_int32(static_cast<int32_t>(g_fakeInputSimple[index++]));
         nested1->set_vint_uint32(static_cast<uint32_t>(g_fakeInputSimple[index++]));
@@ -1572,6 +1573,7 @@ HWTEST_F(BaseMessageUnittest, ProtobufferNested, TestSize.Level1)
         nested1->set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
         // second nested
         ExampleMessage* nested2 = nested1->add_repeated_example();
+        ASSERT_TRUE(nested2 != nullptr);
         index = 0;
         nested2->set_vint_int32(static_cast<int32_t>(g_fakeInputSimple[index++]));
         nested2->set_vint_uint32(static_cast<uint32_t>(g_fakeInputSimple[index++]));
@@ -1580,6 +1582,7 @@ HWTEST_F(BaseMessageUnittest, ProtobufferNested, TestSize.Level1)
         nested2->set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
         // third nested
         ExampleMessage* nested3 = nested2->add_repeated_example();
+        ASSERT_TRUE(nested3 != nullptr);
         index = 0;
         nested3->set_vint_int32(static_cast<int32_t>(g_fakeInputSimple[index++]));
         nested3->set_vint_uint32(static_cast<uint32_t>(g_fakeInputSimple[index++]));
@@ -1587,7 +1590,7 @@ HWTEST_F(BaseMessageUnittest, ProtobufferNested, TestSize.Level1)
         nested3->set_vint_uint64(static_cast<uint64_t>(g_fakeInputSimple[index++]));
         nested3->set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
 
-        msgProtobuf.SerializeToArray(&g_buf[0], SIZE_BUFFER);
+        ASSERT_TRUE(msgProtobuf.SerializeToArray(&g_buf[0], SIZE_BUFFER) > 0);
     }
     printf("%d times\n", TEST_TIMES);
 }
@@ -1607,6 +1610,7 @@ HWTEST_F(BaseMessageUnittest, ProtoEncoderNested, TestSize.Level1)
         msgOpt.set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
         // fisrt nested
         ProtoEncoder::ExampleMessage* nested1 = msgOpt.add_repeated_example();
+        ASSERT_TRUE(nested1 != nullptr);
         index = 0;
         nested1->set_vint_int32(static_cast<int32_t>(g_fakeInputSimple[index++]));
         nested1->set_vint_uint32(static_cast<uint32_t>(g_fakeInputSimple[index++]));
@@ -1615,6 +1619,7 @@ HWTEST_F(BaseMessageUnittest, ProtoEncoderNested, TestSize.Level1)
         nested1->set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
         // second nested
         ProtoEncoder::ExampleMessage* nested2 = nested1->add_repeated_example();
+        ASSERT_TRUE(nested2 != nullptr);
         index = 0;
         nested2->set_vint_int32(static_cast<int32_t>(g_fakeInputSimple[index++]));
         nested2->set_vint_uint32(static_cast<uint32_t>(g_fakeInputSimple[index++]));
@@ -1623,6 +1628,7 @@ HWTEST_F(BaseMessageUnittest, ProtoEncoderNested, TestSize.Level1)
         nested2->set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
         // third nested
         ProtoEncoder::ExampleMessage* nested3 = nested2->add_repeated_example();
+        ASSERT_TRUE(nested3 != nullptr);
         index = 0;
         nested3->set_vint_int32(static_cast<int32_t>(g_fakeInputSimple[index++]));
         nested3->set_vint_uint32(static_cast<uint32_t>(g_fakeInputSimple[index++]));
@@ -1630,7 +1636,7 @@ HWTEST_F(BaseMessageUnittest, ProtoEncoderNested, TestSize.Level1)
         nested3->set_vint_uint64(static_cast<uint64_t>(g_fakeInputSimple[index++]));
         nested3->set_len_string(reinterpret_cast<const char*>(&g_fakeInputSimple[index++]));
 
-        msgOpt.Finish();
+        ASSERT_TRUE(msgOpt.Finish() > 0);
     }
     printf("%d times\n", TEST_TIMES);
 }
