@@ -123,18 +123,25 @@ pid_t inline __attribute__((always_inline)) GetCurThreadId()
     return reinterpret_cast<long>((pthread_getspecific(g_hookTid)));
 }
 
-void inline __attribute__((always_inline)) UpdateThreadName(std::shared_ptr<HookSocketClient>& client)
+bool inline __attribute__((always_inline)) UpdateThreadName(std::shared_ptr<HookSocketClient>& client)
 {
     long updateCount = reinterpret_cast<long>(pthread_getspecific(g_updateThreadNameCount));
+    bool ret = true;
     if (updateCount == 0) {
         StackRawData tnameData = {{{{0}}}};
         tnameData.tid = GetCurThreadId();
         tnameData.type = THREAD_NAME_MSG;
         prctl(PR_GET_NAME, tnameData.name);
-        client->SendStackWithPayload(&tnameData, sizeof(BaseStackRawData) + strlen(tnameData.name), nullptr, 0);
+        ret = client->SendStackWithPayload(&tnameData,
+                                           sizeof(BaseStackRawData) + strlen(tnameData.name) + 1, nullptr, 0);
+        if (!ret) {
+            HILOG_DEBUG(LOG_CORE, "Send thread name failed!");
+            return ret;
+        }
     }
     pthread_setspecific(g_updateThreadNameCount,
                         reinterpret_cast<void *>(updateCount == UPDATE_THEARD_NAME ? 0 : updateCount + 1));
+    return ret;
 }
 
 uint32_t inline __attribute__((always_inline)) GetTagId(std::shared_ptr<HookSocketClient>& client, const char* tagName)
@@ -277,6 +284,14 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
 #endif
+    std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
+    auto holder = weakClient.lock();
+    if (holder == nullptr) {
+        return ret;
+    }
+    if (!UpdateThreadName(holder)) {
+        return ret;
+    }
     StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -318,18 +333,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = ret;
-    std::weak_ptr<HookSocketClient> weakClient = g_hookClient;
-    auto holder = weakClient.lock();
-    if (holder != nullptr) {
-        UpdateThreadName(holder);
-        int realSize = 0;
-        if (g_ClientConfig.fpunwind) {
-            realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
-        } else {
-            realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
-        }
-        holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
+    int realSize = 0;
+    if (g_ClientConfig.fpunwind) {
+        realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
+    } else {
+        realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
     }
+    holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     g_mallocTimes++;
 #ifdef PERFORMANCE_DEBUG
     struct timespec end = {};
@@ -700,13 +710,15 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
             HILOG_ERROR(LOG_CORE, "Set mmap fd linked file name failed!");
         }
     }
+    if (!UpdateThreadName(holder)) {
+        return ret;
+    }
     int realSize = 0;
     if (g_ClientConfig.fpunwind) {
         realSize = sizeof(BaseStackRawData) + (fpStackDepth * sizeof(uint64_t));
     } else {
         realSize = sizeof(BaseStackRawData) + sizeof(rawdata.regs);
     }
-    UpdateThreadName(holder);
     holder->SendStackWithPayload(&rawdata, realSize, stackptr, stackSize);
     return ret;
 }

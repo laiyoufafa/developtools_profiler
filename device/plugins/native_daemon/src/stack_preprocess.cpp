@@ -175,6 +175,11 @@ void StackPreprocess::TakeResults()
             } else if (rawData->stackConext->type == MUNMAP_MSG) {
                 runtime_instance->RemoveMaps(reinterpret_cast<uint64_t>(rawData->stackConext->addr));
             }
+            if (rawData->stackConext->type == THREAD_NAME_MSG) {
+                std::string threadName = reinterpret_cast<char*>(rawData->data);
+                ReportThreadNameMap(rawData->stackConext->tid, threadName, stackData);
+                continue;
+            }
             if (!rawData->reportFlag) {
                 ignoreCnts_++;
                 if (ignoreCnts_ % LOG_PRINT_TIMES == 0) {
@@ -258,20 +263,20 @@ void StackPreprocess::TakeResults()
             }
         }
     }
-    ReportThreadNameMap();
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }
 
-inline void StackPreprocess::ReportThreadNameMap()
+inline void StackPreprocess::ReportThreadNameMap(uint32_t tid, const std::string& tname,
+                                                 BatchNativeHookData& batchNativeHookData)
 {
-    BatchNativeHookData threadNameData;
-    for (auto& it : threadNameMap_) {
-        auto hookData = threadNameData.add_events();
+    auto it = threadNameMap_.find(tid);
+    if (it == threadNameMap_.end() || it->second != tname) {
+        threadNameMap_[tid] = tname;
+        auto hookData = batchNativeHookData.add_events();
         auto* thread = hookData->mutable_thread_name_map();
-        thread->set_id(it.first);
-        thread->set_name(it.second);
+        thread->set_id(tid);
+        thread->set_name(tname);
     }
-    FlushData(threadNameData);
 }
 
 inline void StackPreprocess::FillOfflineCallStack(std::vector<CallFrame>& callFrames, size_t idx)
@@ -799,12 +804,4 @@ bool StackPreprocess::GetMemTag(uint32_t tagId, std::string& tagName)
         return true;
     }
     return false;
-}
-
-void StackPreprocess::SaveThreadName(uint32_t tid, const std::string& tname)
-{
-    auto it = threadNameMap_.find(tid);
-    if (it == threadNameMap_.end()) {
-        threadNameMap_[tid] = tname;
-    }
 }

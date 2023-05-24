@@ -315,11 +315,6 @@ void HookManager::ReadShareMemory()
             stackPreprocess_->SaveMemTag(rawStack->stackConext->tagId, tagName);
             continue;
         }
-        if (rawStack->stackConext->type == THREAD_NAME_MSG) {
-            std::string threadName = reinterpret_cast<char*>(rawStack->data);
-            stackPreprocess_->SaveThreadName(rawStack->stackConext->tid, threadName);
-            continue;
-        }
         if (!stackData_->PutRawStack(rawStack, isRecordAccurately_)) {
             break;
         }
