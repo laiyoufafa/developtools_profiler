@@ -78,7 +78,7 @@ void CallStack1(const char * filename)
         usleep(g_sleepUs);
     }
 
-    std::vector<char> buf(BUF_SIZE * 2,'a');
+    std::vector<char> buf(BUF_SIZE * 2,'a'); // 2: double
     write(fd, buf.data(), buf.size());
     fsync(fd);
     if (g_sleepUs) {
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     if  (argc > ARGC_NUM_MUST) {
-        g_sleepUs = atoi(argv[3]);
+        g_sleepUs = atoi(argv[3]); // 3: 4th argument
     }
 
     printf("Test start %d thread, read or write %d times\n", threadNum, writeReadTime);

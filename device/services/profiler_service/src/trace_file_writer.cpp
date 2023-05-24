@@ -270,5 +270,6 @@ void TraceFileWriter::LogDiskUsage()
         static_cast<unsigned long long>(diskInfo.f_blocks);
     float freePercent = static_cast<float>(freeSize) / static_cast<float>(totalSize);
     uint32_t freeSizeGb = freeSize / GB_TO_BYTE;
+    // 100: in terms of percentage
     HILOG_INFO(LOG_CORE, "LogDiskUsage() freePercent:%.1f, freeSizeGb:%u", freePercent * 100, freeSizeGb);
 }

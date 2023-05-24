@@ -59,7 +59,7 @@ void* HiebpfDataFile::Reserve(const std::size_t size)
     uint32_t *tracer = reinterpret_cast<uint32_t *>(buffer);
     (*tracer) = BADTRACE;
     uint32_t *len = tracer + 1;
-    (*len) = size - sizeof(uint32_t) * 2;
+    (*len) = size - sizeof(uint32_t) * 2; // 2: double
     offset_ += size;
     return buffer;
 }
@@ -87,7 +87,7 @@ void HiebpfDataFile::WriteKernelSymbol()
     (*type) = KERNEL_SYM;
     uint32_t *len = type + 1;
     (*len) = bufSize;
-    if (memcpy_s(tmp + sizeof(uint32_t) * 2, bufSize, buf.data(), bufSize) != EOK) {
+    if (memcpy_s(tmp + sizeof(uint32_t) * 2, bufSize, buf.data(), bufSize) != EOK) { // 2: double
         HHLOGE(true, "failed to memcpy");
         return;
     }

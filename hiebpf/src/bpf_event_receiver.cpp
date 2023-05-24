@@ -18,6 +18,9 @@
 #include <chrono>
 
 using namespace std::chrono_literals;
+
+static constexpr int DOUBLE = 2;
+
 void BPFEventReceiver::DoWork()
 {
     for (__u32 cnt = MAX_BUSY_LOOPS; cnt != 0; --cnt) {
@@ -195,7 +198,7 @@ void BPFEventReceiver::WriteEventMaps(uint32_t pid)
         }
         FixedMapTLVItem *mapItem = static_cast<FixedMapTLVItem *>(dest);
         mapItem->type = MAPSTRACE;
-        mapItem->len = size - sizeof(uint32_t) * 2;
+        mapItem->len = size - sizeof(uint32_t) * DOUBLE;
         mapItem->start = item.start_;
         mapItem->end = item.end_;
         mapItem->offset = item.offset_;
@@ -228,7 +231,7 @@ void BPFEventReceiver::WriteSymbolInfo(const std::string &fileName)
         }
         FixedSymbolTLVItem *sym = static_cast<FixedSymbolTLVItem *>(dest);
         sym->type = SYMBOLTRACE;
-        sym->len = size - sizeof(uint32_t) * 2;
+        sym->len = size - sizeof(uint32_t) * DOUBLE;
         sym->textVaddr = symbolInfo.textVaddr_;
         sym->textOffset = symbolInfo.textOffset_;
         sym->strTabLen = symbolInfo.strTable_.size();
@@ -283,7 +286,7 @@ int BPFEventReceiver::EncodeFSTraceEvent(
 {
     struct FixedFSTraceTLVItem *item = static_cast<struct FixedFSTraceTLVItem *>(tlvItem);
     item->tracer_ = FSTRACE;
-    item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
+    item->itemLen_ = itemLen - sizeof(uint32_t) * DOUBLE;
     item->pid_ = cmplt_event->tgid;
     item->tid_ = cmplt_event->pid;
     if (strncpy_s(item->tracerName_, MAX_TRACER_NAME_LEN,
@@ -325,7 +328,7 @@ int BPFEventReceiver::EncodePFTraceEvent(
 {
     struct FixedPFTraceTLVItem *item = static_cast<struct FixedPFTraceTLVItem *>(tlvItem);
     item->tracer_ = PFTRACE;
-    item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
+    item->itemLen_ = itemLen - sizeof(uint32_t) * DOUBLE;
     item->pid_ = cmplt_event->tgid;
     item->tid_ = cmplt_event->pid;
     if (strncpy_s(item->tracerName_, MAX_TRACER_NAME_LEN,
@@ -365,7 +368,7 @@ int BPFEventReceiver::EncodeBIOTraceEvent(
 {
     struct FixedBIOTraceTLVItem *item = static_cast<struct FixedBIOTraceTLVItem *>(tlvItem);
     item->tracer_ = BIOTRACE;
-    item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
+    item->itemLen_ = itemLen - sizeof(uint32_t) * DOUBLE;
     item->pid_ = cmplt_event->start_event.tgid;
     item->tid_ = cmplt_event->start_event.pid;
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->start_event.comm, MAX_COMM_LEN);
@@ -401,7 +404,7 @@ int BPFEventReceiver::EncodeSTRTraceEvent(
 {
     struct FixedSTRTraceTLVItem *item = static_cast<struct FixedSTRTraceTLVItem *>(tlvItem);
     item->tracer_ = STRTRACE;
-    item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
+    item->itemLen_ = itemLen - sizeof(uint32_t) * DOUBLE;
     item->pid_ = cmplt_event->tgid;
     item->tid_ = cmplt_event->pid;
     item->stime_ = cmplt_event->start_event.stime;
@@ -416,7 +419,7 @@ int BPFEventReceiver::EncodeSTRTraceEvent(
             return -1;
         }
         if (item->srcTracer_ == BIOTRACE || (item->srcTracer_ == FSTRACE && item->srcType_ == SYS_CLOSE)) {
-            ReverseStr(filename, filename + item->strLen_ - 2);
+            ReverseStr(filename, filename + item->strLen_ - 2); // 2: last 2 chars
             char* start = filename;
             while (*start != '\0') {
                 char* end = start;

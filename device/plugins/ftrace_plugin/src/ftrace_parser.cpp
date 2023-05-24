@@ -374,7 +374,7 @@ static bool ParseCommonIntType(FieldFormat& field, bool sign)
     return false;
 }
 
-bool ParseKernelAddrField(FieldFormat& field, const std::string& type)
+static bool ParseKernelAddrField(FieldFormat& field, const std::string& type)
 {
     if (type == "void*" || type == "void *") {
         if (field.size == sizeof(uint64_t)) { // 64-bit kernel addresses
