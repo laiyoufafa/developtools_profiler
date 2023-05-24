@@ -283,7 +283,6 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
     bool mapsAdded = !update;
     std::set<std::string> addSymbolFile;
     std::vector<MemMapItem> tempMap;
-    std::string tempMapName;
     if (mapContent.size() > 0) {
         std::istringstream s(mapContent);
         std::string line;
@@ -397,7 +396,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
             if (!IsLegalFileName(memMapItem.name_)) {
                 continue;
             }
-
+            std::string tempMapName;
             if (!update) {
                 memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
                 virtualruntime_->FillMapsCache(tempMapName, memMapItem);
@@ -415,7 +414,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
 
     // Find if there are duplicate mapping intervals, and if there are, overwrite the old data with the new data.
     for (auto tempMapIter = tempMap.begin(); tempMapIter != tempMap.end(); ++tempMapIter) {
-        auto memMapIter = std::find_if(memMaps.begin(), memMaps.end(), [&](MemMapItem& map) {
+        auto memMapIter = std::find_if(memMaps.begin(), memMaps.end(), [&](const MemMapItem& map) {
             if (tempMapIter->begin_ == map.begin_ && tempMapIter->end_ == map.end_) {
                 return true;
             }

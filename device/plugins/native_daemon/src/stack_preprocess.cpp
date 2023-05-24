@@ -645,8 +645,8 @@ void StackPreprocess::SetMapsInfo(pid_t pid)
 
         for (auto& map : curMemMaps.maps_) {
             if (map.type_ & PROT_EXEC) {
-                NativeHookData* hookData = stackData.add_events();
-                MapsInfo* mapSerialize = hookData->mutable_maps_info();
+                NativeHookData* nativeHookData = stackData.add_events();
+                MapsInfo* mapSerialize = nativeHookData->mutable_maps_info();
                 mapSerialize->set_pid(pid);
                 mapSerialize->set_start(map.begin_);
                 mapSerialize->set_end(map.end_);

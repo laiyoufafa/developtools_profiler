@@ -46,12 +46,12 @@ TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32
     fileNum_ = 1;
 
     WriteHeader();
-    Flush();
+    (void)FlushStream();
 }
 
 TraceFileWriter::~TraceFileWriter()
 {
-    Flush();
+    (void)FlushStream();
     if (stream_.is_open()) {
         stream_.close();
     }
@@ -236,6 +236,11 @@ bool TraceFileWriter::Finish()
 }
 
 bool TraceFileWriter::Flush()
+{
+    return FlushStream();
+}
+
+bool TraceFileWriter::FlushStream()
 {
     CHECK_TRUE(stream_.is_open(), false, "binary file %s not open or open failed!", path_.c_str());
     CHECK_TRUE(stream_.flush(), false, "binary file %s flush failed!", path_.c_str());
