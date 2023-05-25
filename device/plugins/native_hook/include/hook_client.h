@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef __ohos_malloc_hook_client_h__
-#define __ohos_malloc_hook_client_h__
+#ifndef __OHOS_MALLOC_HOOK_CLIENT_H__
+#define __OHOS_MALLOC_HOOK_CLIENT_H__
 
 #include <stdlib.h>
 #include "musl_malloc_dispatch.h"
@@ -49,4 +49,4 @@ EXPORT_API bool ohos_set_filter_size(size_t size, void* ret);
 #endif
 
 
-#endif /* __ohos_malloc_hook_client_h__ */
+#endif /* __OHOS_MALLOC_HOOK_CLIENT_H__ */

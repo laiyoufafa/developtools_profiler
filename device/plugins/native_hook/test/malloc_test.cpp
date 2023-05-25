@@ -54,7 +54,7 @@ static int g_runing = 1;
 static int g_threadNum = 1;
 static int g_mallocSize = 1;
 static const char* g_fileName = "./mmapTest";
-static unsigned int g_hook_flag = 0;
+static unsigned int g_hookFlag = 0;
 
 static char* DepthMalloc(int depth, int mallocSize)
 {
@@ -256,7 +256,7 @@ static void* ThreadFuncC(void* param)
 // 打开文件到内存中
 static int OpenFile(const char* fileName)
 {
-    int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0644); // 0644 rw-r--r--
+    int fd = open(fileName, O_RDWR | O_CREAT, static_cast<mode_t>(0644)); // 0644 rw-r--r--
     if (fd == -1) {
         printf("can not open the file\n");
         return -1;
@@ -448,14 +448,14 @@ static int CommandParse(int argc, char** argv)
                 // hook test的类型
                 if (!strcmp("mmap", optarg)) {
                     printf("Type: %s \n", optarg);
-                    g_hook_flag |= MMAP_FLAG;
+                    g_hookFlag |= MMAP_FLAG;
                 } else if (!strcmp("alloc", optarg)) {
                     printf("Type: %s \n", optarg);
-                    g_hook_flag |= ALLOC_FLAG;
+                    g_hookFlag |= ALLOC_FLAG;
                 } else if (!strcmp("all", optarg)) {
                     printf("Type: %s \n", optarg);
-                    g_hook_flag |= ALLOC_FLAG;
-                    g_hook_flag |= MMAP_FLAG;
+                    g_hookFlag |= ALLOC_FLAG;
+                    g_hookFlag |= MMAP_FLAG;
                 }
                 break;
             case 's':
@@ -496,11 +496,11 @@ int main(int argc, char* argv[])
     if (ret == -1) {
         return 0;
     }
-    int typeNum = BitMapNum(g_hook_flag);
-    printf(" g_hook_flag =  [%u] \n", g_hook_flag);
+    int typeNum = BitMapNum(g_hookFlag);
+    printf(" g_hookFlag =  [%u] \n", g_hookFlag);
     if (typeNum == 0) {
         // 未设置type时默认启动alloc
-        g_hook_flag |= ALLOC_FLAG;
+        g_hookFlag |= ALLOC_FLAG;
         typeNum++;
     }
 
@@ -510,7 +510,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     int type = 0;
-    if ((g_hook_flag & ALLOC_FLAG) != 0) {
+    if ((g_hookFlag & ALLOC_FLAG) != 0) {
         int threadNum = g_threadNum;
         int mallocSize = g_mallocSize;
 
@@ -533,7 +533,7 @@ int main(int argc, char* argv[])
         type++;
     }
 
-    if ((g_hook_flag & MMAP_FLAG) != 0) {
+    if ((g_hookFlag & MMAP_FLAG) != 0) {
         int threadNum = g_threadNum;
         // 初始化
         MmapInit();

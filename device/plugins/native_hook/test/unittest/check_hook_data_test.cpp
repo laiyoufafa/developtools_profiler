@@ -39,15 +39,15 @@ const int WAIT_FLUSH = 2;
 const std::string DEFAULT_NATIVE_DAEMON_PATH("/system/bin/native_daemon");
 std::string DEFAULT_PATH("/data/local/tmp/");
 const int g_shareMemorySize = 1000 * 4096;
-const int g_bufferSize = 100 * 1024;
-const int g_defaultDepth = 32;
-const int g_callocDepth = 13;
-const int g_reallocDepth = 10;
-const int g_mallocVecSize = 5;
-const int g_freeVecSize = 4;
-const int g_mallocGetDataSize = 3;
-const int g_freeGetDataSize = 2;
-std::unique_ptr<uint8_t[]> g_buffer = std::make_unique<uint8_t[]>(g_bufferSize);
+const int BUFFER_SIZE = 100 * 1024;
+const int DEFAULT_DEPTH = 32;
+const int CALLOC_DEPTH = 13;
+const int REALLOC_DEPTH = 10;
+const int MALLOC_VEC_SIZE = 5;
+const int FREE_VEC_SIZE = 4;
+const int MALLOC_GET_DATE_SIZE = 3;
+const int FREE_GET_DATA_SIZE = 2;
+std::unique_ptr<uint8_t[]> g_buffer = std::make_unique<uint8_t[]>(BUFFER_SIZE);
 
 using StaticSpace = struct {
     int data[DATA_SIZE];
@@ -67,7 +67,7 @@ public:
                 "-s", std::to_string(g_shareMemorySize).c_str(), "-p", std::to_string(pid).c_str(), nullptr);
             _exit(1);
         } else {
-            g_daemonPid = processNum;
+            daemonPid_ = processNum;
         }
     }
 
@@ -81,7 +81,7 @@ public:
                 "-d", std::to_string(setHookDepth).c_str(), nullptr);
             _exit(1);
         } else {
-            g_daemonSetDepthPid = processNum;
+            daemonSetDepthPid_ = processNum;
         }
     }
 
@@ -127,7 +127,7 @@ public:
             close(fd);
             return -1;
         }
-        bytesRead = read(fd, g_buffer.get(), g_bufferSize - 1);
+        bytesRead = read(fd, g_buffer.get(), BUFFER_SIZE - 1);
         if (bytesRead <= 0) {
             close(fd);
             HILOG_ERROR(LOG_CORE, "%s:failed to read(%s), errno=%d", __func__, realPath, errno);
@@ -284,8 +284,8 @@ public:
     }
 
 private:
-    int g_daemonPid = -1;
-    int g_daemonSetDepthPid = -1;
+    int daemonPid_ = -1;
+    int daemonSetDepthPid_ = -1;
 };
 
 /**
@@ -311,7 +311,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
     system(cmdEnd.c_str());
     sleep(WAIT_FLUSH);
     StopProcess(mallocPid);
-    StopProcess(g_daemonPid);
+    StopProcess(daemonPid_);
 
     int32_t ret = ReadFile(outFile);
     ASSERT_NE(ret, -1);
@@ -327,25 +327,25 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
         Getdata(totalbuffer, hookVec, delimiter);
 
         if (hookVec[0] == "malloc" && !isFirstHook) {
-            for (int i = 0; i < g_mallocGetDataSize; i++) {
+            for (int i = 0; i < MALLOC_GET_DATE_SIZE; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
             delimiter = '\n';
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
-            ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
+            ASSERT_EQ(static_cast<int>(hookVec.size()), MALLOC_VEC_SIZE);
             ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
 
             addr = hookVec[addrPos];
             depth = 0;
         } else if (hookVec[0] == "free" && !isFirstHook) {
-            for (int i = 0; i < g_freeGetDataSize; i++) {
+            for (int i = 0; i < FREE_GET_DATA_SIZE; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
             delimiter = '\n';
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
-            ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
+            ASSERT_EQ(static_cast<int>(hookVec.size()), FREE_VEC_SIZE);
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
-            EXPECT_EQ(depth, g_defaultDepth);
+            EXPECT_EQ(depth, DEFAULT_DEPTH);
 
             isFirstHook = false;
             addr = "";
@@ -382,7 +382,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
     system(cmdEnd.c_str());
     sleep(WAIT_FLUSH);
     StopProcess(callocPid);
-    StopProcess(g_daemonSetDepthPid);
+    StopProcess(daemonSetDepthPid_);
 
     int32_t ret = ReadFile(outFile);
     ASSERT_NE(ret, -1);
@@ -398,25 +398,25 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
         Getdata(totalbuffer, hookVec, delimiter);
 
         if (hookVec[0] == "malloc" && !isFirstHook) {
-            for (int i = 0; i < g_mallocGetDataSize; i++) {
+            for (int i = 0; i < MALLOC_GET_DATE_SIZE; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
             delimiter = '\n';
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
-            ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
+            ASSERT_EQ(static_cast<int>(hookVec.size()), MALLOC_VEC_SIZE);
             ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_CALLOC_SIZE);
 
             addr = hookVec[addrPos];
             depth = 0;
         } else if (hookVec[0] == "free" && !isFirstHook) {
-            for (int i = 0; i < g_freeGetDataSize; i++) {
+            for (int i = 0; i < FREE_GET_DATA_SIZE; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
             delimiter = '\n';
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
-            ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
+            ASSERT_EQ(static_cast<int>(hookVec.size()), FREE_VEC_SIZE);
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
-            EXPECT_GE(depth, g_callocDepth);
+            EXPECT_GE(depth, CALLOC_DEPTH);
 
             isFirstHook = false;
             addr = "";
@@ -452,7 +452,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
     system(cmdEnd.c_str());
     sleep(WAIT_FLUSH);
     StopProcess(reallocPid);
-    StopProcess(g_daemonPid);
+    StopProcess(daemonPid_);
 
     int32_t ret = ReadFile(outFile);
     ASSERT_NE(ret, -1);
@@ -470,17 +470,17 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
         Getdata(totalbuffer, hookVec, delimiter);
 
         if (hookVec[0] == "malloc" && !isFirstHook) {
-            for (int i = 0; i < g_mallocGetDataSize; i++) {
+            for (int i = 0; i < MALLOC_GET_DATE_SIZE; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
             delimiter = '\n';
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
-            ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
+            ASSERT_EQ(static_cast<int>(hookVec.size()), MALLOC_VEC_SIZE);
 
             if (isRealloc) {
                 reallocAddr = hookVec[addrPos];
                 ASSERT_GE(atoi(hookVec[4].c_str()), DEFAULT_REALLOC_SIZE);
-                EXPECT_GE(depth, g_reallocDepth);
+                EXPECT_GE(depth, REALLOC_DEPTH);
                 isFirstHook = false;
             } else {
                 mallocAddr = hookVec[addrPos];
@@ -490,12 +490,12 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
             isRealloc = true;
             depth = 0;
         } else if (hookVec[0] == "free" && !isFirstHook) {
-            for (int i = 0; i < g_freeGetDataSize; i++) {
+            for (int i = 0; i < FREE_GET_DATA_SIZE; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
             delimiter = '\n';
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
-            ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
+            ASSERT_EQ(static_cast<int>(hookVec.size()), FREE_VEC_SIZE);
 
             if (isRealloc) {
                 EXPECT_STREQ(hookVec[addrPos].c_str(), reallocAddr.c_str());
