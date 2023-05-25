@@ -190,9 +190,9 @@ int main(int argc, char *argv[])
     PRINTF_DATA(outFp.get(), "PID: %d, file: %d.nativehook\n", pid, pid);
     PRINTF_DATA(outFp.get(),
         "Thread number: %d, duration: %d seconds, memory size: %d bytes\n",
-        thread_num,
-        duration,
-        mem_size);
+        threadNum,
+        g_duration,
+        g_memSize);
     for (idxSituation = 0; idxSituation < idxSituationMax; ++idxSituation) {
         if (idxSituation == 0) {
             PRINTF_DATA(outFp.get(), "No hook situation\n");
