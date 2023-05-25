@@ -188,8 +188,11 @@ int main(int argc, char *argv[])
     int idxSituationMax = 2;
     int pid = static_cast<int>(getpid());
     PRINTF_DATA(outFp.get(), "PID: %d, file: %d.nativehook\n", pid, pid);
-    PRINTF_DATA(outFp.get(), "Thread number: %d, g_duration: %d seconds, memory size: %d bytes\n", threadNum, g_duration,
-                g_memSize);
+    PRINTF_DATA(outFp.get(),
+        "Thread number: %d, duration: %d seconds, memory size: %d bytes\n",
+        thread_num,
+        duration,
+        mem_size);
     for (idxSituation = 0; idxSituation < idxSituationMax; ++idxSituation) {
         if (idxSituation == 0) {
             PRINTF_DATA(outFp.get(), "No hook situation\n");

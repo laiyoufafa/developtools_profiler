@@ -167,7 +167,7 @@ void* ThreadFuncCppHook(void* param)
     return nullptr;
 }
 
-int ThreadTimeCost(int threadNum, int mallocTimes) 
+int ThreadTimeCost(int threadNum, int mallocTimes)
 {
     Timer timer = {};
     if (threadNum <= 0) {
