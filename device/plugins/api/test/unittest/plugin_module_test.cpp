@@ -163,7 +163,9 @@ HWTEST_F(PluginModuleTest, PluginModuleTest, TestSize.Level1)
     EXPECT_TRUE(plugin->GetInfo(info));
     EXPECT_TRUE(plugin->IsLoaded());
     EXPECT_TRUE(plugin->GetOutFileName(outFileName));
+    EXPECT_EQ(outFileName,"");
     EXPECT_TRUE(plugin->GetPluginVersion(pluginVersion));
+    EXPECT_EQ(pluginVersion,"1.02");
     BufferWriterPtr writer;
     EXPECT_TRUE(plugin->RegisterWriter(writer));
 }
