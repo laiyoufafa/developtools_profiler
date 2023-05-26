@@ -76,15 +76,18 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
     }
     if (protoConfig_.need_clear()) {
         fullCmd_ = ClearHilog();
-        int childPid = -1;
         std::vector<std::string> cmdArg;
         COMMON::SplitString(fullCmd_, " ", cmdArg);
-        FILE* fp = COMMON::CustomPopen(childPid, BIN_COMMAND, cmdArg, "r");
+        cmdArg.emplace(cmdArg.begin(), BIN_COMMAND);
+
+        volatile pid_t childPid = -1;
+        int pipeFds[2] = {-1, -1};
+        FILE* fp = COMMON::CustomPopen(cmdArg, "r", pipeFds, childPid);
         if (fp == nullptr) {
             HILOG_ERROR(LOG_CORE, "%s:clear hilog error", __func__);
             return false;
         }
-        COMMON::CustomPclose(fp, childPid);
+        COMMON::CustomPclose(fp, pipeFds, childPid);
     }
     if (!InitHilogCmd()) {
         HILOG_ERROR(LOG_CORE, "HilogPlugin: Init HilogCmd failed");

@@ -85,11 +85,14 @@ bool ParseConfigToCmd(const HiperfPluginConfig& config, std::vector<std::string>
 bool RunCommand(const std::string& cmd)
 {
     HILOG_INFO(LOG_CORE, "run command: %s", cmd.c_str());
-    int childPid = -1;
     bool res = false;
     std::vector<std::string> cmdArg;
     COMMON::SplitString(cmd, " ", cmdArg);
-    FILE* fp = COMMON::CustomPopen(childPid, HIPERF_BIN_PATH, cmdArg, "r");
+    cmdArg.emplace(cmdArg.begin(), HIPERF_BIN_PATH);
+
+    volatile pid_t childPid = -1;
+    int pipeFds[2] = {-1, -1};
+    FILE* fp = COMMON::CustomPopen(cmdArg, "r", pipeFds, childPid);
     if (fp == nullptr) {
         HILOG_ERROR(LOG_CORE, "HiperfPlugin::RunCommand CustomPopen FAILED!r");
         return false;
@@ -105,7 +108,7 @@ bool RunCommand(const std::string& cmd)
             break;
         }
     }
-    COMMON::CustomPclose(fp, childPid);
+    COMMON::CustomPclose(fp, pipeFds, childPid);
     HILOG_INFO(LOG_CORE, "run command result: %s", result.c_str());
     CHECK_TRUE(res, false, "HiperfPlugin::RunCommand: execute command FAILED!");
     return true;

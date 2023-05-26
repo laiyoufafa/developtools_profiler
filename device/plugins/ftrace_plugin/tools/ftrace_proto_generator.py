@@ -95,7 +95,7 @@ def fix_field_name(name):
         "new": "seq_new",
     }
     if name in replace_map:
-        name = replace_map[name]
+        name = replace_map.get(name)
     return str.lower(name)
 
 

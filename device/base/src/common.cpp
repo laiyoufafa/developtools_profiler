@@ -44,7 +44,6 @@ namespace COMMON {
 constexpr int EXECVP_ERRNO = 2;
 const int SHELL_UID = 2000;
 const std::string DEFAULT_PATH = "/data/local/tmp/";
-constexpr int PIPE_LEN = 2;
 constexpr int READ = 0;
 constexpr int WRITE = 1;
 const int FILE_PATH_SIZE = 512;
@@ -197,76 +196,152 @@ void PrintMallinfoLog(const std::string& mallInfoPrefix)
 #endif  // HOOK_ENABLE
 }
 
-FILE* CustomPopen(int& childPid, const std::string& filePath, std::vector<std::string>& argv, const char* type)
+inline int CustomFdClose(int& fd)
 {
-    if (type == nullptr) {
-        HILOG_ERROR(LOG_CORE, "Common:%s param invalid", __func__);
-        return nullptr;
+    int ret = close(fd);
+    if (ret == 0) {
+        fd = -1;
     }
-    int fd[PIPE_LEN];
-    pipe(fd);
-    pid_t pid = fork();
-    if (pid == -1) {
-        HILOG_ERROR(LOG_CORE, "Common:%s fork failed!", __func__);
-        return nullptr;
-    }
-    // child process
-    if (pid == 0) {
-        if (!strncmp(type, "r", strlen(type))) {
-            close(fd[READ]);
-            dup2(fd[WRITE], STDOUT_FILENO);  // Redirect stdout to pipe
-            dup2(fd[WRITE], STDERR_FILENO);  // 2: Redirect stderr to pipe
-        } else {
-            close(fd[WRITE]);
-            dup2(fd[READ], 0);  // Redirect stdin to pipe
-        }
-        setpgid(pid, pid);
-        std::vector<char*> vectArgv;
-        for (auto& item : argv) {
-            vectArgv.push_back(const_cast<char*>(item.c_str()));
-        }
-        // execv : the last argv must be nullptr.
-        vectArgv.push_back(nullptr);
-        execv(filePath.c_str(), &vectArgv[0]);
-        exit(0);
-    } else {
-        if (!strncmp(type, "r", strlen(type))) {
-            // Close the WRITE end of the pipe since parent's fd is read-only
-            close(fd[WRITE]);
-        } else {
-            // Close the READ end of the pipe since parent's fd is write-only
-            close(fd[READ]);
-        }
-    }
-    childPid = pid;
-    if (!strncmp(type, "r", strlen(type))) {
-        return fdopen(fd[READ], "r");
-    }
-    return fdopen(fd[WRITE], "w");
+    return ret;
 }
 
-int CustomPclose(FILE* fp, int childPid)
+inline int CustomFdFclose(FILE** fp)
 {
-    HILOG_INFO(LOG_CORE, "BEGN %s: ready!", __func__);
-    CHECK_NOTNULL(fp, -1, "NOTE %s: fp is null", __func__);
-    int stat = 0;
-    if (fclose(fp) != 0) {
-        const int bufSize = 256;
-        char buf[bufSize] = {0};
-        strerror_r(errno, buf, bufSize);
-        HILOG_ERROR(LOG_CORE, "Common: %s fclose failed! errno(%d:%s)", __func__, errno, buf);
+    int ret = fclose(*fp);
+    if (ret == 0) {
+        *fp = nullptr;
     }
-    if (waitpid(childPid, &stat, 0) == -1) {
-        if (errno != EINTR) {
-            const int bufSize = 256;
-            char buf[bufSize] = {0};
-            strerror_r(errno, buf, bufSize);
-            HILOG_ERROR(LOG_CORE, "Common: %s waitpid failed! errno(%d:%s)", __func__, errno, buf);
-            return stat;
+    return ret;
+}
+
+FILE* CustomPopen(const std::vector<std::string>& command, const char* type, int fds[],
+                  volatile pid_t& childPid, bool needUnblock)
+{
+    HILOG_DEBUG(LOG_CORE, "BEGN %s: ready!", __func__);
+    if (command.empty() || type == nullptr) {
+        HILOG_ERROR(LOG_CORE, "%s: param invalid", __func__);
+        return nullptr;
+    }
+
+    // only allow "r" or "w"
+    if ((type[0] != 'r' && type[0] != 'w') || type[1] != 0) {
+        errno = EINVAL;
+        return  nullptr;
+    }
+
+    CHECK_TRUE(pipe(fds) == 0, nullptr, "Pipe open failed!");
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        exit(1);
+    }
+
+    if (pid == 0) {
+        char* const envp[] = {nullptr};
+        // execve : the last argv must be nullptr.
+        std::vector<char*> argv(command.size() + 1, nullptr);
+        for (size_t i = 0, cmdSize = command.size(); i < cmdSize; i++) {
+            argv[i] = const_cast<char*>(command[i].data());
+        }
+
+        if (strncmp(type, "r", strlen(type)) == 0) {
+            CHECK_TRUE(CustomFdClose(fds[READ]) == 0, nullptr, "CustomFdClose failed!");
+            dup2(fds[WRITE], STDOUT_FILENO); // Redirect stdout to pipe
+            CHECK_TRUE(CustomFdClose(fds[WRITE]) == 0, nullptr, "CustomFdClose failed!");
+        } else {
+            CHECK_TRUE(CustomFdClose(fds[WRITE]) == 0, nullptr, "CustomFdClose failed!");
+            dup2(fds[READ], STDIN_FILENO); // Redirect stdin to pipe
+            CHECK_TRUE(CustomFdClose(fds[READ]) == 0, nullptr, "CustomFdClose failed!");
+        }
+
+        setpgid(pid, pid);
+        // exe path = argv[0]; exe name = argv[1]
+        if (execve(argv[0], &argv[1], envp) == -1) {
+            HILOG_ERROR(LOG_CORE, "execve failed {%s:%s}", __func__, strerror(errno));
+            exit(EXIT_FAILURE);
         }
     }
-    HILOG_INFO(LOG_CORE, "END %s: success!", __func__);
+
+    if (!needUnblock) {
+        if (strncmp(type, "r", strlen(type)) == 0) {
+            // Close the WRITE end of the pipe since parent's fd is read-only
+            CHECK_TRUE(CustomFdClose(fds[WRITE]) == 0, nullptr, "%s %d CustomFdClose failed! errno(%s)\n",
+                __func__, __LINE__, strerror(errno));
+        } else {
+            // Close the READ end of the pipe since parent's fd is write-only
+            CHECK_TRUE(CustomFdClose(fds[READ]) == 0, nullptr, "%s %d CustomFdClose failed! errno(%s)\n",
+                __func__, __LINE__, strerror(errno));
+        }
+    }
+
+    // Make sure the parent pipe reads and writes exist;CustomPUnblock will use.
+    childPid = pid;
+    if (strncmp(type, "r", strlen(type)) == 0) {
+        HILOG_DEBUG(LOG_CORE, "END %s fds[READ]: success!", __func__);
+        return fdopen(fds[READ], "r");
+    }
+
+    HILOG_DEBUG(LOG_CORE, "END %s fds[WRITE]: success!", __func__);
+    return fdopen(fds[WRITE], "w");
+}
+
+int CustomPclose(FILE* fp, int fds[], volatile pid_t& childPid, bool needUnblock)
+{
+    HILOG_DEBUG(LOG_CORE, "BEGN %s: ready!", __func__);
+    CHECK_NOTNULL(fp, -1, "NOTE %s: fp is null", __func__);
+
+    int stat = 0;
+
+    if (needUnblock) {
+        HILOG_DEBUG(LOG_CORE, "NOTE Kill Endless Loop Child %d.", childPid);
+        kill(childPid, SIGKILL);
+    }
+
+    while (waitpid(childPid, &stat, 0) == -1) {
+        HILOG_ERROR(LOG_CORE, "%s: %s.", __func__, strerror(errno));
+        if (errno == EINTR) {
+            continue;
+        }
+        break;
+    }
+
+    if (needUnblock) {
+        if (fileno(fp) == fds[READ]) {
+            fds[READ] = -1;
+            CHECK_TRUE(CustomFdClose(fds[WRITE]) == 0, -1, "CustomFdClose failed!");
+        } else if (fileno(fp) == fds[WRITE]) {
+            fds[WRITE] = -1;
+            CHECK_TRUE(CustomFdClose(fds[READ]) == 0, -1, "CustomFdClose failed!");
+        } else {
+            HILOG_INFO(LOG_CORE, "%s: Can't find fp in fds[READ/WRITE].", __func__);
+        }
+    }
+
+    CHECK_TRUE(CustomFdFclose(&fp) == 0, -1, "CustomFdFclose failed!");
+
+    HILOG_DEBUG(LOG_CORE, "END %s: success!", __func__);
     return stat;
+}
+
+// IF pipe fds is block, before release other threads, you need call CustomPUnblock
+int CustomPUnblock(int fds[])
+{
+    HILOG_DEBUG(LOG_CORE, "BEGN %s: ready!", __func__);
+
+    CHECK_TRUE(fds[READ] != -1 && fds[WRITE] != -1, -1, "END fds[READ/WRITE]=-1");
+
+    int stat = fcntl(fds[READ], F_GETFL);
+    CHECK_TRUE(stat != -1, -1, "END fcntl(F_GETFL) failed!");
+
+    if (!(stat & O_NONBLOCK)) {
+        HILOG_DEBUG(LOG_CORE, "NOTE %s: ready!Unblock r_fd and close all", __func__);
+        const char* eof = "\n\0";
+        write(fds[WRITE], eof, sizeof(eof));
+        fcntl(fds[READ], F_SETFL, O_NONBLOCK);
+    }
+    HILOG_DEBUG(LOG_CORE, "END %s: success!", __func__);
+    return 0;
 }
 
 int GetServicePort()

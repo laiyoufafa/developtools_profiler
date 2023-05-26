@@ -17,6 +17,7 @@
 
 #include "hisysevent_plugin_config.pb.h"
 #include "hisysevent_plugin_result.pb.h"
+#include "common.h"
 #include "logging.h"
 #include "plugin_module_api.h"
 
@@ -37,25 +38,27 @@ public:
     int SetWriter(WriterStruct* writer);
 
 private:
+    std::string GetFullCmd();
     bool InitHisyseventCmd();
 
-    std::string GetCmdline();
-    static FILE* CustomPopen(char* const command[], const char* type);
-    static int CustomPclose(FILE* fp);
+    bool ParseSyseventLineInfo(const char* data, size_t len, HisyseventInfo& dataProto);
 
-    bool ParseSyseventLineInfo(const char* data, size_t len, HisyseventInfo &dataProto);
+    bool WriteResult(const HisyseventInfo& dataProto);
 
 private:
-    std::vector<char*> fullCmd_;
+    std::atomic<uint64_t> id_;
+    std::vector<std::string> fullCmd_;
 
-    std::mutex mutex_;
     std::thread workThread_;
     std::atomic<bool> running_ = true;
 
-    std::unique_ptr<FILE, int (*)(FILE*)> fp_;
+    std::unique_ptr<FILE, std::function<int (FILE*)>> fp_;
 
     HisyseventConfig protoConfig_;
     std::vector<char> protoBuffer_;
     WriterStruct* resultWriter_ = nullptr;
+
+    volatile pid_t childPid_ = -1;
+    int pipeFds_[2] = {-1, -1};
 };
 #endif // !HISYSEVENT_PLUGIN_H
