@@ -140,4 +140,33 @@ HWTEST_F(PluginModuleTest, PluginModuleAbnormal, TestSize.Level1)
     EXPECT_FALSE(plugin->StopSession());
     EXPECT_FALSE(plugin->Unload());
 }
+
+/**
+ * @tc.name: plugin
+ * @tc.desc: pluginmodule  test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginModuleTest, PluginModuleTest, TestSize.Level1)
+{
+    std::string pluginPath = g_testPluginDir + "/" + SUCCESS_PLUGIN_NAME;
+    PluginModuleInfo info;
+    auto plugin = std::make_shared<PluginModule>(pluginPath);
+
+    std::string outFileName;
+    EXPECT_FALSE(plugin->GetOutFileName(outFileName));
+    std::string pluginVersion;
+    EXPECT_FALSE(plugin->GetPluginVersion(pluginVersion));
+    EXPECT_EQ(plugin->GetWriter(), nullptr);
+
+    EXPECT_TRUE(plugin->Load());
+    EXPECT_TRUE(plugin->BindFunctions());
+    EXPECT_TRUE(plugin->GetInfo(info));
+    EXPECT_TRUE(plugin->IsLoaded());
+    EXPECT_TRUE(plugin->GetOutFileName(outFileName));
+    EXPECT_EQ(outFileName,"");
+    EXPECT_TRUE(plugin->GetPluginVersion(pluginVersion));
+    EXPECT_EQ(pluginVersion,"1.02");
+    BufferWriterPtr writer;
+    EXPECT_TRUE(plugin->RegisterWriter(writer));
+}
 } // namespace

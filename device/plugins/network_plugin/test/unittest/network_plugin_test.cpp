@@ -306,4 +306,32 @@ HWTEST_F(NetworkPluginTest, TestFramework, TestSize.Level1)
     }
     EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
 }
+
+/**
+ * @tc.name: network plugin
+ * @tc.desc: systemdata test
+ * @tc.type: FUNC
+ */
+HWTEST_F(NetworkPluginTest, TestSystemData, TestSize.Level1)
+{
+    std::string path = DEFAULT_SO_PATH + std::string("libnetworkplugin.z.so");
+    void* handle = dlopen(path.c_str(), RTLD_LAZY);
+    EXPECT_NE(handle, nullptr);
+    PluginModuleStruct* plugin = reinterpret_cast<PluginModuleStruct*>(dlsym(handle, "g_pluginModule"));
+
+    // set config
+    NetworkConfig config;
+    std::string test_file = "/data/local/tmp/utresources/begin/proc/net/xt_qtaguid/stats";
+    config.set_test_file(test_file);
+    int size = config.ByteSizeLong();
+    ASSERT_GT(size, 0);
+    std::vector<uint8_t> configData(size);
+    ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
+
+    // systemdata test
+    std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
+    EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
+    EXPECT_GT(plugin->callbacks->onPluginReportResult(dataBuffer.data(), dataBuffer.size()), 0);
+    EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
+}
 } // namespace
