@@ -283,6 +283,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
     bool mapsAdded = !update;
     std::set<std::string> addSymbolFile;
     std::vector<MemMapItem> tempMap;
+    std::string tempMapName;
     if (mapContent.size() > 0) {
         std::istringstream s(mapContent);
         std::string line;
@@ -396,7 +397,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
             if (!IsLegalFileName(memMapItem.name_)) {
                 continue;
             }
-            std::string tempMapName;
+
             if (!update) {
                 memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
                 virtualruntime_->FillMapsCache(tempMapName, memMapItem);
