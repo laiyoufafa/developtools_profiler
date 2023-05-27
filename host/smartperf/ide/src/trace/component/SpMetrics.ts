@@ -52,7 +52,7 @@ export class SpMetrics extends BaseElement {
   private runButtonEl: HTMLButtonElement | undefined | null;
   private responseJson: HTMLPreElement | undefined | null;
   private metricOptionalSelects: Array<MetricQueryItem> | undefined;
-  private progressLoad: LitProgressBar | undefined;
+  private metricProgressLoad: LitProgressBar | undefined;
 
   static get observedAttributes() {
     return ['metric', 'metricResult'];
@@ -81,7 +81,7 @@ export class SpMetrics extends BaseElement {
   }
 
   initElements(): void {
-    this.progressLoad = this.shadowRoot?.querySelector('.load-metric') as LitProgressBar;
+    this.metricProgressLoad = this.shadowRoot?.querySelector('.sp-load-metric') as LitProgressBar;
     this.selectMetricEl = this.shadowRoot?.querySelector('.sql-select') as HTMLSelectElement;
     this.runButtonEl = this.shadowRoot?.querySelector('.sql-select-button') as HTMLButtonElement;
     this.responseJson = this.shadowRoot?.querySelector('.response-json') as HTMLPreElement;
@@ -96,7 +96,7 @@ export class SpMetrics extends BaseElement {
 
   async initMetric(queryItem: MetricQueryItem) {
     this.initMetricData(queryItem).then((item) => {
-      this.progressLoad!.loading = false;
+      this.metricProgressLoad!.loading = false;
     });
   }
 
@@ -126,7 +126,7 @@ export class SpMetrics extends BaseElement {
       event: 'metrics',
       action: 'metrics',
     });
-    this.progressLoad!.loading = true;
+    this.metricProgressLoad!.loading = true;
     let selectedIndex = this.selectMetricEl!.selectedIndex;
     let value = this.selectMetricEl!.options[selectedIndex].value;
     let resultQuery = this.metricOptionalSelects?.filter((item) => {
@@ -301,22 +301,17 @@ export class SpMetrics extends BaseElement {
              text-align: left;
              width: 100%;
         }
-
-        /*Define scroll bar height, width and background*/
         ::-webkit-scrollbar
         {
           width: 8px;
           background-color: var(--dark-background3,#FFFFFF);
         }
-
-        /*define slider*/
         ::-webkit-scrollbar-thumb
         {
           border-radius: 6px;
           background-color: var(--dark-background7,rgba(0,0,0,0.1));
         }
-        
-        .load-metric{
+        .sp-load-metric{
             width: 95%;
             bottom: 0;
         }
@@ -329,7 +324,7 @@ export class SpMetrics extends BaseElement {
                 <select class="sql-select">
                 </select>
                 <button class="sql-select-button">&nbsp;&nbsp; Run &nbsp;&nbsp;</button>
-                <lit-progress-bar class="load-metric"></lit-progress-bar>
+                <lit-progress-bar class="sp-load-metric"></lit-progress-bar>
             </div>
             <div class="metric-select response">
                  <textarea class="response-json" readonly>

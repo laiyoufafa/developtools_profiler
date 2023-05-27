@@ -14,15 +14,16 @@
  */
 
 import { BaseElement, element } from '../BaseElement.js';
+import { selectHtmlStr } from './LitSelectHtml.js';
 
 @element('lit-select')
 export class LitSelect extends BaseElement {
   private focused: any;
-  private inputElement: any;
-  private clearElement: any;
-  private iconElement: any;
-  private searchElement: any;
-  private multipleRootElement: any;
+  private selectInputEl: any;
+  private selectClearEl: any;
+  private selectIconEl: any;
+  private selectSearchEl: any;
+  private selectMultipleRootEl: any;
 
   static get observedAttributes() {
     return [
@@ -43,16 +44,16 @@ export class LitSelect extends BaseElement {
     return this.getAttribute('value') || this.defaultValue;
   }
 
-  set value(value) {
-    this.setAttribute('value', value);
+  set value(selectValue) {
+    this.setAttribute('value', selectValue);
   }
 
   get rounded() {
     return this.hasAttribute('rounded');
   }
 
-  set rounded(rounded: boolean) {
-    if (rounded) {
+  set rounded(selectRounded: boolean) {
+    if (selectRounded) {
       this.setAttribute('rounded', '');
     } else {
       this.removeAttribute('rounded');
@@ -63,9 +64,9 @@ export class LitSelect extends BaseElement {
     return this.getAttribute('placement') || '';
   }
 
-  set placement(placement: string) {
-    if (placement) {
-      this.setAttribute('placement', placement);
+  set placement(selectPlacement: string) {
+    if (selectPlacement) {
+      this.setAttribute('placement', selectPlacement);
     } else {
       this.removeAttribute('placement');
     }
@@ -75,8 +76,8 @@ export class LitSelect extends BaseElement {
     return this.getAttribute('border') || 'true';
   }
 
-  set border(value) {
-    if (value) {
+  set border(selectBorder) {
+    if (selectBorder) {
       this.setAttribute('border', 'true');
     } else {
       this.setAttribute('border', 'false');
@@ -87,8 +88,8 @@ export class LitSelect extends BaseElement {
     return this.getAttribute('list-height') || '256px';
   }
 
-  set listHeight(value) {
-    this.setAttribute('list-height', value);
+  set listHeight(selectListHeight) {
+    this.setAttribute('list-height', selectListHeight);
   }
 
   get defaultPlaceholder() {
@@ -114,38 +115,38 @@ export class LitSelect extends BaseElement {
     return this.getAttribute('default-value') || '';
   }
 
-  set defaultValue(value) {
-    this.setAttribute('default-value', value);
+  set defaultValue(selectDefaultValue) {
+    this.setAttribute('default-value', selectDefaultValue);
   }
 
   get placeholder() {
     return this.getAttribute('placeholder') || this.defaultPlaceholder;
   }
 
-  set placeholder(value) {
-    this.setAttribute('placeholder', value);
+  set placeholder(selectPlaceHolder) {
+    this.setAttribute('placeholder', selectPlaceHolder);
   }
 
   get loading() {
     return this.hasAttribute('loading');
   }
 
-  set loading(value) {
-    if (value) {
+  set loading(selectLoading) {
+    if (selectLoading) {
       this.setAttribute('loading', '');
     } else {
       this.removeAttribute('loading');
     }
   }
 
-  set dataSource(value: any) {
-    value.forEach((a: any) => {
-      let option = document.createElement('lit-select-option');
-      if (a.file_name) {
-        option.textContent = a.file_name;
-        option.setAttribute('value', a.file_name);
+  set dataSource(selectDataSource: any) {
+    selectDataSource.forEach((dateSourceBean: any) => {
+      let selectOption = document.createElement('lit-select-option');
+      if (dateSourceBean.file_name) {
+        selectOption.textContent = dateSourceBean.file_name;
+        selectOption.setAttribute('value', dateSourceBean.file_name);
       }
-      this.append(option);
+      this.append(selectOption);
     });
     this.initOptions();
   }
@@ -155,197 +156,76 @@ export class LitSelect extends BaseElement {
   initHtml() {
     return `
         <style>
-        :host{
-            display: inline-flex;
-            position: relative;
-            overflow: visible;
-            cursor: pointer;
-            border-radius: 2px;
-            outline: none;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
-            /*width: 100%;*/
-        }
-        :host(:not([border])),
-        :host([border='true']){
-            border: 1px solid var(--bark-prompt,#dcdcdc);
-        }
-        input{
-            border: 0;
-            outline: none;
-            background-color: transparent;
-            cursor: pointer;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
-            display: inline-flex;
-            color: var(--dark-color2,rgba(0,0,0,0.9));
-        }
-        :host([highlight]) input {
-            color: rgba(255,255,255,0.9);
-        }
+        ${selectHtmlStr()}
         :host(:not([mode]))  input{
-            width: 100%;
-        }
-        :host([mode])  input{
-            padding: 6px 0px;
-        }
-        :host([mode])  .root{
-            padding: 1px 8px;
-        }
-        .root{
-            position: relative;
-            padding: 3px 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-radius: 2px;
-            outline: none;
-            font-size: 1rem;
-            z-index: 2;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
             width: 100%;
         }
         .body{
             max-height: ${this.listHeight};
-            position: absolute;
-            bottom: 100%;
-            z-index: 99;
-            padding-top: 5px;
-            margin-top: 2px;
-            background-color: var(--dark-background4,#fff);
-            width: 100%;
-            transform: scaleY(.6);
-            visibility: hidden;
-            opacity: 0;
-            transform-origin: bottom center;
-            display: block;
-            flex-direction: column;
-            box-shadow: 0 5px 15px 0px #00000033;
-            border-radius: 2px;
             overflow: auto;
-        }
-        .body-bottom{
-            bottom: auto;
-            top: 100%;
-            transform-origin: top center;
-        }
-        :host([placement="bottom"]) .body{
-            bottom:unset;
-            top: 100%;
-            transition: none;
-            transform: none;
-        }
-
-        :host([rounded]) .body {
-            border-radius: 16px;
-        }
-        :host([rounded]) .root {
-            border-radius: 16px;
-            height: 25px;
-        }
-        .icon{
-            pointer-events: none;
-        }
-        .noSelect{
-          -moz-user-select:none;
-          -ms-user-select:none;
-          user-select:none;
-          -khtml-user-select:none;
-          -webkit-touch-callout:none;
-          -webkit-user-select:none;
-        }
-
-        :host(:not([border]):not([disabled]):focus),
-        :host([border='true']:not([disabled]):focus),
-        :host(:not([border]):not([disabled]):hover),
-        :host([border='true']:not([disabled]):hover){
-            border:1px solid var(--bark-prompt,#ccc)
-        }
-        :host(:not([disabled]):focus) .body,
-        :host(:not([disabled]):focus-within) .body{
-            transform: scaleY(1);
-            opacity: 1;
-            z-index: 99;
-            visibility: visible;
-        }
-        :host(:not([disabled]):focus)  input{
-            color: var(--dark-color,#bebebe);
+            border-radius: 2px;
+            box-shadow: 0 5px 15px 0px #00000033;
         }
         .multipleRoot input::-webkit-input-placeholder {
-                color: var(--dark-color,#aab2bd);
-            }
-        :host(:not([border])[disabled]) *,
-        :host([border='true'][disabled]) *{
-            background-color: var(--dark-background1,#f5f5f5);
-            color: #b7b7b7;
-            cursor: not-allowed;
-        }
-        :host([border='false'][disabled]) *{
-            color: #b7b7b7;
-            cursor: not-allowed;
-        }
-        :host([loading]) .loading{
-            display: flex;
-        }
-        :host([loading]) .icon{
-            display: none;
+            color: var(--dark-color,#aab2bd);
         }
         :host(:not([loading])) .loading{
             display: none;
         }
-        :host(:not([loading])) .icon{
+        :host([loading]) .loading{
             display: flex;
         }
         :host(:not([allow-clear])) .clear{
             display: none;
         }
-        .clear{
+        :host([loading]) .icon{
             display: none;
-            color: #bfbfbf;
+        }
+        :host(:not([loading])) .icon{
+            display: flex;
         }
         .clear:hover{
             color: #8c8c8c;
         }
-        .search{
-            display: none;
+        .clear{
             color: #bfbfbf;
+            display: none;
         }
         .multipleRoot{
             display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            flex-flow: wrap;
             align-items: center;
+            flex-flow: wrap;
+            flex-wrap: wrap;
+            flex-direction: column;
+        }
+        .search{
+            color: #bfbfbf;
+            display: none;
         }
         .tag{
-            display: inline-flex;
-            align-items: center;
-            background-color: #f5f5f5;
-            padding: 1px 4px;
+            overflow: auto;
             height: auto;
+            display: inline-flex;
+            position: relative;
+            align-items: center;
             font-size: .75rem;
             font-weight: bold;
-            color: #242424;
-            overflow: auto;
-            position: relative;
+            padding: 1px 4px;
             margin-right: 4px;
             margin-top: 1px;
             margin-bottom: 1px;
-        }
-        .tag-close{
-            font-size: .8rem;
-            padding: 2px;
-            margin-left: 0px;
-            color: #999999;
+            color: #242424;
+            background-color: #f5f5f5;
         }
         .tag-close:hover{
             color: #333;
         }
-
+        .tag-close{
+            padding: 2px;
+            font-size: .8rem;
+            color: #999999;
+            margin-left: 0px;
+        }
         </style>
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
@@ -383,8 +263,8 @@ export class LitSelect extends BaseElement {
       tag.parentElement.removeChild(tag);
       this.querySelector(`lit-select-option[value=${value}]`)!.removeAttribute('selected');
       if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
-        this.inputElement.style.width = 'auto';
-        this.inputElement.placeholder = this.defaultPlaceholder;
+        this.selectInputEl.style.width = 'auto';
+        this.selectInputEl.placeholder = this.defaultPlaceholder;
       }
       ev.stopPropagation();
     };
@@ -398,15 +278,15 @@ export class LitSelect extends BaseElement {
   connectedCallback() {
     this.tabIndex = 0;
     this.focused = false;
-    this.inputElement = this.shadowRoot!.querySelector('input');
-    this.clearElement = this.shadowRoot!.querySelector('.clear');
-    this.iconElement = this.shadowRoot!.querySelector('.icon');
-    this.searchElement = this.shadowRoot!.querySelector('.search');
-    this.multipleRootElement = this.shadowRoot!.querySelector('.multipleRoot');
-    this.clearElement.onclick = (ev: any) => {
+    this.selectInputEl = this.shadowRoot!.querySelector('input');
+    this.selectClearEl = this.shadowRoot!.querySelector('.clear');
+    this.selectIconEl = this.shadowRoot!.querySelector('.icon');
+    this.selectSearchEl = this.shadowRoot!.querySelector('.search');
+    this.selectMultipleRootEl = this.shadowRoot!.querySelector('.multipleRoot');
+    this.selectClearEl.onclick = (ev: any) => {
       if (this.isMultiple()) {
         let delNodes: Array<any> = [];
-        this.multipleRootElement.childNodes.forEach((a: any) => {
+        this.selectMultipleRootEl.childNodes.forEach((a: any) => {
           if (a.tagName === 'DIV') {
             delNodes.push(a);
           }
@@ -415,14 +295,14 @@ export class LitSelect extends BaseElement {
           delNodes[i].remove();
         }
         if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
-          this.inputElement.style.width = 'auto';
-          this.inputElement.placeholder = this.defaultPlaceholder;
+          this.selectInputEl.style.width = 'auto';
+          this.selectInputEl.placeholder = this.defaultPlaceholder;
         }
       }
       this.querySelectorAll('lit-select-option').forEach((a) => a.removeAttribute('selected'));
-      this.inputElement.value = '';
-      this.clearElement.style.display = 'none';
-      this.iconElement.style.display = 'flex';
+      this.selectInputEl.value = '';
+      this.selectClearEl.style.display = 'none';
+      this.selectIconEl.style.display = 'flex';
       this.blur();
       ev.stopPropagation();
       this.dispatchEvent(new CustomEvent('onClear', { detail: ev }));
@@ -431,7 +311,7 @@ export class LitSelect extends BaseElement {
     this.onclick = (ev: any) => {
       if (ev.target.tagName === 'LIT-SELECT') {
         if (this.focused === false) {
-          this.inputElement.focus();
+          this.selectInputEl.focus();
           this.focused = true;
         } else {
           this.blur();
@@ -449,56 +329,56 @@ export class LitSelect extends BaseElement {
         }
       }
       if (this.hasAttribute('allow-clear')) {
-        if (this.inputElement.value.length > 0 || this.inputElement.placeholder !== this.defaultPlaceholder) {
-          this.clearElement.style.display = 'flex';
-          this.iconElement.style.display = 'none';
+        if (this.selectInputEl.value.length > 0 || this.selectInputEl.placeholder !== this.defaultPlaceholder) {
+          this.selectClearEl.style.display = 'flex';
+          this.selectIconEl.style.display = 'none';
         } else {
-          this.clearElement.style.display = 'none';
-          this.iconElement.style.display = 'flex';
+          this.selectClearEl.style.display = 'none';
+          this.selectIconEl.style.display = 'flex';
         }
       }
     };
     this.onmouseout = this.onblur = (ev) => {
       if (this.hasAttribute('allow-clear')) {
-        this.clearElement.style.display = 'none';
-        this.iconElement.style.display = 'flex';
+        this.selectClearEl.style.display = 'none';
+        this.selectIconEl.style.display = 'flex';
       }
       this.focused = false;
     };
-    this.inputElement.onfocus = (ev: any) => {
+    this.selectInputEl.onfocus = (ev: any) => {
       if (this.hasAttribute('disabled')) return;
-      if (this.inputElement.value.length > 0) {
-        this.inputElement.placeholder = this.inputElement.value;
-        this.inputElement.value = '';
+      if (this.selectInputEl.value.length > 0) {
+        this.selectInputEl.placeholder = this.selectInputEl.value;
+        this.selectInputEl.value = '';
       }
       if (this.hasAttribute('show-search')) {
-        this.searchElement.style.display = 'flex';
-        this.iconElement.style.display = 'none';
+        this.selectSearchEl.style.display = 'flex';
+        this.selectIconEl.style.display = 'none';
       }
       this.querySelectorAll('lit-select-option').forEach((a) => {
         // @ts-ignore
         a.style.display = 'flex';
       });
     };
-    this.inputElement.onblur = (ev: any) => {
+    this.selectInputEl.onblur = (ev: any) => {
       if (this.hasAttribute('disabled')) return;
       if (this.isMultiple()) {
         if (this.hasAttribute('show-search')) {
-          this.searchElement.style.display = 'none';
-          this.iconElement.style.display = 'flex';
+          this.selectSearchEl.style.display = 'none';
+          this.selectIconEl.style.display = 'flex';
         }
       } else {
-        if (this.inputElement.placeholder !== this.defaultPlaceholder) {
-          this.inputElement.value = this.inputElement.placeholder;
-          this.inputElement.placeholder = this.defaultPlaceholder;
+        if (this.selectInputEl.placeholder !== this.defaultPlaceholder) {
+          this.selectInputEl.value = this.selectInputEl.placeholder;
+          this.selectInputEl.placeholder = this.defaultPlaceholder;
         }
         if (this.hasAttribute('show-search')) {
-          this.searchElement.style.display = 'none';
-          this.iconElement.style.display = 'flex';
+          this.selectSearchEl.style.display = 'none';
+          this.selectIconEl.style.display = 'flex';
         }
       }
     };
-    this.inputElement.oninput = (ev: any) => {
+    this.selectInputEl.oninput = (ev: any) => {
       let els = [...this.querySelectorAll('lit-select-option')];
       if (this.hasAttribute('show-search')) {
         if (!ev.target.value) {
@@ -520,16 +400,16 @@ export class LitSelect extends BaseElement {
         this.value = ev.target.value;
       }
     };
-    this.inputElement.onkeydown = (ev: any) => {
+    this.selectInputEl.onkeydown = (ev: any) => {
       if (ev.key === 'Backspace') {
         if (this.isMultiple()) {
-          let tag = this.multipleRootElement.lastElementChild.previousElementSibling;
+          let tag = this.selectMultipleRootEl.lastElementChild.previousElementSibling;
           if (tag) {
             this.querySelector(`lit-select-option[value=${tag.value}]`)?.removeAttribute('selected');
             tag.remove();
             if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
-              this.inputElement.style.width = 'auto';
-              this.inputElement.placeholder = this.defaultPlaceholder;
+              this.selectInputEl.style.width = 'auto';
+              this.selectInputEl.placeholder = this.defaultPlaceholder;
             }
           }
         } else {
@@ -540,8 +420,8 @@ export class LitSelect extends BaseElement {
         if (!this.canInsert) {
           let filter = [...this.querySelectorAll('lit-select-option')].filter((a: any) => a.style.display !== 'none');
           if (filter.length > 0) {
-            this.inputElement.value = filter[0].textContent;
-            this.inputElement.placeholder = filter[0].textContent;
+            this.selectInputEl.value = filter[0].textContent;
+            this.selectInputEl.placeholder = filter[0].textContent;
             this.blur();
             // @ts-ignore
             this.value = filter[0].getAttribute('value');
@@ -566,15 +446,15 @@ export class LitSelect extends BaseElement {
         a.setAttribute('check', '');
         if (a.getAttribute('value') === this.defaultValue) {
           let tag = this.newTag(a.getAttribute('value'), a.textContent);
-          this.multipleRootElement.insertBefore(tag, this.inputElement);
-          this.inputElement.placeholder = '';
-          this.inputElement.value = '';
-          this.inputElement.style.width = '1px';
+          this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);
+          this.selectInputEl.placeholder = '';
+          this.selectInputEl.value = '';
+          this.selectInputEl.style.width = '1px';
           a.setAttribute('selected', '');
         }
       } else {
         if (a.getAttribute('value') === this.defaultValue) {
-          this.inputElement.value = a.textContent;
+          this.selectInputEl.value = a.textContent;
           a.setAttribute('selected', '');
         }
       }
@@ -594,21 +474,21 @@ export class LitSelect extends BaseElement {
             e.detail.selected = false;
           } else {
             let tag = this.newTag(e.detail.value, e.detail.text);
-            this.multipleRootElement.insertBefore(tag, this.inputElement);
-            this.inputElement.placeholder = '';
-            this.inputElement.value = '';
-            this.inputElement.style.width = '1px';
+            this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);
+            this.selectInputEl.placeholder = '';
+            this.selectInputEl.value = '';
+            this.selectInputEl.style.width = '1px';
           }
           if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
-            this.inputElement.style.width = 'auto';
-            this.inputElement.placeholder = this.defaultPlaceholder;
+            this.selectInputEl.style.width = 'auto';
+            this.selectInputEl.placeholder = this.defaultPlaceholder;
           }
-          this.inputElement.focus();
+          this.selectInputEl.focus();
         } else {
           [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
           this.blur();
           // @ts-ignore
-          this.inputElement.value = e.detail.text;
+          this.selectInputEl.value = e.detail.text;
         }
         if (a.hasAttribute('selected')) {
           a.removeAttribute('selected');
@@ -623,15 +503,15 @@ export class LitSelect extends BaseElement {
   }
 
   clear() {
-    this.inputElement.value = '';
-    this.inputElement.placeholder = this.defaultPlaceholder;
+    this.selectInputEl.value = '';
+    this.selectInputEl.placeholder = this.defaultPlaceholder;
   }
 
   reset() {
     this.querySelectorAll('lit-select-option').forEach((a) => {
       [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
       if (a.getAttribute('value') === this.defaultValue) {
-        this.inputElement.value = a.textContent;
+        this.selectInputEl.value = a.textContent;
         a.setAttribute('selected', '');
       }
     });
@@ -642,12 +522,12 @@ export class LitSelect extends BaseElement {
   adoptedCallback() {}
 
   attributeChangedCallback(name: any, oldValue: any, newValue: any) {
-    if (name === 'value' && this.inputElement) {
+    if (name === 'value' && this.selectInputEl) {
       if (newValue) {
         [...this.querySelectorAll('lit-select-option')].forEach((a) => {
           if (a.getAttribute('value') === newValue) {
             a.setAttribute('selected', '');
-            this.inputElement.value = a.textContent;
+            this.selectInputEl.value = a.textContent;
           } else {
             a.removeAttribute('selected');
           }

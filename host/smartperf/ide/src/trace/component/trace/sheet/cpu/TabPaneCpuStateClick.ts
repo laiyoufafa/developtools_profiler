@@ -16,59 +16,57 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { Utils } from '../../base/Utils.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-cpu-state-click')
 export class TabPaneCpuStateClick extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private cpuStateClickTbl: LitTable | null | undefined;
 
-  set data(val: any) {
-    if (val) {
-      this.tbl!.dataSource = [
+  set data(cpuStateClickValue: any) {
+    if (cpuStateClickValue) {
+      this.cpuStateClickTbl!.dataSource = [
         {
-          startNS: Utils.getTimeString(val.startTs),
-          absoluteTime: (val.startTs + (window as any).recordStartNS) / 1000000000,
-          dur: Utils.getProbablyTime(val.dur),
-          state: val.value,
-          cpu: `Cpu ${val.cpu}`,
+          startNS: Utils.getTimeString(cpuStateClickValue.startTs),
+          absoluteTime: (cpuStateClickValue.startTs + (window as any).recordStartNS) / 1000000000,
+          dur: Utils.getProbablyTime(cpuStateClickValue.dur),
+          state: cpuStateClickValue.value,
+          cpu: `Cpu ${cpuStateClickValue.cpu}`,
         },
       ];
     }
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
+    this.cpuStateClickTbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.cpuStateClickTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .cpu-stack-click{
+            height: auto;
+        }
         :host{
             display: flex;
-            flex-direction: column;
             padding: 10px 10px;
+            flex-direction: column;
         }
         </style>
-        <lit-table id="tb-freq" style="height: auto">
-            <lit-table-column width="1fr" title="StartTime(Relative)" data-index="startNS" key="startNS" align="flex-start">
+        <lit-table id="tb-freq" class="cpu-stack-click">
+            <lit-table-column class="cpu-stack-column" width="1fr" title="StartTime(Relative)" data-index="startNS" key="startNS" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
+            <lit-table-column class="cpu-stack-column" width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
+            <lit-table-column class="cpu-stack-column" width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Cpu" data-index="cpu" key="cpu" align="flex-start" >
+            <lit-table-column class="cpu-stack-column" width="1fr" title="Cpu" data-index="cpu" key="cpu" align="flex-start" >
             </lit-table-column>
-            <lit-table-column width="1fr" title="State" data-index="state" key="state" align="flex-start" >
+            <lit-table-column class="cpu-stack-column" width="1fr" title="State" data-index="state" key="state" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;

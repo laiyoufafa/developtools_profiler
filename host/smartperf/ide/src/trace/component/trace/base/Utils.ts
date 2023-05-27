@@ -91,35 +91,35 @@ export class Utils {
   }
 
   public static getTimeString(ns: number): string {
-    let currentNs = ns;
+    let currentTime = ns;
     let hour1 = 3600_000_000_000;
     let minute1 = 60_000_000_000;
     let second1 = 1_000_000_000;
     let millisecond1 = 1_000_000;
     let microsecond1 = 1_000;
     let res = '';
-    if (currentNs >= hour1) {
-      res += Math.floor(currentNs / hour1) + 'h ';
-      currentNs = currentNs - Math.floor(currentNs / hour1) * hour1;
+    if (currentTime >= hour1) {
+      res += Math.floor(currentTime / hour1) + 'h ';
+      currentTime = currentTime - Math.floor(currentTime / hour1) * hour1;
     }
-    if (currentNs >= minute1) {
-      res += Math.floor(currentNs / minute1) + 'm ';
-      currentNs = currentNs - Math.floor(ns / minute1) * minute1;
+    if (currentTime >= minute1) {
+      res += Math.floor(currentTime / minute1) + 'm ';
+      currentTime = currentTime - Math.floor(ns / minute1) * minute1;
     }
-    if (currentNs >= second1) {
-      res += Math.floor(currentNs / second1) + 's ';
-      currentNs = currentNs - Math.floor(currentNs / second1) * second1;
+    if (currentTime >= second1) {
+      res += Math.floor(currentTime / second1) + 's ';
+      currentTime = currentTime - Math.floor(currentTime / second1) * second1;
     }
-    if (currentNs >= millisecond1) {
-      res += Math.floor(currentNs / millisecond1) + 'ms ';
-      currentNs = currentNs - Math.floor(currentNs / millisecond1) * millisecond1;
+    if (currentTime >= millisecond1) {
+      res += Math.floor(currentTime / millisecond1) + 'ms ';
+      currentTime = currentTime - Math.floor(currentTime / millisecond1) * millisecond1;
     }
-    if (currentNs >= microsecond1) {
-      res += Math.floor(currentNs / microsecond1) + 'μs ';
-      currentNs = currentNs - Math.floor(currentNs / microsecond1) * microsecond1;
+    if (currentTime >= microsecond1) {
+      res += Math.floor(currentTime / microsecond1) + 'μs ';
+      currentTime = currentTime - Math.floor(currentTime / microsecond1) * microsecond1;
     }
-    if (currentNs > 0) {
-      res += currentNs + 'ns ';
+    if (currentTime > 0) {
+      res += currentTime + 'ns ';
     }
     if (res == '') {
       res = ns + '';
@@ -194,19 +194,19 @@ export class Utils {
     if (bytes < 0) {
       return '-' + this.getByteWithUnit(Math.abs(bytes));
     }
-    let currentBytes = bytes;
+    let currentByte = bytes;
     let kb1 = 1 << 10;
     let mb1 = (1 << 10) << 10;
     let gb1 = ((1 << 10) << 10) << 10; // 1 gb
     let res = '';
-    if (currentBytes > gb1) {
-      res += (currentBytes / gb1).toFixed(2) + ' Gb';
-    } else if (currentBytes > mb1) {
-      res += (currentBytes / mb1).toFixed(2) + ' Mb';
-    } else if (currentBytes > kb1) {
-      res += (currentBytes / kb1).toFixed(2) + ' Kb';
+    if (currentByte > gb1) {
+      res += (currentByte / gb1).toFixed(2) + ' Gb';
+    } else if (currentByte > mb1) {
+      res += (currentByte / mb1).toFixed(2) + ' Mb';
+    } else if (currentByte > kb1) {
+      res += (currentByte / kb1).toFixed(2) + ' Kb';
     } else {
-      res += Math.round(currentBytes) + ' byte';
+      res += Math.round(currentByte) + ' byte';
     }
     return res;
   }
@@ -230,8 +230,8 @@ export class Utils {
     }, {});
   }
 
-  public static timeMsFormat2p(ns: number) {
-    let currentNs = ns;
+  public static timeMsFormat2p(ms: number) {
+    let currentNs = ms;
     let hour1 = 3600_000;
     let minute1 = 60_000;
     let second1 = 1_000; // 1 second

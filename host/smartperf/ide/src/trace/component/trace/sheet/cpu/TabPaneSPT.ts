@@ -20,44 +20,39 @@ import { getStatesProcessThreadDataByRange } from '../../../../database/SqlLite.
 import { SPT, StateProcessThread } from '../../../../bean/StateProcessThread.js';
 import { Utils } from '../../base/Utils.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-spt')
 export class TabPaneSPT extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private sptTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private loadDataInCache: boolean = true;
   private selectionParam: SelectionParam | null | undefined;
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(sptValue: SelectionParam | any) {
+    if (sptValue == this.selectionParam) {
       return;
     }
-    this.selectionParam = val;
+    this.selectionParam = sptValue;
     // @ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.sptTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     if (this.loadDataInCache) {
-      this.getDataBySPT(val.leftNs, val.rightNs, SpSystemTrace.SPT_DATA);
+      this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, SpSystemTrace.SPT_DATA);
     } else {
-      this.queryDataByDB(val);
+      this.queryDataByDB(sptValue);
     }
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-states');
-    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.sptTbl = this.shadowRoot?.querySelector<LitTable>('#spt-tbl');
+    this.range = this.shadowRoot?.querySelector('#spt-time-range');
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.sptTbl!)
   }
 
   getDataBySPT(leftNs: number, rightNs: number, source: Array<SPT>) {
@@ -67,109 +62,109 @@ export class TabPaneSPT extends BaseElement {
     source.map((d) => {
       if (!(d.end_ts < leftNs || d.start_ts > rightNs)) {
         if (statesMap.has(d.state)) {
-          let obj1 = statesMap.get(d.state);
-          obj1!.count++;
-          obj1!.wallDuration += d.dur;
-          obj1!.avgDuration = (obj1!.wallDuration / obj1!.count).toFixed(2);
-          if (d.dur > obj1!.maxDuration) {
-            obj1!.maxDuration = d.dur;
+          let sptStateMapObj = statesMap.get(d.state);
+          sptStateMapObj!.count++;
+          sptStateMapObj!.wallDuration += d.dur;
+          sptStateMapObj!.avgDuration = (sptStateMapObj!.wallDuration / sptStateMapObj!.count).toFixed(2);
+          if (d.dur > sptStateMapObj!.maxDuration) {
+            sptStateMapObj!.maxDuration = d.dur;
           }
-          if (d.dur < obj1!.minDuration) {
-            obj1!.minDuration = d.dur;
+          if (d.dur < sptStateMapObj!.minDuration) {
+            sptStateMapObj!.minDuration = d.dur;
           }
         } else {
-          let obj1 = new StateProcessThread();
-          obj1.id = d.state == 'R+' ? 'RP' : d.state;
-          obj1.title = Utils.getEndState(d.state);
-          obj1.state = d.state;
-          obj1.minDuration = d.dur;
-          obj1.maxDuration = d.dur;
-          obj1.count = 1;
-          obj1.avgDuration = d.dur + '';
-          obj1.wallDuration = d.dur;
-          statesMap.set(d.state, obj1);
+          let sptStateMapObj = new StateProcessThread();
+          sptStateMapObj.id = d.state == 'R+' ? 'RP' : d.state;
+          sptStateMapObj.title = Utils.getEndState(d.state);
+          sptStateMapObj.state = d.state;
+          sptStateMapObj.minDuration = d.dur;
+          sptStateMapObj.maxDuration = d.dur;
+          sptStateMapObj.count = 1;
+          sptStateMapObj.avgDuration = d.dur + '';
+          sptStateMapObj.wallDuration = d.dur;
+          statesMap.set(d.state, sptStateMapObj);
         }
         if (spMap.has(d.state + '_' + d.processId)) {
-          let obj2 = spMap.get(d.state + '_' + d.processId);
-          obj2!.count++;
-          obj2!.wallDuration += d.dur;
-          obj2!.avgDuration = (obj2!.wallDuration / obj2!.count).toFixed(2);
-          if (d.dur > obj2!.maxDuration) {
-            obj2!.maxDuration = d.dur;
+          let sptSpMapObj = spMap.get(d.state + '_' + d.processId);
+          sptSpMapObj!.count++;
+          sptSpMapObj!.wallDuration += d.dur;
+          sptSpMapObj!.avgDuration = (sptSpMapObj!.wallDuration / sptSpMapObj!.count).toFixed(2);
+          if (d.dur > sptSpMapObj!.maxDuration) {
+            sptSpMapObj!.maxDuration = d.dur;
           }
-          if (d.dur < obj2!.minDuration) {
-            obj2!.minDuration = d.dur;
+          if (d.dur < sptSpMapObj!.minDuration) {
+            sptSpMapObj!.minDuration = d.dur;
           }
         } else {
-          let obj2 = new StateProcessThread();
-          obj2.id = (d.state == 'R+' ? 'RP' : d.state) + '_' + d.processId;
-          obj2.pid = d.state == 'R+' ? 'RP' : d.state;
-          obj2.title = (d.process == null || d.process == '' ? 'Process' : d.process) + '(' + d.processId + ')';
-          obj2.processId = d.processId;
-          obj2.process = d.process;
-          obj2.state = d.state;
-          obj2.minDuration = d.dur;
-          obj2.maxDuration = d.dur;
-          obj2.count = 1;
-          obj2.avgDuration = d.dur + '';
-          obj2.wallDuration = d.dur;
-          spMap.set(d.state + '_' + d.processId, obj2);
+          let sptSpMapObj = new StateProcessThread();
+          sptSpMapObj.id = (d.state == 'R+' ? 'RP' : d.state) + '_' + d.processId;
+          sptSpMapObj.pid = d.state == 'R+' ? 'RP' : d.state;
+          sptSpMapObj.title = (d.process == null || d.process == '' ? 'Process' : d.process) + '(' + d.processId + ')';
+          sptSpMapObj.processId = d.processId;
+          sptSpMapObj.process = d.process;
+          sptSpMapObj.state = d.state;
+          sptSpMapObj.minDuration = d.dur;
+          sptSpMapObj.maxDuration = d.dur;
+          sptSpMapObj.count = 1;
+          sptSpMapObj.avgDuration = d.dur + '';
+          sptSpMapObj.wallDuration = d.dur;
+          spMap.set(d.state + '_' + d.processId, sptSpMapObj);
         }
         if (sptMap.has(d.state + '_' + d.processId + '_' + d.threadId)) {
-          let obj3 = sptMap.get(d.state + '_' + d.processId + '_' + d.threadId);
-          obj3!.count++;
-          obj3!.wallDuration += d.dur;
-          obj3!.avgDuration = (obj3!.wallDuration / obj3!.count).toFixed(2);
-          if (d.dur > obj3!.maxDuration) {
-            obj3!.maxDuration = d.dur;
+          let sptMapObject = sptMap.get(d.state + '_' + d.processId + '_' + d.threadId);
+          sptMapObject!.count++;
+          sptMapObject!.wallDuration += d.dur;
+          sptMapObject!.avgDuration = (sptMapObject!.wallDuration / sptMapObject!.count).toFixed(2);
+          if (d.dur > sptMapObject!.maxDuration) {
+            sptMapObject!.maxDuration = d.dur;
           }
-          if (d.dur < obj3!.minDuration) {
-            obj3!.minDuration = d.dur;
+          if (d.dur < sptMapObject!.minDuration) {
+            sptMapObject!.minDuration = d.dur;
           }
         } else {
-          let obj3 = new StateProcessThread();
-          obj3.id = (d.state == 'R+' ? 'RP' : d.state) + '_' + d.processId + '_' + d.threadId;
-          obj3.pid = (d.state == 'R+' ? 'RP' : d.state) + '_' + d.processId;
-          obj3.title = (d.thread == null || d.thread == '' ? 'Thread' : d.thread) + '(' + d.threadId + ')';
-          obj3.processId = d.processId;
-          obj3.process = d.process;
-          obj3.thread = d.thread;
-          obj3.threadId = d.threadId;
-          obj3.state = d.state;
-          obj3.minDuration = d.dur;
-          obj3.maxDuration = d.dur;
-          obj3.count = 1;
-          obj3.avgDuration = d.dur + '';
-          obj3.wallDuration = d.dur;
-          sptMap.set(d.state + '_' + d.processId + '_' + d.threadId, obj3);
+          let sptMapObject = new StateProcessThread();
+          sptMapObject.id = (d.state == 'R+' ? 'RP' : d.state) + '_' + d.processId + '_' + d.threadId;
+          sptMapObject.pid = (d.state == 'R+' ? 'RP' : d.state) + '_' + d.processId;
+          sptMapObject.title = (d.thread == null || d.thread == '' ? 'Thread' : d.thread) + '(' + d.threadId + ')';
+          sptMapObject.processId = d.processId;
+          sptMapObject.process = d.process;
+          sptMapObject.thread = d.thread;
+          sptMapObject.threadId = d.threadId;
+          sptMapObject.state = d.state;
+          sptMapObject.minDuration = d.dur;
+          sptMapObject.maxDuration = d.dur;
+          sptMapObject.count = 1;
+          sptMapObject.avgDuration = d.dur + '';
+          sptMapObject.wallDuration = d.dur;
+          sptMap.set(d.state + '_' + d.processId + '_' + d.threadId, sptMapObject);
         }
       }
     });
-    let arr: Array<StateProcessThread> = [];
+    let sptArr: Array<StateProcessThread> = [];
     for (let key of statesMap.keys()) {
-      let s = statesMap.get(key);
-      s!.children = [];
-      for (let ks of spMap.keys()) {
-        if (ks.startsWith(key + '_')) {
-          let sp = spMap.get(ks);
+      let stateValue = statesMap.get(key);
+      stateValue!.children = [];
+      for (let spKey of spMap.keys()) {
+        if (spKey.startsWith(key + '_')) {
+          let sp = spMap.get(spKey);
           sp!.children = [];
-          for (let kst of sptMap.keys()) {
-            if (kst.startsWith(ks + '_')) {
-              let spt = sptMap.get(kst);
+          for (let stKey of sptMap.keys()) {
+            if (stKey.startsWith(spKey + '_')) {
+              let spt = sptMap.get(stKey);
               sp!.children.push(spt!);
             }
           }
-          s!.children.push(sp!);
+          stateValue!.children.push(sp!);
         }
       }
-      arr.push(s!);
+      sptArr.push(stateValue!);
     }
-    this.tbl!.recycleDataSource = arr;
+    this.sptTbl!.recycleDataSource = sptArr;
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getStatesProcessThreadDataByRange(val.leftNs, val.rightNs).then((result) => {
-      this.getDataBySPT(val.leftNs, val.rightNs, result);
+  queryDataByDB(sptParam: SelectionParam | any) {
+    getStatesProcessThreadDataByRange(sptParam.leftNs, sptParam.rightNs).then((result) => {
+      this.getDataBySPT(sptParam.leftNs, sptParam.rightNs, result);
     });
   }
 
@@ -182,19 +177,19 @@ export class TabPaneSPT extends BaseElement {
             padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-        <lit-table id="tb-states" style="height: auto" tree>
-            <lit-table-column width="27%" title="State/Process/Thread" data-index="title" key="title" align="flex-start">
+        <label id="spt-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="spt-tbl" style="height: auto" tree>
+            <lit-table-column class="spt-column" width="27%" data-index="title" key="title" align="flex-start" title="State/Process/Thread">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" >
+            <lit-table-column class="spt-column" width="1fr" data-index="count" key="count" align="flex-start" title="Count">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration(ns)" data-index="wallDuration" key="wallDuration" align="flex-start" >
+            <lit-table-column class="spt-column" width="1fr" data-index="wallDuration" key="wallDuration" align="flex-start" title="Duration(ns)">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Min Duration(ns)" data-index="minDuration" key="minDuration" align="flex-start" >
+            <lit-table-column class="spt-column" width="1fr" data-index="minDuration" key="minDuration" align="flex-start" title="Min Duration(ns)">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Avg Duration(ns)" data-index="avgDuration" key="avgDuration" align="flex-start" >
+            <lit-table-column class="spt-column" width="1fr" data-index="avgDuration" key="avgDuration" align="flex-start" title="Avg Duration(ns)">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Duration(ns)" data-index="maxDuration" key="maxDuration" align="flex-start" >
+            <lit-table-column class="spt-column" width="1fr" data-index="maxDuration" key="maxDuration" align="flex-start" title="Max Duration(ns)">
             </lit-table-column>
         </lit-table>
         `;

@@ -19,16 +19,16 @@ import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
 export class FreqRender extends Render {
   renderMainThread(
-    req: {
+    freqReq: {
       context: CanvasRenderingContext2D;
       useCache: boolean;
       type: string;
     },
     row: TraceRow<CpuFreqStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    let freqList = row.dataList;
+    let freqFilter = row.dataListCache;
+    dataFilterHandler(freqList, freqFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -36,28 +36,28 @@ export class FreqRender extends Render {
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
       paddingTop: 5,
-      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+      useCache: freqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.context.beginPath();
+    freqReq.context.beginPath();
     let find = false;
-    for (let re of filter) {
+    for (let re of freqFilter) {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         CpuFreqStruct.hoverCpuFreqStruct = re;
         find = true;
       }
-      CpuFreqStruct.draw(req.context, re);
+      CpuFreqStruct.draw(freqReq.context, re);
     }
     if (!find && row.isHover) CpuFreqStruct.hoverCpuFreqStruct = undefined;
-    req.context.closePath();
+    freqReq.context.closePath();
     let s = CpuFreqStruct.maxFreqName;
-    let textMetrics = req.context.measureText(s);
-    req.context.globalAlpha = 0.8;
-    req.context.fillStyle = '#f0f0f0';
-    req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-    req.context.globalAlpha = 1;
-    req.context.fillStyle = '#333';
-    req.context.textBaseline = 'middle';
-    req.context.fillText(s, 4, 5 + 9);
+    let textMetrics = freqReq.context.measureText(s);
+    freqReq.context.globalAlpha = 0.8;
+    freqReq.context.fillStyle = '#f0f0f0';
+    freqReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
+    freqReq.context.globalAlpha = 1;
+    freqReq.context.fillStyle = '#333';
+    freqReq.context.textBaseline = 'middle';
+    freqReq.context.fillText(s, 4, 5 + 9);
   }
 }
 
@@ -71,39 +71,39 @@ export class CpuFreqStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; //自补充，数据库没有返回
 
-  static draw(ctx: CanvasRenderingContext2D, data: CpuFreqStruct) {
+  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.cpu || 0;
       index += 2;
-      ctx.fillStyle = ColorUtils.colorForTid(index);
-      ctx.strokeStyle = ColorUtils.colorForTid(index);
+      freqContext.fillStyle = ColorUtils.colorForTid(index);
+      freqContext.strokeStyle = ColorUtils.colorForTid(index);
       if (data === CpuFreqStruct.hoverCpuFreqStruct || data === CpuFreqStruct.selectCpuFreqStruct) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
+        freqContext.lineWidth = 1;
+        freqContext.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(
           ((data.value || 0) * (data.frame.height || 0) * 1.0) / CpuFreqStruct.maxFreq
         );
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        freqContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        freqContext.beginPath();
+        freqContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        freqContext.fill();
+        freqContext.globalAlpha = 1.0;
+        freqContext.stroke();
+        freqContext.beginPath();
+        freqContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+        freqContext.lineWidth = 3;
+        freqContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
+        freqContext.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
+        freqContext.globalAlpha = 0.6;
+        freqContext.lineWidth = 1;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / CpuFreqStruct.maxFreq);
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        freqContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    freqContext.globalAlpha = 1.0;
+    freqContext.lineWidth = 1;
   }
 }
 

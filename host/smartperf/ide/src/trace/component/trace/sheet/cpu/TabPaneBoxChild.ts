@@ -21,37 +21,38 @@ import { Utils } from '../../base/Utils.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
 import { SPTChild } from '../../../../bean/StateProcessThread.js';
 import { TraceRow } from '../../base/TraceRow.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private source: Array<SPTChild> = [];
+  private boxChildTbl: LitTable | null | undefined;
+  private boxChildRange: HTMLLabelElement | null | undefined;
+  private boxChildSource: Array<SPTChild> = [];
   private loadDataInCache: boolean = false;
 
-  set data(val: BoxJumpParam) {
+  set data(boxChildValue: BoxJumpParam) {
     // @ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
-    this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    if (val.state != null && val.state != undefined && val.processId && val.threadId) {
-      this.tbl!.recycleDataSource = [];
+    this.boxChildTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.boxChildRange!.textContent =
+      'Selected range: ' + parseFloat(((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    if (boxChildValue.state != null && boxChildValue.state != undefined && boxChildValue.processId && boxChildValue.threadId) {
+      this.boxChildTbl!.recycleDataSource = [];
       if (this.loadDataInCache) {
-        this.getDataByCache(val).then((arr) => {
-          this.source = arr;
+        this.getDataByCache(boxChildValue).then((arr) => {
+          this.boxChildSource = arr;
           // @ts-ignore
-          this.tbl?.recycleDataSource = arr;
+          this.boxChildTbl?.recycleDataSource = arr;
         });
       } else {
-        this.getDataByDB(val);
+        this.getDataByDB(boxChildValue);
       }
     }
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-thread');
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.boxChildTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-thread');
+    this.boxChildRange = this.shadowRoot?.querySelector('#time-range');
+    this.boxChildTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -59,13 +60,7 @@ export class TabPaneBoxChild extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.boxChildTbl!)
   }
 
   getDataByDB(val: BoxJumpParam) {
@@ -82,13 +77,13 @@ export class TabPaneBoxChild extends BaseElement {
           e.threadName = (e.thread == undefined || e.thread == null ? 'thread' : e.thread) + '(' + e.threadId + ')';
           e.note = '-';
         });
-        this.source = result;
+        this.boxChildSource = result;
         // @ts-ignore
-        this.tbl?.recycleDataSource = result;
+        this.boxChildTbl?.recycleDataSource = result;
       } else {
-        this.source = [];
+        this.boxChildSource = [];
         // @ts-ignore
-        this.tbl?.recycleDataSource = [];
+        this.boxChildTbl?.recycleDataSource = [];
       }
     });
   }
@@ -128,29 +123,34 @@ export class TabPaneBoxChild extends BaseElement {
   initHtml(): string {
     return `
         <style>
+        .box-child-label{
+          text-align: end;
+          width: 100%;
+          height: 20px;
+        }
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="time-range" class="box-child-label" style="font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-cpu-thread" style="height: auto">
-            <lit-table-column order width="15%" title="StartTime(Relative)" data-index="startTime" key="startTime" align="flex-start" order >
+            <lit-table-column order title="StartTime(Relative)" width="15%" data-index="startTime" key="startTime" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width="15%" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start" order >
+            <lit-table-column order title="StartTime(Absolute)" width="15%" data-index="absoluteTime" key="absoluteTime" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width="20%" title="Process" data-index="processName" key="processName" align="flex-start" order >
+            <lit-table-column order width="20%" data-index="processName" key="processName" title="Process" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width="20%" title="Thread" data-index="threadName" key="threadName" align="flex-start" order >
+            <lit-table-column order width="20%" data-index="threadName" key="threadName" align="flex-start" order title="Thread">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="State" data-index="state" key="state" align="flex-start" order >
+            <lit-table-column order width="1fr" data-index="state" key="state" align="flex-start" order title="State">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Core" data-index="core" key="core" align="flex-start" order >
+            <lit-table-column order width="1fr"data-index="core"  title="Core" key="core" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Priority" data-index="prior" key="prior" align="flex-start" order >
+            <lit-table-column order width="1fr" data-index="prior" title="Priority" key="prior" align="flex-start" order >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Note" data-index="note" key="note" align="flex-start" >
+            <lit-table-column order width="1fr" data-index="note" key="note" align="flex-start" title="Note">
             </lit-table-column>
         </lit-table>
         `;
@@ -159,17 +159,17 @@ export class TabPaneBoxChild extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SelectionData, b: SelectionData) {
+      return function (boxChildLeftData: SelectionData, boxChildRightData: SelectionData) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(boxChildRightData[property]) - parseFloat(boxChildLeftData[property]) : parseFloat(boxChildLeftData[property]) - parseFloat(boxChildRightData[property]);
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (boxChildRightData[property] > boxChildLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (boxChildRightData[property] == boxChildLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -180,7 +180,7 @@ export class TabPaneBoxChild extends BaseElement {
     }
 
     // @ts-ignore
-    this.source.sort(compare(detail.key, detail.sort, 'string'));
-    this.tbl!.recycleDataSource = this.source;
+    this.boxChildSource.sort(compare(detail.key, detail.sort, 'string'));
+    this.boxChildTbl!.recycleDataSource = this.boxChildSource;
   }
 }

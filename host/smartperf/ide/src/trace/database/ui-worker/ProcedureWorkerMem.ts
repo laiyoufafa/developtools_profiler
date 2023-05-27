@@ -27,9 +27,10 @@ import {
   PerfRender,
   Render,
   RequestMessage,
+  mem,
 } from './ProcedureWorkerCommon.js';
 import { CpuStruct } from './ProcedureWorkerCPU.js';
-
+import { ProcessMemStruct as BaseProcessMemStruct } from '../../bean/ProcessMemStruct.js';
 export class MemRender extends Render {
   renderMainThread(
     req: {
@@ -39,11 +40,11 @@ export class MemRender extends Render {
     },
     row: TraceRow<ProcessMemStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let memList = row.dataList;
+    let memFilter = row.dataListCache;
     mem(
-      list,
-      filter,
+      memList,
+      memFilter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
@@ -51,198 +52,130 @@ export class MemRender extends Render {
       req.useCache || !TraceRow.range!.refresh
     );
     req.context.beginPath();
-    let find = false;
-    for (let re of filter) {
+    let memFind = false;
+    for (let re of memFilter) {
       ProcessMemStruct.draw(req.context, re);
       if (row.isHover) {
         if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
           ProcessMemStruct.hoverProcessMemStruct = re;
-          find = true;
+          memFind = true;
         }
       }
     }
-    if (!find && row.isHover) ProcessMemStruct.hoverProcessMemStruct = undefined;
+    if (!memFind && row.isHover) ProcessMemStruct.hoverProcessMemStruct = undefined;
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      mem(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(memRequest: RequestMessage, memList: Array<any>, filter: Array<any>) {
+    if (memRequest.lazyRefresh) {
+      mem(
+        memList,
+        filter,
+        memRequest.startNS,
+        memRequest.endNS,
+        memRequest.totalNS,
+        memRequest.frame,
+        memRequest.useCache || !memRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        mem(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!memRequest.useCache) {
+        mem(memList, filter, memRequest.startNS, memRequest.endNS, memRequest.totalNS, memRequest.frame, false);
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+    if (memRequest.canvas) {
+      memRequest.context.clearRect(0, 0, memRequest.frame.width, memRequest.frame.height);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (arr.length > 0 && !memRequest.range.refresh && !memRequest.useCache && memRequest.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          memRequest.context,
+          memRequest.startNS,
+          memRequest.endNS,
+          memRequest.totalNS,
+          memRequest.frame,
           arr[0].startTime,
           arr[arr.length - 1].startTime + arr[arr.length - 1].dur
         );
       }
-      req.context.beginPath();
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      memRequest.context.beginPath();
+      drawLines(memRequest.context, memRequest.xs, memRequest.frame.height, memRequest.lineColor);
       ProcessMemStruct.hoverProcessMemStruct = undefined;
-      if (req.isHover) {
+      if (memRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            memRequest.hoverX >= re.frame.x &&
+            memRequest.hoverX <= re.frame.x + re.frame.width &&
+            memRequest.hoverY >= re.frame.y &&
+            memRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             ProcessMemStruct.hoverProcessMemStruct = re;
             break;
           }
         }
       } else {
-        ProcessMemStruct.hoverProcessMemStruct = req.params.hoverProcessMemStruct;
+        ProcessMemStruct.hoverProcessMemStruct = memRequest.params.hoverProcessMemStruct;
       }
       for (let re of filter) {
-        ProcessMemStruct.draw(req.context, re);
+        ProcessMemStruct.draw(memRequest.context, re);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(memRequest.context, memRequest.params);
+      memRequest.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        memRequest.context,
+        memRequest.flagMoveInfo,
+        memRequest.flagSelectedInfo,
+        memRequest.startNS,
+        memRequest.endNS,
+        memRequest.totalNS,
+        memRequest.frame,
+        memRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: memRequest.id,
+      type: memRequest.type,
+      results: memRequest.canvas ? undefined : filter,
       hover: ProcessMemStruct.hoverProcessMemStruct,
     });
   }
 }
 
-function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-  let x1: number;
-  let x2: number;
-  if ((node.startTime || 0) <= startNS) {
-    x1 = 0;
-  } else {
-    x1 = ns2x(node.startTime || 0, startNS, endNS, totalNS, frame);
-  }
-  if ((node.startTime || 0) + (node.duration || 0) >= endNS) {
-    x2 = frame.width;
-  } else {
-    x2 = ns2x((node.startTime || 0) + (node.duration || 0), startNS, endNS, totalNS, frame);
-  }
-  let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-  if (!node.frame) {
-    node.frame = {};
-  }
-  node.frame.x = Math.floor(x1);
-  node.frame.y = Math.floor(frame.y + padding);
-  node.frame.width = Math.ceil(getV);
-  node.frame.height = Math.floor(frame.height - padding * 2);
-}
-
-export function mem(
-  list: Array<any>,
-  res: Array<any>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any,
-  use: boolean
-) {
-  if (use && res.length > 0) {
-    for (let i = 0, len = res.length; i < len; i++) {
-      if ((res[i].startTime || 0) + (res[i].duration || 0) > startNS && (res[i].startTime || 0) < endNS) {
-        setMemFrame(res[i], 5, startNS, endNS, totalNS, frame);
-      } else {
-        res[i].frame = null;
-      }
-    }
-    return;
-  }
-  res.length = 0;
-  if (list) {
-    for (let i = 0, len = list.length; i < len; i++) {
-      let it = list[i];
-      if ((it.startTime || 0) + (it.duration || 0) > startNS && (it.startTime || 0) < endNS) {
-        setMemFrame(list[i], 5, startNS, endNS, totalNS, frame);
-        if (
-          i > 0 &&
-          (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
-          (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)
-        ) {
-        } else {
-          res.push(list[i]);
-        }
-      }
-    }
-  }
-}
-
-export class ProcessMemStruct extends BaseStruct {
-  static hoverProcessMemStruct: ProcessMemStruct | undefined;
-  trackId: number | undefined;
-  processName: string | undefined;
-  pid: number | undefined;
-  upid: number | undefined;
-  trackName: string | undefined;
-  type: string | undefined;
-  track_id: string | undefined;
-  value: number | undefined;
-  startTime: number | undefined;
-  duration: number | undefined;
-  maxValue: number | undefined;
-  delta: number | undefined;
-
-  static draw(ctx: CanvasRenderingContext2D, data: ProcessMemStruct) {
+export class ProcessMemStruct extends BaseProcessMemStruct {
+  static draw(memContext: CanvasRenderingContext2D, data: ProcessMemStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);
-      ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0);
+      memContext.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);
+      memContext.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0);
       if (
-        data.track_id === ProcessMemStruct.hoverProcessMemStruct?.track_id &&
-        data.startTime === ProcessMemStruct.hoverProcessMemStruct?.startTime
+        data === ProcessMemStruct.hoverProcessMemStruct
       ) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
-        let drawHeight: number = Math.floor(
+        memContext.lineWidth = 1;
+        memContext.globalAlpha = 0.6;
+        let memDrawHeight: number = Math.floor(
           ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1)
         );
-        drawHeight = drawHeight > 0 ? drawHeight : 1;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        memDrawHeight = memDrawHeight > 0 ? memDrawHeight : 1;
+        memContext.fillRect(data.frame.x, data.frame.y + data.frame.height - memDrawHeight, width, memDrawHeight);
+        memContext.beginPath();
+        memContext.arc(data.frame.x, data.frame.y + data.frame.height - memDrawHeight, 3, 0, 2 * Math.PI, true);
+        memContext.fill();
+        memContext.globalAlpha = 1.0;
+        memContext.stroke();
+        memContext.beginPath();
+        memContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - memDrawHeight);
+        memContext.lineWidth = 3;
+        memContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - memDrawHeight);
+        memContext.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
+        memContext.globalAlpha = 0.6;
+        memContext.lineWidth = 1;
         let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
         drawHeight = drawHeight > 0 ? drawHeight : 1;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        memContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    memContext.globalAlpha = 1.0;
+    memContext.lineWidth = 1;
   }
 }

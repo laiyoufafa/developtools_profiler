@@ -16,56 +16,57 @@
 export class Rect {
   x: number = 0;
   y: number = 0;
-  width: number = 0;
   height: number = 0;
+  width: number = 0;
+
 
   constructor(x: number, y: number, width: number, height: number) {
     this.x = x;
     this.y = y;
-    this.width = width;
     this.height = height;
+    this.width = width;
   }
 
-  static contains(rect: Rect, x: number, y: number): boolean {
-    return rect.x <= x && x <= rect.x + rect.width && rect.y <= y && y <= rect.y + rect.height;
+  static contains(rectObj: Rect, x: number, y: number): boolean {
+    return rectObj.x <= x && x <= rectObj.x + rectObj.width && rectObj.y <= y && y <= rectObj.y + rectObj.height;
   }
 
   static containsWithPadding(
-    rect: Rect,
+    rectObj: Rect,
     x: number,
     y: number,
     paddingLeftRight: number,
     paddingTopBottom: number
   ): boolean {
     return (
-      rect.x + paddingLeftRight <= x &&
-      x <= rect.x + rect.width - paddingLeftRight &&
-      rect.y + paddingTopBottom <= y &&
-      y <= rect.y + rect.height - paddingTopBottom
+      rectObj.x + paddingLeftRight <= x &&
+      x <= rectObj.x + rectObj.width - paddingLeftRight &&
+      rectObj.y + paddingTopBottom <= y &&
+      y <= rectObj.y + rectObj.height - paddingTopBottom
     );
   }
 
-  static containsWithMargin(rect: Rect, x: number, y: number, t: number, r: number, b: number, l: number): boolean {
-    return rect.x - l <= x && x <= rect.x + rect.width + r && rect.y - t <= y && y <= rect.y + rect.height + b;
+  static containsWithMargin(rectObj: Rect, x: number, y: number, t: number, r: number, b: number, l: number): boolean {
+    return rectObj.x - l <= x && x <= rectObj.x + rectObj.width + r && rectObj.y - t <= y && y <= rectObj.y + rectObj.height + b;
   }
 
-  static intersect(r1: Rect, rect: Rect): boolean {
-    let maxX = r1.x + r1.width > rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
-    let maxY = r1.y + r1.height > rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
-    let minX = r1.x < rect.x ? r1.x : rect.x;
-    let minY = r1.y < rect.y ? r1.y : rect.y;
-    if (maxX - minX < rect.width + r1.width && maxY - minY < r1.height + rect.height) {
+  static intersect(rectA: Rect, rectB: Rect): boolean {
+    let maxX = rectA.x + rectA.width > rectB.x + rectB.width ? rectA.x + rectA.width : rectB.x + rectB.width;
+    let maxY = rectA.y + rectA.height > rectB.y + rectB.height ? rectA.y + rectA.height : rectB.y + rectB.height;
+    let minX = rectA.x < rectB.x ? rectA.x : rectB.x;
+    let minY = rectA.y < rectB.y ? rectA.y : rectB.y;
+    if (maxX - minX < rectB.width + rectA.width && maxY - minY < rectA.height + rectB.height) {
       return true;
     } else {
       return false;
     }
   }
 
-  static getIntersect(r1: DOMRect | Rect, rect: DOMRect | Rect): Rect {
-    let maxX = Math.max(r1.x, rect.x);
-    let maxY = Math.max(r1.y, rect.y);
-    let width = Math.abs(Math.min(r1.x + r1.width, rect.x + rect.width) - Math.max(r1.x, rect.x));
-    let height = Math.abs(Math.min(r1.y + r1.height, rect.y + rect.height) - Math.max(r1.y, rect.y));
+  static getIntersect(rectA: DOMRect | Rect, rectB: DOMRect | Rect): Rect {
+    let maxX = Math.max(rectA.x, rectB.x);
+    let maxY = Math.max(rectA.y, rectB.y);
+    let width = Math.abs(Math.min(rectA.x + rectA.width, rectB.x + rectB.width) - Math.max(rectA.x, rectB.x));
+    let height = Math.abs(Math.min(rectA.y + rectA.height, rectB.y + rectB.height) - Math.max(rectA.y, rectB.y));
     return new Rect(maxX, maxY, width, height);
   }
 
@@ -73,12 +74,12 @@ export class Rect {
     return this.x <= x && x <= this.x + this.width && this.y <= y && y <= this.y + this.height;
   }
 
-  containsWithPadding(x: number, y: number, paddingLeftRight: number, paddingTopBottom: number): boolean {
+  containsWithPadding(x: number, y: number, paddingLeftOrRight: number, paddingTopOrBottom: number): boolean {
     return (
-      this.x + paddingLeftRight <= x &&
-      x <= this.x + this.width - paddingLeftRight &&
-      this.y + paddingTopBottom <= y &&
-      y <= this.y + this.height - paddingTopBottom
+      this.x + paddingLeftOrRight <= x &&
+      x <= this.x + this.width - paddingLeftOrRight &&
+      this.y + paddingTopOrBottom <= y &&
+      y <= this.y + this.height - paddingTopOrBottom
     );
   }
 
@@ -88,14 +89,14 @@ export class Rect {
 
   /**
    * 判断是否相交
-   * @param rect
+   * @param rectObj
    */
-  intersect(rect: Rect): boolean {
-    let maxX = this.x + this.width >= rect.x + rect.width ? this.x + this.width : rect.x + rect.width;
-    let maxY = this.y + this.height >= rect.y + rect.height ? this.y + this.height : rect.y + rect.height;
-    let minX = this.x <= rect.x ? this.x : rect.x;
-    let minY = this.y <= rect.y ? this.y : rect.y;
-    if (maxX - minX <= rect.width + this.width && maxY - minY <= this.height + rect.height) {
+  intersect(rectObj: Rect): boolean {
+    let maxX = this.x + this.width >= rectObj.x + rectObj.width ? this.x + this.width : rectObj.x + rectObj.width;
+    let maxY = this.y + this.height >= rectObj.y + rectObj.height ? this.y + this.height : rectObj.y + rectObj.height;
+    let minX = this.x <= rectObj.x ? this.x : rectObj.x;
+    let minY = this.y <= rectObj.y ? this.y : rectObj.y;
+    if (maxX - minX <= rectObj.width + this.width && maxY - minY <= this.height + rectObj.height) {
       return true;
     } else {
       return false;

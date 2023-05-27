@@ -94,36 +94,36 @@ class ProcedurePool {
   }
 
   newThread() {
-    let thread: ProcedureThread = new ProcedureThread('trace/database/ui-worker/ProcedureWorker.js', {
+    let newThread: ProcedureThread = new ProcedureThread('trace/database/ui-worker/ProcedureWorker.js', {
       type: 'module',
     });
-    thread.name = this.names[this.works.length];
-    thread.onmessage = (event: MessageEvent) => {
-      thread.busy = false;
+    newThread.name = this.names[this.works.length];
+    newThread.onmessage = (event: MessageEvent) => {
+      newThread.busy = false;
       if ((event.data.type as string) == 'timeline-range-changed') {
         this.timelineChange && this.timelineChange(event.data.results);
-        thread.busy = false;
+        newThread.busy = false;
         return;
       }
-      if (Reflect.has(thread.taskMap, event.data.id)) {
+      if (Reflect.has(newThread.taskMap, event.data.id)) {
         if (event.data) {
-          let fun = thread.taskMap[event.data.id];
+          let fun = newThread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
           }
-          Reflect.deleteProperty(thread.taskMap, event.data.id);
+          Reflect.deleteProperty(newThread.taskMap, event.data.id);
         }
       }
       if (this.isIdle() && this.onComplete) {
         this.onComplete();
       }
     };
-    thread.onmessageerror = (e) => {};
-    thread.onerror = (e) => {};
-    thread.id = this.works.length;
-    thread.busy = false;
-    this.works?.push(thread);
-    return thread;
+    newThread.onmessageerror = (e) => {};
+    newThread.onerror = (e) => {};
+    newThread.id = this.works.length;
+    newThread.busy = false;
+    this.works?.push(newThread);
+    return newThread;
   }
 
   logicDataThread() {

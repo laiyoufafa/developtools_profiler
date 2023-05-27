@@ -819,14 +819,51 @@
         <li>
 <pre class="smartperf-text fontColor light">Distance：使用节点的最短简单路径显示到根的距离。
 </pre>
-        </li>
+            例如下图其中GC Root为根节点，distance为0,G为上次GC之后新申请内存的实例，distance为1000000。A、B、C、D、E、F、H为调用节点；以E为例，从A-&gt;D-&gt;F&gt;E,distance为4，从A-&gt;D-&gt;E，depth为3;从B-&gt;E,depth为2,遵循最小distance原则，E的distance为2,同理D的distance为2,F的distance为2,H的distance也为2。<br>
+            <img src="../figures/Jsmemory/js_sample.png" alt="GitHub Logo"></li>
         <li>
-<pre class="smartperf-text fontColor light">ShallowSize：类创建的所有对象的本身的内存大小之和。
+<pre class="smartperf-text fontColor light">ShallowSize：是指实例自身占用的内存, 可以理解为保存该'数据结构'需要多少内存。
+  例如下面的代码。：
 </pre>
         </li>
-        <li>
-<pre class="smartperf-text fontColor light">RetainedSize：对象以及其相关的对象一起被删除后所释放的内存大小，同一组对象之间的最大保留大小。
+    </ul>
+    <pre data-role="codeBlock" data-info="javascript" class="fontColor light smartperf-javascript">    <span
+            class="token keyword keyword-class">class</span> <span class="token class-name">X</span> <span
+            class="token punctuation">{</span>
+    a<span class="token operator">:</span> number <span class="token operator">=</span> <span
+                class="token number">0</span><span class="token punctuation">;</span>
+    b<span class="token operator">:</span> boolean <span class="token operator">=</span> <span class="token boolean">false</span><span
+                class="token punctuation">;</span>
+    c<span class="token operator">:</span> <span class="token maybe-class-name">ChartStruct</span> <span
+                class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span
+                class="token class-name">ChartStruct</span><span class="token punctuation">(</span><span
+                class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
 </pre>
+    <pre class="smartperf-text fontColor light">    假设当前是在64位系统, 对于类X来说, 一个X实例的Shallow Size为:
+
+    类定义的8byte
+    没有继承其他类, 所以没有父类fields
+    a,b变量为基本类型number,boolean型, js中都为8byte; 
+    c变量是引用类型, 和它是否指向具体实例无关, 固定占4byte
+</pre>
+    <ul class="fontColor">
+        <li>
+<pre class="smartperf-text fontColor light">RetainedSize：Retained Size含义为表示当一个实例被GC回收时, 可以同时被回收的实例的Shallow Size之和。
+</pre>
+            <ul class="fontColor">
+                <li>如上图所示；假设所有的节点Size都为1,按照A-&gt;B-&gt;C的顺序回收。
+                    <ul class="fontColor">
+                        <li>当A被回收时，H被D调用，先不回收，D没有被调用，D回收，由于D被回收，H没有被调用，H回收，由于F被C调用，E被B、F也调用了，所以不能被回收,此时A的Retained
+                            Size为3,D的Retained Size为2, H的Retained Size为1。
+                        </li>
+                        <li>当B被回收时，由于E被F占用，所以E不会被回收，此时B的Retained Size为1。</li>
+                        <li>当C被回收时，F没有人被调用，E没有被调用,所以都会被回收，此时C的Retained Size为3，F的Retained
+                            Size为2, E的Retained Size为1。
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </li>
     </ul>
     <p class="fontColor">

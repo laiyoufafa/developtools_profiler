@@ -32,24 +32,24 @@ export class TimeRuler extends Graph {
   }
 
   draw() {
-    this.step = this.frame.width / 10;
     this.stepSmall = this.frame.width / 100;
+    this.step = this.frame.width / 10;
     this.stepNS = this.totalNS / 10;
     this.c.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
     this.c.beginPath();
-    this.c.strokeStyle = '#999';
     this.c.lineWidth = 1;
-    for (let i = 0; i <= 10; i++) {
-      let x = Math.floor(i * this.step) + this.frame.x;
+    this.c.strokeStyle = '#999';
+    for (let index = 0; index <= 10; index++) {
+      let x = Math.floor(index * this.step) + this.frame.x;
       this.c.moveTo(x, 0);
       this.c.lineTo(x, this.frame.height);
-      if (i == 10) break;
-      for (let j = 1; j < 10; j++) {
-        this.c.moveTo(x + Math.floor(j * this.stepSmall), 0);
-        this.c.lineTo(x + Math.floor(j * this.stepSmall), this.frame.height / 4);
+      if (index == 10) break;
+      for (let inner_index = 1; inner_index < 10; inner_index++) {
+        this.c.moveTo(x + Math.floor(inner_index * this.stepSmall), 0);
+        this.c.lineTo(x + Math.floor(inner_index * this.stepSmall), this.frame.height / 4);
       }
       this.c.fillStyle = '#999';
-      this.c.fillText(`${ns2s(i * this.stepNS)}`, x + 5, this.frame.height - 1);
+      this.c.fillText(`${ns2s(index * this.stepNS)}`, x + 5, this.frame.height - 1);
     }
     this.c.stroke();
     this.c.closePath();

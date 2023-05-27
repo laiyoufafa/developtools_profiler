@@ -138,11 +138,6 @@ export class TabThreadAnalysis extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host {
-            width: 100%;
-            height: 100%;
-            background: var(--dark-background5,#F6F6F6);
-        }
         .tag_bt{
             height: 45px;
             border-radius: 10px;
@@ -152,6 +147,11 @@ export class TabThreadAnalysis extends BaseElement {
             color: var(--dark-color,#000000);
             background-color: var(--dark-background5,#FFFFFF);
             cursor: pointer;
+        }
+        :host {
+            width: 100%;
+            height: 100%;
+            background: var(--dark-background5,#F6F6F6);
         }
         .tab_click{
             height: 45px;

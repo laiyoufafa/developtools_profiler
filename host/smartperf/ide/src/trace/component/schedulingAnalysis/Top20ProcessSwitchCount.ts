@@ -26,19 +26,19 @@ import { TableNoData } from './TableNoData.js';
 @element('top20-process-switch-count')
 export class Top20ProcessSwitchCount extends BaseElement {
   traceChange: boolean = false;
-  private table: LitTable | null | undefined;
-  private pie: LitChartPie | null | undefined;
-  private progress: LitProgressBar | null | undefined;
+  private processSwitchCountTbl: LitTable | null | undefined;
+  private processSwitchCountPie: LitChartPie | null | undefined;
+  private processSwitchCountProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
-  private data: Array<any> = [];
+  private processSwitchCountData: Array<any> = [];
 
   initElements(): void {
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
-    this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-    this.table = this.shadowRoot!.querySelector<LitTable>('#tb-process-switch-count');
-    this.pie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
+    this.processSwitchCountProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+    this.processSwitchCountTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-switch-count');
+    this.processSwitchCountPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.table!.addEventListener('row-click', (evt: any) => {
+    this.processSwitchCountTbl!.addEventListener('row-click', (evt: any) => {
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -48,11 +48,11 @@ export class Top20ProcessSwitchCount extends BaseElement {
       }
     });
 
-    this.table!.addEventListener('column-click', (evt) => {
+    this.processSwitchCountTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.table!.addEventListener('row-hover', (evt: any) => {
+    this.processSwitchCountTbl!.addEventListener('row-hover', (evt: any) => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -60,25 +60,25 @@ export class Top20ProcessSwitchCount extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       }
-      this.pie?.showHover();
+      this.processSwitchCountPie?.showHover();
     });
   }
 
   init() {
     if (!this.traceChange) {
-      if (this.table!.recycleDataSource.length > 0) {
-        this.table?.reMeauseHeight();
+      if (this.processSwitchCountTbl!.recycleDataSource.length > 0) {
+        this.processSwitchCountTbl?.reMeauseHeight();
       }
       return;
     }
     this.traceChange = false;
-    this.progress!.loading = true;
+    this.processSwitchCountProgress!.loading = true;
     this.queryLogicWorker('scheduling-Process SwitchCount', 'query Process Switch Count Analysis Time:', (res) => {
       this.nodata!.noData = res === undefined || res.length === 0;
-      this.table!.recycleDataSource = res;
-      this.data = res;
-      this.table?.reMeauseHeight();
-      this.pie!.config = {
+      this.processSwitchCountTbl!.recycleDataSource = res;
+      this.processSwitchCountData = res;
+      this.processSwitchCountTbl?.reMeauseHeight();
+      this.processSwitchCountPie!.config = {
         appendPadding: 10,
         data: res,
         angleField: 'switchCount',
@@ -97,9 +97,9 @@ export class Top20ProcessSwitchCount extends BaseElement {
         },
         hoverHandler: (data) => {
           if (data) {
-            this.table!.setCurrentHover(data);
+            this.processSwitchCountTbl!.setCurrentHover(data);
           } else {
-            this.table!.mouseOut();
+            this.processSwitchCountTbl!.mouseOut();
           }
         },
         interactions: [
@@ -108,48 +108,48 @@ export class Top20ProcessSwitchCount extends BaseElement {
           },
         ],
       };
-      this.progress!.loading = false;
+      this.processSwitchCountProgress!.loading = false;
     });
   }
 
   clearData() {
     this.traceChange = true;
-    this.pie!.dataSource = [];
-    this.table!.recycleDataSource = [];
+    this.processSwitchCountPie!.dataSource = [];
+    this.processSwitchCountTbl!.recycleDataSource = [];
   }
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
-    let time = new Date().getTime();
+    let processSwitchCountTime = new Date().getTime();
     procedurePool.submitWithName('logic1', option, {}, undefined, handler);
-    let durTime = new Date().getTime() - time;
+    let durTime = new Date().getTime() - processSwitchCountTime;
     info(log, durTime);
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(processSwitchCountProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[processSwitchCountProperty]) - parseFloat(a[processSwitchCountProperty])
+            : parseFloat(a[processSwitchCountProperty]) - parseFloat(b[processSwitchCountProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[processSwitchCountProperty].toString().localeCompare(a[processSwitchCountProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[processSwitchCountProperty].toString().localeCompare(b[processSwitchCountProperty].toString());
           }
         }
       };
     }
 
     if (detail.key === 'NO' || detail.key === 'pid' || detail.key === 'switchCount' || detail.key === 'tid') {
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.processSwitchCountData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      this.data.sort(compare(detail.key, detail.sort, 'string'));
+      this.processSwitchCountData.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.table!.recycleDataSource = this.data;
+    this.processSwitchCountTbl!.recycleDataSource = this.processSwitchCountData;
   }
 
   initHtml(): string {

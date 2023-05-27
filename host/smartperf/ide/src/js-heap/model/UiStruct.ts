@@ -37,12 +37,11 @@ export class ConstructorItem {
   distance = -1;
   shallowSize = -1;
   retainedSize = -1;
-  showBox = false;
-  showCut = false;
   hasNext = true;
   status = true;
   isSelected: boolean = false;
   objectName = '';
+  expanded: boolean = true;
 
   edgeCount = 0;
   edgeType!: EdgeType;
@@ -104,7 +103,6 @@ export class ConstructorComparison extends ConstructorItem {
   addedIndx: Array<number> = [];
 
   isAdd = false;
-  status = true;
 
   getChildren(): ConstructorItem[] {
     if (this.type !== ConstructorType.ComparisonType) {
@@ -207,7 +205,6 @@ export class AllocationFunction {
 export class FileInfo {
   id: number = -1;
   name: string = '';
-  path: string = '';
   type!: FileType;
   start_ts: number = 0;
   end_ts: number = 0;

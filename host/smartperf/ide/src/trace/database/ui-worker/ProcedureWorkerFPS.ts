@@ -16,11 +16,11 @@
 import {
   BaseStruct,
   drawFlagLine,
-  drawLines,
   drawLoading,
   drawSelection,
   isFrameContainPoint,
   ns2x,
+  drawLines,
   Rect,
   Render,
   RequestMessage,
@@ -36,11 +36,11 @@ export class FpsRender extends Render {
     },
     row: TraceRow<FpsStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let fpsList = row.dataList;
+    let fpsFilter = row.dataListCache;
     fps(
-      list,
-      filter,
+      fpsList,
+      fpsFilter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
@@ -48,15 +48,15 @@ export class FpsRender extends Render {
       req.useCache || !TraceRow.range!.refresh
     );
     req.context.beginPath();
-    let find = false;
-    for (let re of filter) {
+    let fpsFind = false;
+    for (let re of fpsFilter) {
       FpsStruct.draw(req.context, re);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         FpsStruct.hoverFpsStruct = re;
-        find = true;
+        fpsFind = true;
       }
     }
-    if (!find && row.isHover) FpsStruct.hoverFpsStruct = undefined;
+    if (!fpsFind && row.isHover) FpsStruct.hoverFpsStruct = undefined;
     req.context.closePath();
     let maxFps = FpsStruct.maxFps + 'FPS';
     let textMetrics = req.context.measureText(maxFps);
@@ -69,77 +69,85 @@ export class FpsRender extends Render {
     req.context.fillText(maxFps, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      fps(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(fpsRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (fpsRequest.lazyRefresh) {
+      fps(
+        list,
+        filter,
+        fpsRequest.startNS,
+        fpsRequest.endNS,
+        fpsRequest.totalNS,
+        fpsRequest.frame,
+        fpsRequest.useCache || !fpsRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        fps(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!fpsRequest.useCache) {
+        fps(list, filter, fpsRequest.startNS, fpsRequest.endNS, fpsRequest.totalNS, fpsRequest.frame, false);
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+    if (fpsRequest.canvas) {
+      fpsRequest.context.clearRect(0, 0, fpsRequest.frame.width, fpsRequest.frame.height);
+      let fpsArr = filter;
+      if (fpsArr.length > 0 && !fpsRequest.range.refresh && !fpsRequest.useCache && fpsRequest.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
+          fpsRequest.context,
+          fpsRequest.startNS,
+          fpsRequest.endNS,
+          fpsRequest.totalNS,
+          fpsRequest.frame,
+          fpsArr[0].startNS,
+          fpsArr[fpsArr.length - 1].startNS + fpsArr[fpsArr.length - 1].dur
         );
       }
-      req.context.beginPath();
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      fpsRequest.context.beginPath();
+      drawLines(fpsRequest.context, fpsRequest.xs, fpsRequest.frame.height, fpsRequest.lineColor);
       FpsStruct.hoverFpsStruct = undefined;
-      if (req.isHover) {
+      if (fpsRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            fpsRequest.hoverX >= re.frame.x &&
+            fpsRequest.hoverX <= re.frame.x + re.frame.width &&
+            fpsRequest.hoverY >= re.frame.y &&
+            fpsRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             FpsStruct.hoverFpsStruct = re;
             break;
           }
         }
       } else {
-        FpsStruct.hoverFpsStruct = req.params.hoverFpsStruct;
+        FpsStruct.hoverFpsStruct = fpsRequest.params.hoverFpsStruct;
       }
       for (let re of filter) {
-        FpsStruct.draw(req.context, re);
+        FpsStruct.draw(fpsRequest.context, re);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(fpsRequest.context, fpsRequest.params);
+      fpsRequest.context.closePath();
       let maxFps = FpsStruct.maxFps + 'FPS';
-      let textMetrics = req.context.measureText(maxFps);
-      req.context.globalAlpha = 0.8;
-      req.context.fillStyle = '#f0f0f0';
-      req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-      req.context.globalAlpha = 1;
-      req.context.fillStyle = '#333';
-      req.context.textBaseline = 'middle';
-      req.context.fillText(maxFps, 4, 5 + 9);
+      let fpsTextMetrics = fpsRequest.context.measureText(maxFps);
+      fpsRequest.context.globalAlpha = 0.8;
+      fpsRequest.context.fillStyle = '#f0f0f0';
+      fpsRequest.context.fillRect(0, 5, fpsTextMetrics.width + 8, 18);
+      fpsRequest.context.globalAlpha = 1;
+      fpsRequest.context.fillStyle = '#333';
+      fpsRequest.context.textBaseline = 'middle';
+      fpsRequest.context.fillText(maxFps, 4, 5 + 9);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        fpsRequest.context,
+        fpsRequest.flagMoveInfo,
+        fpsRequest.flagSelectedInfo,
+        fpsRequest.startNS,
+        fpsRequest.endNS,
+        fpsRequest.totalNS,
+        fpsRequest.frame,
+        fpsRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: fpsRequest.id,
+      type: fpsRequest.type,
+      results: fpsRequest.canvas ? undefined : filter,
       hover: FpsStruct.hoverFpsStruct,
     });
   }
@@ -195,48 +203,48 @@ export class FpsStruct extends BaseStruct {
   startNS: number | undefined = 0;
   dur: number | undefined; //自补充，数据库没有返回
 
-  static draw(ctx: CanvasRenderingContext2D, data: FpsStruct) {
+  static draw(fpsContext: CanvasRenderingContext2D, data: FpsStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      ctx.fillStyle = '#535da6';
-      ctx.strokeStyle = '#535da6';
+      fpsContext.fillStyle = '#535da6';
+      fpsContext.strokeStyle = '#535da6';
       if (data === FpsStruct.hoverFpsStruct) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
+        fpsContext.lineWidth = 1;
+        fpsContext.globalAlpha = 0.6;
         let drawHeight: number = ((data.fps || 0) * (data.frame.height || 0) * 1.0) / FpsStruct.maxFps;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        fpsContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        fpsContext.beginPath();
+        fpsContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        fpsContext.fill();
+        fpsContext.globalAlpha = 1.0;
+        fpsContext.stroke();
+        fpsContext.beginPath();
+        fpsContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+        fpsContext.lineWidth = 3;
+        fpsContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
+        fpsContext.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
+        fpsContext.globalAlpha = 0.6;
+        fpsContext.lineWidth = 1;
         let drawHeight: number = ((data.fps || 0) * (data.frame.height || 0) * 1.0) / FpsStruct.maxFps;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        fpsContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    fpsContext.globalAlpha = 1.0;
+    fpsContext.lineWidth = 1;
   }
 
-  static setFrame(node: FpsStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
+  static setFrame(fpsNode: FpsStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
     let x1: number, x2: number;
-    if ((node.startNS || 0) < startNS) {
+    if ((fpsNode.startNS || 0) < startNS) {
       x1 = 0;
     } else {
-      x1 = ns2x(node.startNS || 0, startNS, endNS, totalNS, frame);
+      x1 = ns2x(fpsNode.startNS || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
+    if ((fpsNode.startNS || 0) + (fpsNode.dur || 0) > endNS) {
       x2 = frame.width;
     } else {
-      x2 = ns2x((node.startNS || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      x2 = ns2x((fpsNode.startNS || 0) + (fpsNode.dur || 0), startNS, endNS, totalNS, frame);
     }
     let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
     let rectangle: Rect = new Rect(
@@ -245,7 +253,7 @@ export class FpsStruct extends BaseStruct {
       Math.ceil(getV),
       Math.floor(frame.height - padding * 2)
     );
-    node.frame = rectangle;
+    fpsNode.frame = rectangle;
   }
 }
 

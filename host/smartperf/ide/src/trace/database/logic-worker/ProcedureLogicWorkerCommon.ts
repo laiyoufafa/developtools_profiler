@@ -113,26 +113,6 @@ class MerageBeanDataSplit {
     }
   }
 
-  //symbol lib charge
-  recursionChargeTree(node: MerageBean, symbolName: string, isSymbol: boolean) {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
-      node.currentTreeParentNode &&
-        node.currentTreeParentNode.children.splice(
-          node.currentTreeParentNode.children.indexOf(node),
-          1,
-          ...node.children
-        );
-      node.children.forEach((child) => {
-        child.currentTreeParentNode = node.currentTreeParentNode;
-      });
-    }
-    if (node.children.length > 0) {
-      node.children.forEach((child) => {
-        this.recursionChargeTree(child, symbolName, isSymbol);
-      });
-    }
-  }
-
   recursionPruneInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean) {
     if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
@@ -293,6 +273,15 @@ export let merageBeanDataSplit = new MerageBeanDataSplit();
 
 export abstract class LogicHandler {
   abstract handle(data: any): void;
+  queryData(eventId: string, queryName: string, sql: string, args: any) {
+    self.postMessage({
+      id: eventId,
+      type: queryName,
+      isQuery: true,
+      args: args,
+      sql: sql,
+    });
+  }
 }
 
 let dec = new TextDecoder();
@@ -357,27 +346,27 @@ let translateJsonString = (str: string): string => {
     .replace(/[\t|\r|\n]/g, '')
     .replace(/\\/g, '\\\\');
 };
-export let convertJSON = (arr: ArrayBuffer | Array<any>) => {
-  if (arr instanceof ArrayBuffer) {
-    let str = dec.decode(arr);
+export let convertJSON = (arrBuf: ArrayBuffer | Array<any>) => {
+  if (arrBuf instanceof ArrayBuffer) {
+    let string = dec.decode(arrBuf);
     let jsonArray = [];
-    str = str.substring(str.indexOf('\n') + 1);
-    if (!str) {
+    string = string.substring(string.indexOf('\n') + 1);
+    if (!string) {
     } else {
-      let parse = JSON.parse(translateJsonString(str));
+      let parse = JSON.parse(translateJsonString(string));
       let columns = parse.columns;
       let values = parse.values;
       for (let i = 0; i < values.length; i++) {
-        let obj: any = {};
+        let object: any = {};
         for (let j = 0; j < columns.length; j++) {
-          obj[columns[j]] = values[i][j];
+          object[columns[j]] = values[i][j];
         }
-        jsonArray.push(obj);
+        jsonArray.push(object);
       }
     }
     return jsonArray;
   } else {
-    return arr;
+    return arrBuf;
   }
 };
 
@@ -387,13 +376,13 @@ export let getByteWithUnit = (bytes: number): string => {
   }
   let currentBytes = bytes;
   let kb1 = 1 << 10;
-  let mb1 = (1 << 10) << 10;
-  let gb1 = ((1 << 10) << 10) << 10; // 1 gb
+  let mb = (1 << 10) << 10;
+  let gb = ((1 << 10) << 10) << 10; // 1 gb
   let res = '';
-  if (currentBytes > gb1) {
-    res += (currentBytes / gb1).toFixed(2) + ' Gb';
-  } else if (currentBytes > mb1) {
-    res += (currentBytes / mb1).toFixed(2) + ' Mb';
+  if (currentBytes > gb) {
+    res += (currentBytes / gb).toFixed(2) + ' Gb';
+  } else if (currentBytes > mb) {
+    res += (currentBytes / mb).toFixed(2) + ' Mb';
   } else if (currentBytes > kb1) {
     res += (currentBytes / kb1).toFixed(2) + ' Kb';
   } else {

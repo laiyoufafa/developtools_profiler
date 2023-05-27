@@ -17,9 +17,9 @@ import { BaseElement, element } from '../BaseElement.js';
 
 @element('lit-allocation-select')
 export class LitAllocationSelect extends BaseElement {
-  private inputElement: HTMLInputElement | null | undefined;
-  private inputContent: HTMLDivElement | undefined;
-  private options: any;
+  private selectAllocationInputEl: HTMLInputElement | null | undefined;
+  private selectAllocationInputContent: HTMLDivElement | undefined;
+  private selectAllocationOptions: any;
 
   static get observedAttributes() {
     return ['value', 'disabled', 'placeholder'];
@@ -33,27 +33,27 @@ export class LitAllocationSelect extends BaseElement {
     return this.getAttribute('placeholder') || this.defaultPlaceholder;
   }
 
-  set placeholder(value) {
-    this.setAttribute('placeholder', value);
+  set placeholder(selectAllocationValue) {
+    this.setAttribute('placeholder', selectAllocationValue);
   }
 
   get value() {
     return this.getAttribute('value') || '';
   }
 
-  set value(value: string) {
-    this.setAttribute('value', value);
+  set value(selectAllocationValue: string) {
+    this.setAttribute('value', selectAllocationValue);
   }
 
   set processData(value: Array<string>) {
-    this.options.innerHTML = '';
+    this.selectAllocationOptions.innerHTML = '';
     value.forEach((item) => {
       let option = document.createElement('div');
       option.className = 'option';
       option.innerHTML = item;
       option.style.padding = '8px 10px';
-      this.options.appendChild(option);
-      this.inputElement?.focus();
+      this.selectAllocationOptions.appendChild(option);
+      this.selectAllocationInputEl?.focus();
     });
   }
 
@@ -61,9 +61,9 @@ export class LitAllocationSelect extends BaseElement {
     return this.getAttribute('placement') || '';
   }
 
-  set placement(placement: string) {
-    if (placement) {
-      this.setAttribute('placement', placement);
+  set placement(selectAllocationValuePlacement: string) {
+    if (selectAllocationValuePlacement) {
+      this.setAttribute('placement', selectAllocationValuePlacement);
     } else {
       this.removeAttribute('placement');
     }
@@ -78,20 +78,20 @@ export class LitAllocationSelect extends BaseElement {
   }
 
   initElements(): void {
-    this.inputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
+    this.selectAllocationInputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
     this.addEventListener('click', () => {
-      if (this.options.style.visibility == 'visible') {
-        this.options.style.visibility = 'hidden';
-        this.options.style.opacity = '0';
+      if (this.selectAllocationOptions.style.visibility == 'visible') {
+        this.selectAllocationOptions.style.visibility = 'hidden';
+        this.selectAllocationOptions.style.opacity = '0';
       } else {
-        this.options.style.visibility = 'visible';
-        this.options.style.opacity = '1';
+        this.selectAllocationOptions.style.visibility = 'visible';
+        this.selectAllocationOptions.style.opacity = '1';
       }
-      this.inputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
+      this.selectAllocationInputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
     });
     this.addEventListener('focusout', (e) => {
-      this.options.style.visibility = 'hidden';
-      this.options.style.opacity = '0';
+      this.selectAllocationOptions.style.visibility = 'hidden';
+      this.selectAllocationOptions.style.opacity = '0';
     });
     this.initData();
   }
@@ -101,72 +101,66 @@ export class LitAllocationSelect extends BaseElement {
         <style>
         :host{
             display: inline-flex;
-            position: relative;
             overflow: visible;
             cursor: pointer;
+            position: relative;
             border-radius: 16px;
             outline: none;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
             user-select:none;
             width: 75%;
+            -webkit-user-select:none ;
+            -moz-user-select:none;
         }
         :host(:not([border])),
         :host([border='true']){
             border: 1px solid var(--bark-prompt,#dcdcdc);
         }
-        input{
-            border: 0;
+        .multipleSelect{
+            display: flex;
+            width: 100%;
+            z-index: 2999;
+            position: relative;
+            padding: 3px 6px;
+            font-size: 1rem;
+            transition: all .3s;
             outline: none;
+            user-select:none;
+            align-items: center;
+            justify-content: space-between;
+            -webkit-user-select:none ;
+            -moz-user-select:none;
+        }
+        input{
+            display: inline-flex;
+            width:100%;
+            z-index: 8999;
+            color: var(--dark-color2,rgba(0,0,0,0.9));
             background-color: transparent;
+            border: 0;
+            user-select:none;
+            outline: none;
             cursor: pointer;
             -webkit-user-select:none ;
             -moz-user-select:none;
-            user-select:none;
-            display: inline-flex;
-            color: var(--dark-color2,rgba(0,0,0,0.9));
-            z-index: 8999;
-            width:100%;
-        }
-        .multipleSelect{
-            position: relative;
-            padding: 3px 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all .3s;
-            outline: none;
-            font-size: 1rem;
-            z-index: 2999;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
-            width: 100%;
         }
          .body{
             max-height: ${this.listHeight};
+            width: 100%;
+            display: block;
+            overflow: auto;
             position: absolute;
             bottom: 100%;
-            z-index: 99;
             padding-top: 5px;
             margin-top: 2px;
-            background-color: var(--dark-background4,#fff);
-            width: 100%;
             transition: all 0.2s;
-            visibility: hidden;
-            
-            opacity: 0;
-            transform-origin: bottom center;
-            display: block;
             flex-direction: column;
+            transform-origin: bottom center;
             box-shadow: 0 5px 15px 0px #00000033;
+            background-color: var(--dark-background4,#fff);
             border-radius: 2px;
-            overflow: auto;
-        }
-          .body-bottom{
-            bottom: auto;
-            top: 100%;
-            transform-origin: top center;
+            opacity: 0;
+            z-index: 99;
+            visibility: hidden;
         }
         :host([placement="bottom"]) .body{
             bottom:unset;
@@ -174,15 +168,18 @@ export class LitAllocationSelect extends BaseElement {
             transition: none;
             transform: none;
         }
- 
+        .body-bottom{
+            top: 100%;
+            transform-origin: top center;
+            bottom: auto;
+        }
+        .multipleRoot input::-webkit-input-placeholder {
+            color: var(--dark-color,#aab2bd);
+        }
         :host([disabled]) {
            pointer-events: none;
+           cursor: not-allowed;
            background-color: var(--dark-background1,#f5f5f5);
-            cursor: not-allowed;
-        }
-        
-        .multipleRoot input::-webkit-input-placeholder {
-                color: var(--dark-color,#aab2bd);
         }
         </style>
         <div class="multipleSelect" tabindex="0">
@@ -201,18 +198,18 @@ export class LitAllocationSelect extends BaseElement {
   connectedCallback() {}
 
   initData() {
-    this.inputElement = this.shadowRoot!.querySelector('input');
-    this.options = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
-    this.inputElement?.addEventListener('keyup', () => {
+    this.selectAllocationInputEl = this.shadowRoot!.querySelector('input');
+    this.selectAllocationOptions = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
+    this.selectAllocationInputEl?.addEventListener('keyup', () => {
       let filter = [...this.shadowRoot!.querySelectorAll<HTMLDivElement>('.option')].filter((a: HTMLDivElement) => {
-        if (a.textContent!.indexOf(this.inputElement!.value) <= -1) {
+        if (a.textContent!.indexOf(this.selectAllocationInputEl!.value) <= -1) {
           a.style.display = 'none';
         } else {
           a.style.display = 'block';
         }
       });
-      this.value = this.inputElement!.value;
-      this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
+      this.value = this.selectAllocationInputEl!.value;
+      this.selectAllocationInputContent!.dispatchEvent(new CustomEvent('valuable', {}));
     });
     this.shadowRoot?.querySelectorAll('.option').forEach((a) => {
       a.addEventListener('mousedown', (e) => {
@@ -226,9 +223,9 @@ export class LitAllocationSelect extends BaseElement {
         );
       });
       a.addEventListener('onSelected', (e: any) => {
-        this.inputElement!.value = e.detail.text;
+        this.selectAllocationInputEl!.value = e.detail.text;
         this.value = e.detail.text;
-        this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
+        this.selectAllocationInputContent!.dispatchEvent(new CustomEvent('valuable', {}));
       });
     });
   }

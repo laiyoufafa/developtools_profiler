@@ -66,6 +66,9 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
   handle(data: any): void {
     if (data.id) {
       this.currentEventId = data.id;
+      for(let handle of this.handlerMap.values()){
+        handle.setEventId(this.currentEventId)
+      }
     }
     if (data && data.type) {
       switch (data.type) {
@@ -276,7 +279,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             where startTs not null and TB.fd not null and TA.closeTs < TA.openTs
             order by TB.end_ts;  `;
     }
-    this.queryData('fileSystem-queryFileSysEvents', sql, {
+    this.queryData(this.currentEventId, 'fileSystem-queryFileSysEvents', sql, {
       $leftNS: leftNs,
       $rightNS: rightNs,
     });
@@ -301,7 +304,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             where (
                 (A.end_ts - B.start_ts) between $leftNS and $rightNS
             );`;
-    this.queryData('fileSystem-queryVMEvents', sql, {
+    this.queryData(this.currentEventId, 'fileSystem-queryVMEvents', sql, {
       $leftNS: leftNs,
       $rightNS: rightNs,
     });
@@ -332,7 +335,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             where (
                 (A.end_ts - B.start_ts) between $leftNS and $rightNS
             ) ${ipidsSql};`;
-    this.queryData('fileSystem-queryIOEvents', sql, {
+    this.queryData(this.currentEventId, 'fileSystem-queryIOEvents', sql, {
       $leftNS: leftNs,
       $rightNS: rightNs,
     });
@@ -434,9 +437,13 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     }
     this.handlerMap.set('fileSystem', new FileSystemCallTreeHandler('fileSystem', this.queryData));
     this.handlerMap.set('io', new FileSystemCallTreeHandler('io', this.queryData));
-    this.handlerMap.set('virtualMemory', new FileSystemCallTreeHandler('virtualMemory', this.queryData));
+    this.handlerMap.set(
+      'virtualMemory',
+      new FileSystemCallTreeHandler('virtualMemory', this.queryData)
+    );
     ProcedureLogicWorkerFileSystem.callChainsMap.clear();
     this.queryData(
+      this.currentEventId,
       'fileSystem-queryCallchains',
       `select callchain_id as callChainId,depth,symbols_id as symbolsId,file_path_id as pathId,ip from ebpf_callstack`,
       {}
@@ -450,16 +457,6 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       } else {
         ProcedureLogicWorkerFileSystem.callChainsMap.set(callchain.callChainId, [callchain]);
       }
-    });
-  }
-
-  queryData(queryName: string, sql: string, args: any) {
-    self.postMessage({
-      id: this.currentEventId,
-      type: queryName,
-      isQuery: true,
-      args: args,
-      sql: sql,
     });
   }
 
@@ -524,14 +521,18 @@ class FileSystemCallTreeHandler {
   samplesList: FileSample[] = [];
   splitMapData: any = {};
   searchValue: string = '';
-  queryData = (action: string, sql: string, args: any) => {};
+  currentEventId: string = '';
+  queryData = (eventId: string, action: string, sql: string, args: any) => {};
 
   constructor(type: string, queryData: any) {
     this.currentDataType = type;
     this.queryData = queryData;
   }
 
-  queryCallchainsSamples(selectionParam: any) {
+  setEventId(eventId: string){
+    this.currentEventId = eventId; 
+  }
+  queryCallChainsSamples(selectionParam: any) {
     switch (this.currentDataType) {
       case 'fileSystem':
         this.queryFileSamples(selectionParam);
@@ -540,7 +541,7 @@ class FileSystemCallTreeHandler {
         this.queryIOSamples(selectionParam);
         break;
       case 'virtualMemory':
-        this.queryEpbfSamples(selectionParam);
+        this.queryPageFaultSamples(selectionParam);
         break;
     }
   }
@@ -560,6 +561,7 @@ class FileSystemCallTreeHandler {
       sql += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
     }
     this.queryData(
+      this.currentEventId,
       'fileSystem-queryFileSamples',
       `select s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from file_system_sample s,trace_range t 
 left join process p on p.id = s.ipid  
@@ -584,6 +586,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       sql += `or (s.ipid in (${selectionParam.diskIOWriteIds.join(',')}) and s.type in (2,4)) `;
     }
     this.queryData(
+      this.currentEventId,
       'fileSystem-queryIoSamples',
       `select s.callchain_id as callChainId,h.tid,h.name as threadName,s.latency_dur as dur,s.type,p.pid,p.name as processName from bio_latency_sample s,trace_range t
 left join process p on p.id = s.ipid
@@ -596,7 +599,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     );
   }
 
-  queryEpbfSamples(selectionParam: any) {
+  queryPageFaultSamples(selectionParam: any) {
     let sql = '';
     if (
       selectionParam.diskIOipids.length > 0 &&
@@ -606,6 +609,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       sql += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
     }
     this.queryData(
+      this.currentEventId,
       'fileSystem-queryVirtualMemorySamples',
       `select s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from paged_memory_sample s,trace_range t 
 left join process p on p.id = s.ipid  
@@ -618,7 +622,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     );
   }
 
-  freshCurrentCallchains(samples: FileSample[], isTopDown: boolean) {
+  freshCurrentCallChains(samples: FileSample[], isTopDown: boolean) {
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     this.allProcess = [];
@@ -689,8 +693,8 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
   }
 
   createThreadAndType(sample: FileSample) {
-    let typeCallchain = new FileCallChain();
-    typeCallchain.callChainId = sample.callChainId;
+    let typeCallChain = new FileCallChain();
+    typeCallChain.callChainId = sample.callChainId;
     let map: any = {};
     if (this.currentDataType == 'fileSystem') {
       map = FILE_TYPE_MAP;
@@ -700,16 +704,16 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       map = VM_TYPE_MAP;
     }
     // @ts-ignore
-    typeCallchain.ip = map[sample.type.toString()] || 'UNKNOW';
-    typeCallchain.symbolsId = sample.type;
-    typeCallchain.pathId = -1;
+    typeCallChain.ip = map[sample.type.toString()] || 'UNKNOW';
+    typeCallChain.symbolsId = sample.type;
+    typeCallChain.pathId = -1;
     let threadCallChain = new FileCallChain();
     threadCallChain.callChainId = sample.callChainId;
     threadCallChain.ip = (sample.threadName || 'Thread') + `-${sample.tid}`;
     threadCallChain.symbolsId = sample.tid;
     threadCallChain.pathId = -1;
     return [
-      typeCallchain,
+      typeCallChain,
       threadCallChain,
       ...(ProcedureLogicWorkerFileSystem.callChainsMap.get(sample.callChainId) || []),
     ];
@@ -771,10 +775,10 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         if (item.funcName && item.funcArgs) {
           switch (item.funcName) {
             case 'getCallChainsBySampleIds':
-              this.freshCurrentCallchains(this.samplesList, item.funcArgs[0]);
+              this.freshCurrentCallChains(this.samplesList, item.funcArgs[0]);
               break;
             case 'getCurrentDataFromDb':
-              this.queryCallchainsSamples(item.funcArgs[0]);
+              this.queryCallChainsSamples(item.funcArgs[0]);
               break;
             case 'hideSystemLibrary':
               merageBeanDataSplit.hideSystemLibrary(this.allProcess, this.splitMapData);

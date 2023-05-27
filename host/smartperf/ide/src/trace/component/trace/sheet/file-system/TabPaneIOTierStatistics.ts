@@ -24,45 +24,41 @@ import { SpSystemTrace } from '../../../SpSystemTrace.js';
 
 @element('tabpane-io-tier-statistics')
 export class TabPaneIOTierStatistics extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private loadDataInCache: boolean = true;
-  private selectionParam: SelectionParam | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private filter: TabPaneFilter | null | undefined;
+  private ioTierStatisticsTbl: LitTable | null | undefined;
+  private ioTierStatisticsSelectionParam: SelectionParam | null | undefined;
+  private ioTierStatisticsProgressEL: LitProgressBar | null | undefined;
   private loadingPage: any;
   private loadingList: number[] = [];
-  private source: Array<any> = [];
-  private typeList: Array<string> = ['OPEN', 'CLOSE', 'READ', 'WRITE'];
-  private sortKey: string = '';
-  private sortType: number = 0;
-  private resultData: Array<any> = [];
+  private ioTierStatisticsSource: Array<any> = [];
+  private ioTierStatisticsSortKey: string = '';
+  private ioTierStatisticsSortType: number = 0;
+  private ioTierStatisticsResultData: Array<any> = [];
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(ioTierStatisticsSelection: SelectionParam | any) {
+    if (ioTierStatisticsSelection == this.ioTierStatisticsSelectionParam) {
       return;
     }
-    this.progressEL!.loading = true;
+    this.ioTierStatisticsProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    this.selectionParam = val;
+    this.ioTierStatisticsSelectionParam = ioTierStatisticsSelection;
     // @ts-ignore
-    this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 20 + 'px';
-    this.queryDataByDB(val);
+    this.ioTierStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 20 + 'px';
+    this.queryDataByDB(ioTierStatisticsSelection);
   }
 
   initElements(): void {
-    this.progressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
+    this.ioTierStatisticsProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
     this.loadingPage = this.shadowRoot!.querySelector('.loading');
-    this.tbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.ioTierStatisticsTbl = this.shadowRoot!.querySelector<LitTable>('#tb-io-tier-statistics');
+    this.ioTierStatisticsTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.ioTierStatisticsSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.ioTierStatisticsSortType = evt.detail.sort;
 
-      let newSource = JSON.parse(JSON.stringify(this.source));
-      if (this.sortType != 0 && newSource.length > 0) this.sortTable(newSource[0], this.sortKey);
-      this.tbl!.recycleDataSource = newSource;
+      let newSource = JSON.parse(JSON.stringify(this.ioTierStatisticsSource));
+      if (this.ioTierStatisticsSortType != 0 && newSource.length > 0) this.sortTable(newSource[0], this.ioTierStatisticsSortKey);
+      this.ioTierStatisticsTbl!.recycleDataSource = newSource;
     });
   }
 
@@ -71,51 +67,51 @@ export class TabPaneIOTierStatistics extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement!.clientHeight != 0) {
         // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-        this.tbl!.reMeauseHeight();
+        this.ioTierStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
+        this.ioTierStatisticsTbl!.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(item: any, nameTitle: any = 'pname', subtitle: any = null) {
+  getInitData(initIoTierItem: any, nameTitle: any = 'pname', subtitle: any = null) {
     if (nameTitle == 'path') {
-      item.path = item.path != null ? SpSystemTrace.DATA_DICT.get(parseInt(item.path)) : '-';
+      initIoTierItem.path = initIoTierItem.path != null ? SpSystemTrace.DATA_DICT.get(parseInt(initIoTierItem.path)) : '-';
     }
     return {
-      ...item,
-      title: item[nameTitle] + (subtitle ? '(' + item[subtitle] + ')' : ''),
-      allDuration: Utils.getProbablyTime(item.allDuration),
-      minDuration: Utils.getProbablyTime(item.minDuration),
-      maxDuration: Utils.getProbablyTime(item.maxDuration),
-      avgDuration: Utils.getProbablyTime(item.avgDuration),
-      node: { ...item, children: [] },
+      ...initIoTierItem,
+      title: initIoTierItem[nameTitle] + (subtitle ? '(' + initIoTierItem[subtitle] + ')' : ''),
+      allDuration: Utils.getProbablyTime(initIoTierItem.allDuration),
+      minDuration: Utils.getProbablyTime(initIoTierItem.minDuration),
+      maxDuration: Utils.getProbablyTime(initIoTierItem.maxDuration),
+      avgDuration: Utils.getProbablyTime(initIoTierItem.avgDuration),
+      node: { ...initIoTierItem, children: [] },
     };
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(ioTierParam: SelectionParam | any) {
     this.loadingList.push(1);
-    this.progressEL!.loading = true;
+    this.ioTierStatisticsProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
     getTabPaneIOTierStatisticsData(
-      val.leftNs + val.recordStartNs,
-      val.rightNs + val.recordStartNs,
-      val.diskIOipids
+      ioTierParam.leftNs + ioTierParam.recordStartNs,
+      ioTierParam.rightNs + ioTierParam.recordStartNs,
+      ioTierParam.diskIOipids
     ).then((result) => {
       this.loadingList.splice(0, 1);
       if (this.loadingList.length == 0) {
-        this.progressEL!.loading = false;
+        this.ioTierStatisticsProgressEL!.loading = false;
         this.loadingPage.style.visibility = 'hidden';
       }
-      this.resultData = JSON.parse(JSON.stringify(result));
-      this.sortStatus(result, 'tier', 'ipid');
+      this.ioTierStatisticsResultData = JSON.parse(JSON.stringify(result));
+      this.sortioTierStatisticsStatus(result, 'tier', 'ipid');
     });
   }
 
-  sortStatus(result: Array<any>, firstLevel: string, secondLevel: string) {
-    let fatherMap = new Map<any, any>();
-    let childMap = new Map<any, any>();
-    let allNode: any = {
+  sortioTierStatisticsStatus(result: Array<any>, firstLevel: string, secondLevel: string) {
+    let ioTierFatherMap = new Map<any, any>();
+    let ioTierChildMap = new Map<any, any>();
+    let ioTierAllNode: any = {
       title: 'All',
       count: 0,
       allDuration: 0,
@@ -124,111 +120,111 @@ export class TabPaneIOTierStatistics extends BaseElement {
       avgDuration: '',
       children: [],
     };
-    result.forEach((item, idx) => {
-      if (childMap.has(item[firstLevel] + '_' + item[secondLevel])) {
-        let obj1 = childMap.get(item[firstLevel] + '_' + item[secondLevel]);
-        obj1.count += item.count;
-        obj1.allDuration += item.allDuration;
-        obj1.minDuration = obj1.minDuration <= item.minDuration ? obj1.minDuration : item.minDuration;
-        obj1.maxDuration = obj1.maxDuration >= item.maxDuration ? obj1.maxDuration : item.maxDuration;
-        obj1.children.push(this.getInitData(item, 'path', null));
+    result.forEach((resultItem, idx) => {
+      if (ioTierChildMap.has(resultItem[firstLevel] + '_' + resultItem[secondLevel])) {
+        let currentChildObject = ioTierChildMap.get(resultItem[firstLevel] + '_' + resultItem[secondLevel]);
+        currentChildObject.count += resultItem.count;
+        currentChildObject.allDuration += resultItem.allDuration;
+        currentChildObject.minDuration = currentChildObject.minDuration <= resultItem.minDuration ? currentChildObject.minDuration : resultItem.minDuration;
+        currentChildObject.maxDuration = currentChildObject.maxDuration >= resultItem.maxDuration ? currentChildObject.maxDuration : resultItem.maxDuration;
+        currentChildObject.children.push(this.getInitData(resultItem, 'path', null));
       } else {
-        childMap.set(item[firstLevel] + '_' + item[secondLevel], {
-          ...item,
-          children: [this.getInitData(item, 'path', null)],
+        ioTierChildMap.set(resultItem[firstLevel] + '_' + resultItem[secondLevel], {
+          ...resultItem,
+          children: [this.getInitData(resultItem, 'path', null)],
         });
       }
 
-      if (fatherMap.has(item[firstLevel])) {
-        let obj1 = fatherMap.get(item[firstLevel]);
-        obj1.count += item.count;
-        obj1.allDuration += item.allDuration;
-        obj1.minDuration = obj1.minDuration <= item.minDuration ? obj1.minDuration : item.minDuration;
-        obj1.maxDuration = obj1.maxDuration >= item.maxDuration ? obj1.maxDuration : item.maxDuration;
-        obj1.children.push(this.getInitData(item));
+      if (ioTierFatherMap.has(resultItem[firstLevel])) {
+        let currentFatherObject = ioTierFatherMap.get(resultItem[firstLevel]);
+        currentFatherObject.count += resultItem.count;
+        currentFatherObject.allDuration += resultItem.allDuration;
+        currentFatherObject.minDuration = currentFatherObject.minDuration <= resultItem.minDuration ? currentFatherObject.minDuration : resultItem.minDuration;
+        currentFatherObject.maxDuration = currentFatherObject.maxDuration >= resultItem.maxDuration ? currentFatherObject.maxDuration : resultItem.maxDuration;
+        currentFatherObject.children.push(this.getInitData(resultItem));
       } else {
-        fatherMap.set(item[firstLevel], {
-          ...item,
-          children: [this.getInitData(item)],
+        ioTierFatherMap.set(resultItem[firstLevel], {
+          ...resultItem,
+          children: [this.getInitData(resultItem)],
         });
       }
       if (idx == 0) {
-        allNode.minDuration = item.minDuration;
+        ioTierAllNode.minDuration = resultItem.minDuration;
       } else {
-        allNode.minDuration = allNode.minDuration <= item.minDuration ? allNode.minDuration : item.minDuration;
+        ioTierAllNode.minDuration = ioTierAllNode.minDuration <= resultItem.minDuration ? ioTierAllNode.minDuration : resultItem.minDuration;
       }
-      allNode.count += item.count;
-      allNode.allDuration += item.allDuration;
-      allNode.maxDuration = allNode.maxDuration >= item.maxDuration ? allNode.maxDuration : item.maxDuration;
+      ioTierAllNode.count += resultItem.count;
+      ioTierAllNode.allDuration += resultItem.allDuration;
+      ioTierAllNode.maxDuration = ioTierAllNode.maxDuration >= resultItem.maxDuration ? ioTierAllNode.maxDuration : resultItem.maxDuration;
     });
 
-    for (let ks of fatherMap.keys()) {
-      let sp = fatherMap.get(ks);
+    for (let ks of ioTierFatherMap.keys()) {
+      let sp = ioTierFatherMap.get(ks);
       sp!.children = [];
       sp.avgDuration = sp.allDuration / sp.count;
-      let node = this.getInitData(sp, 'tier', null);
-      node.path = {
-        tier: node.tier,
+      let ioTierNode = this.getInitData(sp, 'tier', null);
+      ioTierNode.path = {
+        tier: ioTierNode.tier,
         pid: null,
         path: null,
-        value: node.title,
+        value: ioTierNode.title,
       };
-      for (let kst of childMap.keys()) {
+      for (let kst of ioTierChildMap.keys()) {
         if (kst.startsWith(ks + '_')) {
-          let spt = childMap.get(kst);
+          let spt = ioTierChildMap.get(kst);
           let data = this.getInitData(spt!, 'pname', 'pid');
           data.path = {
-            tier: node.tier,
+            tier: ioTierNode.tier,
             pid: data.pid,
             path: null,
-            value: 'All-' + node.title + '-' + data.title,
+            value: 'All-' + ioTierNode.title + '-' + data.title,
           };
           data.children.forEach((e: any) => {
             e.path = {
-              tier: node.tier,
+              tier: ioTierNode.tier,
               pid: data.pid,
               path: e.path,
-              value: 'All-' + node.title + '-' + data.title + '-' + e.title,
+              value: 'All-' + ioTierNode.title + '-' + data.title + '-' + e.title,
             };
           });
           sp!.children.push(data);
         }
       }
-      allNode.children.push(node);
+      ioTierAllNode.children.push(ioTierNode);
     }
 
-    allNode.avgDuration = allNode.allDuration / allNode.count;
-    allNode = this.getInitData(allNode);
-    allNode.title = 'All';
-    allNode.path = { tier: null, pid: null, path: null, value: 'All' };
-    this.source = result.length > 0 ? [allNode] : [];
-    let newSource = JSON.parse(JSON.stringify(this.source));
-    if (this.sortType != 0 && result.length > 0) this.sortTable(newSource[0], this.sortKey);
-    this.tbl!.recycleDataSource = newSource;
+    ioTierAllNode.avgDuration = ioTierAllNode.allDuration / ioTierAllNode.count;
+    ioTierAllNode = this.getInitData(ioTierAllNode);
+    ioTierAllNode.title = 'All';
+    ioTierAllNode.path = { tier: null, pid: null, path: null, value: 'All' };
+    this.ioTierStatisticsSource = result.length > 0 ? [ioTierAllNode] : [];
+    let newSource = JSON.parse(JSON.stringify(this.ioTierStatisticsSource));
+    if (this.ioTierStatisticsSortType != 0 && result.length > 0) this.sortTable(newSource[0], this.ioTierStatisticsSortKey);
+    this.ioTierStatisticsTbl!.recycleDataSource = newSource;
   }
 
   sortTable(allNode: any, key: string) {
-    allNode.children.sort((a: any, b: any) => {
-      if (this.sortType == 1) {
-        return a.node[key] - b.node[key];
-      } else if (this.sortType == 2) {
-        return b.node[key] - a.node[key];
+    allNode.children.sort((ioTierStatNodeA: any, ioTierStatNodeB: any) => {
+      if (this.ioTierStatisticsSortType == 1) {
+        return ioTierStatNodeA.node[key] - ioTierStatNodeB.node[key];
+      } else if (this.ioTierStatisticsSortType == 2) {
+        return ioTierStatNodeB.node[key] - ioTierStatNodeA.node[key];
       }
     });
     allNode.children.forEach((item: any) => {
-      item.children.sort((a: any, b: any) => {
-        if (this.sortType == 1) {
-          return a.node[key] - b.node[key];
-        } else if (this.sortType == 2) {
-          return b.node[key] - a.node[key];
+      item.children.sort((ioTierStatItemA: any, ioTierStatItemB: any) => {
+        if (this.ioTierStatisticsSortType == 1) {
+          return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
+        } else if (this.ioTierStatisticsSortType == 2) {
+          return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
         }
       });
-      item.children.forEach((i: any) => {
-        i.children.sort((a: any, b: any) => {
-          if (this.sortType == 1) {
-            return a.node[key] - b.node[key];
-          } else if (this.sortType == 2) {
-            return b.node[key] - a.node[key];
+      item.children.forEach((ioTierStatItem: any) => {
+        ioTierStatItem.children.sort((ioTierStatItemA: any, ioTierStatItemB: any) => {
+          if (this.ioTierStatisticsSortType == 1) {
+            return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
+          } else if (this.ioTierStatisticsSortType == 2) {
+            return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
           }
         });
       });
@@ -243,14 +239,14 @@ export class TabPaneIOTierStatistics extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .progress{
+        .io-tier-stat-progress{
             bottom: 5px;
             position: absolute;
             height: 1px;
             left: 0;
             right: 0;
         }
-        .loading{
+        .io-tier-stat-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -260,22 +256,22 @@ export class TabPaneIOTierStatistics extends BaseElement {
             z-index: 999999;
         }
         </style>
-        <lit-table id="tb-states" style="height: auto" tree>
-            <lit-table-column width="20%" title="Tier/Process/Path" data-index="title" key="title" align="flex-start">
+        <lit-table id="tb-io-tier-statistics" style="height: auto" tree>
+            <lit-table-column class="io-tier-stat-column" width="20%" title="Tier/Process/Path" data-index="title" key="title" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
+            <lit-table-column class="io-tier-stat-column" width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Total Latency" data-index="allDuration" key="allDuration" align="flex-start" order>
+            <lit-table-column class="io-tier-stat-column" width="1fr" title="Total Latency" data-index="allDuration" key="allDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Min Total Latency" data-index="minDuration" key="minDuration" align="flex-start" order>
+            <lit-table-column class="io-tier-stat-column" width="1fr" title="Min Total Latency" data-index="minDuration" key="minDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Avg Total Latency" data-index="avgDuration" key="avgDuration" align="flex-start" order>
+            <lit-table-column class="io-tier-stat-column" width="1fr" title="Avg Total Latency" data-index="avgDuration" key="avgDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Total Latency" data-index="maxDuration" key="maxDuration" align="flex-start" order>
+            <lit-table-column class="io-tier-stat-column" width="1fr" title="Max Total Latency" data-index="maxDuration" key="maxDuration" align="flex-start" order>
             </lit-table-column>
         </lit-table>
-        <lit-progress-bar class="progress"></lit-progress-bar>
-        <div class="loading"></div>
+        <lit-progress-bar class="progress io-tier-stat-progress"></lit-progress-bar>
+        <div class="loading io-tier-stat-loading"></div>
         `;
   }
 }

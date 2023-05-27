@@ -19,20 +19,21 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js'
 import { getTabCpuByProcess } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
 import { Utils } from '../../base/Utils.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-cpu-process')
 export class TabPaneCpuByProcess extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private source: Array<SelectionData> = [];
+  private cpuByProcessTbl: LitTable | null | undefined;
+  private cpuByProcessRange: HTMLLabelElement | null | undefined;
+  private cpuByProcessSource: Array<SelectionData> = [];
 
-  set data(val: SelectionParam | any) {
-    this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+  set data(cpuByProcessValue: SelectionParam | any) {
+    this.cpuByProcessRange!.textContent =
+      'Selected range: ' + parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     // @ts-ignore
-    this.tbl!.shadowRoot!.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
-    this.tbl!.recycleDataSource = [];
-    getTabCpuByProcess(val.cpus, val.leftNs, val.rightNs).then((result) => {
+    this.cpuByProcessTbl!.shadowRoot!.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.cpuByProcessTbl!.recycleDataSource = [];
+    getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {
       if (result != null && result.length > 0) {
         log('getTabCpuByProcess size :' + result.length);
         let sumWall = 0.0;
@@ -50,19 +51,19 @@ export class TabPaneCpuByProcess extends BaseElement {
         count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
         count.occurrences = sumOcc;
         result.splice(0, 0, count);
-        this.source = result;
-        this.tbl!.recycleDataSource = result;
+        this.cpuByProcessSource = result;
+        this.cpuByProcessTbl!.recycleDataSource = result;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = this.source;
+        this.cpuByProcessSource = [];
+        this.cpuByProcessTbl!.recycleDataSource = this.cpuByProcessSource;
       }
     });
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-process');
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.cpuByProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-process');
+    this.cpuByProcessRange = this.shadowRoot?.querySelector('#cpu-process-time-range');
+    this.cpuByProcessTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -70,57 +71,57 @@ export class TabPaneCpuByProcess extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.cpuByProcessTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .cpu-process-label{
+            font-size: 10pt;
+            margin-bottom: 5px;
+            text-align: end;
+        }
         :host{
+            border: 0;
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="cpu-process-time-range" class="cpu-process-label" style="width: 100%;height: 20px;">Selected range:0.0 ms</label>
         <lit-table id="tb-cpu-process" style="height: auto">
-            <lit-table-column order width="30%" title="Process" data-index="process" key="process" align="flex-start" order>
+            <lit-table-column class="cpu-process-column" order width="30%" title="Process" data-index="process" key="process" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column order width="1fr" title="PID" data-index="pid" key="pid" align="flex-start" order>
+            <lit-table-column class="cpu-process-column" order width="1fr" title="PID" data-index="pid" key="pid" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration" align="flex-start" order>
+            <lit-table-column class="cpu-process-column" order width="1fr" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration" align="flex-start" order>
+            <lit-table-column class="cpu-process-column" order width="1fr" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Occurrences" data-index="occurrences" key="occurrences" align="flex-start" order>
+            <lit-table-column class="cpu-process-column" order width="1fr" title="Occurrences" data-index="occurrences" key="occurrences" align="flex-start" order>
             </lit-table-column>
         </lit-table>
         `;
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(cpuByProcessDetail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SelectionData, b: SelectionData) {
-        if (a.process == ' ' || b.process == ' ') {
+      return function (cpuByProcessLeftData: SelectionData, cpuByProcessRightData: SelectionData) {
+        if (cpuByProcessLeftData.process == ' ' || cpuByProcessRightData.process == ' ') {
           return 0;
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(cpuByProcessRightData[property]) - parseFloat(cpuByProcessLeftData[property]) : parseFloat(cpuByProcessLeftData[property]) - parseFloat(cpuByProcessRightData[property]);
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (cpuByProcessRightData[property] > cpuByProcessLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (cpuByProcessRightData[property] == cpuByProcessLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -131,15 +132,15 @@ export class TabPaneCpuByProcess extends BaseElement {
     }
 
     if (
-      detail.key === 'pid' ||
-      detail.key === 'wallDuration' ||
-      detail.key === 'avgDuration' ||
-      detail.key === 'occurrences'
+      cpuByProcessDetail.key === 'pid' ||
+      cpuByProcessDetail.key === 'wallDuration' ||
+      cpuByProcessDetail.key === 'avgDuration' ||
+      cpuByProcessDetail.key === 'occurrences'
     ) {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuByProcessSource.sort(compare(cpuByProcessDetail.key, cpuByProcessDetail.sort, 'number'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.cpuByProcessSource.sort(compare(cpuByProcessDetail.key, cpuByProcessDetail.sort, 'string'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.cpuByProcessTbl!.recycleDataSource = this.cpuByProcessSource;
   }
 }

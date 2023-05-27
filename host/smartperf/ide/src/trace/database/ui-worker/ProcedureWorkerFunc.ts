@@ -15,8 +15,16 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { BaseStruct, isFrameContainPoint, ns2x, Rect, Render, RequestMessage } from './ProcedureWorkerCommon.js';
-
+import {
+  BaseStruct,
+  isFrameContainPoint,
+  ns2x,
+  Rect,
+  Render,
+  RequestMessage,
+  drawString,
+} from './ProcedureWorkerCommon.js';
+import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct.js';
 export class FuncRender extends Render {
   renderMainThread(
     req: {
@@ -26,11 +34,11 @@ export class FuncRender extends Render {
     },
     row: TraceRow<FuncStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let funcList = row.dataList;
+    let funcFilter = row.dataListCache;
     func(
-      list,
-      filter,
+      funcList,
+      funcFilter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
@@ -38,8 +46,8 @@ export class FuncRender extends Render {
       req.useCache || !TraceRow.range!.refresh
     );
     req.context.beginPath();
-    let find = false;
-    for (let re of filter) {
+    let funcFind = false;
+    for (let re of funcFilter) {
       FuncStruct.draw(req.context, re);
       if (row.isHover) {
         if (re.dur == 0 || re.dur == null || re.dur == undefined) {
@@ -51,17 +59,17 @@ export class FuncRender extends Render {
             row.hoverY <= re.frame.y + re.frame.height
           ) {
             FuncStruct.hoverFuncStruct = re;
-            find = true;
+            funcFind = true;
           }
         } else {
           if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
             FuncStruct.hoverFuncStruct = re;
-            find = true;
+            funcFind = true;
           }
         }
       }
     }
-    if (!find && row.isHover) FuncStruct.hoverFuncStruct = undefined;
+    if (!funcFind && row.isHover) FuncStruct.hoverFuncStruct = undefined;
     req.context.closePath();
   }
 
@@ -69,27 +77,27 @@ export class FuncRender extends Render {
 }
 
 export function func(
-  list: Array<any>,
-  res: Array<any>,
+  funcList: Array<any>,
+  funcFilter: Array<any>,
   startNS: number,
   endNS: number,
   totalNS: number,
   frame: any,
   use: boolean
 ) {
-  if (use && res.length > 0) {
-    for (let i = 0, len = res.length; i < len; i++) {
-      if ((res[i].startTs || 0) + (res[i].dur || 0) >= startNS && (res[i].startTs || 0) <= endNS) {
-        FuncStruct.setFuncFrame(res[i], 0, startNS, endNS, totalNS, frame);
+  if (use && funcFilter.length > 0) {
+    for (let i = 0, len = funcFilter.length; i < len; i++) {
+      if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {
+        FuncStruct.setFuncFrame(funcFilter[i], 0, startNS, endNS, totalNS, frame);
       } else {
-        res[i].frame = null;
+        funcFilter[i].frame = null;
       }
     }
     return;
   }
-  res.length = 0;
-  if (list) {
-    let groups = list
+  funcFilter.length = 0;
+  if (funcList) {
+    let groups = funcList
       .filter((it) => (it.startTs ?? 0) + (it.dur ?? 0) >= startNS && (it.startTs ?? 0) <= endNS)
       .map((it) => {
         FuncStruct.setFuncFrame(it, 0, startNS, endNS, totalNS, frame);
@@ -101,49 +109,40 @@ export function func(
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
       let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
-      res.push(arr[0]);
+      funcFilter.push(arr[0]);
     });
   }
 }
 
-export class FuncStruct extends BaseStruct {
+export class FuncStruct extends BaseFuncStruct {
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
-  argsetid: number | undefined; // 53161
-  depth: number | undefined; // 0
-  dur: number | undefined; // 570000
   flag: string | undefined; // 570000
-  funName: string | undefined; //"binder transaction"
-  id: number | undefined; // 92749
-  is_main_thread: number | undefined; // 0
-  parent_id: number | undefined; // null
-  startTs: number | undefined; // 9729867000
-  threadName: string | undefined; // "Thread-15"
-  tid: number | undefined; // 2785
-  identify: number | undefined;
-  track_id: number | undefined; // 414
   textMetricsWidth: number | undefined;
 
-  static setFuncFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
-    if ((node.startTs || 0) > startNS && (node.startTs || 0) < endNS) {
-      x1 = ns2x(node.startTs || 0, startNS, endNS, totalNS, frame);
+    if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) < endNS) {
+      x1 = ns2x(funcNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {
       x1 = 0;
     }
-    if ((node.startTs || 0) + (node.dur || 0) > startNS && (node.startTs || 0) + (node.dur || 0) < endNS) {
-      x2 = ns2x((node.startTs || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+    if (
+      (funcNode.startTs || 0) + (funcNode.dur || 0) > startNS &&
+      (funcNode.startTs || 0) + (funcNode.dur || 0) < endNS
+    ) {
+      x2 = ns2x((funcNode.startTs || 0) + (funcNode.dur || 0), startNS, endNS, totalNS, frame);
     } else {
       x2 = frame.width;
     }
-    if (!node.frame) {
-      node.frame = {};
+    if (!funcNode.frame) {
+      funcNode.frame = {};
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
-    node.frame.x = Math.floor(x1);
-    node.frame.y = node.depth * 20;
-    node.frame.width = Math.ceil(getV);
-    node.frame.height = 20;
+    funcNode.frame.x = Math.floor(x1);
+    funcNode.frame.y = funcNode.depth * 20;
+    funcNode.frame.width = Math.ceil(getV);
+    funcNode.frame.height = 20;
   }
 
   static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
@@ -164,9 +163,9 @@ export class FuncStruct extends BaseStruct {
           ctx.lineWidth = 1;
           ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
           ctx.fillStyle = ColorUtils.funcTextColor(textColor);
-          FuncStruct.drawString(ctx, `${data.funName || ''}`, 5, data.frame, data);
+          drawString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
-        if (FuncStruct.isSelected(data)) {
+        if (data === FuncStruct.selectFuncStruct) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, miniHeight - padding * 2 - 2);
@@ -175,69 +174,12 @@ export class FuncStruct extends BaseStruct {
     }
   }
 
-  static drawString(
-    ctx: CanvasRenderingContext2D,
-    str: string,
-    textPadding: number,
-    frame: Rect,
-    func: FuncStruct
-  ): boolean {
-    if (func.textMetricsWidth === undefined) {
-      func.textMetricsWidth = ctx.measureText(str).width;
-    }
-    let charWidth = Math.round(func.textMetricsWidth / str.length);
-    let fillTextWidth = frame.width - textPadding * 2;
-    if (func.textMetricsWidth < fillTextWidth) {
-      let x2 = Math.floor(frame.width / 2 - func.textMetricsWidth / 2 + frame.x + textPadding);
-      ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2 + 2), fillTextWidth);
-      return true;
-    } else {
-      if (fillTextWidth >= charWidth) {
-        let chatNum = fillTextWidth / charWidth;
-        let x1 = frame.x + textPadding;
-        if (chatNum < 2) {
-          ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / 2 + 2), fillTextWidth);
-        } else {
-          ctx.fillText(
-            str.substring(0, chatNum - 1) + '...',
-            x1,
-            Math.floor(frame.y + frame.height / 2 + 2),
-            fillTextWidth
-          );
-        }
-        return true;
-      }
-    }
-    return false;
-  }
-
   static isSelected(data: FuncStruct): boolean {
     return (
       FuncStruct.selectFuncStruct != undefined &&
       FuncStruct.selectFuncStruct.startTs == data.startTs &&
       FuncStruct.selectFuncStruct.depth == data.depth
     );
-  }
-
-  static isBinder(data: FuncStruct): boolean {
-    if (
-      data.funName != null &&
-      (data.funName.toLowerCase().startsWith('binder transaction') ||
-        data.funName.toLowerCase().startsWith('binder async') ||
-        data.funName.toLowerCase().startsWith('binder reply'))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  static isBinderAsync(data: FuncStruct): boolean {
-    if (data.funName != null && data.funName.toLowerCase().includes('async')) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }
 

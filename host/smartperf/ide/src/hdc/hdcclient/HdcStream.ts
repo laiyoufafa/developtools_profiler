@@ -103,36 +103,36 @@ export class HdcStream {
       let data = textEncoder.encode(command.parameters);
       let aa = data.slice(5);
       await this.sendToDaemon(command, aa, aa.length);
-      let dataMessage = await this.getMessage();
-      let playHeadArray = dataMessage.body!.buffer.slice(0, PayloadHead.getPayloadHeadLength());
-      let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
-      let headSize = resultPayloadHead.headSize;
-      let dataSize = resultPayloadHead.dataSize;
-      let resPlayProtectBuffer = dataMessage.body!.buffer.slice(11, 11 + headSize);
+      let fileRecvDataMessage = await this.getMessage();
+      let fileRecvPlayHeadArray = fileRecvDataMessage.body!.buffer.slice(0, PayloadHead.getPayloadHeadLength());
+      let fileRecvResultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(fileRecvPlayHeadArray));
+      let fileRecvHeadSize = fileRecvResultPayloadHead.headSize;
+      let fileRecvDataSize = fileRecvResultPayloadHead.dataSize;
+      let resPlayProtectBuffer = fileRecvDataMessage.body!.buffer.slice(11, 11 + fileRecvHeadSize);
       let payloadProtect = Serialize.parsePayloadProtect(resPlayProtectBuffer);
       await this.handleCommandFileCheck();
     }
   }
 
   private async handleCommandFileCheck() {
-    let dataMessage = await this.getMessage();
-    let playHeadArray = dataMessage.body!.buffer.slice(0, PayloadHead.getPayloadHeadLength());
-    let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
-    let headSize = resultPayloadHead.headSize;
-    let dataSize = resultPayloadHead.dataSize;
-    let resPlayProtectBuffer = dataMessage.body!.buffer.slice(
+    let fileCheckDataMessage = await this.getMessage();
+    let fileCheckPlayHeadArray = fileCheckDataMessage.body!.buffer.slice(0, PayloadHead.getPayloadHeadLength());
+    let fileCheckResultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(fileCheckPlayHeadArray));
+    let fileCheckHeadSize = fileCheckResultPayloadHead.headSize;
+    let fileCheckDataSize = fileCheckResultPayloadHead.dataSize;
+    let fileCheckResPlayProtectBuffer = fileCheckDataMessage.body!.buffer.slice(
       PayloadHead.getPayloadHeadLength(),
-      PayloadHead.getPayloadHeadLength() + headSize
+      PayloadHead.getPayloadHeadLength() + fileCheckHeadSize
     );
-    let payloadProtect = Serialize.parsePayloadProtect(resPlayProtectBuffer);
-    if (payloadProtect.commandFlag == HdcCommand.CMD_FILE_CHECK) {
-      if (dataSize > 0) {
-        let transferConfigBuffer = dataMessage.body!.buffer.slice(
-          PayloadHead.getPayloadHeadLength() + headSize,
-          PayloadHead.getPayloadHeadLength() + headSize + dataSize
+    let fileCheckPayloadProtect = Serialize.parsePayloadProtect(fileCheckResPlayProtectBuffer);
+    if (fileCheckPayloadProtect.commandFlag == HdcCommand.CMD_FILE_CHECK) {
+      if (fileCheckDataSize > 0) {
+        let fileCheckTransferConfigBuffer = fileCheckDataMessage.body!.buffer.slice(
+          PayloadHead.getPayloadHeadLength() + fileCheckHeadSize,
+          PayloadHead.getPayloadHeadLength() + fileCheckHeadSize + fileCheckDataSize
         );
-        let transferConfig = Serialize.parseTransferConfig(transferConfigBuffer);
-        this.fileSize = transferConfig.fileSize;
+        let fileCheckTransferConfig = Serialize.parseTransferConfig(fileCheckTransferConfigBuffer);
+        this.fileSize = fileCheckTransferConfig.fileSize;
       }
       let fileBegin = new FormatCommand(HdcCommand.CMD_FILE_BEGIN, '', false);
       await this.sendToDaemon(fileBegin, new Uint8Array(0), 0);

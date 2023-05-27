@@ -117,8 +117,7 @@ export class HeapNode {
   }
 
   className(): string {
-    const type = this.type;
-    switch (type) {
+    switch (this.type) {
       case NodeType.HIDDEN:
         return '(system)';
       case NodeType.OBJECT:
@@ -127,20 +126,13 @@ export class HeapNode {
       case NodeType.CODE:
         return '(compiled code)';
       default:
-        let typeName = '(' + getNodeTypeName(type) + ')';
+        let typeName = '(' + getNodeTypeName(this.type) + ')';
         return typeName.toLowerCase();
     }
   }
 
   nodeName(): string {
     return this.displayName || this.name;
-  }
-
-  classIndex(): number {
-    if (this.type === NodeType.OBJECT || this.type === NodeType.NATIVE) {
-      return this.nodeIndex;
-    }
-    return -1 - this.type;
   }
 
   addEdge(edge: HeapEdge) {
@@ -234,8 +226,8 @@ export class HeapSample {
     this.size = 0;
   }
 }
-
 export class HeapLocation {
+
   objectIndex: number;
   scriptId: number;
   line: number;

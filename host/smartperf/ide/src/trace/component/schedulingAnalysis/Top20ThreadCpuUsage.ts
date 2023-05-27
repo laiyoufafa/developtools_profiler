@@ -163,18 +163,18 @@ export class Top20ThreadCpuUsage extends BaseElement {
 
   sortByColumn(detail: any, table: LitTable | null | undefined, data: Array<any>) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(threadCpuUsageProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[threadCpuUsageProperty]) - parseFloat(a[threadCpuUsageProperty])
+            : parseFloat(a[threadCpuUsageProperty]) - parseFloat(b[threadCpuUsageProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[threadCpuUsageProperty].toString().localeCompare(a[threadCpuUsageProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[threadCpuUsageProperty].toString().localeCompare(b[threadCpuUsageProperty].toString());
           }
         }
       };
@@ -432,11 +432,6 @@ export class Top20ThreadCpuUsage extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host {
-            width: 100%;
-            height: 100%;
-            background: var(--dark-background5,#F6F6F6);
-        }
         .content_grid{
             display: grid;
             padding: 15px;
@@ -455,7 +450,11 @@ export class Top20ThreadCpuUsage extends BaseElement {
             padding-right: 5px;
             border-radius: 5px
         }
-      
+        :host {
+            width: 100%;
+            height: 100%;
+            background: var(--dark-background5,#F6F6F6);
+        }
         .tb_cpu_usage{
              overflow: auto;
              background-color: var(--dark-background,#FFFFFF);

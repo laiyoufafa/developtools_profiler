@@ -82,21 +82,21 @@ export class SpIrqChart {
   }
 
   async initFolder(): Promise<TraceRow<any>> {
-    let folder = TraceRow.skeleton();
-    folder.rowId = `Irqs`;
-    folder.index = 0;
-    folder.rowType = TraceRow.ROW_TYPE_IRQ_GROUP;
-    folder.rowParentId = '';
-    folder.style.height = '40px';
-    folder.folder = true;
-    folder.name = `Irqs`; /* & I/O Latency */
-    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    folder.selectChangeHandler = this.trace.selectChangeHandler;
-    folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    folder.onThreadHandler = (useCache) => {
-      folder.canvasSave(this.trace.canvasPanelCtx!);
-      if (folder.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+    let irqFolder = TraceRow.skeleton();
+    irqFolder.rowId = `Irqs`;
+    irqFolder.index = 0;
+    irqFolder.rowType = TraceRow.ROW_TYPE_IRQ_GROUP;
+    irqFolder.rowParentId = '';
+    irqFolder.style.height = '40px';
+    irqFolder.folder = true;
+    irqFolder.name = `Irqs`; /* & I/O Latency */
+    irqFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    irqFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    irqFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    irqFolder.onThreadHandler = (useCache) => {
+      irqFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (irqFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, irqFolder.frame.width, irqFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -104,11 +104,11 @@ export class SpIrqChart {
             useCache: useCache,
             type: ``,
           },
-          folder
+          irqFolder
         );
       }
-      folder.canvasRestore(this.trace.canvasPanelCtx!);
+      irqFolder.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    return folder;
+    return irqFolder;
   }
 }

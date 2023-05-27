@@ -38,9 +38,9 @@ export class SmapsRender extends Render {
     },
     row: TraceRow<SmapsStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    let smapsList = row.dataList;
+    let smapsFilter = row.dataListCache;
+    dataFilterHandler(smapsList, smapsFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -66,7 +66,7 @@ export class SmapsRender extends Render {
       }
     }
     let find = false;
-    for (let re of filter) {
+    for (let re of smapsFilter) {
       SmapsStruct.draw(req.context, re, req.maxValue, drawColor, row.isHover);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         SmapsStruct.hoverSmapsStruct = re;
@@ -78,33 +78,33 @@ export class SmapsRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      smaps(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(smapsReq: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (smapsReq.lazyRefresh) {
+      smaps(list, filter, smapsReq.startNS, smapsReq.endNS, smapsReq.totalNS, smapsReq.frame, smapsReq.useCache || !smapsReq.range.refresh);
     } else {
-      if (!req.useCache) {
-        smaps(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!smapsReq.useCache) {
+        smaps(list, filter, smapsReq.startNS, smapsReq.endNS, smapsReq.totalNS, smapsReq.frame, false);
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-      req.context.beginPath();
+    if (smapsReq.canvas) {
+      smapsReq.context.clearRect(0, 0, smapsReq.frame.width, smapsReq.frame.height);
+      smapsReq.context.beginPath();
       let maxValue = 0;
       let maxValueName = '';
-      if (req.params.maxValue != undefined || req.params.maxValueName != undefined) {
-        maxValue = req.params.maxValue;
-        maxValueName = req.params.maxValueName;
+      if (smapsReq.params.maxValue != undefined || smapsReq.params.maxValueName != undefined) {
+        maxValue = smapsReq.params.maxValue;
+        maxValueName = smapsReq.params.maxValueName;
       }
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      drawLines(smapsReq.context, smapsReq.xs, smapsReq.frame.height, smapsReq.lineColor);
       SmapsStruct.hoverSmapsStruct = undefined;
-      if (req.isHover) {
+      if (smapsReq.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            smapsReq.hoverX >= re.frame.x &&
+            smapsReq.hoverX <= re.frame.x + re.frame.width &&
+            smapsReq.hoverY >= re.frame.y &&
+            smapsReq.hoverY <= re.frame.y + re.frame.height
           ) {
             SmapsStruct.hoverSmapsStruct = re;
             break;
@@ -112,8 +112,8 @@ export class SmapsRender extends Render {
         }
       }
       let drawColor = '#0A59F7';
-      if (req.params.rowName != undefined) {
-        switch (req.params.rowName) {
+      if (smapsReq.params.rowName != undefined) {
+        switch (smapsReq.params.rowName) {
           case 'dirty':
             drawColor = '#0A59F7';
             break;
@@ -125,35 +125,35 @@ export class SmapsRender extends Render {
             break;
         }
       }
-      SmapsStruct.selectSmapsStruct = req.params.selectSmapsStruct;
+      SmapsStruct.selectSmapsStruct = smapsReq.params.selectSmapsStruct;
       for (let re of filter) {
-        SmapsStruct.draw(req.context, re, maxValue, drawColor, true);
+        SmapsStruct.draw(smapsReq.context, re, maxValue, drawColor, true);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(smapsReq.context, smapsReq.params);
+      smapsReq.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        smapsReq.context,
+        smapsReq.flagMoveInfo,
+        smapsReq.flagSelectedInfo,
+        smapsReq.startNS,
+        smapsReq.endNS,
+        smapsReq.totalNS,
+        smapsReq.frame,
+        smapsReq.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: smapsReq.id,
+      type: smapsReq.type,
+      results: smapsReq.canvas ? undefined : filter,
       hover: SmapsStruct.hoverSmapsStruct,
     });
   }
 }
 
 export function smaps(
-  list: Array<any>,
+  smapsList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -163,30 +163,30 @@ export function smaps(
 ) {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
-      let item = res[i];
-      if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        SmapsStruct.setSmapsFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      let smapsItem = res[i];
+      if ((smapsItem.startNS || 0) + (smapsItem.dur || 0) > (startNS || 0) && (smapsItem.startNS || 0) < (endNS || 0)) {
+        SmapsStruct.setSmapsFrame(smapsItem, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
       } else {
-        item.frame = null;
+        smapsItem.frame = null;
       }
     }
     return;
   }
   res.length = 0;
-  if (list) {
-    for (let index = 0; index < list.length; index++) {
-      let item = list[index];
-      if (index === list.length - 1) {
+  if (smapsList) {
+    for (let smapsIndex = 0; smapsIndex < smapsList.length; smapsIndex++) {
+      let item = smapsList[smapsIndex];
+      if (smapsIndex === smapsList.length - 1) {
         item.dur = (endNS || 0) - (item.startNS || 0);
       } else {
-        item.dur = (list[index + 1].startNS || 0) - (item.startNS || 0);
+        item.dur = (smapsList[smapsIndex + 1].startNS || 0) - (item.startNS || 0);
       }
       if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        SmapsStruct.setSmapsFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        SmapsStruct.setSmapsFrame(smapsList[smapsIndex], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
         if (
-          index > 0 &&
-          (list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) &&
-          (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0)
+          smapsIndex > 0 &&
+          (smapsList[smapsIndex - 1].frame?.x || 0) == (smapsList[smapsIndex].frame?.x || 0) &&
+          (smapsList[smapsIndex - 1].frame?.width || 0) == (smapsList[smapsIndex].frame?.width || 0)
         ) {
         } else {
           res.push(item);
@@ -206,7 +206,7 @@ export class SmapsStruct extends BaseStruct {
   dur: number | undefined;
 
   static draw(
-    context2D: CanvasRenderingContext2D,
+    smapsContext: CanvasRenderingContext2D,
     data: SmapsStruct,
     maxValue: number,
     drawColor: string,
@@ -214,52 +214,52 @@ export class SmapsStruct extends BaseStruct {
   ) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      context2D.fillStyle = drawColor;
-      context2D.strokeStyle = drawColor;
+      smapsContext.fillStyle = drawColor;
+      smapsContext.strokeStyle = drawColor;
       if (data.startNS === SmapsStruct.hoverSmapsStruct?.startNS && isHover) {
-        context2D.lineWidth = 1;
-        let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxValue);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
-        context2D.beginPath();
-        context2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
-        context2D.fill();
-        context2D.globalAlpha = 1.0;
-        context2D.stroke();
-        context2D.beginPath();
-        context2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.lineWidth = 3;
-        context2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.stroke();
+        smapsContext.lineWidth = 1;
+        let smapsDrawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxValue);
+        smapsContext.fillRect(data.frame.x, data.frame.y + data.frame.height - smapsDrawHeight + 4, width, smapsDrawHeight);
+        smapsContext.beginPath();
+        smapsContext.arc(data.frame.x, data.frame.y + data.frame.height - smapsDrawHeight + 4, 3, 0, 2 * Math.PI, true);
+        smapsContext.fill();
+        smapsContext.globalAlpha = 1.0;
+        smapsContext.stroke();
+        smapsContext.beginPath();
+        smapsContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - smapsDrawHeight + 4);
+        smapsContext.lineWidth = 3;
+        smapsContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - smapsDrawHeight + 4);
+        smapsContext.stroke();
       } else {
-        context2D.lineWidth = 1;
-        let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxValue);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        smapsContext.lineWidth = 1;
+        let smapsDrawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxValue);
+        smapsContext.fillRect(data.frame.x, data.frame.y + data.frame.height - smapsDrawHeight + 4, width, smapsDrawHeight);
       }
     }
-    context2D.globalAlpha = 1.0;
-    context2D.lineWidth = 1;
+    smapsContext.globalAlpha = 1.0;
+    smapsContext.lineWidth = 1;
   }
 
-  static setSmapsFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let startPointX: number, endPointX: number;
+  static setSmapsFrame(smapsNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+    let smapsStartPointX: number, smapsEndPointX: number;
 
-    if ((node.startNS || 0) < startNS) {
-      startPointX = 0;
+    if ((smapsNode.startNS || 0) < startNS) {
+      smapsStartPointX = 0;
     } else {
-      startPointX = ns2x(node.startNS || 0, startNS, endNS, totalNS, frame);
+      smapsStartPointX = ns2x(smapsNode.startNS || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
-      endPointX = frame.width;
+    if ((smapsNode.startNS || 0) + (smapsNode.dur || 0) > endNS) {
+      smapsEndPointX = frame.width;
     } else {
-      endPointX = ns2x((node.startNS || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      smapsEndPointX = ns2x((smapsNode.startNS || 0) + (smapsNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    let frameWidth: number = smapsEndPointX - smapsStartPointX <= 1 ? 1 : smapsEndPointX - smapsStartPointX;
+    if (!smapsNode.frame) {
+      smapsNode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    smapsNode.frame.x = Math.floor(smapsStartPointX);
+    smapsNode.frame.y = frame.y + padding;
+    smapsNode.frame.width = Math.ceil(frameWidth);
+    smapsNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

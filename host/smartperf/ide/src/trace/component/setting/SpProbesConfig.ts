@@ -18,6 +18,7 @@ import { checkDesBean, SpCheckDesBox } from './SpCheckDesBox.js';
 import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox.js';
 import { LitRadioGroup } from '../../../base-ui/radiobox/LitRadioGroup.js';
 import { info, log } from '../../../log/Log.js';
+import { LitSlider } from '../../../base-ui/slider/LitSlider';
 
 @element('probes-config')
 export class SpProbesConfig extends BaseElement {
@@ -30,6 +31,7 @@ export class SpProbesConfig extends BaseElement {
   private _traceConfig: HTMLElement | undefined;
   private _memoryConfig: HTMLElement | undefined | null;
   private _abilityConfig: HTMLElement | undefined | null;
+  private ftraceBufferSizeResult: HTMLDivElement | null | undefined;
 
   get traceConfig() {
     let selectedTrace = this._traceConfig?.querySelectorAll<SpCheckDesBox>(`check-des-box[checked]`) || [];
@@ -42,6 +44,13 @@ export class SpProbesConfig extends BaseElement {
     }
     info('traceConfig is :', values);
     return values;
+  }
+
+  get ftraceBufferSize(): number {
+    if (this.ftraceBufferSizeResult?.hasAttribute('percent')) {
+      return Number(this.ftraceBufferSizeResult?.getAttribute('percent'));
+    }
+    return 1024;
   }
 
   get memoryConfig() {
@@ -248,26 +257,80 @@ export class SpProbesConfig extends BaseElement {
       });
       parent.append(litCheckBox);
     });
+    this.bufferSizeSliderInit();
+  }
+
+  private bufferSizeSliderInit() {
+    let ftraceBufferSizeSlider = this.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider') as LitSlider;
+    this.ftraceBufferSizeResult = this.shadowRoot?.querySelector('#ftrace-buff-size-div') as HTMLDivElement;
+    ftraceBufferSizeSlider.sliderStyle = {
+      minRange: 1024,
+      maxRange: 65536,
+      defaultValue: '1024',
+      resultUnit: 'KB',
+      stepSize: 2,
+      lineColor: 'var(--dark-color3,#46B1E3)',
+      buttonColor: '#999999',
+    };
+    let ftraceBufferSizeSliderParent = ftraceBufferSizeSlider!.parentNode as Element;
+    let ftraceBuffSizeResultInput = this.shadowRoot?.querySelector('.ftrace-buff-size-result') as HTMLInputElement;
+    ftraceBuffSizeResultInput.value = ftraceBufferSizeSlider.sliderStyle.defaultValue;
+    ftraceBufferSizeSlider.addEventListener('input', (evt) => {
+      ftraceBuffSizeResultInput.parentElement!.classList.remove('border-red');
+      if (this.ftraceBufferSizeResult!.hasAttribute('percent')) {
+        ftraceBuffSizeResultInput.value = Number(this.ftraceBufferSizeResult!.getAttribute('percent')).toString();
+      } else {
+        ftraceBuffSizeResultInput.value = '1024';
+      }
+    });
+    ftraceBufferSizeSliderParent.setAttribute('percent', '1024');
+    ftraceBuffSizeResultInput.style.color = 'var(--dark-color1,#000000)';
+    ftraceBuffSizeResultInput.addEventListener('input', (ev) => {
+      if (this.ftraceBufferSizeResult!.hasAttribute('percent')) {
+        this.ftraceBufferSizeResult!.removeAttribute('percent');
+      }
+      ftraceBuffSizeResultInput.style.color = 'var(--dark-color1,#000000)';
+      ftraceBuffSizeResultInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      ftraceBuffSizeResultInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      if (ftraceBuffSizeResultInput.value.trim() == '') {
+        ftraceBuffSizeResultInput.style.color = 'red';
+        ftraceBufferSizeSliderParent.setAttribute('percent', '1024');
+        return;
+      }
+      let ftraceBufferSize = Number(ftraceBuffSizeResultInput.value);
+      if (
+        ftraceBufferSize < ftraceBufferSizeSlider!.sliderStyle.minRange ||
+        ftraceBufferSize > ftraceBufferSizeSlider!.sliderStyle.maxRange
+      ) {
+        ftraceBuffSizeResultInput.parentElement!.classList.add('border-red');
+        ftraceBufferSizeSliderParent.setAttribute('percent', '1024');
+      } else {
+        ftraceBuffSizeResultInput.parentElement!.classList.remove('border-red');
+        ftraceBufferSizeSlider!.percent = ftraceBuffSizeResultInput.value;
+        let htmlInputElement = ftraceBufferSizeSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        htmlInputElement.value = ftraceBuffSizeResultInput.value;
+        ftraceBufferSizeSliderParent.setAttribute('percent', ftraceBuffSizeResultInput.value);
+        ftraceBufferSizeSliderParent.setAttribute('percentValue', ftraceBuffSizeResultInput.value);
+      }
+    });
+    ftraceBuffSizeResultInput.addEventListener('focusout', (ev) => {
+      if (ftraceBuffSizeResultInput.value.trim() == '') {
+        ftraceBuffSizeResultInput.parentElement!.classList.remove('border-red');
+        ftraceBufferSizeSliderParent.setAttribute('percent', '1024');
+        ftraceBuffSizeResultInput.value = '1024';
+        ftraceBuffSizeResultInput.style.color = 'var(--dark-color,#6a6f77)';
+        ftraceBufferSizeSliderParent.setAttribute('percent', ftraceBuffSizeResultInput.value);
+        ftraceBufferSizeSliderParent.setAttribute('percentValue', ftraceBuffSizeResultInput.value);
+        ftraceBufferSizeSlider!.percent = ftraceBuffSizeResultInput.value;
+        let htmlInputElement = ftraceBufferSizeSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        htmlInputElement.value = ftraceBuffSizeResultInput.value;
+      }
+    });
   }
 
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: inline-block;
-            width: 100%;
-            height: 100%;
-            background: var(--dark-background3,#FFFFFF);
-            border-radius: 0px 16px 16px 0px;
-        }
-
-        .root {
-            padding-top: 30px;
-            padding-left: 54px;
-            margin-right: 30px;
-            font-size:16px;
-            margin-bottom: 30px;
-        }
         .recordText {
            font-family: Helvetica-Bold;
            font-size: 1em;
@@ -277,6 +340,22 @@ export class SpProbesConfig extends BaseElement {
            margin-bottom: 20px;
         }
 
+        :host{
+            display: inline-block;
+            background: var(--dark-background3,#FFFFFF);
+            width: 100%;
+            height: 100%;
+            border-radius: 0px 16px 16px 0px;
+        }
+
+        .root {
+            margin-right: 30px;
+            padding-top: 30px;
+            padding-left: 54px;
+            margin-bottom: 30px;
+            font-size:16px;
+        }
+        
         .config-page {
             height: 95%;
             font-size: 0.875em;
@@ -334,6 +413,49 @@ export class SpProbesConfig extends BaseElement {
            gap: 10px;
            margin-left: 15px;;
         }
+        #ftrace-buff-size-div {
+            width: 100%;
+            height: min-content;
+            display: grid;
+            grid-template-columns: 1fr min-content;
+        }
+        .buffer-size-des {
+            opacity: 0.6;
+            font-family: Helvetica;
+            font-size: 1em;
+            color: var(--dark-color,#000000);
+            text-align: left;
+            line-height: 20px;
+            font-weight: 400;
+        }
+        .ftrace-buff-size-result-div{
+            display: grid;
+            grid-template-rows: 1fr;
+            grid-template-columns:  min-content min-content;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            color:var(--dark-color,#6a6f77);
+            width: 150px;
+            margin: 0 20px 0 0;
+            height: 40px;
+            border-radius:20px;
+            outline:0;
+            border:1px solid var(--dark-border,#c8cccf);
+        }
+        .ftrace-buff-size-result{
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            color:var(--dark-color,#6a6f77);
+            border: none;
+            text-align: center;
+            width: 90px;
+            font-size:14px;
+            outline:0;
+            margin: 5px 0 5px 5px;
+        }
+        .border-red {
+           border:1px solid red;
+        }
         </style>
         <div class="root">
             <div class="recordText" >Record mode</div>
@@ -346,6 +468,20 @@ export class SpProbesConfig extends BaseElement {
                       <div class="user-events">
                           <slot></slot>
                       </div>
+                    </div>
+                    <div>
+                       <div>
+                          <p>Buffer Size</p>
+                          <p class="buffer-size-des">The ftrace buffer size range is 1024 Kb to 65536 KB</p>
+                       </div>
+                       <div id="ftrace-buff-size-div">
+                          <lit-slider id="ftrace-buff-size-slider" defaultColor="var(--dark-color3,#46B1E3)" open dir="right">
+                          </lit-slider>
+                          <div class='ftrace-buff-size-result-div'>
+                              <input class="ftrace-buff-size-result" type="text" value='0' onkeyup="this.value=this.value.replace(/\\D/g,'')">
+                              <span style="text-align: center; margin: 8px"> KB </span>
+                           </div>
+                       </div>
                     </div>
                 </div>
                 <div class="memory-config">

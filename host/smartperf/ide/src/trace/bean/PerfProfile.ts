@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-import { Utils } from '../component/trace/base/Utils.js';
 import { ChartStruct } from '../../trace/bean/FrameChartStruct.js';
-import { SpHiPerf } from '../component/chart/SpHiPerf.js';
 
 export class PerfFile {
   fileId: number = 0;
@@ -32,17 +30,6 @@ export class PerfFile {
       }
     }
     data.fileName = data.path;
-  }
-
-  setFileName() {
-    if (this.path) {
-      let number = this.path.lastIndexOf('/');
-      if (number > 0) {
-        this.fileName = this.path.substring(number + 1);
-        return;
-      }
-    }
-    this.fileName = this.path;
   }
 }
 
@@ -83,29 +70,9 @@ export class PerfCallChain {
   canCharge: boolean = true;
   previousNode: PerfCallChain | undefined = undefined; //将list转换为一个链表结构
   nextNode: PerfCallChain | undefined = undefined;
-
-  static setNextNode(currentNode: PerfCallChain, nextNode: PerfCallChain) {
-    currentNode.nextNode = nextNode;
-    nextNode.previousNode = currentNode;
-  }
-
-  static setPreviousNode(currentNode: PerfCallChain, prevNode: PerfCallChain) {
-    currentNode.previousNode = prevNode;
-    prevNode.nextNode = currentNode;
-  }
-
-  static merageCallChain(currentNode: PerfCallChain, callChain: PerfCallChain) {
-    currentNode.startNS = callChain.startNS;
-    currentNode.tid = callChain.tid;
-    currentNode.pid = callChain.pid;
-    currentNode.sampleId = callChain.sampleId;
-    currentNode.dur = callChain.dur;
-  }
 }
 
 export class PerfCallChainMerageData extends ChartStruct {
-  #parentNode: PerfCallChainMerageData | undefined = undefined;
-  #total = 0;
   id: string = '';
   parentId: string = '';
   currentTreeParentNode: PerfCallChainMerageData | undefined = undefined;
@@ -128,46 +95,6 @@ export class PerfCallChainMerageData extends ChartStruct {
   vaddrInFile: number = 0;
   isSelected: boolean = false;
   searchShow: boolean = true;
-
-  set parentNode(data: PerfCallChainMerageData | undefined) {
-    this.currentTreeParentNode = data;
-    this.#parentNode = data;
-  }
-
-  get parentNode() {
-    return this.#parentNode;
-  }
-
-  set total(data: number) {
-    this.#total = data;
-    this.weight = `${Utils.timeMsFormat2p(this.dur * (SpHiPerf.stringResult?.fValue || 1))}`;
-    this.weightPercent = `${((this.dur / data) * 100).toFixed(1)}%`;
-  }
-
-  get total() {
-    return this.#total;
-  }
-
-  static merageCallChain(currentNode: PerfCallChainMerageData, callChain: PerfCallChain, isTopDown: boolean) {
-    if (currentNode.symbolName == '') {
-      currentNode.symbol = `${callChain.name}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
-      currentNode.symbolName = callChain.name;
-      currentNode.pid = callChain.pid;
-      currentNode.tid = callChain.tid;
-      currentNode.libName = callChain.fileName;
-      currentNode.vaddrInFile = callChain.vaddrInFile;
-      currentNode.canCharge = callChain.canCharge;
-      if (callChain.path) {
-        currentNode.path = callChain.path;
-      }
-    }
-    if (callChain[isTopDown ? 'nextNode' : 'previousNode'] == undefined) {
-      currentNode.selfDur++;
-      currentNode.self = Utils.timeMsFormat2p(currentNode.selfDur);
-    }
-    currentNode.dur++;
-    currentNode.count++;
-  }
 }
 
 export class PerfSample {

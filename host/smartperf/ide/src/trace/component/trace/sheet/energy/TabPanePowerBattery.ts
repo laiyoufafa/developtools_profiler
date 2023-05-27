@@ -19,28 +19,23 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabPowerBatteryData } from '../../../../database/SqlLite.js';
 import { SpHiSysEventChart } from '../../../chart/SpHiSysEventChart.js';
 import '../../../../../base-ui/table/lit-table.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-power-battery')
 export class TabPanePowerBattery extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private tblPower: LitTable | null | undefined;
 
-  set data(val: SelectionParam | any) {
-    this.queryDataByDB(val);
+  set data(valPower: SelectionParam | any) {
+    this.queryDataByDB(valPower);
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl!.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.tblPower!)
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-power-battery-energy');
+    this.tblPower = this.shadowRoot?.querySelector<LitTable>('#tb-power-battery-energy');
   }
 
   queryDataByDB(val: SelectionParam | any) {
@@ -98,11 +93,11 @@ export class TabPanePowerBattery extends BaseElement {
       });
       list.push({ name: 'APP Name', value: SpHiSysEventChart.app_name! });
       if (list.length > 0) {
-        this.tbl!.recycleDataSource = list;
+        this.tblPower!.recycleDataSource = list;
       } else {
-        this.tbl!.recycleDataSource = [];
+        this.tblPower!.recycleDataSource = [];
       }
-      this.tbl?.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
+      this.tblPower?.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
         let td = tr.querySelectorAll<HTMLDivElement>('.td');
         this.setTableStyle(td[0], '0.9', '16px');
         this.setTableStyle(td[1], '0.6', '20px');
@@ -120,43 +115,21 @@ export class TabPanePowerBattery extends BaseElement {
   initHtml(): string {
     return `
         <style>
-            .current-static{
-                width: 100%;
-                display: flex;
-                top: 0;
-                background: var(--dark-background,#ffffff);
-                position: sticky;
-            }
-            .current-static h2{
-                width: 50%;
-                padding: 0 10px;
-                font-size: 16px;
-                font-weight: 400;
-                visibility: visible;
-            }
-            .bottom-scroll-area{
+            .power-battery-bottom-scroll-area{
                 display: flex;
                 height: auto;
                 overflow-y: auto;
                 margin-top: 1.2em;
             }
-            .battery-canvas{
+            .power-battery-battery-canvas{
                 width: 50%;
                 padding: 0 10px;
             }
-            
-            #batteryTitle{
-                opacity: 0.9;
-                font-size: 14px;
-                color: #000000;
-                text-align: left;
-                line-height: 16px;
-                font-weight: 700;
-            }
+         
         </style>
         <div style="width: 100%;height: auto;position: relative">
-            <div class="bottom-scroll-area">
-                <div class="battery-canvas">
+            <div class="power-battery-bottom-scroll-area">
+                <div class="power-battery-battery-canvas">
                     <lit-table id="tb-power-battery-energy" no-head style="height: auto">
                         <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px"></lit-table-column>
                         <lit-table-column title="value" data-index="value" key="value" align="flex-start" ></lit-table-column>

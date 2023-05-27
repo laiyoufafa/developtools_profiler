@@ -71,25 +71,25 @@ export class SpClockChart {
         if (promiseData == null) {
           return new Promise<Array<any>>((resolve) => resolve([]));
         } else {
-          return promiseData.then((res) => {
-            for (let j = 0; j < res.length; j++) {
+          return promiseData.then((resultClock) => {
+            for (let j = 0; j < resultClock.length; j++) {
               if (!isState) {
-                if (j == res.length - 1) {
-                  res[j].dur = (TraceRow.range?.totalNS || 0) - (res[j].startNS || 0);
+                if (j == resultClock.length - 1) {
+                  resultClock[j].dur = (TraceRow.range?.totalNS || 0) - (resultClock[j].startNS || 0);
                 } else {
-                  res[j].dur = (res[j + 1].startNS || 0) - (res[j].startNS || 0);
+                  resultClock[j].dur = (resultClock[j + 1].startNS || 0) - (resultClock[j].startNS || 0);
                 }
               }
-              if ((res[j].value || 0) > maxValue) {
-                maxValue = res[j].value || 0;
+              if ((resultClock[j].value || 0) > maxValue) {
+                maxValue = resultClock[j].value || 0;
               }
               if (j > 0) {
-                res[j].delta = (res[j].value || 0) - (res[j - 1].value || 0);
+                resultClock[j].delta = (resultClock[j].value || 0) - (resultClock[j - 1].value || 0);
               } else {
-                res[j].delta = 0;
+                resultClock[j].delta = 0;
               }
             }
-            return res;
+            return resultClock;
           });
         }
       };
@@ -124,21 +124,21 @@ export class SpClockChart {
   }
 
   async initFolder(): Promise<TraceRow<any>> {
-    let folder = TraceRow.skeleton();
-    folder.rowId = `Clocks`;
-    folder.index = 0;
-    folder.rowType = TraceRow.ROW_TYPE_CLOCK_GROUP;
-    folder.rowParentId = '';
-    folder.style.height = '40px';
-    folder.folder = true;
-    folder.name = `Clocks`; /* & I/O Latency */
-    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    folder.selectChangeHandler = this.trace.selectChangeHandler;
-    folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    folder.onThreadHandler = (useCache) => {
-      folder.canvasSave(this.trace.canvasPanelCtx!);
-      if (folder.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+    let clockFolder = TraceRow.skeleton();
+    clockFolder.rowId = `Clocks`;
+    clockFolder.index = 0;
+    clockFolder.rowType = TraceRow.ROW_TYPE_CLOCK_GROUP;
+    clockFolder.rowParentId = '';
+    clockFolder.style.height = '40px';
+    clockFolder.folder = true;
+    clockFolder.name = `Clocks`; /* & I/O Latency */
+    clockFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    clockFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    clockFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    clockFolder.onThreadHandler = (useCache) => {
+      clockFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (clockFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -146,11 +146,11 @@ export class SpClockChart {
             useCache: useCache,
             type: ``,
           },
-          folder
+          clockFolder
         );
       }
-      folder.canvasRestore(this.trace.canvasPanelCtx!);
+      clockFolder.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    return folder;
+    return clockFolder;
   }
 }

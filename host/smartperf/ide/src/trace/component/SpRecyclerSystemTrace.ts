@@ -72,8 +72,8 @@ export class SpRecyclerSystemTrace extends BaseElement {
 
   initElements(): void {
     this.rowsEL = this.shadowRoot?.querySelector<TraceRowRecyclerView>('.rows');
-    this.timerShaftEL = this.shadowRoot?.querySelector('.timer-shaft');
-    this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
+    this.timerShaftEL = this.shadowRoot?.querySelector('.recycle-timer-shaft');
+    this.traceSheetEL = this.shadowRoot?.querySelector('.recycle-trace-sheet');
     this.rangeSelect = new RangeSelect(this.timerShaftEL);
     this.rangeSelect.rowsEL = this.rowsEL;
     document?.addEventListener('flag-change', (event: any) => {
@@ -748,7 +748,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
             width: 100%;
             height: 100%;
         }
-        .timer-shaft{
+        .recycle-timer-shaft{
             width: 100%;
             z-index: 2;
         }
@@ -772,11 +772,11 @@ export class SpRecyclerSystemTrace extends BaseElement {
 
         </style>
         <div class="container">
-            <timer-shaft-element class="timer-shaft">
+            <timer-shaft-element class="recycle-timer-shaft">
             </timer-shaft-element>
             <trace-row-recycler-view class="rows">
             </trace-row-recycler-view>
-            <trace-sheet class="trace-sheet" mode="hidden">
+            <trace-sheet class="recycle-trace-sheet" mode="hidden">
             </trace-sheet>
         </div>
         `;

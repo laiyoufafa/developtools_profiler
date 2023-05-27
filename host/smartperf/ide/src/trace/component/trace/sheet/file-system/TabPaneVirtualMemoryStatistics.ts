@@ -25,54 +25,51 @@ import { VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWor
 
 @element('tabpane-virtual-memory-statistics')
 export class TabPaneVirtualMemoryStatistics extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private loadDataInCache: boolean = true;
-  private selectionParam: SelectionParam | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private filter: TabPaneFilter | null | undefined;
+  private vmStatisticsTbl: LitTable | null | undefined;
+  private vmStatisticsSelectionParam: SelectionParam | null | undefined;
+  private vmStatisticsProgressEL: LitProgressBar | null | undefined;
+  private vmStatisticsFilter: TabPaneFilter | null | undefined;
   private loadingPage: any;
   private loadingList: number[] = [];
-  private source: Array<any> = [];
-  private typeList: Array<string> = ['OPEN', 'CLOSE', 'READ', 'WRITE'];
-  private sortKey: string = '';
-  private sortType: number = 0;
-  private resultData: Array<any> = [];
+  private vmStatisticsSource: Array<any> = [];
+  private vmStatisticsSortKey: string = '';
+  private vmStatisticsSortType: number = 0;
+  private vmStatisticsResultData: Array<any> = [];
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(vmStatisticsSelection: SelectionParam | any) {
+    if (vmStatisticsSelection == this.vmStatisticsSelectionParam) {
       return;
     }
-    this.progressEL!.loading = true;
+    this.vmStatisticsProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    this.selectionParam = val;
+    this.vmStatisticsSelectionParam = vmStatisticsSelection;
     // @ts-ignore
-    this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 20 + 'px';
-    this.queryDataByDB(val);
+    this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 20 + 'px';
+    this.queryDataByDB(vmStatisticsSelection);
   }
 
   initElements(): void {
-    this.progressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
+    this.vmStatisticsProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
     this.loadingPage = this.shadowRoot!.querySelector('.loading');
-    this.tbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.vmStatisticsTbl = this.shadowRoot!.querySelector<LitTable>('#tb-vm-statistics');
+    this.vmStatisticsTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.vmStatisticsSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.vmStatisticsSortType = evt.detail.sort;
 
-      let newSource = JSON.parse(JSON.stringify(this.source));
-      if (this.sortType != 0 && newSource.length > 0) this.sortTable(newSource[0], this.sortKey);
-      this.tbl!.recycleDataSource = newSource;
+      let newSource = JSON.parse(JSON.stringify(this.vmStatisticsSource));
+      if (this.vmStatisticsSortType != 0 && newSource.length > 0) this.sortVmStatisticsTable(newSource[0], this.vmStatisticsSortKey);
+      this.vmStatisticsTbl!.recycleDataSource = newSource;
     });
-    this.filter = this.shadowRoot!.querySelector<TabPaneFilter>('#filter');
-    this.filter!.getStatisticsTypeData((type) => {
+    this.vmStatisticsFilter = this.shadowRoot!.querySelector<TabPaneFilter>('#filter');
+    this.vmStatisticsFilter!.getStatisticsTypeData((type) => {
       if (type == 'operation') {
-        this.sortStatus(this.resultData, 'ipid', 'itid');
+        this.sortStatus(this.vmStatisticsResultData, 'ipid', 'itid');
       } else {
-        this.sortStatus(this.resultData, 'type', 'ipid');
+        this.sortStatus(this.vmStatisticsResultData, 'type', 'ipid');
       }
-      this.tbl!.shadowRoot!.querySelector('div > div.thead > div > div:nth-child(1) > label')!.textContent =
+      this.vmStatisticsTbl!.shadowRoot!.querySelector('div > div.thead > div > div:nth-child(1) > label')!.textContent =
         type == 'operation' ? 'Process/Thread/Operation' : 'Operation/Process/Thread';
     });
   }
@@ -82,48 +79,48 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement!.clientHeight != 0) {
         // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 10 - 32 + 'px';
-        this.tbl!.reMeauseHeight();
+        this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 10 - 32 + 'px';
+        this.vmStatisticsTbl!.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(item: any, nameTitle: any = 'pname', subtitle: any = null) {
+  getInitData(initVmMemoryStatItem: any, nameTitle: any = 'pname', subtitle: any = null) {
     // @ts-ignore
-    let title = nameTitle == 'type' ? VM_TYPE_MAP[item[nameTitle]] : item[nameTitle];
+    let title = nameTitle == 'type' ? VM_TYPE_MAP[initVmMemoryStatItem[nameTitle]] : initVmMemoryStatItem[nameTitle];
     return {
-      ...item,
-      title: title + (subtitle ? '(' + item[subtitle] + ')' : ''),
-      allDuration: Utils.getProbablyTime(item.allDuration),
-      minDuration: Utils.getProbablyTime(item.minDuration),
-      maxDuration: Utils.getProbablyTime(item.maxDuration),
-      avgDuration: Utils.getProbablyTime(item.avgDuration),
-      node: { ...item, children: [] },
+      ...initVmMemoryStatItem,
+      title: title + (subtitle ? '(' + initVmMemoryStatItem[subtitle] + ')' : ''),
+      allDuration: Utils.getProbablyTime(initVmMemoryStatItem.allDuration),
+      minDuration: Utils.getProbablyTime(initVmMemoryStatItem.minDuration),
+      maxDuration: Utils.getProbablyTime(initVmMemoryStatItem.maxDuration),
+      avgDuration: Utils.getProbablyTime(initVmMemoryStatItem.avgDuration),
+      node: { ...initVmMemoryStatItem, children: [] },
     };
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(vmMemoryStatParam: SelectionParam | any) {
     this.loadingList.push(1);
-    this.progressEL!.loading = true;
+    this.vmStatisticsProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    getTabPaneVirtualMemoryStatisticsData(val.leftNs + val.recordStartNs, val.rightNs + val.recordStartNs).then(
+    getTabPaneVirtualMemoryStatisticsData(vmMemoryStatParam.leftNs + vmMemoryStatParam.recordStartNs, vmMemoryStatParam.rightNs + vmMemoryStatParam.recordStartNs).then(
       (result) => {
         this.loadingList.splice(0, 1);
         if (this.loadingList.length == 0) {
-          this.progressEL!.loading = false;
+          this.vmStatisticsProgressEL!.loading = false;
           this.loadingPage.style.visibility = 'hidden';
         }
-        this.resultData = JSON.parse(JSON.stringify(result));
+        this.vmStatisticsResultData = JSON.parse(JSON.stringify(result));
         this.sortStatus(result, 'type', 'ipid');
       }
     );
   }
 
   sortStatus(result: Array<any>, firstLevel: string, secondLevel: string) {
-    let fatherMap = new Map<any, any>();
-    let childMap = new Map<any, any>();
-    let allNode: any = {
+    let vmMemoryStatFatherMap = new Map<any, any>();
+    let vmMemoryStatChildMap = new Map<any, any>();
+    let vmMemoryStatAllNode: any = {
       title: 'All',
       count: 0,
       allDuration: 0,
@@ -133,17 +130,17 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       children: [],
     };
     result.forEach((item, idx) => {
-      if (childMap.has(item[firstLevel] + '_' + item[secondLevel])) {
-        let obj1 = childMap.get(item[firstLevel] + '_' + item[secondLevel]);
-        obj1.count += item.count;
-        obj1.allDuration += item.allDuration;
-        obj1.minDuration = obj1.minDuration <= item.minDuration ? obj1.minDuration : item.minDuration;
-        obj1.maxDuration = obj1.maxDuration >= item.maxDuration ? obj1.maxDuration : item.maxDuration;
-        obj1.children.push(
+      if (vmMemoryStatChildMap.has(item[firstLevel] + '_' + item[secondLevel])) {
+        let vmMemoryStatChildObj = vmMemoryStatChildMap.get(item[firstLevel] + '_' + item[secondLevel]);
+        vmMemoryStatChildObj.count += item.count;
+        vmMemoryStatChildObj.allDuration += item.allDuration;
+        vmMemoryStatChildObj.minDuration = vmMemoryStatChildObj.minDuration <= item.minDuration ? vmMemoryStatChildObj.minDuration : item.minDuration;
+        vmMemoryStatChildObj.maxDuration = vmMemoryStatChildObj.maxDuration >= item.maxDuration ? vmMemoryStatChildObj.maxDuration : item.maxDuration;
+        vmMemoryStatChildObj.children.push(
           this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null)
         );
       } else {
-        childMap.set(item[firstLevel] + '_' + item[secondLevel], {
+        vmMemoryStatChildMap.set(item[firstLevel] + '_' + item[secondLevel], {
           ...item,
           children: [
             this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null),
@@ -151,39 +148,39 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
         });
       }
 
-      if (fatherMap.has(item[firstLevel])) {
-        let obj1 = fatherMap.get(item[firstLevel]);
-        obj1.count += item.count;
-        obj1.allDuration += item.allDuration;
-        obj1.minDuration = obj1.minDuration <= item.minDuration ? obj1.minDuration : item.minDuration;
-        obj1.maxDuration = obj1.maxDuration >= item.maxDuration ? obj1.maxDuration : item.maxDuration;
-        obj1.children.push(this.getInitData(item));
+      if (vmMemoryStatFatherMap.has(item[firstLevel])) {
+        let vmMemoryStatFatherObj = vmMemoryStatFatherMap.get(item[firstLevel]);
+        vmMemoryStatFatherObj.count += item.count;
+        vmMemoryStatFatherObj.allDuration += item.allDuration;
+        vmMemoryStatFatherObj.minDuration = vmMemoryStatFatherObj.minDuration <= item.minDuration ? vmMemoryStatFatherObj.minDuration : item.minDuration;
+        vmMemoryStatFatherObj.maxDuration = vmMemoryStatFatherObj.maxDuration >= item.maxDuration ? vmMemoryStatFatherObj.maxDuration : item.maxDuration;
+        vmMemoryStatFatherObj.children.push(this.getInitData(item));
       } else {
-        fatherMap.set(item[firstLevel], {
+        vmMemoryStatFatherMap.set(item[firstLevel], {
           ...item,
           children: [this.getInitData(item)],
         });
       }
       if (idx == 0) {
-        allNode.minDuration = item.minDuration;
+        vmMemoryStatAllNode.minDuration = item.minDuration;
       } else {
-        allNode.minDuration = allNode.minDuration <= item.minDuration ? allNode.minDuration : item.minDuration;
+        vmMemoryStatAllNode.minDuration = vmMemoryStatAllNode.minDuration <= item.minDuration ? vmMemoryStatAllNode.minDuration : item.minDuration;
       }
-      allNode.count += item.count;
-      allNode.allDuration += item.allDuration;
-      allNode.maxDuration = allNode.maxDuration >= item.maxDuration ? allNode.maxDuration : item.maxDuration;
+      vmMemoryStatAllNode.count += item.count;
+      vmMemoryStatAllNode.allDuration += item.allDuration;
+      vmMemoryStatAllNode.maxDuration = vmMemoryStatAllNode.maxDuration >= item.maxDuration ? vmMemoryStatAllNode.maxDuration : item.maxDuration;
     });
 
-    for (let ks of fatherMap.keys()) {
-      let sp = fatherMap.get(ks);
+    for (let ks of vmMemoryStatFatherMap.keys()) {
+      let sp = vmMemoryStatFatherMap.get(ks);
       sp!.children = [];
       sp.avgDuration = sp.allDuration / sp.count;
-      let node = this.getInitData(sp, firstLevel == 'type' ? 'type' : 'pname', firstLevel == 'type' ? null : 'pid');
-      node.path = { type: null, tid: null, pid: null, value: node.title };
-      node.path[firstLevel == 'type' ? 'type' : 'pid'] = node[firstLevel == 'type' ? 'type' : 'pid'];
-      for (let kst of childMap.keys()) {
+      let vmMemoryStatNode = this.getInitData(sp, firstLevel == 'type' ? 'type' : 'pname', firstLevel == 'type' ? null : 'pid');
+      vmMemoryStatNode.path = { type: null, tid: null, pid: null, value: vmMemoryStatNode.title };
+      vmMemoryStatNode.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
+      for (let kst of vmMemoryStatChildMap.keys()) {
         if (kst.startsWith(ks + '_')) {
-          let spt = childMap.get(kst);
+          let spt = vmMemoryStatChildMap.get(kst);
           let data = this.getInitData(
             spt!,
             firstLevel == 'type' ? 'pname' : 'tname',
@@ -193,59 +190,59 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
             type: null,
             tid: null,
             pid: null,
-            value: 'All-' + node.title + '-' + data.title,
+            value: 'All-' + vmMemoryStatNode.title + '-' + data.title,
           };
-          data.path[firstLevel == 'type' ? 'type' : 'pid'] = node[firstLevel == 'type' ? 'type' : 'pid'];
+          data.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
           data.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
           data.children.forEach((e: any) => {
             e.path = {
               type: null,
               tid: null,
               pid: null,
-              value: 'All-' + node.title + '-' + data.title + '-' + e.title,
+              value: 'All-' + vmMemoryStatNode.title + '-' + data.title + '-' + e.title,
             };
-            e.path[firstLevel == 'type' ? 'type' : 'pid'] = node[firstLevel == 'type' ? 'type' : 'pid'];
+            e.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
             e.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
             e.path[firstLevel == 'type' ? 'tid' : 'type'] = e[firstLevel == 'type' ? 'tid' : 'type'];
           });
           sp!.children.push(data);
         }
       }
-      allNode.children.push(node);
+      vmMemoryStatAllNode.children.push(vmMemoryStatNode);
     }
 
-    allNode.avgDuration = allNode.allDuration / allNode.count;
-    allNode = this.getInitData(allNode);
-    allNode.title = 'All';
-    allNode.path = { type: null, tid: null, pid: null, value: 'All' };
-    this.source = result.length > 0 ? [allNode] : [];
-    let newSource = JSON.parse(JSON.stringify(this.source));
-    if (this.sortType != 0 && result.length > 0) this.sortTable(newSource[0], this.sortKey);
-    this.tbl!.recycleDataSource = newSource;
+    vmMemoryStatAllNode.avgDuration = vmMemoryStatAllNode.allDuration / vmMemoryStatAllNode.count;
+    vmMemoryStatAllNode = this.getInitData(vmMemoryStatAllNode);
+    vmMemoryStatAllNode.title = 'All';
+    vmMemoryStatAllNode.path = { type: null, tid: null, pid: null, value: 'All' };
+    this.vmStatisticsSource = result.length > 0 ? [vmMemoryStatAllNode] : [];
+    let newSource = JSON.parse(JSON.stringify(this.vmStatisticsSource));
+    if (this.vmStatisticsSortType != 0 && result.length > 0) this.sortVmStatisticsTable(newSource[0], this.vmStatisticsSortKey);
+    this.vmStatisticsTbl!.recycleDataSource = newSource;
   }
 
-  sortTable(allNode: any, key: string) {
-    allNode.children.sort((a: any, b: any) => {
-      if (this.sortType == 1) {
-        return a.node[key] - b.node[key];
-      } else if (this.sortType == 2) {
-        return b.node[key] - a.node[key];
+  sortVmStatisticsTable(allNode: any, key: string) {
+    allNode.children.sort((vmStatNodeA: any, vmStatNodeB: any) => {
+      if (this.vmStatisticsSortType == 1) {
+        return vmStatNodeA.node[key] - vmStatNodeB.node[key];
+      } else if (this.vmStatisticsSortType == 2) {
+        return vmStatNodeB.node[key] - vmStatNodeA.node[key];
       }
     });
     allNode.children.forEach((item: any) => {
-      item.children.sort((a: any, b: any) => {
-        if (this.sortType == 1) {
-          return a.node[key] - b.node[key];
-        } else if (this.sortType == 2) {
-          return b.node[key] - a.node[key];
+      item.children.sort((vmStatNodeA: any, vmStatNodeB: any) => {
+        if (this.vmStatisticsSortType == 1) {
+          return vmStatNodeA.node[key] - vmStatNodeB.node[key];
+        } else if (this.vmStatisticsSortType == 2) {
+          return vmStatNodeB.node[key] - vmStatNodeA.node[key];
         }
       });
-      item.children.forEach((i: any) => {
-        i.children.sort((a: any, b: any) => {
-          if (this.sortType == 1) {
-            return a.node[key] - b.node[key];
-          } else if (this.sortType == 2) {
-            return b.node[key] - a.node[key];
+      item.children.forEach((vmStatItem: any) => {
+        vmStatItem.children.sort((vmStatItemA: any, vmStatItemB: any) => {
+          if (this.vmStatisticsSortType == 1) {
+            return vmStatItemA.node[key] - vmStatItemB.node[key];
+          } else if (this.vmStatisticsSortType == 2) {
+            return vmStatItemB.node[key] - vmStatItemA.node[key];
           }
         });
       });
@@ -260,14 +257,14 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .progress{
+        .vm-stat-progress{
             bottom: 5px;
             position: absolute;
             height: 1px;
             left: 0;
             right: 0;
         }
-        .loading{
+        .vm-stat-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -277,23 +274,23 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
             z-index: 999999;
         }
         </style>
-        <lit-table id="tb-states" style="height: auto" tree>
-            <lit-table-column width="20%" title="Operation/Process/Thread" data-index="title" key="title" align="flex-start">
+        <lit-table id="tb-vm-statistics" style="height: auto" tree>
+            <lit-table-column class="vm-memory-stat-column" width="20%" title="Operation/Process/Thread" data-index="title" key="title" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
+            <lit-table-column class="vm-memory-stat-column" width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration" data-index="allDuration" key="allDuration" align="flex-start" order>
+            <lit-table-column class="vm-memory-stat-column" width="1fr" title="Duration" data-index="allDuration" key="allDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Min Duration" data-index="minDuration" key="minDuration" align="flex-start" order>
+            <lit-table-column class="vm-memory-stat-column" width="1fr" title="Min Duration" data-index="minDuration" key="minDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Avg Duration" data-index="avgDuration" key="avgDuration" align="flex-start" order>
+            <lit-table-column class="vm-memory-stat-column" width="1fr" title="Avg Duration" data-index="avgDuration" key="avgDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Duration" data-index="maxDuration" key="maxDuration" align="flex-start" order>
+            <lit-table-column class="vm-memory-stat-column" width="1fr" title="Max Duration" data-index="maxDuration" key="maxDuration" align="flex-start" order>
             </lit-table-column>
         </lit-table>
-        <lit-progress-bar class="progress"></lit-progress-bar>
+        <lit-progress-bar class="progress vm-stat-progress"></lit-progress-bar>
         <tab-pane-filter id="filter" sort></tab-pane-filter>
-        <div class="loading"></div>
+        <div class="loading vm-stat-loading"></div>
         `;
   }
 }

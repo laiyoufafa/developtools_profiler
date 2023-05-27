@@ -26,40 +26,68 @@ export class CpuFreqStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; // Self-supplementing, the database is not returned
 
-  static draw(ctx: any, data: CpuFreqStruct) {
-    if (data.frame) {
-      let width = data.frame.width || 0;
-      let index = data.cpu || 0;
-      index += 2;
-      ctx.fillStyle = ColorUtils.colorForTid(index);
-      ctx.strokeStyle = ColorUtils.colorForTid(index);
-      if (data.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
-        let drawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0) * 1.0) / CpuFreqStruct.maxFreq
+  static draw(freqBeanStructCanvasCtx: any, freqBeanStruct: CpuFreqStruct) {
+    if (freqBeanStruct.frame) {
+      let freqBeanStructWidth = freqBeanStruct.frame.width || 0;
+      let freqBeanStructIndex = freqBeanStruct.cpu || 0;
+      freqBeanStructIndex += 2;
+      freqBeanStructCanvasCtx.fillStyle = ColorUtils.colorForTid(freqBeanStructIndex);
+      freqBeanStructCanvasCtx.strokeStyle = ColorUtils.colorForTid(freqBeanStructIndex);
+      if (freqBeanStruct.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
+        freqBeanStructCanvasCtx.lineWidth = 1;
+        freqBeanStructCanvasCtx.globalAlpha = 0.6;
+        let freqBeanStructDrawHeight: number = Math.floor(
+          ((freqBeanStruct.value || 0) * (freqBeanStruct.frame.height || 0) * 1.0) /
+          CpuFreqStruct.maxFreq
         );
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        freqBeanStructCanvasCtx.fillRect(
+          freqBeanStruct.frame.x,
+          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight,
+          freqBeanStructWidth,
+          freqBeanStructDrawHeight
+        );
+        freqBeanStructCanvasCtx.beginPath();
+        freqBeanStructCanvasCtx.arc(
+          freqBeanStruct.frame.x,
+          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight,
+          3,
+          0,
+          2 * Math.PI,
+          true
+        );
+        freqBeanStructCanvasCtx.fill();
+        freqBeanStructCanvasCtx.globalAlpha = 1.0;
+        freqBeanStructCanvasCtx.stroke();
+        freqBeanStructCanvasCtx.beginPath();
+        freqBeanStructCanvasCtx.moveTo(
+          freqBeanStruct.frame.x + 3,
+          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight
+        );
+        freqBeanStructCanvasCtx.lineWidth = 3;
+        freqBeanStructCanvasCtx.lineTo(
+          freqBeanStruct.frame.x + freqBeanStructWidth,
+          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight
+        );
+        freqBeanStructCanvasCtx.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
-        let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / CpuFreqStruct.maxFreq);
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        freqBeanStructCanvasCtx.globalAlpha = 0.6;
+        freqBeanStructCanvasCtx.lineWidth = 1;
+        let drawHeight: number = Math.floor(
+          ((freqBeanStruct.value || 0) * (freqBeanStruct.frame.height || 0)) /
+          CpuFreqStruct.maxFreq
+        );
+        freqBeanStructCanvasCtx.fillRect(
+          freqBeanStruct.frame.x,
+          freqBeanStruct.frame.y + freqBeanStruct.frame.height - drawHeight,
+          freqBeanStructWidth,
+          drawHeight
+        );
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    freqBeanStructCanvasCtx.globalAlpha = 1.0;
+    freqBeanStructCanvasCtx.lineWidth = 1;
   }
+
 }
 
 const textPadding = 2;

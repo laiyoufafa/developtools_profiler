@@ -68,34 +68,16 @@ export class PluginConvertUtils {
         } else {
           switch (typeof value) {
             case 'bigint':
-              prefixText =
-                prefixText +
-                ' '.repeat(spacesNumber).repeat(indentation + 1) +
-                this.humpToSnake(key) +
-                ': ' +
-                value.toString() +
-                this.crlf;
+              prefixText = this.getMontageStrings(prefixText, spacesNumber, indentation, key, value);
               break;
             case 'boolean':
-              prefixText =
-                prefixText +
-                ' '.repeat(spacesNumber).repeat(indentation + 1) +
-                this.humpToSnake(key) +
-                ': ' +
-                value.toString() +
-                this.crlf;
+              prefixText = this.getMontageStrings(prefixText, spacesNumber, indentation, key, value);
               break;
             case 'number':
               if (value == 0 && !needColon) {
                 break;
               }
-              prefixText =
-                prefixText +
-                ' '.repeat(spacesNumber).repeat(indentation + 1) +
-                this.humpToSnake(key) +
-                ': ' +
-                value.toString() +
-                this.crlf;
+              prefixText = this.getMontageStrings(prefixText, spacesNumber, indentation, key, value);
               break;
             case 'string':
               if (value == '') {
@@ -239,5 +221,14 @@ export class PluginConvertUtils {
   // 驼峰转snake
   private static humpToSnake(humpString: string): string {
     return humpString.replace(/[A-Z]/g, (value) => '_' + value.toLowerCase());
+  }
+
+  private static getMontageStrings(prefixText: string, spacesNumber: number, indentation: number, key: string, value: any): string{
+    return prefixText +
+    ' '.repeat(spacesNumber).repeat(indentation + 1) +
+    this.humpToSnake(key) +
+    ': ' +
+    value.toString() +
+    this.crlf;
   }
 }

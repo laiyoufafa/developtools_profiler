@@ -20,18 +20,18 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { queryAnomalyDetailedData } from '../../../../database/SqlLite.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { EnergyAnomalyStruct } from '../../../../database/ui-worker/ProcedureWorkerEnergyAnomaly.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-anomaly-details')
 export class TabPaneEnergyAnomaly extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private tableObserver: MutationObserver | undefined;
+  private tblAnomaly: LitTable | null | undefined;
   private static KEY_INDEX: number = 2;
   private static VALUE_INDEX: number = 3;
-  set data(selection: SelectionParam) {
+  set data(selectionAnomaly: SelectionParam) {
     let div: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#anomaly-details');
     let htmlText = '';
-    if (selection) {
-      this.queryAnomalyTableData(selection.leftNs, selection.rightNs).then((bean) => {
+    if (selectionAnomaly) {
+      this.queryAnomalyTableData(selectionAnomaly.leftNs, selectionAnomaly.rightNs).then((bean) => {
         let filterAppMap = new Map();
         for (let index = 0; index < bean.length; index++) {
           let findAppNameIndex = -1;
@@ -136,75 +136,56 @@ export class TabPaneEnergyAnomaly extends BaseElement {
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#anomalyselectionTbl');
-    this.tbl?.addEventListener('column-click', (ev: any) => {});
-    this.addTableObserver();
+    this.tblAnomaly = this.shadowRoot?.querySelector<LitTable>('#anomalyselectionTbl');
+    this.tblAnomaly?.addEventListener('column-click', (ev: any) => {});
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl!.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
-  }
-
-  addTableObserver() {
-    let MutationObserver = window.MutationObserver;
-    this.tableObserver = new MutationObserver((list) => {
-      if (this.tbl) {
-        let width = getComputedStyle(this.tbl).getPropertyValue('width');
-        let height = getComputedStyle(this.tbl).getPropertyValue('height');
-      }
-    });
-    let selector = this.shadowRoot?.querySelector('.left-table');
-    this.tableObserver?.observe(selector!, {
-      attributes: true,
-      attributeFilter: ['style'],
-      attributeOldValue: true,
-    });
+    resizeObserver(this.parentElement!, this.tblAnomaly!)
   }
 
   initHtml(): string {
     return `
         <style>
-            .current-title{
-                width: 95%;
+            .anomaly-title{
                 display: flex;
-                top: 0;
+                width: 95%;
                 background: var(--dark-background,#ffffff);
+                top: 0;
                 position: sticky;
             }
-            .current-title h2{
-                width: 50%;
+            .anomaly-title h2{
                 padding: 0 10px;
                 font-size: 16px;
                 font-weight: 400;
+                width: 50%;
                 visibility: visible;
             }
-            .bottom-scroll-area{
-                display: flex;
-                height: auto;
+            .scroll-area{
                 overflow-y: auto;
+                height: auto;
+                display: flex;
+                
             }
             .left-table{
-                width: 50%;
                 padding: 0 10px;
+                width: 50%;
+            }
+            .anomaly-table{
+                height: auto;
             }
         </style>
         <div style="width: 100%;height: auto;position: relative">
-            <div id="anomaly-details" class="current-title" style="margin-left: 12px;display: block">
+            <div id="anomaly-details" class="anomaly-title" style="margin-left: 12px;display: block">
                 <h2 id="leftTitle"></h2>
             </div>
-            <div class="bottom-scroll-area">
+            <div class="scroll-area">
                 <div class="left-table">
-                    <lit-table id="anomalyselectionTbl" no-head style="height: auto">
-                        <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
+                    <lit-table id="anomalyselectionTbl" no-head class="anomaly-table">
+                        <lit-table-column key="name" align="flex-start"  width="180px" title="name" data-index="name" >
                         </lit-table-column>
-                        <lit-table-column title="value" data-index="value" key="value" align="flex-start" >
+                        <lit-table-column key="value" align="flex-start" title="value" data-index="value">
                         </lit-table-column>
                     </lit-table>
                 </div>

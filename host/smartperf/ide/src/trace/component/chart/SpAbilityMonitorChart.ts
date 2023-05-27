@@ -116,20 +116,20 @@ export class SpAbilityMonitorChart {
   }
 
   private initAbilityRow = () => {
-    let processRow = TraceRow.skeleton<ProcessStruct>();
-    processRow.rowId = `abilityMonitor`;
-    processRow.rowType = TraceRow.ROW_TYPE_MONITOR;
-    processRow.style.height = '40px';
-    processRow.rowParentId = '';
-    processRow.folder = true;
-    processRow.name = 'Ability Monitor';
-    processRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    processRow.selectChangeHandler = this.trace.selectChangeHandler;
-    processRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    processRow.onThreadHandler = (useCache) => {
-      processRow.canvasSave(this.trace.canvasPanelCtx!);
-      if (processRow.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, processRow.frame.width, processRow.frame.height);
+    let abilityRow = TraceRow.skeleton<ProcessStruct>();
+    abilityRow.rowId = `abilityMonitor`;
+    abilityRow.rowType = TraceRow.ROW_TYPE_MONITOR;
+    abilityRow.style.height = '40px';
+    abilityRow.rowParentId = '';
+    abilityRow.folder = true;
+    abilityRow.name = 'Ability Monitor';
+    abilityRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    abilityRow.selectChangeHandler = this.trace.selectChangeHandler;
+    abilityRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    abilityRow.onThreadHandler = (useCache) => {
+      abilityRow.canvasSave(this.trace.canvasPanelCtx!);
+      if (abilityRow.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, abilityRow.frame.width, abilityRow.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -137,13 +137,13 @@ export class SpAbilityMonitorChart {
             useCache: useCache,
             type: ``,
           },
-          processRow
+          abilityRow
         );
       }
-      processRow.canvasRestore(this.trace.canvasPanelCtx!);
+      abilityRow.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    this.trace.rowsEL?.appendChild(processRow);
-    return processRow;
+    this.trace.rowsEL?.appendChild(abilityRow);
+    return abilityRow;
   };
 
   private initCpuAbility = async (processRow: TraceRow<ProcessStruct>) => {

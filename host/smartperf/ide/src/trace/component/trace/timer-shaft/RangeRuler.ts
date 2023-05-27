@@ -19,7 +19,7 @@ import { ns2s, TimerShaftElement } from '../TimerShaftElement.js';
 import { ColorUtils } from '../base/ColorUtils.js';
 import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
 
-const markPadding = 5;
+const MarkPadding = 5;
 
 export class Mark extends Graph {
   name: string | undefined;
@@ -29,7 +29,7 @@ export class Mark extends Graph {
   constructor(canvas: HTMLCanvasElement | undefined | null, name: string, c: CanvasRenderingContext2D, frame: Rect) {
     super(canvas, c, frame);
     this.name = name;
-    this.inspectionFrame = new Rect(frame.x - markPadding, frame.y, frame.width + markPadding * 2, frame.height);
+    this.inspectionFrame = new Rect(frame.x - MarkPadding, frame.y, frame.width + MarkPadding * 2, frame.height);
   }
 
   get isHover(): boolean {
@@ -47,13 +47,13 @@ export class Mark extends Graph {
 
   draw(): void {
     this.c.beginPath();
-    this.c.lineWidth = 7;
     this.c.strokeStyle = '#999999';
+    this.c.lineWidth = 7;
     this.c.moveTo(this.frame.x, this.frame.y);
     this.c.lineTo(this.frame.x, this.frame.y + this.frame.height / 3);
     this.c.stroke();
-    this.c.lineWidth = 1;
     this.c.strokeStyle = '#999999';
+    this.c.lineWidth = 1;
     this.c.moveTo(this.frame.x, this.frame.y);
     this.c.lineTo(this.frame.x, this.frame.y + this.frame.height);
     this.c.stroke();
@@ -80,8 +80,8 @@ export interface TimeRange {
 
 export class RangeRuler extends Graph {
   public rangeRect: Rect;
-  public markA: Mark;
-  public markB: Mark;
+  public markAObj: Mark;
+  public markBObj: Mark;
   public range: TimeRange;
   private pressedKeys: Array<string> = [];
   mouseDownOffsetX = 0;
@@ -125,13 +125,13 @@ export class RangeRuler extends Graph {
     super(timerShaftEL.canvas, timerShaftEL.ctx!, frame);
     this.range = range;
     this.notifyHandler = notifyHandler;
-    this.markA = new Mark(
+    this.markAObj = new Mark(
       timerShaftEL.canvas,
       'A',
       timerShaftEL.ctx!,
       new Rect(range.startX, frame.y, 1, frame.height)
     );
-    this.markB = new Mark(timerShaftEL.canvas, 'B', timerShaftEL.ctx!, new Rect(range.endX, frame.y, 1, frame.height));
+    this.markBObj = new Mark(timerShaftEL.canvas, 'B', timerShaftEL.ctx!, new Rect(range.endX, frame.y, 1, frame.height));
     this.rangeRect = new Rect(range.startX, frame.y, range.endX - range.startX, frame.height);
   }
 
@@ -141,19 +141,18 @@ export class RangeRuler extends Graph {
   }
 
   drawCpuUsage() {
-    let maxNum = Math.round(this._cpuUsage.length / 100);
     let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount); //每格高度
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
-    for (let i = 0; i < this._cpuUsage.length; i++) {
-      let it = this._cpuUsage[i];
-      this.c.fillStyle = ColorUtils.MD_PALETTE[it.cpu];
-      this.c.globalAlpha = it.rate;
-      this.c.fillRect(this.frame.x + miniWidth * it.ro, this.frame.y + it.cpu * miniHeight, miniWidth, miniHeight);
-    }
+    for (let index = 0; index < this._cpuUsage.length; index++) {
+      let cpuUsageItem = this._cpuUsage[index];
+      this.c.fillStyle = ColorUtils.MD_PALETTE[cpuUsageItem.cpu];
+      this.c.globalAlpha = cpuUsageItem.rate;
+      this.c.fillRect(this.frame.x + miniWidth * cpuUsageItem.ro, this.frame.y + cpuUsageItem.cpu * miniHeight, miniWidth, miniHeight);
+    }``
   }
 
   draw(discardNotify: boolean = false): void {
-    this.c.clearRect(this.frame.x - markPadding, this.frame.y, this.frame.width + markPadding * 2, this.frame.height);
+    this.c.clearRect(this.frame.x - MarkPadding, this.frame.y, this.frame.width + MarkPadding * 2, this.frame.height);
     this.c.beginPath();
     if (this._cpuUsage.length > 0) {
       this.drawCpuUsage();
@@ -162,9 +161,9 @@ export class RangeRuler extends Graph {
       this.c.globalAlpha = 1;
     }
     //绘制选中区域
-    this.c.fillStyle = window.getComputedStyle(this.canvas!, null).getPropertyValue('background-color'); //"#ffffff"
-    this.rangeRect.x = this.markA.frame.x < this.markB.frame.x ? this.markA.frame.x : this.markB.frame.x;
-    this.rangeRect.width = Math.abs(this.markB.frame.x - this.markA.frame.x);
+    this.c.fillStyle = window.getComputedStyle(this.canvas!, null).getPropertyValue('background-color');
+    this.rangeRect.x = this.markAObj.frame.x < this.markBObj.frame.x ? this.markAObj.frame.x : this.markBObj.frame.x;
+    this.rangeRect.width = Math.abs(this.markBObj.frame.x - this.markAObj.frame.x);
     this.c.fillRect(this.rangeRect.x, this.rangeRect.y, this.rangeRect.width, this.rangeRect.height);
     this.c.globalAlpha = 1;
     this.c.globalAlpha = 0.5;
@@ -178,8 +177,8 @@ export class RangeRuler extends Graph {
     );
     this.c.globalAlpha = 1;
     this.c.closePath();
-    this.markA.draw();
-    this.markB.draw();
+    this.markAObj.draw();
+    this.markBObj.draw();
     if (this.notifyHandler) {
       this.range.startX = this.rangeRect.x;
       this.range.endX = this.rangeRect.x + this.rangeRect.width;
@@ -189,14 +188,14 @@ export class RangeRuler extends Graph {
       let min = 0;
       let max = 0;
       let weight = 0;
-      for (let index = 0; index < this.scales.length; index++) {
-        if (this.scales[index] > l20) {
-          if (index > 0) {
-            min = this.scales[index - 1];
+      for (let scalesIndex = 0; scalesIndex < this.scales.length; scalesIndex++) {
+        if (this.scales[scalesIndex] > l20) {
+          if (scalesIndex > 0) {
+            min = this.scales[scalesIndex - 1];
           } else {
             min = 0;
           }
-          max = this.scales[index];
+          max = this.scales[scalesIndex];
           weight = ((l20 - min) * 1.0) / (max - min);
           if (weight > 0.243) {
             this.scale = max;
@@ -209,7 +208,7 @@ export class RangeRuler extends Graph {
       if (this.scale == 0) {
         this.scale = this.scales[0];
       }
-      let tmpNs = 0;
+      let tempNs = 0;
       let yu = this.range.startNS % this.scale;
       let realW = (this.scale * this.frame.width) / (this.range.endNS - this.range.startNS);
       let startX = 0;
@@ -225,17 +224,17 @@ export class RangeRuler extends Graph {
       }
       this.range.scale = this.scale;
       if (yu != 0) {
-        let firstNodeWidth = ((this.scale - yu) / this.scale) * realW;
-        startX += firstNodeWidth;
-        tmpNs += yu;
+        let first_NodeWidth = ((this.scale - yu) / this.scale) * realW;
+        startX += first_NodeWidth;
+        tempNs += yu;
         this.range.xs.push(startX);
-        this.range.xsTxt.push(ns2s(tmpNs));
+        this.range.xsTxt.push(ns2s(tempNs));
       }
-      while (tmpNs < this.range.endNS - this.range.startNS) {
+      while (tempNs < this.range.endNS - this.range.startNS) {
         startX += realW;
-        tmpNs += this.scale;
+        tempNs += this.scale;
         this.range.xs.push(startX);
-        this.range.xsTxt.push(ns2s(tmpNs));
+        this.range.xsTxt.push(ns2s(tempNs));
       }
 
       if (!discardNotify) {
@@ -244,28 +243,28 @@ export class RangeRuler extends Graph {
     }
   }
 
-  mouseDown(ev: MouseEvent) {
-    let x = ev.offsetX - (this.canvas?.offsetLeft || 0);
-    let y = ev.offsetY - (this.canvas?.offsetTop || 0);
+  mouseDown(mouseEventDown: MouseEvent) {
+    let down_x = mouseEventDown.offsetX - (this.canvas?.offsetLeft || 0);
+    let down_y = mouseEventDown.offsetY - (this.canvas?.offsetTop || 0);
     this.isMouseDown = true;
-    this.mouseDownOffsetX = x;
-    if (this.markA.isHover) {
-      this.movingMark = this.markA;
+    this.mouseDownOffsetX = down_x;
+    if (this.markAObj.isHover) {
+      this.movingMark = this.markAObj;
       this.mouseDownMovingMarkX = this.movingMark.frame.x || 0;
-    } else if (this.markB.isHover) {
-      this.movingMark = this.markB;
+    } else if (this.markBObj.isHover) {
+      this.movingMark = this.markBObj;
       this.mouseDownMovingMarkX = this.movingMark.frame.x || 0;
     } else {
       this.movingMark = null;
     }
-    if (this.rangeRect.containsWithPadding(x, y, 5, 0)) {
+    if (this.rangeRect.containsWithPadding(down_x, down_y, 5, 0)) {
       this.isMovingRange = true;
-      this.markAX = this.markA.frame.x;
-      this.markBX = this.markB.frame.x;
+      this.markAX = this.markAObj.frame.x;
+      this.markBX = this.markBObj.frame.x;
       document.body.style.cursor = 'move';
     } else if (
-      this.frame.containsWithMargin(x, y, 20, 0, 0, 0) &&
-      !this.rangeRect.containsWithMargin(x, y, 0, markPadding, 0, markPadding)
+      this.frame.containsWithMargin(down_x, down_y, 20, 0, 0, 0) &&
+      !this.rangeRect.containsWithMargin(down_x, down_y, 0, MarkPadding, 0, MarkPadding)
     ) {
       this.isNewRange = true;
     }
@@ -280,25 +279,25 @@ export class RangeRuler extends Graph {
 
   mouseMove(ev: MouseEvent) {
     this.range.refresh = false;
-    let x = ev.offsetX - (this.canvas?.offsetLeft || 0);
-    let y = ev.offsetY - (this.canvas?.offsetTop || 0);
-    this.centerXPercentage = x / (this.canvas?.clientWidth || 0);
+    let move_x = ev.offsetX - (this.canvas?.offsetLeft || 0);
+    let move_y = ev.offsetY - (this.canvas?.offsetTop || 0);
+    this.centerXPercentage = move_x / (this.canvas?.clientWidth || 0);
     if (this.centerXPercentage <= 0) {
       this.centerXPercentage = 0;
     } else if (this.centerXPercentage >= 1) {
       this.centerXPercentage = 1;
     }
     let maxX = this.canvas?.clientWidth || 0;
-    if (this.markA.inspectionFrame.contains(x, y)) {
-      this.markA.isHover = true;
-    } else if (this.markB.inspectionFrame.contains(x, y)) {
-      this.markB.isHover = true;
+    if (this.markAObj.inspectionFrame.contains(move_x, move_y)) {
+      this.markAObj.isHover = true;
+    } else if (this.markBObj.inspectionFrame.contains(move_x, move_y)) {
+      this.markBObj.isHover = true;
     } else {
-      this.markA.isHover = false;
-      this.markB.isHover = false;
+      this.markAObj.isHover = false;
+      this.markBObj.isHover = false;
     }
     if (this.movingMark) {
-      let result = x - this.mouseDownOffsetX + this.mouseDownMovingMarkX;
+      let result = move_x - this.mouseDownOffsetX + this.mouseDownMovingMarkX;
       if (result >= 0 && result <= maxX) {
         this.movingMark.frame.x = result;
       } else if (result < 0) {
@@ -306,41 +305,41 @@ export class RangeRuler extends Graph {
       } else {
         this.movingMark.frame.x = maxX;
       }
-      this.movingMark.inspectionFrame.x = this.movingMark.frame.x - markPadding;
+      this.movingMark.inspectionFrame.x = this.movingMark.frame.x - MarkPadding;
       this.recordMovingS();
       requestAnimationFrame(() => {
         this.draw();
         this.range.refresh = false;
         this.delayDraw();
       });
-    } else if (this.rangeRect.containsWithPadding(x, y, markPadding, 0)) {
+    } else if (this.rangeRect.containsWithPadding(move_x, move_y, MarkPadding, 0)) {
       document.body.style.cursor = 'move';
     } else if (
-      this.frame.containsWithMargin(x, y, 20, 0, 0, 0) &&
-      !this.rangeRect.containsWithMargin(x, y, 0, markPadding, 0, markPadding)
+      this.frame.containsWithMargin(move_x, move_y, 20, 0, 0, 0) &&
+      !this.rangeRect.containsWithMargin(move_x, move_y, 0, MarkPadding, 0, MarkPadding)
     ) {
       document.body.style.cursor = 'crosshair';
     }
     if (this.isMovingRange && this.isMouseDown) {
-      let result = x - this.mouseDownOffsetX;
+      let result = move_x - this.mouseDownOffsetX;
       let mA = result + this.markAX;
       let mB = result + this.markBX;
       if (mA >= 0 && mA <= maxX) {
-        this.markA.frame.x = mA;
+        this.markAObj.frame.x = mA;
       } else if (mA < 0) {
-        this.markA.frame.x = 0;
+        this.markAObj.frame.x = 0;
       } else {
-        this.markA.frame.x = maxX;
+        this.markAObj.frame.x = maxX;
       }
-      this.markA.inspectionFrame.x = this.markA.frame.x - markPadding;
+      this.markAObj.inspectionFrame.x = this.markAObj.frame.x - MarkPadding;
       if (mB >= 0 && mB <= maxX) {
-        this.markB.frame.x = mB;
+        this.markBObj.frame.x = mB;
       } else if (mB < 0) {
-        this.markB.frame.x = 0;
+        this.markBObj.frame.x = 0;
       } else {
-        this.markB.frame.x = maxX;
+        this.markBObj.frame.x = maxX;
       }
-      this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
+      this.markBObj.inspectionFrame.x = this.markBObj.frame.x - MarkPadding;
       this.recordMovingS();
       requestAnimationFrame(() => {
         this.draw();
@@ -348,16 +347,16 @@ export class RangeRuler extends Graph {
         this.delayDraw();
       });
     } else if (this.isNewRange) {
-      this.markA.frame.x = this.mouseDownOffsetX;
-      this.markA.inspectionFrame.x = this.mouseDownOffsetX - markPadding;
-      if (x >= 0 && x <= maxX) {
-        this.markB.frame.x = x;
-      } else if (x < 0) {
-        this.markB.frame.x = 0;
+      this.markAObj.frame.x = this.mouseDownOffsetX;
+      this.markAObj.inspectionFrame.x = this.mouseDownOffsetX - MarkPadding;
+      if (move_x >= 0 && move_x <= maxX) {
+        this.markBObj.frame.x = move_x;
+      } else if (move_x < 0) {
+        this.markBObj.frame.x = 0;
       } else {
-        this.markB.frame.x = maxX;
+        this.markBObj.frame.x = maxX;
       }
-      this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
+      this.markBObj.inspectionFrame.x = this.markBObj.frame.x - MarkPadding;
       this.recordMovingS();
       requestAnimationFrame(() => {
         this.draw();
@@ -374,13 +373,17 @@ export class RangeRuler extends Graph {
       this.animaStartTime = dat.getTime();
     }
     this.currentDuration = new Date().getTime() - this.animaStartTime;
+    this.setCacheInterval();
+    this.range.refresh = this.cacheInterval.flag;
+  }
+
+  setCacheInterval(){
     if (Math.trunc(this.currentDuration / this.cacheInterval.interval) != this.cacheInterval.value) {
       this.cacheInterval.flag = true;
       this.cacheInterval.value = Math.trunc(this.currentDuration / this.cacheInterval.interval);
     } else {
       this.cacheInterval.flag = false;
     }
-    this.range.refresh = this.cacheInterval.flag;
   }
 
   delayDraw() {
@@ -400,16 +403,16 @@ export class RangeRuler extends Graph {
   }
 
   fillX() {
-    if (this.range.startNS < 0) this.range.startNS = 0;
     if (this.range.endNS < 0) this.range.endNS = 0;
+    if (this.range.startNS < 0) this.range.startNS = 0;
     if (this.range.endNS > this.range.totalNS) this.range.endNS = this.range.totalNS;
     if (this.range.startNS > this.range.totalNS) this.range.startNS = this.range.totalNS;
     this.range.startX = (this.range.startNS * (this.canvas?.clientWidth || 0)) / this.range.totalNS;
     this.range.endX = (this.range.endNS * (this.canvas?.clientWidth || 0)) / this.range.totalNS;
-    this.markA.frame.x = this.range.startX;
-    this.markA.inspectionFrame.x = this.markA.frame.x - markPadding;
-    this.markB.frame.x = this.range.endX;
-    this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
+    this.markAObj.frame.x = this.range.startX;
+    this.markAObj.inspectionFrame.x = this.markAObj.frame.x - MarkPadding;
+    this.markBObj.frame.x = this.range.endX;
+    this.markBObj.inspectionFrame.x = this.markBObj.frame.x - MarkPadding;
   }
 
   setRangeNS(startNS: number, endNS: number) {
@@ -439,37 +442,32 @@ export class RangeRuler extends Graph {
 
   cancelTimeOut: any = undefined;
 
-  keyPress(ev: KeyboardEvent) {
+  keyPress(keyboardEvent: KeyboardEvent) {
     if (
       this.animaStartTime == undefined ||
-      (this.pressedKeys.length > 0 && this.pressedKeys[this.pressedKeys.length - 1] != ev.key.toLocaleLowerCase())
+      (this.pressedKeys.length > 0 && this.pressedKeys[this.pressedKeys.length - 1] != keyboardEvent.key.toLocaleLowerCase())
     ) {
       let dat = new Date();
       dat.setTime(dat.getTime() - 400);
       this.animaStartTime = dat.getTime();
     }
     this.currentDuration = new Date().getTime() - this.animaStartTime;
-    if (Math.trunc(this.currentDuration / this.cacheInterval.interval) != this.cacheInterval.value) {
-      this.cacheInterval.flag = true;
-      this.cacheInterval.value = Math.trunc(this.currentDuration / this.cacheInterval.interval);
-    } else {
-      this.cacheInterval.flag = false;
-    }
+    this.setCacheInterval();
     this.range.refresh = this.cacheInterval.flag;
     if (this.pressedKeys.length > 0) {
-      if (this.pressedKeys[this.pressedKeys.length - 1] != ev.key.toLocaleLowerCase()) {
+      if (this.pressedKeys[this.pressedKeys.length - 1] != keyboardEvent.key.toLocaleLowerCase()) {
         this.cancelPressFrame();
         this.cancelUpFrame();
-        this.pressedKeys.push(ev.key.toLocaleLowerCase());
-        let dat = new Date();
-        dat.setTime(dat.getTime() - 400);
-        this.animaStartTime = dat.getTime();
+        this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
+        let date = new Date();
+        date.setTime(date.getTime() - 400);
+        this.animaStartTime = date.getTime();
         this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
       }
     } else {
       this.cancelPressFrame();
       this.cancelUpFrame();
-      this.pressedKeys.push(ev.key.toLocaleLowerCase());
+      this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
       let dat = new Date();
       dat.setTime(dat.getTime() - 400);
       this.animaStartTime = dat.getTime();
@@ -480,7 +478,7 @@ export class RangeRuler extends Graph {
       clearTimeout(this.cancelTimeOut);
     }
     this.cancelTimeOut = setTimeout(() => {
-      this.keyUp({ key: ev.key } as KeyboardEvent);
+      this.keyUp({ key: keyboardEvent.key } as KeyboardEvent);
     }, 1000);
   }
 
@@ -528,7 +526,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      let s = (this.scale / this.p) * this.currentDuration * 0.4;
+      let s = (this.scale / this.p) * this.currentDuration * 1.2;
       this.range.startNS -= s;
       this.range.endNS -= s;
       this.fillX();
@@ -547,7 +545,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      let s = (this.scale / this.p) * this.currentDuration * 0.4;
+      let s = (this.scale / this.p) * this.currentDuration * 1.2;
       this.range.startNS += s;
       this.range.endNS += s;
       this.fillX();
@@ -603,7 +601,7 @@ export class RangeRuler extends Graph {
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 200) {
+      if (dur < 100) {
         this.upFrameIdW = requestAnimationFrame(animW);
       } else {
         this.range.refresh = true;
@@ -629,7 +627,7 @@ export class RangeRuler extends Graph {
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 200) {
+      if (dur < 100) {
         this.upFrameIdS = requestAnimationFrame(animS);
       } else {
         this.range.refresh = true;
@@ -656,7 +654,7 @@ export class RangeRuler extends Graph {
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 200) {
+      if (dur < 100) {
         this.upFrameIdA = requestAnimationFrame(animA);
       } else {
         this.range.refresh = true;
@@ -683,7 +681,7 @@ export class RangeRuler extends Graph {
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 200) {
+      if (dur < 100) {
         this.upFrameIdD = requestAnimationFrame(animD);
       } else {
         this.range.refresh = true;

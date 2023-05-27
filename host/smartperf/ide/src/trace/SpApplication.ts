@@ -443,7 +443,7 @@ export class SpApplication extends BaseElement {
         menuItem!.forEach((item) => {
           item.style.color = 'white';
         });
-        ColorUtils.MD_PALETTE = ColorUtils.MD_PALETTE_A;
+        ColorUtils.MD_PALETTE = ColorUtils.FUNC_COLOR_A;
         ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_A;
       } else {
         menu!.style.backgroundColor = 'white';
@@ -457,7 +457,7 @@ export class SpApplication extends BaseElement {
         menuItem!.forEach((item) => {
           item.style.color = 'var(--dark-color,rgba(0,0,0,0.6))';
         });
-        ColorUtils.MD_PALETTE = ColorUtils.MD_PALETTE_B;
+        ColorUtils.MD_PALETTE = ColorUtils.FUNC_COLOR_B;
         ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_B;
       }
 
@@ -1233,37 +1233,11 @@ export class SpApplication extends BaseElement {
         a.href = URL.createObjectURL(new Blob([reqBufferDB]));
         a.download = fileName;
         a.click();
-        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-        querySelectorAll!.forEach((menuGroup) => {
-          let attribute = menuGroup.getAttribute('title');
-          if (attribute === 'Current Trace') {
-            let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-            querySelectors.forEach((item) => {
-              if (item.getAttribute('title') == 'Download Database') {
-                item!.setAttribute('icon', 'convert-loading');
-                let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-                querySelector1.setAttribute('spin', '');
-              }
-            });
-          }
-        });
-        window.URL.revokeObjectURL(a.href);
+        this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
+        let that = this;
         let timer = setInterval(function () {
-          let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-          querySelectorAll!.forEach((menuGroup) => {
-            let attribute = menuGroup.getAttribute('title');
-            if (attribute === 'Current Trace') {
-              let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-              querySelectors.forEach((item) => {
-                if (item.getAttribute('title') == 'Download Database') {
-                  item!.setAttribute('icon', 'download');
-                  let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-                  querySelector1.removeAttribute('spin');
-                }
-              });
-              clearInterval(timer);
-            }
-          });
+          that.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
+          clearInterval(timer);
         }, 4000);
       },
       'download-db'
@@ -1284,38 +1258,28 @@ export class SpApplication extends BaseElement {
     }
     a.download = fileName;
     a.click();
-    let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-    querySelectorAll!.forEach((menuGroup) => {
-      let attribute = menuGroup.getAttribute('title');
-      if (attribute === 'Current Trace') {
-        let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-        querySelectors.forEach((item) => {
-          if (item.getAttribute('title') == 'Download File') {
-            item!.setAttribute('icon', 'convert-loading');
-            let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-            querySelector1.setAttribute('spin', '');
-          }
-        });
-      }
-    });
     window.URL.revokeObjectURL(a.href);
+    let that = this;
+    this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', true);
     let timer = setInterval(function () {
-      let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-      querySelectorAll!.forEach((menuGroup) => {
-        let attribute = menuGroup.getAttribute('title');
-        if (attribute === 'Current Trace') {
-          let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-          querySelectors.forEach((item) => {
-            if (item.getAttribute('title') == 'Download File') {
-              item!.setAttribute('icon', 'download');
-              let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-              querySelector1.removeAttribute('spin');
-            }
-          });
-          clearInterval(timer);
-        }
-      });
+      that.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
+      clearInterval(timer);
     }, 4000);
+  }
+
+  private itemIconLoading(mainMenu: LitMainMenu, groupName: string, itemName: string, start: boolean) {
+    let currentTraceGroup = mainMenu.shadowRoot?.querySelector<LitMainMenuGroup>(
+      `lit-main-menu-group[title='${groupName}']`
+    );
+    let downloadItem = currentTraceGroup!.querySelector<LitMainMenuItem>(`lit-main-menu-item[title='${itemName}']`);
+    let downloadIcon = downloadItem!.shadowRoot?.querySelector('.icon') as LitIcon;
+    if (start) {
+      downloadItem!.setAttribute('icon', 'convert-loading');
+      downloadIcon.setAttribute('spin', '');
+    } else {
+      downloadItem!.setAttribute('icon', 'download');
+      downloadIcon.removeAttribute('spin');
+    }
   }
 
   private vsDownloadDB(mainMenu: LitMainMenu, fileDbName: string) {
@@ -1327,27 +1291,14 @@ export class SpApplication extends BaseElement {
       (reqBufferDB: any) => {
         Cmd.showSaveFile((filePath: string) => {
           if (filePath != '') {
-            let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-            querySelectorAll!.forEach((menuGroup) => {
-              let attribute = menuGroup.getAttribute('title');
-              if (attribute === 'Current Trace') {
-                let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-                querySelectors.forEach((item) => {
-                  if (item.getAttribute('title') == 'Download Database') {
-                    item!.setAttribute('icon', 'convert-loading');
-                    let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-                    querySelector1.setAttribute('spin', '');
-                  }
-                });
-              }
-            });
+            this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
             const fd = new FormData();
             fd.append('convertType', 'download');
             fd.append('filePath', filePath);
             fd.append('file', new File([reqBufferDB], fileName));
             Cmd.uploadFile(fd, (res: Response) => {
               if (res.ok) {
-                this.stopDownLoading(mainMenu, 'Download Database');
+                this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
               }
             });
           }
@@ -1360,25 +1311,12 @@ export class SpApplication extends BaseElement {
   private vsDownload(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
     Cmd.showSaveFile((filePath: string) => {
       if (filePath != '') {
-        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-        querySelectorAll!.forEach((menuGroup) => {
-          let attribute = menuGroup.getAttribute('title');
-          if (attribute === 'Current Trace') {
-            let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-            querySelectors.forEach((item) => {
-              if (item.getAttribute('title') == 'DownLoad') {
-                item!.setAttribute('icon', 'convert-loading');
-                let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-                querySelector1.setAttribute('spin', '');
-              }
-            });
-          }
-        });
+        this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', true);
         if (isServer) {
           if (dbName != '') {
             let file = dbName?.substring(0, dbName?.lastIndexOf('.')) + fileName.substring(fileName.lastIndexOf('.'));
             Cmd.copyFile(file, filePath, (res: Response) => {
-              this.stopDownLoading(mainMenu);
+              this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
             });
           }
         } else {
@@ -1388,7 +1326,7 @@ export class SpApplication extends BaseElement {
           fd.append('file', new File([DbPool.sharedBuffer!], fileName));
           Cmd.uploadFile(fd, (res: Response) => {
             if (res.ok) {
-              this.stopDownLoading(mainMenu);
+              this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
             }
           });
         }

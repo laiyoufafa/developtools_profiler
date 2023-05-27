@@ -18,22 +18,17 @@ import {
   drawFlagLine,
   drawLines,
   drawLoading,
-  drawSelection,
-  isFrameContainPoint,
   ns2x,
   Render,
   RequestMessage,
+  drawSelection,
+  isFrameContainPoint,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
 export class EnergyPowerRender extends Render {
   renderMainThread(
-    req: {
-      useCache: boolean;
-      context: CanvasRenderingContext2D;
-      type: string;
-      appName: string;
-    },
+    powerReq: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName: string },
     row: TraceRow<EnergyPowerStruct>
   ) {
     let list = row.dataList;
@@ -45,14 +40,14 @@ export class EnergyPowerRender extends Render {
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
       row.frame,
-      req.useCache || !TraceRow.range!.refresh,
-      req.appName
+      powerReq.useCache || !TraceRow.range!.refresh,
+      powerReq.appName
     );
-    req.context.beginPath();
+    powerReq.context.beginPath();
     let find = false;
     for (let i = 0; i < filter.length; i++) {
       let re = filter[i];
-      EnergyPowerStruct.draw(req, i, re, row);
+      EnergyPowerStruct.draw(powerReq, i, re, row);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         EnergyPowerStruct.hoverEnergyPowerStruct = re;
         find = true;
@@ -62,102 +57,121 @@ export class EnergyPowerRender extends Render {
     TraceRow.range!.refresh = true;
     if (EnergyPowerStruct.maxPower != 0) {
       let s = EnergyPowerStruct.maxPower + 'mAs';
-      let textMetrics = req.context.measureText(s);
-      req.context.globalAlpha = 1.0;
-      req.context.fillStyle = '#f0f0f0';
-      req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-      req.context.globalAlpha = 1;
-      req.context.fillStyle = '#333';
-      req.context.textBaseline = 'middle';
-      req.context.fillText(s, 4, 5 + 9);
+      let textMetrics = powerReq.context.measureText(s);
+      powerReq.context.globalAlpha = 1.0;
+      powerReq.context.fillStyle = '#f0f0f0';
+      powerReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
+      powerReq.context.globalAlpha = 1;
+      powerReq.context.fillStyle = '#333';
+      powerReq.context.textBaseline = 'middle';
+      powerReq.context.fillText(s, 4, 5 + 9);
     }
-    req.context.closePath();
+    powerReq.context.closePath();
     let spApplication = document.getElementsByTagName('sp-application')[0];
     let isDark = spApplication.hasAttribute('dark');
-    drawLegend(req, isDark);
+    drawLegend(powerReq, isDark);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
+  render(energyPowerRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (energyPowerRequest.lazyRefresh) {
       power(
         list,
         filter,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.useCache || !req.range.refresh,
-        req.params.maxPowerName
+        energyPowerRequest.startNS,
+        energyPowerRequest.endNS,
+        energyPowerRequest.totalNS,
+        energyPowerRequest.frame,
+        energyPowerRequest.useCache || !energyPowerRequest.range.refresh,
+        energyPowerRequest.params.maxPowerName
       );
     } else {
-      if (!req.useCache) {
-        power(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false, req.params.maxPowerName);
+      if (!energyPowerRequest.useCache) {
+        power(
+          list,
+          filter,
+          energyPowerRequest.startNS,
+          energyPowerRequest.endNS,
+          energyPowerRequest.totalNS,
+          energyPowerRequest.frame,
+          false,
+          energyPowerRequest.params.maxPowerName
+        );
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.canvas.width, EnergyPowerStruct.rowHeight);
+    if (energyPowerRequest.canvas) {
+      energyPowerRequest.context.clearRect(0, 0, energyPowerRequest.canvas.width, EnergyPowerStruct.rowHeight);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (
+        arr.length > 0 &&
+        !energyPowerRequest.range.refresh &&
+        !energyPowerRequest.useCache &&
+        energyPowerRequest.lazyRefresh
+      ) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          energyPowerRequest.context,
+          energyPowerRequest.startNS,
+          energyPowerRequest.endNS,
+          energyPowerRequest.totalNS,
+          energyPowerRequest.frame,
           arr[0].startNS,
           arr[arr.length - 1].startNS + arr[arr.length - 1].dur
         );
       }
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-      req.context.beginPath();
+      drawLines(
+        energyPowerRequest.context,
+        energyPowerRequest.xs,
+        energyPowerRequest.frame.height,
+        energyPowerRequest.lineColor
+      );
+      energyPowerRequest.context.beginPath();
       EnergyPowerStruct.hoverEnergyPowerStruct = undefined;
-      if (req.isHover) {
+      if (energyPowerRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            energyPowerRequest.hoverX >= re.frame.x &&
+            energyPowerRequest.hoverX <= re.frame.x + re.frame.width &&
+            energyPowerRequest.hoverY >= re.frame.y &&
+            energyPowerRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             EnergyPowerStruct.hoverEnergyPowerStruct = re;
             break;
           }
         }
       }
-      EnergyPowerStruct.selectEnergyPowerStruct = req.params.selectEnergyPowerStruct;
+      EnergyPowerStruct.selectEnergyPowerStruct = energyPowerRequest.params.selectEnergyPowerStruct;
       for (let index = 0; index < filter.length; index++) {}
-      req.context.stroke();
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      energyPowerRequest.context.stroke();
+      drawSelection(energyPowerRequest.context, energyPowerRequest.params);
+      energyPowerRequest.context.closePath();
       if (EnergyPowerStruct.maxPower != 0) {
         let s = EnergyPowerStruct.maxPower + 'mAs';
-        let textMetrics = req.context.measureText(s);
-        req.context.globalAlpha = 1.0;
-        req.context.fillStyle = '#f0f0f0';
-        req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-        req.context.globalAlpha = 1;
-        req.context.fillStyle = '#333';
-        req.context.textBaseline = 'middle';
-        req.context.fillText(s, 4, 5 + 9);
+        let textMetrics = energyPowerRequest.context.measureText(s);
+        energyPowerRequest.context.globalAlpha = 1.0;
+        energyPowerRequest.context.fillStyle = '#f0f0f0';
+        energyPowerRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
+        energyPowerRequest.context.globalAlpha = 1;
+        energyPowerRequest.context.fillStyle = '#333';
+        energyPowerRequest.context.textBaseline = 'middle';
+        energyPowerRequest.context.fillText(s, 4, 5 + 9);
       }
-      drawLegend(req);
+      drawLegend(energyPowerRequest);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        energyPowerRequest.context,
+        energyPowerRequest.flagMoveInfo,
+        energyPowerRequest.flagSelectedInfo,
+        energyPowerRequest.startNS,
+        energyPowerRequest.endNS,
+        energyPowerRequest.totalNS,
+        energyPowerRequest.frame,
+        energyPowerRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: energyPowerRequest.id,
+      type: energyPowerRequest.type,
+      results: energyPowerRequest.canvas ? undefined : filter,
       hover: EnergyPowerStruct.hoverEnergyPowerStruct,
     });
   }
@@ -461,27 +475,27 @@ export class EnergyPowerStruct extends BaseStruct {
     return totalHeight;
   }
 
-  static setPowerFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setPowerFrame(powerNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let startPointX: number;
     let endPointX: number;
-    if ((node.ts || 0) < startNS) {
+    if ((powerNode.ts || 0) < startNS) {
       startPointX = 0;
     } else {
-      startPointX = ns2x((node.ts || 0) - 500000000, startNS, endNS, totalNS, frame);
+      startPointX = ns2x((powerNode.ts || 0) - 500000000, startNS, endNS, totalNS, frame);
     }
-    if (node.ts + 500000000 > endNS) {
+    if (powerNode.ts + 500000000 > endNS) {
       endPointX = frame.width;
     } else {
-      endPointX = ns2x(node.ts + 500000000, startNS, endNS, totalNS, frame);
+      endPointX = ns2x(powerNode.ts + 500000000, startNS, endNS, totalNS, frame);
     }
     let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    if (!powerNode.frame) {
+      powerNode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    powerNode.frame.x = Math.floor(startPointX);
+    powerNode.frame.y = frame.y + padding;
+    powerNode.frame.width = Math.ceil(frameWidth);
+    powerNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 
   static getHistogramColor(textItem: string): string {

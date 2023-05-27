@@ -51,35 +51,35 @@ export function getTimeString(ns: number): string {
   if (ns === 0) {
     return '0';
   }
-  let currentNs = ns;
+  let currentTimeNs = ns;
   let hour1 = 3600_000_000_000;
   let minute1 = 60_000_000_000;
   let second1 = 1_000_000_000; // 1 second
   let millisecond1 = 1_000_000; // 1 millisecond
   let microsecond1 = 1_000; // 1 microsecond
   let res = '';
-  if (currentNs >= hour1) {
-    res += Math.floor(currentNs / hour1) + 'h ';
-    currentNs = currentNs - Math.floor(currentNs / hour1) * hour1;
+  if (currentTimeNs >= hour1) {
+    res += Math.floor(currentTimeNs / hour1) + 'h ';
+    currentTimeNs = currentTimeNs - Math.floor(currentTimeNs / hour1) * hour1;
   }
-  if (currentNs >= minute1) {
-    res += Math.floor(currentNs / minute1) + 'm ';
-    currentNs = currentNs - Math.floor(ns / minute1) * minute1;
+  if (currentTimeNs >= minute1) {
+    res += Math.floor(currentTimeNs / minute1) + 'm ';
+    currentTimeNs = currentTimeNs - Math.floor(ns / minute1) * minute1;
   }
-  if (currentNs >= second1) {
-    res += Math.floor(currentNs / second1) + 's ';
-    currentNs = currentNs - Math.floor(currentNs / second1) * second1;
+  if (currentTimeNs >= second1) {
+    res += Math.floor(currentTimeNs / second1) + 's ';
+    currentTimeNs = currentTimeNs - Math.floor(currentTimeNs / second1) * second1;
   }
-  if (currentNs >= millisecond1) {
-    res += Math.floor(currentNs / millisecond1) + 'ms ';
-    currentNs = currentNs - Math.floor(currentNs / millisecond1) * millisecond1;
+  if (currentTimeNs >= millisecond1) {
+    res += Math.floor(currentTimeNs / millisecond1) + 'ms ';
+    currentTimeNs = currentTimeNs - Math.floor(currentTimeNs / millisecond1) * millisecond1;
   }
-  if (currentNs >= microsecond1) {
-    res += Math.floor(currentNs / microsecond1) + 'μs ';
-    currentNs = currentNs - Math.floor(currentNs / microsecond1) * microsecond1;
+  if (currentTimeNs >= microsecond1) {
+    res += Math.floor(currentTimeNs / microsecond1) + 'μs ';
+    currentTimeNs = currentTimeNs - Math.floor(currentTimeNs / microsecond1) * microsecond1;
   }
-  if (currentNs > 0) {
-    res += currentNs + 'ns ';
+  if (currentTimeNs > 0) {
+    res += currentTimeNs + 'ns ';
   }
   return res;
 }
@@ -87,13 +87,13 @@ export function getTimeString(ns: number): string {
 @element('tabpane-current-selection')
 export class TabPaneCurrentSelection extends BaseElement {
   weakUpBean: WakeupBean | null | undefined;
-  private tbl: LitTable | null | undefined;
+  private currentSelectionTbl: LitTable | null | undefined;
   private tableObserver: MutationObserver | undefined;
   // @ts-ignore
   private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
 
-  set data(value: any) {
-    this.setCpuData(value);
+  set data(currentSelectionValue: any) {
+    this.setCpuData(currentSelectionValue);
   }
 
   setCpuData(
@@ -161,10 +161,10 @@ export class TabPaneCurrentSelection extends BaseElement {
           list.push({ name: arg.keyName, value: arg.strValue });
         });
       }
-      this.tbl!.dataSource = list;
-      let rightArea: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-table');
+      this.currentSelectionTbl!.dataSource = list;
+      let rightArea: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#table-right');
       let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-      let threadClick = this.tbl?.shadowRoot?.querySelector('#thread-id');
+      let threadClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#thread-id');
       threadClick?.addEventListener('click', () => {
         //cpu点击
         if (scrollCallback) {
@@ -195,15 +195,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   setFunctionData(data: FuncStruct, scrollCallback: Function) {
     //方法信息
-    this.initCanvas();
-    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
-    let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-    if (rightTitle) {
-      rightTitle.style.visibility = 'hidden';
-    }
-    if (leftTitle) {
-      leftTitle.innerText = 'Slice Details';
-    }
+    this.tabCurrentSelectionInit('Slice Details');
     let list: any[] = [];
     let name = this.transferString(data.funName ?? '');
     let isBinder = FuncStruct.isBinder(data);
@@ -250,8 +242,8 @@ export class TabPaneCurrentSelection extends BaseElement {
           });
           list.push({ name: 'depth', value: data.depth });
           list.push({ name: 'arg_set_id', value: data.argsetid });
-          this.tbl!.dataSource = list;
-          let funcClick = this.tbl?.shadowRoot?.querySelector('#function-jump');
+          this.currentSelectionTbl!.dataSource = list;
+          let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
           funcClick?.addEventListener('click', () => {
             scrollCallback(asyncBinderStract);
           });
@@ -285,8 +277,8 @@ export class TabPaneCurrentSelection extends BaseElement {
           });
           list.push({ name: 'depth', value: data.depth });
           list.push({ name: 'arg_set_id', value: data.argsetid });
-          this.tbl!.dataSource = list;
-          let funcClick = this.tbl?.shadowRoot?.querySelector('#function-jump');
+          this.currentSelectionTbl!.dataSource = list;
+          let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
           funcClick?.addEventListener('click', () => {
             if (!Number.isNaN(binderSliceId) && binderSliceId != -1) {
               queryBinderBySliceId(binderSliceId).then((result: any[]) => {
@@ -314,7 +306,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           });
           list.push({ name: 'depth', value: data.depth });
           list.push({ name: 'arg_set_id', value: data.argsetid });
-          this.tbl!.dataSource = list;
+          this.currentSelectionTbl!.dataSource = list;
         });
       }
     } else {
@@ -328,21 +320,25 @@ export class TabPaneCurrentSelection extends BaseElement {
         value: getTimeString(data.dur || 0),
       });
       list.push({ name: 'depth', value: data.depth });
-      this.tbl!.dataSource = list;
+      this.currentSelectionTbl!.dataSource = list;
+    }
+  }
+
+  private tabCurrentSelectionInit(leftTitleStr:string) {
+    this.initCanvas();
+    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
+    let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
+    if (rightTitle) {
+      rightTitle.style.visibility = 'hidden';
+    }
+    if (leftTitle) {
+      leftTitle.innerText = leftTitleStr;
     }
   }
 
   setClockData(data: ClockStruct) {
     //时钟信息
-    this.initCanvas();
-    let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-    if (rightTitle) {
-      rightTitle.style.visibility = 'hidden';
-    }
-    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
-    if (leftTitle) {
-      leftTitle.innerText = 'Counter Details';
-    }
+    this.tabCurrentSelectionInit('Counter Details');
     let list: any[] = [];
     list.push({
       name: 'Start time',
@@ -354,7 +350,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     // list.push({name: 'Delta', value: ColorUtils.formatNumberComma(data.delta||0)})
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
-    this.tbl!.dataSource = list;
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   setMemData(data: ProcessMemStruct) {
@@ -375,7 +371,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'Duration',
       value: getTimeString(data.duration || 0),
     });
-    this.tbl!.dataSource = list;
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   setIrqData(data: IrqStruct) {
@@ -401,7 +397,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           list.push({ name: item.keyName, value: item.strValue });
         });
       }
-      this.tbl!.dataSource = list;
+      this.currentSelectionTbl!.dataSource = list;
     });
   }
 
@@ -426,7 +422,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: getTimeString(data.startTime || 0),
     });
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
-    let state = '';
+    let state;
     if (data.state) {
       state = Utils.getEndState(data.state);
     } else if (data.state == '' || data.state == null) {
@@ -442,7 +438,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       list.push({
         name: 'State',
-        value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+        value: `<div style="white-space: nowrap;display: flex;align-items: center">
             <div style="white-space:pre-wrap">${state}</div>
             <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
@@ -496,14 +492,14 @@ export class TabPaneCurrentSelection extends BaseElement {
           list.push({ name: arg.keyName, value: arg.strValue });
         });
       }
-      this.tbl!.dataSource = list;
-      this.tbl?.shadowRoot?.querySelector('#state-click')?.addEventListener('click', () => {
+      this.currentSelectionTbl!.dataSource = list;
+      this.currentSelectionTbl?.shadowRoot?.querySelector('#state-click')?.addEventListener('click', () => {
         //线程点击
         if (scrollCallback) {
           scrollCallback(data);
         }
       });
-      this.tbl?.shadowRoot?.querySelector('#wakeup-from')?.addEventListener('click', (e) => {
+      this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-from')?.addEventListener('click', () => {
         //点击跳转，唤醒和被唤醒的 线程
         if (fromBean && scrollWakeUp) {
           scrollWakeUp({
@@ -515,7 +511,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       if (wakeUps) {
         wakeUps.map((up) => {
-          this.tbl?.shadowRoot?.querySelector(`#wakeup-${up.tid}`)?.addEventListener('click', (e) => {
+          this.currentSelectionTbl?.shadowRoot?.querySelector(`#wakeup-${up.tid}`)?.addEventListener('click', () => {
             //点击跳转，唤醒和被唤醒的 线程
             if (up && scrollWakeUp != undefined) {
               scrollWakeUp({
@@ -536,15 +532,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     scrollCallback: ((d: any) => void) | undefined
   ) {
     //线程信息
-    this.initCanvas();
-    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
-    let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-    if (rightTitle) {
-      rightTitle.style.visibility = 'hidden';
-    }
-    if (leftTitle) {
-      leftTitle.innerText = 'Slice Details';
-    }
+    this.tabCurrentSelectionInit('Slice Details');
     let list: any[] = [];
     list.push({ name: 'Name', value: data.name });
     list.push({ name: 'StartTime', value: getTimeString(data.ts || 0) });
@@ -594,7 +582,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           queryFlowsData(data.src_slice!.split(',')).then((it) => {
             if (it.length > 0) {
               list.push({
-                name: `<div style="padding:5px 0px 5px 0px;">FrameTimeLine flows</div>`,
+                name: `<div style="padding:5px 0 5px 0;">FrameTimeLine flows</div>`,
                 value: '',
               });
               it.forEach((a: any) => {
@@ -613,7 +601,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 });
               });
               list.push({
-                name: `<div style="padding:5px 0px 5px 0px;">Following flows</div>`,
+                name: `<div style="padding:5px 0 5px 0;">Following flows</div>`,
                 value: '',
               });
               it.forEach((a: any) => {
@@ -627,30 +615,16 @@ export class TabPaneCurrentSelection extends BaseElement {
                     `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}"  pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
                 });
               });
-              this.tbl!.dataSource = list;
-              let all = this.tbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
-              all!.forEach((a) => {
-                a.addEventListener('click', (e) => {
-                  if (scrollCallback) {
-                    scrollCallback({
-                      rowId: a.id,
-                      name: a.getAttribute('slice_name'),
-                      pid: a.getAttribute('pid'),
-                    });
-                  }
-                });
-              });
-              if (callback) {
-                callback(jankJumperList);
-              }
+              this.currentSelectionTbl!.dataSource = list;
+              this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
             }
           });
         } else {
-          this.tbl!.dataSource = list;
+          this.currentSelectionTbl!.dataSource = list;
         }
       } else if (data.frame_type === 'app') {
         list.push({
-          name: `<div style="padding:5px 0px 5px 0px;">FrameTimeLine flows</div>`,
+          name: `<div style="padding:5px 0 5px 0;">FrameTimeLine flows</div>`,
           value: '',
         });
         list.push({
@@ -668,7 +642,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           queryPrecedingData(data.dst_slice).then((it) => {
             if (it.length > 0) {
               list.push({
-                name: `<div style="padding:5px 0px 5px 0px;">Preceding flows</div>`,
+                name: `<div style="padding:5px 0 5px 0;">Preceding flows</div>`,
                 value: '',
               });
               it.forEach((a: any) => {
@@ -684,41 +658,13 @@ export class TabPaneCurrentSelection extends BaseElement {
                     `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
                 });
               });
-              this.tbl!.dataSource = list;
-              let all = this.tbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
-              all!.forEach((a) => {
-                a.addEventListener('click', (e) => {
-                  if (scrollCallback) {
-                    scrollCallback({
-                      rowId: a.id,
-                      name: a.getAttribute('slice_name'),
-                      pid: a.getAttribute('pid'),
-                    });
-                  }
-                });
-              });
-              if (callback) {
-                callback(jankJumperList);
-              }
+              this.currentSelectionTbl!.dataSource = list;
+              this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
             }
           });
         } else {
-          this.tbl!.dataSource = list;
-          let all = this.tbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
-          all!.forEach((a) => {
-            a.addEventListener('click', (e) => {
-              if (scrollCallback) {
-                scrollCallback({
-                  rowId: a.id,
-                  name: a.getAttribute('slice_name'),
-                  pid: a.getAttribute('pid'),
-                });
-              }
-            });
-          });
-          if (callback) {
-            callback(jankJumperList);
-          }
+          this.currentSelectionTbl!.dataSource = list;
+          this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
         }
       } else if (data.frame_type === 'frameTime') {
         queryGpuDur(data.id!).then((it) => {
@@ -730,7 +676,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           }
           if (data.name) {
             list.push({
-              name: `<div style="padding:5px 0px 5px 0px;">App Frame</div>`,
+              name: `<div style="padding:5px 0 5px 0;">App Frame</div>`,
               value: '',
             });
             list.push({
@@ -748,7 +694,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           }
           if (data.rs_name) {
             list.push({
-              name: `<div style="padding:5px 0px 5px 0px;">RenderService Frame</div>`,
+              name: `<div style="padding:5px 0 5px 0;">RenderService Frame</div>`,
               value: '',
             });
             list.push({
@@ -765,7 +711,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             });
           }
           list.push({
-            name: `<div style="padding:5px 0px 5px 0px;">Following</div>`,
+            name: `<div style="padding:5px 0 5px 0;">Following</div>`,
             value: '',
           });
           list.push({
@@ -781,10 +727,10 @@ export class TabPaneCurrentSelection extends BaseElement {
           let rsNode = new JankTreeNode(data.rs_vsync!, data.rs_pid!, 'render_service');
           appNode.children.push(rsNode);
           jankJumperList.push(appNode);
-          this.tbl!.dataSource = list;
-          let all = this.tbl?.shadowRoot?.querySelectorAll<LitIcon>(`.jank_cla`);
+          this.currentSelectionTbl!.dataSource = list;
+          let all = this.currentSelectionTbl?.shadowRoot?.querySelectorAll<LitIcon>(`.jank_cla`);
           all!.forEach((a) => {
-            a!.addEventListener('click', (e) => {
+            a!.addEventListener('click', () => {
               if (scrollCallback) {
                 scrollCallback({
                   rowId: a.id,
@@ -800,7 +746,25 @@ export class TabPaneCurrentSelection extends BaseElement {
         });
       }
     } else {
-      this.tbl!.dataSource = list;
+      this.currentSelectionTbl!.dataSource = list;
+    }
+  }
+
+  private addJankScrollCallBackEvent(scrollCallback: ((d: any) => void) | undefined, callback: ((data: Array<any>) => void) | undefined, jankJumperList: JankTreeNode[]) {
+    let all = this.currentSelectionTbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
+    all!.forEach((a) => {
+      a.addEventListener('click', () => {
+        if (scrollCallback) {
+          scrollCallback({
+            rowId: a.id,
+            name: a.getAttribute('slice_name'),
+            pid: a.getAttribute('pid'),
+          });
+        }
+      });
+    });
+    if (callback) {
+      callback(jankJumperList);
     }
   }
 
@@ -848,7 +812,6 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   /**
    * 查询出 线程唤醒了哪些线程信息
-   * @param data
    */
   async queryThreadWakeUpFromData(itid: number, startTime: number, dur: number): Promise<WakeupBean | undefined> {
     let wakeUps = await queryThreadWakeUpFrom(itid, startTime + (window as any).recordStartNS);
@@ -859,7 +822,6 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   /**
    * 查询出 线程唤醒了哪些线程信息
-   * @param data
    */
   async queryThreadWakeUpData(itid: number, startTime: number, dur: number): Promise<Array<WakeupBean>> {
     let list: Array<WakeupBean> = [];
@@ -875,8 +837,8 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   initCanvas(): HTMLCanvasElement | null {
     let canvas = this.shadowRoot!.querySelector<HTMLCanvasElement>('#rightDraw');
-    let width = getComputedStyle(this.tbl!).getPropertyValue('width');
-    let height = getComputedStyle(this.tbl!).getPropertyValue('height');
+    let width = getComputedStyle(this.currentSelectionTbl!).getPropertyValue('width');
+    let height = getComputedStyle(this.currentSelectionTbl!).getPropertyValue('height');
     if (canvas != null) {
       canvas.width = Math.round(Number(width.replace('px', '')) * this.dpr);
       canvas.height = Math.round(Number(height.replace('px', '')) * this.dpr);
@@ -929,7 +891,6 @@ export class TabPaneCurrentSelection extends BaseElement {
           context.fillText(str, 40, 40 + 16 * index);
         }
       });
-      //绘制左右箭头
       context.lineWidth = 2;
       context.lineJoin = 'bevel';
       context.moveTo(10, 95);
@@ -970,21 +931,14 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
-    this.tbl?.addEventListener('column-click', (ev: any) => {});
+    this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
     this.addTableObserver();
   }
 
   addTableObserver() {
-    let MutationObserver = window.MutationObserver;
-    this.tableObserver = new MutationObserver((list) => {
-      if (this.tbl) {
-        let width = getComputedStyle(this.tbl).getPropertyValue('width');
-        let height = getComputedStyle(this.tbl).getPropertyValue('height');
-      }
-    });
-    let selector = this.shadowRoot?.querySelector('.left-table');
-    this.tableObserver?.observe(selector!, {
+    let leftTable = this.shadowRoot?.querySelector('.table-left');
+    this.tableObserver?.observe(leftTable!, {
       attributes: true,
       attributeFilter: ['style'],
       attributeOldValue: true,
@@ -994,40 +948,40 @@ export class TabPaneCurrentSelection extends BaseElement {
   initHtml(): string {
     return `
         <style>
-            .current-title{
-                width: 100%;
-                display: flex;
+            .table-title{
                 top: 0;
                 background: var(--dark-background,#ffffff);
                 position: sticky;
+                width: 100%;
+                display: flex;
             }
-            .current-title h2{
-                width: 50%;
-                padding: 0 10px;
+            .table-title h2{
                 font-size: 16px;
                 font-weight: 400;
                 visibility: visible;
+                width: 50%;
+                padding: 0 10px;
             }
-            .bottom-scroll-area{
+            .scroll-area{
                 display: flex;
                 height: auto;
                 overflow-y: auto;
             }
-            .left-table{
+            .table-left{
                 width: 50%;
                 padding: 0 10px;
             }
-            .right-table{
+            .table-right{
                 width: 50%;
             }
         </style>
         <div style="width: 100%;height: auto;position: relative">
-            <div class="current-title">
+            <div class="table-title">
                 <h2 id="leftTitle"></h2>
                 <h2 id="rightTitle">Scheduling Latency</h2>
             </div>
-            <div class="bottom-scroll-area">
-                <div class="left-table">
+            <div class="scroll-area">
+                <div class="table-left">
                     <lit-table id="selectionTbl" no-head hideDownload style="height: auto">
                         <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
                             <template><div>{{name}}</div></template>
@@ -1037,7 +991,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                         </lit-table-column>
                     </lit-table>
                 </div>
-                <div class="right-table">
+                <div class="table-right">
                     <canvas id="rightDraw" style="width: 100%;height: 100%;"></canvas>
                 </div>
             </div>

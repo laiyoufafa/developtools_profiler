@@ -53,63 +53,71 @@ export class ProcessRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      proc(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(processReq: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (processReq.lazyRefresh) {
+      proc(
+        list,
+        filter,
+        processReq.startNS,
+        processReq.endNS,
+        processReq.totalNS,
+        processReq.frame,
+        processReq.useCache || !processReq.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        proc(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!processReq.useCache) {
+        proc(list, filter, processReq.startNS, processReq.endNS, processReq.totalNS, processReq.frame, false);
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+    if (processReq.canvas) {
+      processReq.context.clearRect(0, 0, processReq.frame.width, processReq.frame.height);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (arr.length > 0 && !processReq.range.refresh && !processReq.useCache && processReq.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          processReq.context,
+          processReq.startNS,
+          processReq.endNS,
+          processReq.totalNS,
+          processReq.frame,
           arr[0].startTime,
           arr[arr.length - 1].startTime + arr[arr.length - 1].dur
         );
       }
-      req.context.beginPath();
-      CpuStruct.cpuCount = req.params.cpuCount;
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      processReq.context.beginPath();
+      CpuStruct.cpuCount = processReq.params.cpuCount;
+      drawLines(processReq.context, processReq.xs, processReq.frame.height, processReq.lineColor);
       let path = new Path2D();
       let miniHeight: number = 0;
-      miniHeight = Math.round((req.frame.height - CpuStruct.cpuCount * 2) / CpuStruct.cpuCount);
-      req.context.fillStyle = ColorUtils.colorForTid(req.params.pid || 0);
+      miniHeight = Math.round((processReq.frame.height - CpuStruct.cpuCount * 2) / CpuStruct.cpuCount);
+      processReq.context.fillStyle = ColorUtils.colorForTid(processReq.params.pid || 0);
       for (let re of filter) {
-        ProcessStruct.draw(req.context, path, re, miniHeight);
+        ProcessStruct.draw(processReq.context, path, re, miniHeight);
       }
-      req.context.fill(path);
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      processReq.context.fill(path);
+      drawSelection(processReq.context, processReq.params);
+      processReq.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        processReq.context,
+        processReq.flagMoveInfo,
+        processReq.flagSelectedInfo,
+        processReq.startNS,
+        processReq.endNS,
+        processReq.totalNS,
+        processReq.frame,
+        processReq.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: processReq.id,
+      type: processReq.type,
+      results: processReq.canvas ? undefined : filter,
       hover: undefined,
     });
   }
 }
 export function proc(
-  list: Array<any>,
+  processList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -122,18 +130,18 @@ export function proc(
     return;
   }
   res.length = 0;
-  if (list) {
-    for (let i = 0, len = list.length; i < len; i++) {
-      let it = list[i];
+  if (processList) {
+    for (let i = 0, len = processList.length; i < len; i++) {
+      let it = processList[i];
       if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
-        ProcessStruct.setProcessFrame(list[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        ProcessStruct.setProcessFrame(processList[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
         if (
           i > 0 &&
-          (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
-          (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)
+          (processList[i - 1].frame?.x || 0) == (processList[i].frame?.x || 0) &&
+          (processList[i - 1].frame?.width || 0) == (processList[i].frame?.width || 0)
         ) {
         } else {
-          res.push(list[i]);
+          res.push(processList[i]);
         }
       }
     }
@@ -162,42 +170,49 @@ export class ProcessStruct extends BaseStruct {
     }
   }
 
-  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
-    if ((node.startTime || 0) < startNS) {
-      node.frame.x = 0;
+  static setFrame(processNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+    if ((processNode.startTime || 0) < startNS) {
+      processNode.frame.x = 0;
     } else {
-      node.frame.x = Math.floor(((node.startTime || 0) - startNS) / pns);
+      processNode.frame.x = Math.floor(((processNode.startTime || 0) - startNS) / pns);
     }
-    if ((node.startTime || 0) + (node.dur || 0) > endNS) {
-      node.frame.width = frame.width - node.frame.x;
+    if ((processNode.startTime || 0) + (processNode.dur || 0) > endNS) {
+      processNode.frame.width = frame.width - processNode.frame.x;
     } else {
-      node.frame.width = Math.ceil(((node.startTime || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+      processNode.frame.width = Math.ceil(((processNode.startTime || 0) + (processNode.dur || 0) - startNS) / pns - processNode.frame.x);
     }
-    if (node.frame.width < 1) {
-      node.frame.width = 1;
+    if (processNode.frame.width < 1) {
+      processNode.frame.width = 1;
     }
   }
 
-  static setProcessFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setProcessFrame(
+    processNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ) {
     let x1: number;
     let x2: number;
-    if ((node.startTime || 0) < startNS) {
+    if ((processNode.startTime || 0) < startNS) {
       x1 = 0;
     } else {
-      x1 = ns2x(node.startTime || 0, startNS, endNS, totalNS, frame);
+      x1 = ns2x(processNode.startTime || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startTime || 0) + (node.dur || 0) > endNS) {
+    if ((processNode.startTime || 0) + (processNode.dur || 0) > endNS) {
       x2 = frame.width;
     } else {
-      x2 = ns2x((node.startTime || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      x2 = ns2x((processNode.startTime || 0) + (processNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-    if (!node.frame) {
-      node.frame = {};
+    let processGetV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+    if (!processNode.frame) {
+      processNode.frame = {};
     }
-    node.frame.x = Math.floor(x1);
-    node.frame.y = Math.floor(frame.y + 2);
-    node.frame.width = Math.ceil(getV);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    processNode.frame.x = Math.floor(x1);
+    processNode.frame.y = Math.floor(frame.y + 2);
+    processNode.frame.width = Math.ceil(processGetV);
+    processNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

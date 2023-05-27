@@ -18,27 +18,28 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/SqlLite.js';
 import { CpuUsage, Freq } from '../../../../bean/CpuUsage.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private cpuUsageTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private orderByOldList: any[] = [];
 
-  set data(val: SelectionParam | any) {
+  set data(cpuUsageValue: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.cpuUsageTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
     this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      'Selected range: ' + parseFloat(((cpuUsageValue.rightNs - cpuUsageValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     Promise.all([
-      getTabCpuUsage(val.cpus, val.leftNs, val.rightNs),
-      getTabCpuFreq(val.cpus, val.leftNs, val.rightNs),
+      getTabCpuUsage(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
+      getTabCpuFreq(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
     ]).then((result) => {
       let usages = result[0];
       let freqMap = this.groupByCpuToMap(result[1]);
       let data = [];
-      let range = val.rightNs - val.leftNs;
-      for (let cpu of val.cpus) {
+      let range = cpuUsageValue.rightNs - cpuUsageValue.leftNs;
+      for (let cpu of cpuUsageValue.cpus) {
         let usage = new CpuUsage();
         usage.cpu = cpu;
         let u = usages.find((e) => e.cpu == cpu);
@@ -58,18 +59,18 @@ export class TabPaneCpuUsage extends BaseElement {
           for (let i = 0; i < freqList!.length; i++) {
             let freq = freqList![i];
             if (i == freqList!.length - 1) {
-              freq.dur = val.rightNs - freq.startNs;
+              freq.dur = cpuUsageValue.rightNs - freq.startNs;
             } else {
               freq.dur = freqList![i + 1].startNs - freq.startNs;
             }
-            if (freq.startNs + freq.dur > val.leftNs) {
+            if (freq.startNs + freq.dur > cpuUsageValue.leftNs) {
               list.push(freq);
             }
           }
           if (list.length > 0) {
-            if (list[0].startNs < val.leftNs) {
-              list[0].dur = list[0].startNs + list[0].dur - val.leftNs;
-              list[0].startNs = val.leftNs;
+            if (list[0].startNs < cpuUsageValue.leftNs) {
+              list[0].dur = list[0].startNs + list[0].dur - cpuUsageValue.leftNs;
+              list[0].startNs = cpuUsageValue.leftNs;
             }
           }
           arr = this.sortFreq(list);
@@ -77,48 +78,42 @@ export class TabPaneCpuUsage extends BaseElement {
         }
         data.push(usage);
       }
-      this.tbl!.recycleDataSource = data;
+      this.cpuUsageTbl!.recycleDataSource = data;
       this.orderByOldList = [...data];
     });
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-usage');
+    this.cpuUsageTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-usage');
     this.range = this.shadowRoot?.querySelector('#time-range');
-    this.tbl?.addEventListener('column-click', (event) => {
+    this.cpuUsageTbl?.addEventListener('column-click', (event) => {
       // @ts-ignore
       let orderType = event.detail;
       if (orderType.sort == 1) {
         //倒序   注意  sort会改变原数组，需要传入table上的数组 不能传入缓存排序数组
-        this.sortTable(this.tbl!.recycleDataSource, orderType.key, false);
+        this.sortTable(this.cpuUsageTbl!.recycleDataSource, orderType.key, false);
       } else if (orderType.sort == 2) {
         //正序
-        this.sortTable(this.tbl!.recycleDataSource, orderType.key, true);
+        this.sortTable(this.cpuUsageTbl!.recycleDataSource, orderType.key, true);
       } else {
         //默认排序
-        this.tbl!.recycleDataSource = [...this.orderByOldList];
+        this.cpuUsageTbl!.recycleDataSource = [...this.orderByOldList];
       }
     });
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.cpuUsageTbl!)
   }
 
   sortTable(arr: any[], key: string, sort: boolean) {
-    this.tbl!.recycleDataSource = arr.sort((item1, item2) => {
-      let value1 = Number(item1[key].toString().replace('%', ''));
-      let value2 = Number(item2[key].toString().replace('%', ''));
-      if (value1 > value2) {
+    this.cpuUsageTbl!.recycleDataSource = arr.sort((item1, item2) => {
+      let cpuUsageLeftData = Number(item1[key].toString().replace('%', ''));
+      let cpuUsageRightData = Number(item2[key].toString().replace('%', ''));
+      if (cpuUsageLeftData > cpuUsageRightData) {
         return sort ? -1 : 1;
-      } else if (value1 < value2) {
+      } else if (cpuUsageLeftData < cpuUsageRightData) {
         return sort ? 1 : -1;
       } else {
         return 0;
@@ -127,16 +122,16 @@ export class TabPaneCpuUsage extends BaseElement {
   }
 
   sortFreq(arr: Array<Freq>): Array<Array<number>> {
-    let map = new Map<number, number>();
+    let cpuUsageMap = new Map<number, number>();
     for (let freq of arr) {
-      if (map.has(freq.value)) {
-        let sumDur = map.get(freq.value)! + freq.dur;
-        map.set(freq.value, sumDur);
+      if (cpuUsageMap.has(freq.value)) {
+        let sumDur = cpuUsageMap.get(freq.value)! + freq.dur;
+        cpuUsageMap.set(freq.value, sumDur);
       } else {
-        map.set(freq.value, freq.dur);
+        cpuUsageMap.set(freq.value, freq.dur);
       }
     }
-    let array = Array.from(map);
+    let array = Array.from(cpuUsageMap);
     array.sort((a, b) => b[1] - a[1]);
     return array;
   }
@@ -157,45 +152,49 @@ export class TabPaneCpuUsage extends BaseElement {
   }
 
   groupByCpuToMap(arr: Array<Freq>): Map<number, Array<Freq>> {
-    let map = new Map<number, Array<Freq>>();
+    let cpuUsageMap = new Map<number, Array<Freq>>();
     for (let spt of arr) {
-      if (map.has(spt.cpu)) {
-        map.get(spt.cpu)!.push(spt);
+      if (cpuUsageMap.has(spt.cpu)) {
+        cpuUsageMap.get(spt.cpu)!.push(spt);
       } else {
         let list: Array<Freq> = [];
         list.push(spt);
-        map.set(spt.cpu, list);
+        cpuUsageMap.set(spt.cpu, list);
       }
     }
-    return map;
+    return cpuUsageMap;
   }
 
   initHtml(): string {
     return `
         <style>
+        .cpu-usage-label{
+            width: 100%;
+            height: 20px;
+        }
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="time-range" class="cpu-usage-label" style="text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-cpu-usage" style="height: auto">
-            <lit-table-column order width="1fr" title="CPU" data-index="cpu" key="cpu" align="flex-start">
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU" data-index="cpu" key="cpu" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Usage" data-index="usageStr" key="usageStr" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="Usage" data-index="usageStr" key="usageStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="CPU Freq Top1(M)" data-index="top1" key="top1" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top1(M)" data-index="top1" key="top1" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Top1 percent(%)" data-index="top1PercentStr" key="top1PercentStr" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="Top1 percent(%)" data-index="top1PercentStr" key="top1PercentStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="CPU Freq Top2(M)" data-index="top2" key="top2" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top2(M)" data-index="top2" key="top2" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Top2 percent(%)" data-index="top2PercentStr" key="top2PercentStr" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="Top2 percent(%)" data-index="top2PercentStr" key="top2PercentStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="CPU Freq Top3(M)" data-index="top3" key="top3" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top3(M)" data-index="top3" key="top3" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Top3 percent(%)" data-index="top3PercentStr" key="top3PercentStr" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="Top3 percent(%)" data-index="top3PercentStr" key="top3PercentStr" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;

@@ -31,7 +31,6 @@ export interface ParseListener {
 
 export class HeapDataInterface {
   private static instance: HeapDataInterface;
-  private isParsing = false;
   private isParseDone = false;
   private parseListener!: ParseListener;
   private fileStructs!: Array<FileStruct>;
@@ -254,7 +253,6 @@ export class HeapDataInterface {
 
   async parseData(fileModule: Array<FileStruct>) {
     this.fileStructs = fileModule;
-    this.isParsing = true;
     this.isParseDone = false;
     let percent: number;
     for (let fileStruct of fileModule) {
@@ -263,7 +261,6 @@ export class HeapDataInterface {
       percent = 50 + Math.floor(50 / fileModule.length) * (fileModule.indexOf(fileStruct) + 1);
       this.parseListener.process('parsing data of ' + fileStruct.name + ' ', percent);
     }
-    this.isParsing = false;
     this.isParseDone = true;
     if (this.parseListener) {
       this.parseListener.parseDone(fileModule);

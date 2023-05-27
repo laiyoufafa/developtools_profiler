@@ -565,13 +565,7 @@ export class SpRecordTrace extends BaseElement {
       if (this.vs) {
         let cmd = Cmd.formatString(CmdConstant.CMD_GET_VERSION_DEVICES, [SpRecordTrace.serialNumber]);
         Cmd.execHdcCmd(cmd, (deviceVersion: string) => {
-          let deviceVersionItem = SpRecordTrace.supportVersions.filter((item) => deviceVersion.indexOf(item) != -1);
-          if (deviceVersionItem.length > 0) {
-            SpRecordTrace.selectVersion = deviceVersionItem[0];
-          } else {
-            SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
-          }
-          this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
+          this.selectedDevice(deviceVersion);
           this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
             PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
             this.recordSetting!.output,
@@ -582,13 +576,7 @@ export class SpRecordTrace extends BaseElement {
         HdcDeviceManager.connect(value).then((result) => {
           if (result) {
             HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_VERSION, true).then((deviceVersion) => {
-              let deviceVersionItem = SpRecordTrace.supportVersions.filter((item) => deviceVersion.indexOf(item) != -1);
-              if (deviceVersionItem.length > 0) {
-                SpRecordTrace.selectVersion = deviceVersionItem[0];
-              } else {
-                SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
-              }
-              this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
+              this.selectedDevice(deviceVersion);
               this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
                 PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
                 this.recordSetting!.output,
@@ -697,6 +685,16 @@ export class SpRecordTrace extends BaseElement {
     this.initMenuItems();
   }
 
+  private selectedDevice(deviceVersion: string) {
+    let deviceVersionItem = SpRecordTrace.supportVersions.filter((item) => deviceVersion.indexOf(item) != -1);
+    if (deviceVersionItem.length > 0) {
+      SpRecordTrace.selectVersion = deviceVersionItem[0];
+    } else {
+      SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
+    }
+    this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
+  }
+
   private appendDeviceVersion() {
     SpRecordTrace.supportVersions.forEach((supportVersion) => {
       let option = document.createElement('option');
@@ -727,10 +725,10 @@ export class SpRecordTrace extends BaseElement {
         this.progressEL!.loading = false;
         this.sp!.search = false;
         this.litSearch!.clear();
-        this.disconnectButton!.style.pointerEvents = 'auto';
         this.recordButton!.style.pointerEvents = 'auto';
         this.addButton!.style.pointerEvents = 'auto';
         this.deviceSelect!.style.pointerEvents = 'auto';
+        this.disconnectButton!.style.pointerEvents = 'auto';
         this.traceCommand!.show = false;
       });
     } else {
@@ -786,11 +784,10 @@ export class SpRecordTrace extends BaseElement {
           icon: 'dbsetbreakpoint',
           fileChoose: false,
           clickHandler: function (ev: InputEvent) {
-            let request = that.makeRequest();
             that.appContent!.innerHTML = '';
             that.appContent!.append(that.traceCommand!);
             that.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
-              PluginConvertUtils.BeanToCmdTxt(request, false),
+              PluginConvertUtils.BeanToCmdTxt(that.makeRequest(), false),
               that.recordSetting!.output,
               that.recordSetting!.maxDur
             );
@@ -1009,9 +1006,8 @@ export class SpRecordTrace extends BaseElement {
     if (this.vs) {
       this.appContent!.innerHTML = '';
       this.appContent!.append(this.traceCommand!);
-      let config = this.makeRequest();
       this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
-        PluginConvertUtils.BeanToCmdTxt(config, false),
+        PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
         this.recordSetting!.output,
         this.recordSetting!.maxDur
       );
@@ -1023,10 +1019,7 @@ export class SpRecordTrace extends BaseElement {
           this.progressEL!.loading = true;
           this.litSearch!.clear();
           this.litSearch!.setPercent('tracing  ' + this.recordSetting!.maxDur * 1000 + 'ms', -1);
-          this.buttonDisable(true);
-          this.traceCommand!.show = true;
-          this.freshMenuDisable(true);
-          this.freshConfigMenuDisable(true);
+          this.initRecordUIState();
           Cmd.execHdcTraceCmd(traceCommandStr, SpRecordTrace.serialNumber, (traceResult: string) => {
             if (traceResult.indexOf('DestroySession done') != -1) {
               this.litSearch!.setPercent('tracing htrace down', -1);
@@ -1161,6 +1154,13 @@ export class SpRecordTrace extends BaseElement {
         }
       });
     }
+  }
+
+  private initRecordUIState() {
+    this.buttonDisable(true);
+    this.traceCommand!.show = true;
+    this.freshMenuDisable(true);
+    this.freshConfigMenuDisable(true);
   }
 
   private isSuccess(traceResult: string): number {
@@ -1521,7 +1521,7 @@ export class SpRecordTrace extends BaseElement {
                </select>
                <select class="device_version" id = "device-version">
                </select>
-              <lit-button style="width: 180px"class="add" height="32px" width="164px" color="#0A59F7" font_size="14px" border="1px solid #0A59F7" 
+              <lit-button style="width: 180px" class="add" height="32px" width="164px" color="#0A59F7" font_size="14px" border="1px solid #0A59F7" 
               padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 10px 0 8px">Add HDC Device</lit-button>
               <div class="header-right">
               <lit-button class="disconnect" style="margin-right: 30px" height="32px" width="96px" font_size="14px" justify_content="center" color="#FFFFFF"
@@ -1688,8 +1688,6 @@ export class SpRecordTrace extends BaseElement {
       smbPages: this.spAllocations!.shared,
       maxStackDepth: this.spAllocations!.unwind,
       processName: processName,
-      mallocFreeMatchingInterval: 1000,
-      mallocFreeMatchingCnt: 1000,
       stringCompressed: true,
       fpUnwind: this.spAllocations!.fp_unwind,
       blocked: true,
@@ -1833,7 +1831,7 @@ export class SpRecordTrace extends BaseElement {
       ftraceEvents: this.createTraceEvents(this.probesConfig!.traceConfig),
       hitraceCategories: [],
       hitraceApps: [],
-      bufferSizeKb: 2048,
+      bufferSizeKb: this.probesConfig!.ftraceBufferSize,
       flushIntervalMs: 1000,
       flushThresholdKb: 4096,
       parseKsyms: true,
