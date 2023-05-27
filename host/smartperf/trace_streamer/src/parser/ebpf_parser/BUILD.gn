@@ -34,7 +34,7 @@ ohos_source_set("ebpf_parser_src") {
   include_dirs = [
     ".",
     "../",
-    "../htrace_parser",
+    "../htrace_pbreader_parser",
     "../..",
     "../../trace_data",
     "../../base",
