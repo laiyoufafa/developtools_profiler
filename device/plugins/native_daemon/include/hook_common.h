@@ -97,7 +97,7 @@ struct alignas(8) StackRawData: public BaseStackRawData { // 8 is 8 bit
 struct alignas(8) ClientConfig { // 8 is 8 bit
     void Reset()
     {
-        filterSize = 0;
+        filterSize = -1;
         shareMemroySize = 0;
         clockId = CLOCK_REALTIME;
         maxStackDepth = 0;
@@ -121,7 +121,7 @@ struct alignas(8) ClientConfig { // 8 is 8 bit
         return ss.str();
     }
 
-    uint32_t filterSize = 0;
+    int32_t filterSize = -1;
     uint32_t shareMemroySize = 0;
     clockid_t clockId = CLOCK_REALTIME;
     uint8_t maxStackDepth = 0;

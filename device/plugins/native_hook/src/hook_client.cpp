@@ -52,9 +52,7 @@ constexpr int UPDATE_THEARD_NAME = 1000;
 constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
 static pid_t g_hookPid = 0;
 static ClientConfig g_ClientConfig = {0};
-static uint32_t g_minSize = 0;
 static uint32_t g_maxSize = INT_MAX;
-static std::unordered_set<void*> g_mallocIgnoreSet;
 static std::unordered_map<std::string, uint32_t> g_memTagMap;
 constexpr int PID_STR_SIZE = 4;
 constexpr int STATUS_LINE_SIZE = 512;
@@ -187,8 +185,7 @@ bool ohos_malloc_hook_on_start(void)
         HILOG_INFO(LOG_CORE, "hook already started");
         return true;
     } else {
-        CHECK_TRUE(memset_s(&g_ClientConfig, sizeof(g_ClientConfig), 0, sizeof(g_ClientConfig)) == 0,
-                   false, "memset_s error!");
+        g_ClientConfig.Reset();
         g_hookClient = std::make_shared<HookSocketClient>(g_hookPid, &g_ClientConfig);
     }
     pthread_key_create(&g_disableHookFlag, nullptr);
@@ -199,7 +196,6 @@ bool ohos_malloc_hook_on_start(void)
     pthread_setspecific(g_updateThreadNameCount, reinterpret_cast<void *>(0));
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
-    g_minSize = g_ClientConfig.filterSize;
     constexpr int paramBufferLen = 128;
     char paramOutBuf[paramBufferLen] = {0};
     int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
@@ -208,10 +204,10 @@ bool ohos_malloc_hook_on_start(void)
         int max = 0;
         if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) == 2) { // 2: two parameters.
             g_maxSize = max > 0 ? max : INT_MAX;
-            g_minSize = min > 0 ? min : 0;
+            g_ClientConfig.filterSize = min > 0 ? min : 0;
         }
-        HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d", paramOutBuf, g_minSize,
-                   g_maxSize);
+        HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d",
+                   paramOutBuf, g_ClientConfig.filterSize, g_maxSize);
     }
     return true;
 }
@@ -223,7 +219,6 @@ void* ohos_release_on_end(void*)
     pthread_key_delete(g_disableHookFlag);
     pthread_key_delete(g_hookTid);
     pthread_key_delete(g_updateThreadNameCount);
-    g_mallocIgnoreSet.clear();
     g_ClientConfig.Reset();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
     COMMON::PrintMallinfoLog("after hook(byte) => ");
@@ -546,15 +541,6 @@ void hook_free(void (*free_func)(void*), void* p)
     if (g_ClientConfig.mallocDisable || IsPidChanged()) {
         return;
     }
-    {
-        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        auto record = g_mallocIgnoreSet.find(p);
-        if (record != g_mallocIgnoreSet.end()) {
-            g_mallocIgnoreSet.erase(record);
-            return;
-        }
-    }
-
     StackRawData rawdata = {{{{0}}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -1000,9 +986,7 @@ int  ohos_malloc_hook_prctl(int option, unsigned long arg2, unsigned long arg3,
 
 bool ohos_set_filter_size(size_t size, void* ret)
 {
-    if ((size < g_minSize) || (size > g_maxSize)) {
-        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        g_mallocIgnoreSet.insert(ret);
+    if (g_ClientConfig.filterSize < 0 || size < g_ClientConfig.filterSize || size > g_maxSize) {
         return false;
     }
     return true;
