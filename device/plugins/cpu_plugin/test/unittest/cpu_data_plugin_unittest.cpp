@@ -138,7 +138,7 @@ TestTidStat g_tidStat2[THREAD_NUM] = {
     {1681, "Binder:1209_4", THREAD_SLEEPING, {0, 0, 0, 0}},
 };
 
-TestFreq g_Freq[CORE_NUM + 1] = {
+TestFreq g_freq[CORE_NUM + 1] = {
     {1018000, 3844000, 509000}, {1023000, 2844000, 509000},
     {1011000, 3844000, 509000}, {1518000, 3844000, 1018000},
     {1245000, 1844000, 1018000}, {1767000, 3044000, 1018000},
@@ -321,9 +321,9 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
         EXPECT_EQ(cpuCoreUsageInfo.system_cpu_time_ms(), systemCpuTime);
         EXPECT_EQ(cpuCoreUsageInfo.system_boot_time_ms(), systemBootTime);
 
-        EXPECT_EQ(cpuCoreUsageInfo.frequency().min_frequency_khz(), g_Freq[i - 1].minFreq);
-        EXPECT_EQ(cpuCoreUsageInfo.frequency().max_frequency_khz(), g_Freq[i - 1].maxFreq);
-        EXPECT_EQ(cpuCoreUsageInfo.frequency().cur_frequency_khz(), g_Freq[i - 1].curFreq);
+        EXPECT_EQ(cpuCoreUsageInfo.frequency().min_frequency_khz(), g_freq[i - 1].minFreq);
+        EXPECT_EQ(cpuCoreUsageInfo.frequency().max_frequency_khz(), g_freq[i - 1].maxFreq);
+        EXPECT_EQ(cpuCoreUsageInfo.frequency().cur_frequency_khz(), g_freq[i - 1].curFreq);
         if (i == 1) { // cpu0为大核
             EXPECT_EQ(cpuCoreUsageInfo.is_little_core(), false);
         } else {
