@@ -36,7 +36,7 @@ namespace {
 constexpr uint32_t PAGE_SIZE = 4096;
 #endif
 constexpr auto TEST_DELAY = std::chrono::milliseconds(10);
-constexpr uint32_t schedSwitchEventId = 189;
+constexpr uint32_t SCHED_SWITCH_EVENT_ID = 189;
 const std::string SCHED_SWITCH_FORMAT_DESC = R"(
 name: sched_switch
 ID: 189
@@ -130,7 +130,7 @@ HWTEST_F(SubEventParserTest, ParseEvent, TestSize.Level1)
     format.eventName = "sched_switch";
     EXPECT_TRUE(ftraceParser.ParseEventFormat(SCHED_SWITCH_FORMAT_DESC, format));
     EXPECT_TRUE(SubEventParser::GetInstance().SetupEvent(format));
-    EXPECT_EQ(format.eventId, schedSwitchEventId);
+    EXPECT_EQ(format.eventId, SCHED_SWITCH_EVENT_ID);
 
     std::vector<uint8_t> buffer(PAGE_SIZE, 0);
     std::vector<uint8_t> zeros(PAGE_SIZE, 0);
