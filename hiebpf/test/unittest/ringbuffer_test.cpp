@@ -15,7 +15,7 @@
 
 #include <fcntl.h>
 #include <math.h>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <vector>
 

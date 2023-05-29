@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include <ctime>
 #include <sstream>
-#include <time.h>
 #include <sys/time.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <unistd.h>
 
 #include "bpf_log_reader.h"
 

@@ -76,7 +76,7 @@ void StreamPlugin::Loop(void)
         buffer_.resize(dataProto.ByteSizeLong());
         dataProto.SerializeToArray(buffer_.data(), buffer_.size());
 
-        if (index < 50) {
+        if (index < 50) { // 50: count of loop
             if (resultWriter_->write != nullptr) {
                 resultWriter_->write(resultWriter_, buffer_.data(), buffer_.size());
                 resultWriter_->flush(resultWriter_);

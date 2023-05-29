@@ -13,36 +13,35 @@
  * limitations under the License.
  */
 
+#include <cerrno>
+#include <chrono>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <memory>
-#include <chrono>
-#include <ctime>
 #include <mutex>
-#include <iomanip>
 
-#include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <linux/perf_event.h>
+#include <unistd.h>
 #include <linux/bpf.h>
-#include <signal.h>
-#include <errno.h>
+#include <linux/perf_event.h>
 #include <sys/resource.h>
 
 #include "bpf.h"
+#include "elf_file.h"
 #include "libbpf_logger.h"
 #include "bpf_controller.h"
-#include "elf_file.h"
 
 namespace {
 std::unique_ptr<LIBBPFLogger> libbpfLogger {nullptr};
 const std::string THIRD_PARTY_MUSL_ADDR = "/system/lib/ld-musl-aarch64.so.1";
 constexpr int32_t SYM_32_VALUE_OFFSET = 4;
 constexpr int32_t SYM_64_VALUE_OFFSET = 8;
+constexpr int32_t WIDE_SIXTEEN = 16;
 } // namespace
 
 int BPFController::LIBBPFPrintFunc(enum libbpf_print_level level, const char *format, va_list args)
@@ -806,7 +805,7 @@ int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t d
               << "\ncomm:           " << cmplt_event.comm
               << "\nips:            " << cmplt_event.nips
               << "\nips:"
-              << std::setw(16) << std::hex;
+              << std::setw(WIDE_SIXTEEN) << std::hex;
     for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
         std::cout << "\n    " << cmplt_event.ips[i];
     }
@@ -849,7 +848,7 @@ int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t d
               << "\ntgid:           " << cmplt_event.tgid
               << "\ncomm:           " << cmplt_event.comm
               << "\nips:            " << cmplt_event.nips
-              << std::setw(16) << std::hex;
+              << std::setw(WIDE_SIXTEEN) << std::hex;
     for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
         std::cout << "\n    " << cmplt_event.ips[i];
     }
@@ -893,7 +892,7 @@ int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t 
               << "\nsize:           " << cmplt_event.start_event.size
               << "\nblkcnt:         " << cmplt_event.blkcnt
               << "\nips:            " << cmplt_event.nips
-              << std::setw(16) << std::hex;
+              << std::setw(WIDE_SIXTEEN) << std::hex;
     for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
         std::cout << "\n    " << cmplt_event.ips[i];
     }

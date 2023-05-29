@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
+#include <csignal>
 #include <mutex>
-#include <unistd.h>
 #include <array>
 #include <fcntl.h>
-#include <signal.h>
+#include <unistd.h>
 #include <sys/wait.h>
 
 #include "common.h"
