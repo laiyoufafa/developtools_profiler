@@ -337,7 +337,7 @@ int CustomPUnblock(int fds[])
     if (!(stat & O_NONBLOCK)) {
         HILOG_DEBUG(LOG_CORE, "NOTE %s: ready!Unblock r_fd and close all", __func__);
         const char* eof = "\n\0";
-        write(fds[WRITE], eof, sizeof(eof));
+        write(fds[WRITE], eof, strlen(eof));
         fcntl(fds[READ], F_SETFL, O_NONBLOCK);
     }
     HILOG_DEBUG(LOG_CORE, "END %s: success!", __func__);
