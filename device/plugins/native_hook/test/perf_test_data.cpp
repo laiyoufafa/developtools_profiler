@@ -41,7 +41,7 @@ static constexpr int N_INSTALL_MALLOC_HOOK_SIGNAL = 36;
 static constexpr int DURATION_TIME = 30 * 60;
 static constexpr int MEMORY_BUFFER_SIZE = 19;
 
-void* UserThread(const void* param)
+void* UserThread(void* param)
 {
     int idx = *static_cast<int*>(param);
     struct timespec beginTime;
