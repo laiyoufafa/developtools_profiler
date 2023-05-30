@@ -38,7 +38,7 @@ const int WAIT_FLUSH = 2;
 
 const std::string DEFAULT_NATIVE_DAEMON_PATH("/system/bin/native_daemon");
 std::string DEFAULT_PATH("/data/local/tmp/");
-const int g_shareMemorySize = 1000 * 4096;
+const int SHARE_MEMORY_SIZE = 1000 * 4096;
 const int BUFFER_SIZE = 100 * 1024;
 const int DEFAULT_DEPTH = 32;
 const int CALLOC_DEPTH = 13;
@@ -64,7 +64,7 @@ public:
         if (processNum == 0) {
             // start running native_daemon -o -s -p
             execl(DEFAULT_NATIVE_DAEMON_PATH.c_str(), DEFAULT_NATIVE_DAEMON_PATH.c_str(), "-o", outFile.c_str(),
-                "-s", std::to_string(g_shareMemorySize).c_str(), "-p", std::to_string(pid).c_str(), nullptr);
+                "-s", std::to_string(SHARE_MEMORY_SIZE).c_str(), "-p", std::to_string(pid).c_str(), nullptr);
             _exit(1);
         } else {
             daemonPid_ = processNum;
@@ -77,7 +77,7 @@ public:
         if (processNum == 0) {
             // start running native_daemon -o -s -p -d
             execl(DEFAULT_NATIVE_DAEMON_PATH.c_str(), DEFAULT_NATIVE_DAEMON_PATH.c_str(), "-o", outFile.c_str(),
-                "-s", std::to_string(g_shareMemorySize).c_str(), "-p", std::to_string(pid).c_str(),
+                "-s", std::to_string(SHARE_MEMORY_SIZE).c_str(), "-p", std::to_string(pid).c_str(),
                 "-d", std::to_string(setHookDepth).c_str(), nullptr);
             _exit(1);
         } else {

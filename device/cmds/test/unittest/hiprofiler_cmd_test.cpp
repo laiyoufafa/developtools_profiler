@@ -67,9 +67,9 @@ public:
             }
             _exit(1);
         } else if (DEFAULT_HIPROFILERD_PATH == name) {
-            g_hiprofilerdPid = processNum;
+            hiprofilerdPid = processNum;
         } else if (DEFAULT_HIPROFILER_PLUGINS_PATH == name) {
-            g_hiprofilerPluginsPid = processNum;
+            hiprofilerPluginsPid = processNum;
         }
     }
 
@@ -272,8 +272,8 @@ public:
         }
     }
 private:
-    int g_hiprofilerdPid = -1;
-    int g_hiprofilerPluginsPid = -1;
+    int hiprofilerdPid = -1;
+    int hiprofilerPluginsPid = -1;
 };
 
 /**
@@ -304,7 +304,7 @@ HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0110, Function | MediumTest | Lev
     EXPECT_TRUE(RunCommand(cmd, content));
     destStr = "OK";
     EXPECT_EQ(strncmp(content.c_str(), destStr.c_str(), strlen(destStr.c_str())), 0);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerdPid);
 }
 
 /**
@@ -350,8 +350,8 @@ HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0120, Function | MediumTest | Lev
     // 删除资源文件和生成的trace文件
     cmd = "rm " + configFile + " " + outFile;
     system(cmd.c_str());
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
 }
 
 /**
@@ -380,7 +380,7 @@ HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0130, Function | MediumTest | Lev
     // 删除资源文件和生成的trace文件
     cmd = "rm " + FTRACE_PLUGIN_PATH + " " + outFile;
     system(cmd.c_str());
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
 }
 }

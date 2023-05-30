@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-long get_thread_id(void);
+long GetThreadId(void);
 
 #ifdef __cplusplus
 }

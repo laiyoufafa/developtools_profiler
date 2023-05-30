@@ -131,7 +131,6 @@ static void GetAnUnlimitedLine(FILE* fp, std::string& buf)
 void GetMainThreadRuntimeStackRange()
 {
     std::string line;
-    int buf_size = 0;
     FILE* fp = fopen("/proc/self/maps", "re");
     if (fp == nullptr) {
         return;

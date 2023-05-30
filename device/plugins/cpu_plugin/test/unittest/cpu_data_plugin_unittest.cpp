@@ -939,7 +939,7 @@ HWTEST_F(CpuDataPluginTest, TestPid, TestSize.Level1)
     EXPECT_TRUE(PluginCpuinfoStub(plugin2, cpuData2, static_cast<int>(pid2), false, false));
     EXPECT_LT(cpuData1.cpu_usage_info().process_cpu_time_ms(), cpuData2.cpu_usage_info().process_cpu_time_ms());
 
-    while (waitpid(-1, NULL, WNOHANG) == 0) {
+    while (waitpid(-1, nullptr, WNOHANG) == 0) {
         kill(pid1, SIGKILL);
         kill(pid2, SIGKILL);
     }

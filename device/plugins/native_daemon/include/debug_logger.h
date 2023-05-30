@@ -17,12 +17,12 @@
 #define HIPERF_DEBUG_H
 
 #include <chrono>
+#include <cstdio>
 #include <cstring>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <sstream>
-#include <stdio.h>
 #include <string>
 #include <unistd.h>
 

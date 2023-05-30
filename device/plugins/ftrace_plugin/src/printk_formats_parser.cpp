@@ -61,7 +61,7 @@ bool PrintkFormatsParser::Parse(const std::string& printkFormats)
         auto pos = line.find(seperator);
         if (pos != std::string::npos) {
             std::string addrStr = StringUtils::Strip(line.substr(0, pos));
-            addr = static_cast<uint64_t>(strtoull(addrStr.c_str(), NULL, HEX_BASE));
+            addr = static_cast<uint64_t>(strtoull(addrStr.c_str(), nullptr, HEX_BASE));
 
             symbol = StringUtils::Strip(line.substr(pos + 1));
             if (symbol.back() == '"') {

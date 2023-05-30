@@ -16,22 +16,22 @@
 #ifndef _HHLOG_H
 #define _HHLOG_H
 
+#include <atomic>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <string>
 #include <strstream>
 #include <thread>
-#include <string>
-#include <memory>
-#include <atomic>
-#include <ctime>
-#include <cstring>
 
-#include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <stdarg.h>
-#include <sys/time.h>
 #include <securec.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <sys/time.h>
 
 #include "ringbuffer.h"
 

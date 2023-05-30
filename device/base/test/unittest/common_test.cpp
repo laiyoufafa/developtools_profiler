@@ -69,13 +69,13 @@ protected:
  */
 HWTEST_F(CommonTest, IsProcessExist, TestSize.Level1)
 {
-    std::string procName = "hiprofiler_base_ut";
+    const std::string procName = "hiprofiler_base_ut";
     int pid = 0;
     EXPECT_TRUE(COMMON::IsProcessExist(procName, pid));
     EXPECT_NE(pid, 0);
-    procName = "ls";
+    const std::string noProcName = "ls";
     pid = 0;
-    EXPECT_FALSE(COMMON::IsProcessExist(procName, pid));
+    EXPECT_FALSE(COMMON::IsProcessExist(noProcName, pid));
     EXPECT_EQ(pid, 0);
 }
 

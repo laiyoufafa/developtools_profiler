@@ -85,13 +85,13 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
     CHECK_NOTNULL(g_shareMemoryBlock, NO_RETVAL, "smb is null!");
     uint64_t value = g_eventNotifier->Take();
 
-    static bool first_flag = true;
-    static bool end_flag = false;
+    static bool firstFlag = true;
+    static bool endFlag = false;
     static uint64_t times = 0;
 
-    struct timespec first_time;
-    struct timespec begin_time;
-    struct timespec end_time;
+    struct timespec firstTime;
+    struct timespec beginTime;
+    struct timespec endTime;
     std::vector<u64> u64regs;
     std::vector<OHOS::HiviewDFX::CallFrame> callFrames;
     uint64_t total_time = 0;
@@ -152,11 +152,11 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
 #endif
             }
 
-            if (!end_flag && duration != 0) {
-                clock_gettime(CLOCK_REALTIME, &begin_time);
-                if (first_flag) {
-                    first_flag = false;
-                    first_time = begin_time;
+            if (!endFlag && duration != 0) {
+                clock_gettime(CLOCK_REALTIME, &beginTime);
+                if (firstFlag) {
+                    firstFlag = false;
+                    firstTime = beginTime;
                 }
             }
 
@@ -168,20 +168,20 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 HILOG_ERROR(LOG_CORE, "unwind fatal error");
                 return false;
             }
-            if (!end_flag && duration != 0) {
-                clock_gettime(CLOCK_REALTIME, &end_time);
-                total_time += (end_time.tv_sec - begin_time.tv_sec) * 1000000000LLU +
-                    (end_time.tv_nsec - begin_time.tv_nsec);
+            if (!endFlag && duration != 0) {
+                clock_gettime(CLOCK_REALTIME, &endTime);
+                total_time += (endTime.tv_sec - beginTime.tv_sec) * 1000000000LLU +
+                    (endTime.tv_nsec - beginTime.tv_nsec);
                 ++times;
-                if (end_time.tv_sec - first_time.tv_sec >= static_cast<long>(duration)) {
-                    end_flag = true;
+                if (endTime.tv_sec - firstTime.tv_sec >= static_cast<long>(duration)) {
+                    endFlag = true;
                     FILE *fp = fopen(performance_filename.c_str(), "a");
                     if (fp) {
-                        time_t now = time(NULL);
-                        struct tm now_tm;
-                        localtime_r(&now, &now_tm);
-                        fprintf(fp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\n", now_tm.tm_year + 1900,
-                                now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec);
+                        time_t now = time(nullptr);
+                        struct tm nowTime;
+                        localtime_r(&now, &nowTime);
+                        fprintf(fp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\n", nowTime.tm_year + 1900,
+                                nowTime.tm_mon + 1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
                         fprintf(fp, "Total durations: %" PRIu64 " nanoseconds\n", total_time);
                         fprintf(fp, "Total times: %" PRIu64 "\n", times);
                         fprintf(fp, "Average unwinding stack time: %.2f  nanoseconds\n\n",

@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-#include <iostream>
 #include <chrono>
+#include <cerrno>
+#include <csignal>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
 
-#include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+#include <unistd.h>
 #include <linux/perf_event.h>
 #include <linux/bpf.h>
-#include <signal.h>
-#include <errno.h>
 #include <sys/resource.h>
-#include <unistd.h>
 
 #include "bpf_controller.h"
 #include "commandline_flags.h"

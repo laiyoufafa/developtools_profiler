@@ -293,7 +293,7 @@ class FtraceEventCodeGenerator(object):
         targets = list(self.allowed_events & self.available_events)
         Common.logger.info("target events: %d", len(targets))
         targets.sort()
-        self.target_event_list = [self.category_to_info[c] for c in targets]
+        self.target_event_list = [self.category_to_info.get(c) for c in targets]
         Common.logger.info("target_event_list: %d", len(self.target_event_list))
 
     def _parse_ftrace_formats(self):

@@ -36,7 +36,7 @@ void IoTest()
 
     // 一次写100K数据，写10次
     int count = 0;
-    FILE* writeFp = fopen(writeFile.c_str(),"w");
+    FILE* writeFp = fopen(writeFile.c_str(), "w");
     if (writeFp == nullptr) {
         printf("fopen() error");
         return;

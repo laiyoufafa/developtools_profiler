@@ -42,6 +42,8 @@ recorded in the corresponding mmap.
 */
 constexpr static int32_t MIN_STACK_DEPTH = 6;
 constexpr static size_t FILTER_STACK_DEPTH = 2;
+static constexpr int SHIFT_2 = 2;
+static constexpr int SHIFT_6 = 6;
 
 class VirtualRuntime {
 public:
@@ -149,8 +151,8 @@ private:
             std::hash<uint64_t> hasher;
             size_t seed = 0;
             // 6 and 2 is the number of displacements
-            seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << SHIFT_6) + (seed >> SHIFT_2);
+            seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << SHIFT_6) + (seed >> SHIFT_2);
             return seed;
         }
     };

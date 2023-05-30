@@ -474,9 +474,9 @@ int32_t main(int32_t argc, char* argv[])
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     struct option long_options[] = {
-        {"input", required_argument, NULL, 'i'},
-        {"out", required_argument, NULL, 'o'},
-        {"help", no_argument, NULL, 'h'},
+        {"input", required_argument, nullptr, 'i'},
+        {"out", required_argument, nullptr, 'o'},
+        {"help", no_argument, nullptr, 'h'},
         {0, 0, 0, 0}
     };
     int32_t opt;

@@ -52,9 +52,10 @@ inline long getsystid()
     return GetCurrentThreadId();
 }
 #endif
-#include <time.h>
-#include <unistd.h>
+
+#include <ctime>
 #include <vector>
+#include <unistd.h>
 
 static inline long GetTid(void)
 {

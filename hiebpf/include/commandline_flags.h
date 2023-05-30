@@ -248,7 +248,7 @@ static int GetNextFlag(
     if (rm and flags_.count(flagName) != 0) {
         // remove parsed argument and its value
         ClearCString((*argv)[argIndex - 1]);
-        ClearCString((*argv)[argIndex - 2]);
+        ClearCString((*argv)[argIndex - 2]); // 2: point of args
     }
     return 0;
 }
@@ -726,7 +726,7 @@ int ParseFlags(int *argc, char ***argv, bool rm = true)
     std::string flagName {};
     std::string flagValue {};
     int argIndex {1};
-    if (((*argc) % 2) == 0) {
+    if (((*argc) % 2) == 0) { // 2: double
         std::cout << "CommandLineFlags ERROE: incorrect number of arguments" << std::endl;
         PrintArgFormat();
         return -1;

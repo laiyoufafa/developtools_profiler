@@ -119,9 +119,9 @@ protected:
             }
             _exit(1);
         } else if (DEFAULT_HIPROFILERD_PATH == name) {
-            g_hiprofilerdPid = processNum;
+            hiprofilerdPid = processNum;
         } else if (DEFAULT_HIPROFILER_PLUGINS_PATH == name) {
-            g_hiprofilerPluginsPid = processNum;
+            hiprofilerPluginsPid = processNum;
         }
     }
 
@@ -155,7 +155,7 @@ protected:
         mc.set_report_sysmem_vmem_info(true);
         mc.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_FREE_PAGES);
         mc.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_ALLOC_BATCH);
-        mc.add_pid(g_idlePid);
+        mc.add_pid(idlePid);
         if (isFirstConfig) {
             mc.add_pid(requstMemoryPid);
         }
@@ -409,7 +409,7 @@ protected:
 
             cpuPlugin->callbacks->onPluginSessionStop();
         } else {
-            cpuActivePid= processNum;
+            cpuActivePid = processNum;
         }
         return true;
     }
@@ -423,7 +423,7 @@ protected:
                 sleep(1);
             }
         } else {
-            g_idlePid = processNum;
+            idlePid = processNum;
         }
     }
 
@@ -504,9 +504,9 @@ protected:
 private:
     std::unique_ptr<IProfilerService::Stub> profilerStub_;
     std::vector<std::string> pluginVec_;
-    int g_hiprofilerdPid = -1;
-    int g_hiprofilerPluginsPid = -1;
-    pid_t g_idlePid = -1;
+    int hiprofilerdPid = -1;
+    int hiprofilerPluginsPid = -1;
+    pid_t idlePid = -1;
 };
 
 /**
@@ -679,7 +679,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
 
     // 创建不同的memory config
     uint32_t sessionId2;
-    EXPECT_TRUE(CreatePluginSession(sessionId2, g_idlePid, false));
+    EXPECT_TRUE(CreatePluginSession(sessionId2, idlePid, false));
     EXPECT_TRUE(KeepPluginSession(ROUND_COUNT, sessionId2));
 
     // 开启每隔4s发一次心跳的线程，确保seesionid不会失效
@@ -740,9 +740,9 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
     sendHeart2 = false;
     keepSessionThread2.join();
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
-    StopProcessStub(g_idlePid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
+    StopProcessStub(idlePid);
     StopProcessStub(requestMemoryPid);
 
     pluginVec_.clear();
@@ -775,7 +775,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | Med
 
     timer.Reset();
     uint32_t sessionId1;
-    EXPECT_TRUE(CreatePluginSession(sessionId1, g_idlePid));
+    EXPECT_TRUE(CreatePluginSession(sessionId1, idlePid));
     timeCost = timer.ElapsedUs();
     printf("CreateSession cost %ldus.\n", timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
@@ -978,10 +978,10 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | Med
         }
     }
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
     StopProcessStub(cpuActivePid);
-    StopProcessStub(g_idlePid);
+    StopProcessStub(idlePid);
 
     pluginVec_.clear();
 }
@@ -1126,8 +1126,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0030, Function | Med
         EXPECT_GT(diskioDataVec2[i].rd_sectors_kb(), 0);
     }
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
     StopProcessStub(diskioPid);
 
     pluginVec_.clear();
@@ -1226,9 +1226,9 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
                 EXPECT_GT(static_cast<int>(processData.processesinfo().size()), 0);
                 for (int j = 0; j < processData.processesinfo().size(); j++) {
                     ProcessInfo info = processData.processesinfo(j);
-                    if (info.pid() == g_hiprofilerdPid) {
+                    if (info.pid() == hiprofilerdPid) {
                         hiprofilerdPidCount++;
-                    } else if (info.pid() == g_hiprofilerPluginsPid) {
+                    } else if (info.pid() == hiprofilerPluginsPid) {
                         hiprofilerPluginsPidCount++;
                     }
                 }
@@ -1261,8 +1261,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
     sendHeart = false;
     keepSessionThread.join();
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
 
     pluginVec_.clear();
 }
@@ -1404,8 +1404,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
     sendHeart2 = false;
     keepSessionThread2.join();
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
 
     pluginVec_.clear();
 }
@@ -1512,8 +1512,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0060, Function | Med
     sendHeart = false;
     keepSessionThread.join();
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
 
     pluginVec_.clear();
 }
@@ -1668,8 +1668,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0070, Function | Med
     sendHeart = false;
     keepSessionThread1.join();
 
-    StopProcessStub(g_hiprofilerPluginsPid);
-    StopProcessStub(g_hiprofilerdPid);
+    StopProcessStub(hiprofilerPluginsPid);
+    StopProcessStub(hiprofilerdPid);
 
     pluginVec_.clear();
 }

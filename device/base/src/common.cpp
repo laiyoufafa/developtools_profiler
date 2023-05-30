@@ -87,7 +87,7 @@ bool IsProcessRunning()
     return false;
 }
 
-bool IsProcessExist(std::string& processName, int& pid)
+bool IsProcessExist(const std::string& processName, int& pid)
 {
     DIR* dir = opendir("/proc");
     if (dir == nullptr) {

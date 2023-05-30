@@ -116,7 +116,7 @@ pid_t GetRealPid(void)
 pid_t inline __attribute__((always_inline)) GetCurThreadId()
 {
     if (pthread_getspecific(g_hookTid) == nullptr) {
-        pthread_setspecific(g_hookTid, reinterpret_cast<void *>(get_thread_id()));
+        pthread_setspecific(g_hookTid, reinterpret_cast<void *>(GetThreadId()));
     }
     return reinterpret_cast<long>((pthread_getspecific(g_hookTid)));
 }

@@ -170,7 +170,7 @@ static std::string GetFileNameParam(napi_env env, napi_callback_info info)
         return DEFAULT_FILENAME;
     }
     size_t bufLen = 0;
-    napi_status status = napi_get_value_string_utf8(env, argv[0], NULL, 0, &bufLen);
+    napi_status status = napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufLen);
     if (status != napi_ok) {
         HiLog::Error(LABEL, "Get input filename param length failed.");
         return DEFAULT_FILENAME;
@@ -202,7 +202,7 @@ static bool GetFileNameParamThrowErrorVersion(napi_env env, napi_callback_info i
         return false;
     }
     size_t bufLen = 0;
-    napi_status status = napi_get_value_string_utf8(env, argv[0], NULL, 0, &bufLen);
+    napi_status status = napi_get_value_string_utf8(env, argv[0], nullptr, 0, &bufLen);
     if (status != napi_ok) {
         HiLog::Error(LABEL, "Get input filename param length failed.");
         return false;

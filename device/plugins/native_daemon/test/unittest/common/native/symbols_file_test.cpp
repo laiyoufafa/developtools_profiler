@@ -752,7 +752,7 @@ HWTEST_F(SymbolsFileTest, ReadRoMemory, TestSize.Level1)
     ASSERT_EQ(symbolsFile->ReadRoMemory(addr++, &readRoByte, 1), 0U);
 }
 
-struct sectionInfo {
+struct SectionInfo {
     const std::string name;
     uint64_t addr;
     uint64_t size;
@@ -809,7 +809,7 @@ HWTEST_F(SymbolsFileTest, GetSectionInfo, TestSize.Level1)
         000000000000012c  0000000000000000           0     0     1
     */
 #ifdef __arm__
-    const std::vector<sectionInfo> sectionCheckList = {
+    const std::vector<SectionInfo> sectionCheckList = {
         {".note.gnu.build-id", 0x000001c8, 0x000024, 0x0001c8},
         {".text", 0x00001320, 0x000818, 0x001320},
         {".eh_frame_hdr", 0x00002034, 0x0000dc, 0x002034},
@@ -819,7 +819,7 @@ HWTEST_F(SymbolsFileTest, GetSectionInfo, TestSize.Level1)
         {".shstrtab", 0x00000000, 0x00012a, 0x004381},
     };
 #else
-    const std::vector<sectionInfo> sectionCheckList = {
+    const std::vector<SectionInfo> sectionCheckList = {
         {".note.gnu.build-id", 0x0000000000000358, 0x0000000000000024, 0x00000358},
         {".text", 0x00000000000022f0, 0x00000000000007b5, 0x000022f0},
         {".eh_frame_hdr", 0x0000000000003034, 0x00000000000000bc, 0x00003034},
@@ -829,7 +829,7 @@ HWTEST_F(SymbolsFileTest, GetSectionInfo, TestSize.Level1)
         {".shstrtab", 0x00000000, 0x000000000000012c, 0x000055eb},
     };
 #endif
-    for (sectionInfo info : sectionCheckList) {
+    for (SectionInfo info : sectionCheckList) {
         uint64_t addr;
         uint64_t size;
         uint64_t offset;

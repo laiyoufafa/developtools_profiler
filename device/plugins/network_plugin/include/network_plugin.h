@@ -17,21 +17,20 @@
 #define NETWORK_PLUGIN_H
 
 #include <algorithm>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <utility>
 #include <dirent.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#include <iomanip>
-#include <string>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
-#include <unordered_map>
-#include <utility>
-#include <sstream>
-#include <iostream>
-#include <fstream>
-
-#include <time.h>
 
 #include "logging.h"
 #include "network_plugin_config.pb.h"

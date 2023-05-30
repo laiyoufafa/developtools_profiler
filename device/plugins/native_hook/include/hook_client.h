@@ -16,7 +16,7 @@
 #ifndef __OHOS_MALLOC_HOOK_CLIENT_H__
 #define __OHOS_MALLOC_HOOK_CLIENT_H__
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "musl_malloc_dispatch.h"
 
 #define EXPORT_API __attribute__((visibility("default")))
