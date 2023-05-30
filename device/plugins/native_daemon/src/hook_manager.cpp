@@ -162,7 +162,7 @@ bool HookManager::UnloadPlugin(const uint32_t pluginId)
 
 void HookManager::GetClientConfig(const NativeHookConfig& nativeHookConfig, ClientConfig& clientConfig)
 {
-    clientConfig.shareMemroySize = hookConfig_.smb_pages() * PAGE_BYTES;
+    clientConfig.shareMemroySize = static_cast<uint32_t>(hookConfig_.smb_pages() * PAGE_BYTES);
     clientConfig.filterSize = static_cast<uint32_t>(hookConfig_.filter_size());
     clientConfig.clockId = COMMON::GetClockId(hookConfig_.clock());
     clientConfig.maxStackDepth = hookConfig_.max_stack_depth();

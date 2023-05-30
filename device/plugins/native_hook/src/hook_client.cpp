@@ -127,7 +127,7 @@ bool inline __attribute__((always_inline)) UpdateThreadName(std::shared_ptr<Hook
     bool ret = true;
     if (updateCount == 0) {
         StackRawData tnameData = {{{{0}}}};
-        tnameData.tid = GetCurThreadId();
+        tnameData.tid = static_cast<uint32_t>(GetCurThreadId());
         tnameData.type = THREAD_NAME_MSG;
         prctl(PR_GET_NAME, tnameData.name);
         ret = client->SendStackWithPayload(&tnameData,
