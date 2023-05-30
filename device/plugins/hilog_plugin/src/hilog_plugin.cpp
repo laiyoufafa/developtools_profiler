@@ -48,7 +48,8 @@ const std::string BIN_COMMAND("/system/bin/hilog");
 
 HilogPlugin::HilogPlugin() : fp_(nullptr, nullptr) {}
 
-HilogPlugin::~HilogPlugin() {
+HilogPlugin::~HilogPlugin()
+{
     HILOG_INFO(LOG_CORE, "%s: ready!", __func__);
     std::unique_lock<std::mutex> locker(mutex_);
     if (running_) {

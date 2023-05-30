@@ -133,7 +133,8 @@ void* thread_func_cpp(void* param)
     return nullptr;
 }
 
-long ThreadTimeCost(int threadNum, int writeReadTime) {
+long ThreadTimeCost(int threadNum, int writeReadTime)
+{
     Timer timer = {};
     int idx;
     int args[threadNum][2];
