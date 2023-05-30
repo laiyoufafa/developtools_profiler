@@ -89,7 +89,7 @@ private:
 #ifdef DEBUG_TIME
     bool IsSorted() const;
 #endif
-    const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> & symbolsFiles_;
+    const std::unordered_map<std::string, std::unique_ptr<SymbolsFile>>& symbolsFiles_;
 
     // thread must use ref from process
     std::vector<MemMapItem>* memMaps_;

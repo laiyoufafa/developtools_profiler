@@ -383,7 +383,7 @@ HWTEST_F(SymbolsFileTest, GetSymbolWithVaddr, TestSize.Level1)
 {
     auto symbols = SymbolsFile::CreateSymbolsFile(SYMBOL_KERNEL_FILE);
 
-    if ((0 == getuid())) {
+    if ((getuid() == 0)) {
         HLOGD("in root mode");
         EXPECT_EQ(symbols->LoadSymbols(), true);
         CheckSymbols(symbols);

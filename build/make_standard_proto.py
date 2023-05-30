@@ -16,6 +16,7 @@ import os
 import sys
 import shutil
 
+
 def replace_lite_option(target_path, protofilepath):
     target_file_path = os.path.basename(protofilepath)
     target_file_path = target_path + '/' + target_file_path.replace(".proto", "_standard.proto")
@@ -30,6 +31,7 @@ def replace_lite_option(target_path, protofilepath):
         content.write(newcontent)
         content.truncate()
         content.close()
+
 
 def main():
     target_dir = sys.argv[1]

@@ -187,7 +187,6 @@ int main(int argc, char *argv[])
     printf("First isn't bpf hook.");
 
     auto timeCost = ThreadTimeCost(threadNum, writeReadTime);
-
     if (timeCost > 0) {
         printf("Time cost %ld us.\n",timeCost);
     } else {
