@@ -166,7 +166,7 @@ struct TitleWindowPage {
           })
         }
 
-        if (this.tIndexInfo["cpu"+ this.cpuCoreArr[0] +"Frequency"] != undefined) {
+        if (this.tIndexInfo["cpu"+ this.cpuCoreArr[0].toString() +"Frequency"] != undefined) {
           ItemContent({
             icon: $r("app.media.icon_counter"),
             value: (parseInt(this.tIndexInfo["cpu"+ this.cpuCoreArr[0] +"Frequency"].toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu0Load + "%",
@@ -177,7 +177,7 @@ struct TitleWindowPage {
           })
         }
 
-        if (this.tIndexInfo["cpu"+ this.cpuCoreArr[1] +"Frequency"] != undefined) {
+        if (this.tIndexInfo["cpu"+ this.cpuCoreArr[1].toString() +"Frequency"] != undefined) {
           ItemContent({
             icon: $r("app.media.icon_counter"),
             value: (parseInt(this.tIndexInfo["cpu"+ this.cpuCoreArr[1] +"Frequency"].toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu1Load + "%",
@@ -187,7 +187,7 @@ struct TitleWindowPage {
             }
           })
         }
-        if (this.tIndexInfo["cpu"+ this.cpuCoreArr[2] +"Frequency"] != undefined) {
+        if (this.tIndexInfo["cpu"+ this.cpuCoreArr[2].toString() +"Frequency"] != undefined) {
 
           ItemContent({
             icon: $r("app.media.icon_counter"),
