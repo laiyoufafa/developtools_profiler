@@ -64,7 +64,7 @@ const std::string BASE_SOURCE_STRING = R"(
 #include <unistd.h>
 
 namespace {
-    const uint32_t WAIT_FOR_EVER = 24 * 60 * 60 * 1000;
+    constexpr uint32_t WAIT_FOR_EVER = 24 * 60 * 60 * 1000;
 }
 
 #SERVICE_CLASS_NAME#::#SERVICE_CLASS_NAME#()

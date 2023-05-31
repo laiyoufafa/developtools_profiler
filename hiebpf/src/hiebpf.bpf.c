@@ -29,7 +29,7 @@
 
 extern int LINUX_KERNEL_VERSION __kconfig;
 const volatile unsigned int g_stack_limit = 0;
-static constexpr int SHIFT_32 = 32;
+static const int SHIFT_32 = 32;
 
 // global configuration data
 // const volatile int tracer_pid = -1;

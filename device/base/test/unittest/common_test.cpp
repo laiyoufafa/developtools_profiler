@@ -73,9 +73,9 @@ HWTEST_F(CommonTest, IsProcessExist, TestSize.Level1)
     int pid = 0;
     EXPECT_TRUE(COMMON::IsProcessExist(procName, pid));
     EXPECT_NE(pid, 0);
-    const std::string noProcName = "ls";
+    const std::string invalidProcName = "ls";
     pid = 0;
-    EXPECT_FALSE(COMMON::IsProcessExist(noProcName, pid));
+    EXPECT_FALSE(COMMON::IsProcessExist(invalidProcName, pid));
     EXPECT_EQ(pid, 0);
 }
 

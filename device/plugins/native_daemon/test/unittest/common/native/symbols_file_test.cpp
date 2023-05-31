@@ -829,7 +829,7 @@ HWTEST_F(SymbolsFileTest, GetSectionInfo, TestSize.Level1)
         {".shstrtab", 0x00000000, 0x000000000000012c, 0x000055eb},
     };
 #endif
-    for (SectionInfo info : sectionCheckList) {
+    for (const SectionInfo& info : sectionCheckList) {
         uint64_t addr;
         uint64_t size;
         uint64_t offset;

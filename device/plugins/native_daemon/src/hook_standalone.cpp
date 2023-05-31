@@ -180,6 +180,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                         time_t now = time(nullptr);
                         struct tm nowTime;
                         localtime_r(&now, &nowTime);
+                        // 1900: count of years
                         fprintf(fp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\n", nowTime.tm_year + 1900,
                                 nowTime.tm_mon + 1, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
                         fprintf(fp, "Total durations: %" PRIu64 " nanoseconds\n", total_time);
