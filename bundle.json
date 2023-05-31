@@ -39,12 +39,18 @@
         "hilog_native",
         "napi",
         "samgr",
-        "c_utils"
+        "c_utils",
+        "faultloggerd"
       ],
       "third_party": [
         "googletest",
         "utils",
-        "zlib"
+        "zlib",
+        "bounds_checking_function",
+        "protobuf",
+        "openssl",
+        "libbpf",
+        "grpc"
       ]
     },
     "build": {

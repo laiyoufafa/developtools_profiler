@@ -39,12 +39,13 @@ ohos_source_set("hidumpplugin_source") {
       external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     }
   }
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
   public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
 }
 
 ohos_shared_library("hidumpplugin") {
   output_name = "hidumpplugin"
-
   deps = [ ":hidumpplugin_source" ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"

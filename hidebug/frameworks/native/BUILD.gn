@@ -39,11 +39,12 @@ ohos_source_set("libhidebug_init_source") {
     "//commonlibrary/c_utils/base/include",
     "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
   ]
-
   sources = [ "hidebug_base.c" ]
-
   deps = [
-    "//base/startup/init/services/param/base:parameterbase_ext",
     "//third_party/bounds_checking_function:libsec_static",
+    #"//base/startup/init/services/param/base:parameterbase_ext",
+  ]
+  external_deps = [ 
+    "init:parameterbase_ext",
   ]
 }

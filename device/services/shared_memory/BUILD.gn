@@ -53,6 +53,8 @@ ohos_source_set("shared_memory_source") {
       ]
     }
   }
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 
 ohos_shared_library("shared_memory") {
