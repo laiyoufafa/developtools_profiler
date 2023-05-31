@@ -149,10 +149,8 @@ private:
             std::hash<uint64_t> hasher;
             size_t seed = 0;
             // 6 and 2 is the number of displacements
-            constexpr int SHIFT_2 = 2;
-            constexpr int SHIFT_6 = 6;
-            seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << SHIFT_6) + (seed >> SHIFT_2);
-            seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << SHIFT_6) + (seed >> SHIFT_2);
+            seed ^= hasher(key.ip) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= hasher(key.filePathId) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             return seed;
         }
     };

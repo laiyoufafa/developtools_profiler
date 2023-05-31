@@ -1205,8 +1205,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
     fetchRequest.set_session_id(sessionId1);
     fetchResponse = profilerStub_->FetchData(&fetchContext, fetchRequest);
     ASSERT_TRUE(fetchResponse != nullptr);
-    int hiprofilerdPid_Count = 0;
-    int hiprofilerPluginsPid_Count = 0;
+    int hiprofilerdPidCount = 0;
+    int hiprofilerPluginsPidCount = 0;
     std::thread fetchDataThread([&]() {
         int ict = 0;
         while (1) {
@@ -1227,9 +1227,9 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
                 for (int j = 0; j < processData.processesinfo().size(); j++) {
                     ProcessInfo info = processData.processesinfo(j);
                     if (info.pid() == hiprofilerdPid_) {
-                        hiprofilerdPid_Count++;
+                        hiprofilerdPidCount++;
                     } else if (info.pid() == hiprofilerPluginsPid_) {
-                        hiprofilerPluginsPid_Count++;
+                        hiprofilerPluginsPidCount++;
                     }
                 }
 
@@ -1241,8 +1241,8 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
     timeCost = timer.ElapsedUs();
     printf("FetchData cost %ldus.\n", timeCost);
     EXPECT_LE(timeCost, FETCHDATA_TIMEOUT_US);
-    EXPECT_EQ(hiprofilerdPid_Count, ROUND_COUNT);
-    EXPECT_EQ(hiprofilerPluginsPid_Count, ROUND_COUNT);
+    EXPECT_EQ(hiprofilerdPidCount, ROUND_COUNT);
+    EXPECT_EQ(hiprofilerPluginsPidCount, ROUND_COUNT);
 
     // StopSession
     timer.Reset();
