@@ -12,24 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <memory.h>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
-#include <dlfcn.h>
-#include <pthread.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <sys/prctl.h>
-#include <vector>
 #include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <vector>
+#include <dlfcn.h>
 #include <fcntl.h>
+#include <memory.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/prctl.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 
 #include "memory_trace.h"
 
@@ -41,13 +38,14 @@ typedef void (*DepthFreeSo)(int depth, char *p);
 constexpr int MALLOC_SIZE = 1000;
 constexpr int DATA_SIZE = 200;
 constexpr int ARGC_NUM_MAX = 3;
+constexpr int DOUBLE = 2;
 
 const int USLEEP_TIME = 1000;
 // liba.z.so and libb.z.so for same so.
 #ifdef __arm__
-const std::vector<std::string> VEC_SO_PATH { "/system/lib/liba.z.so", "/system/lib/libb.z.so"};
+const std::vector<std::string> VEC_SO_PATH { "/system/lib/liba.z.so", "/system/lib/libb.z.so" };
 #else
-const std::vector<std::string> VEC_SO_PATH { "/system/lib64/liba.z.so", "/system/lib64/libb.z.so"};
+const std::vector<std::string> VEC_SO_PATH { "/system/lib64/liba.z.so", "/system/lib64/libb.z.so" };
 #endif
 using StaticSpace = struct {
     int data[DATA_SIZE];
@@ -55,21 +53,21 @@ using StaticSpace = struct {
 unsigned int g_stickDepth = 1;
 }
 
-void calloc_fun()
+void CallocFun()
 {
     static int i = 0;
-    char*ptr = (char*)calloc(1,MALLOC_SIZE / 100);
-    fprintf(stderr,"calloc %p i=%d\n", ptr, i);
+    char* ptr = (char*)calloc(1,MALLOC_SIZE / 100);
+    fprintf(stderr, "calloc %p i=%d\n", ptr, i);
     free(ptr);
     i++;
 }
 
-void realloc_fun()
+void ReallocFun()
 {
     static int i = 0;
-    char*ptr = (char*)calloc(1, MALLOC_SIZE / 10);
-    ptr = (char*)realloc(ptr, MALLOC_SIZE * 10);
-    fprintf(stderr,"realloc %p i=%d\n", ptr, i);
+    char* ptr = (char*)calloc(1, MALLOC_SIZE / 10); // 10: multiple num
+    ptr = (char*)realloc(ptr, MALLOC_SIZE * 10); // 10: multiple num
+    fprintf(stderr, "realloc %p i=%d\n", ptr, i);
     free(ptr);
     i++;
 }
@@ -81,7 +79,7 @@ bool DepthMallocFree(int depth = 0, int mallocSize = 100)
     }
     if (depth == 0) {
         char* ptr = (char*)malloc(mallocSize);
-        fprintf(stderr,"%s:%p\n", __func__, ptr);
+        fprintf(stderr, "%s:%p\n", __func__, ptr);
         *ptr = 'a';
         free(ptr);
         return true;
@@ -89,7 +87,7 @@ bool DepthMallocFree(int depth = 0, int mallocSize = 100)
     return (DepthMallocFree(depth - 1, mallocSize));
 }
 
-void dlopenAndCloseSo(std::string filePath, int size)
+void DlopenAndCloseSo(std::string filePath, int size)
 {
     char *ptr = nullptr;
     void* handle = nullptr;
@@ -110,7 +108,7 @@ void dlopenAndCloseSo(std::string filePath, int size)
         fprintf(stderr, "function not exist!\n");
         exit(0);
     }
-    for (size_t i = 0; i < 20; i++) {
+    for (size_t i = 0; i < 20; i++) { // 20: loop count
         ptr = mallocFunc(g_stickDepth, size);
         *ptr = 'a';
         freeFunc(g_stickDepth, ptr);
@@ -121,88 +119,91 @@ void dlopenAndCloseSo(std::string filePath, int size)
     }
 }
 
-int mmapAndmunmap()
+int MmapAndMunMap()
 {
-    char* ptr;
     size_t size = (1024);
 
-    ptr = (char*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS , -1, 0);
+    char* ptr = static_cast<char*>(mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
     if (ptr == MAP_FAILED) {
         perror("Mmap err:");
-        ptr = NULL;
+        ptr = nullptr;
         return 1;
     }
 
-    memset(ptr, 0, size);
+    (void)memset_s(ptr, size, 0, size);
     munmap(ptr, size);
     return 0;
 }
 
-void fun1()
+void Fun1()
 {
     static int i = 0;
-    char* ptr = (char*)malloc(MALLOC_SIZE);
-    fprintf(stderr,"%p i=%d\n", ptr, i);
+    char* ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
     free(ptr);
     i++;
-    mmapAndmunmap();
-    calloc_fun();
-    realloc_fun();
+    MmapAndMunMap();
+    CallocFun();
+    ReallocFun();
 }
 
-void fun2()
+void Fun2()
 {
-    fun1();
+    Fun1();
     static int i = 0;
-    char *ptr = (char*)malloc(MALLOC_SIZE);
-    fprintf(stderr,"%p i=%d\n", ptr, i);
+    char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
-    if (i % 2 == 0)
+    if (i % DOUBLE == 0) {
         free(ptr);
+    }
     i++;
 }
 
-void fun3()
+void Fun3()
 {
-    fun2();
+    Fun2();
     static int i = 0;
-    char *ptr = (char*)malloc(MALLOC_SIZE);
-    fprintf(stderr,"%p i=%d\n", ptr, i);
+    char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
-    if (i % 2 == 0)
+    if (i % DOUBLE == 0) {
         free(ptr);
+    }
     i++;
-    dlopenAndCloseSo(VEC_SO_PATH[0], MALLOC_SIZE * 2);
+    DlopenAndCloseSo(VEC_SO_PATH[0], MALLOC_SIZE * DOUBLE);
 }
 
-void fun4()
+void Fun4()
 {
-    fun3();
+    Fun3();
     static int i = 0;
-    char *ptr = (char*)malloc(MALLOC_SIZE);
-    fprintf(stderr,"%p i=%d\n", ptr, i);
+    char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
-    if (i % 2 == 0)
+    if (i % DOUBLE == 0) {
         free(ptr);
+    }
     i++;
 }
 
-void fun5()
+void Fun5()
 {
-    fun4();
+    Fun4();
     static int i = 0;
-    char*ptr = (char*)malloc(MALLOC_SIZE);
-    fprintf(stderr,"%p i=%d\n", ptr, i);
+    char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
-    if (i % 2 == 0)
+    if (i % DOUBLE == 0) {
         free(ptr);
+    }
     i++;
-    DepthMallocFree(g_stickDepth * 30);
-    dlopenAndCloseSo(VEC_SO_PATH[1], MALLOC_SIZE * 3);
+    DepthMallocFree(g_stickDepth * 30); // 30: depth count
+    DlopenAndCloseSo(VEC_SO_PATH[1], MALLOC_SIZE * 3); // 3: multiple num
 }
 
-void* thread_func_cpp(void* param)
+void* HhreadFuncCpp(void* param)
 {
     std::string name = "thread";
     name = name + std::to_string(gettid());
@@ -210,7 +211,7 @@ void* thread_func_cpp(void* param)
     int forNum = *static_cast<int*>(param);
     for (int num = 0; num < forNum; num++) {
         fprintf(stderr, "thread %d:num=%d\n", gettid(), num);
-        fun5();
+        Fun5();
     }
     return nullptr;
 }
@@ -230,17 +231,17 @@ void TestMemoryMap()
     }
     printf("named mmap addr: %p, size: 4096, fd: %d\n", mapAddr1, fd);
 
-    void* mapAddr2 = mmap(nullptr, 8192, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS , -1, 0);
+    void* mapAddr2 = mmap(nullptr, 8192, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (mapAddr2 == MAP_FAILED) {
         printf("anonymous mmap failed\n");
         return;
     }
     printf("anonymous mmap addr: %p, size: 8192\n", mapAddr2);
 
-    memtrace((void*)0x123456, 3333, "memtrace_test", true);
+    memtrace(reinterpret_cast<void*>(0x123456), 3333, "memtrace_test", true); // 3333 num
     printf("memtrace(0x123456, 3333, \"memtrace_test\", true)\n");
 
-    memtrace((void*)0x123456, 3333, "memtrace_test", false);
+    memtrace(reinterpret_cast<void*>(0x123456), 3333, "memtrace_test", false); // 3333 num
     printf("memtrace(0x123456, 3333, \"memtrace_test\", false)\n");
 }
 
@@ -252,36 +253,36 @@ int main(int argc, char *argv[])
         if (atoi(argv[1]) >= 0) {
             threadNum = atoi(argv[1]);
         }
-        if (atoi(argv[2]) >= 0) {
-            forNum = atoi(argv[2]);
+        if (atoi(argv[2]) >= 0) { // 2: args num
+            forNum = atoi(argv[2]); // 2: args num
         }
     } else if (argc > ARGC_NUM_MAX) {
         printf("command error, argc must <= %d\n", ARGC_NUM_MAX);
         return 0;
     }
-    fprintf(stderr,"start.Enter or send signal for next.\n");
+    fprintf(stderr, "start.Enter or send signal for next.\n");
     getchar();
     TestMemoryMap();
 
     fprintf(stderr, "forNum = %d, threadNum = %d\n", forNum, threadNum);
     fprintf(stderr, "Notice: need copy libnativetest_so.z.so for %s, %s\n", VEC_SO_PATH[0].data(), VEC_SO_PATH[1].data());
-    pthread_t* thr_array = new (std::nothrow) pthread_t[threadNum];
-    if (!thr_array) {
+    pthread_t* thrArray = new (std::nothrow) pthread_t[threadNum];
+    if (!thrArray) {
         printf("new thread array failed.\n");
         return 1;
     }
     int idx;
     for (idx = 0; idx < threadNum; ++idx) {
-        if (pthread_create(thr_array + idx, nullptr, thread_func_cpp, static_cast<void*>(&forNum)) != 0) {
+        if (pthread_create(thrArray + idx, nullptr, HhreadFuncCpp, static_cast<void*>(&forNum)) != 0) {
             printf("Creating thread failed.\n");
         }
     }
     for (idx = 0; idx < threadNum; ++idx) {
-        pthread_join(thr_array[idx], nullptr);
+        pthread_join(thrArray[idx], nullptr);
     }
-    delete []thr_array;
+    delete []thrArray;
 
-    fprintf(stderr,"end.\n");
+    fprintf(stderr, "end.\n");
     return 0;
 }
 
