@@ -15,15 +15,15 @@
 
 #include "hidebug_base.h"
 
+#include <dlfcn.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
-#include <dlfcn.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "securec.h"
 

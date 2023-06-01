@@ -15,6 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement.js';
 import { LitSelectOption } from './LitSelectOption.js';
+import { selectHtmlStr } from './LitSelectHtml.js';
 
 @element('lit-select-v')
 export class LitSelectV extends BaseElement {
@@ -22,11 +23,11 @@ export class LitSelectV extends BaseElement {
   itemValue: Array<string> = [];
   customItem: Array<string> = [];
   private focused: any;
-  private inputElement: any;
-  private searchInputElement: any;
-  private iconElement: any;
-  private options: HTMLDivElement | undefined;
-  private body: HTMLDivElement | undefined;
+  private selectVInputEl: any;
+  private selectVSearchInputEl: any;
+  private selectVIconEl: any;
+  private selectVOptions: HTMLDivElement | undefined;
+  private selectVBody: HTMLDivElement | undefined;
 
   private valueStr: string = '';
 
@@ -35,15 +36,15 @@ export class LitSelectV extends BaseElement {
   }
 
   get value() {
-    return this.inputElement!.value || this.defaultValue;
+    return this.selectVInputEl!.value || this.defaultValue;
   }
 
   get rounded() {
     return this.hasAttribute('rounded');
   }
 
-  set rounded(rounded: boolean) {
-    if (rounded) {
+  set rounded(selectVRounded: boolean) {
+    if (selectVRounded) {
       this.setAttribute('rounded', '');
     } else {
       this.removeAttribute('rounded');
@@ -54,9 +55,9 @@ export class LitSelectV extends BaseElement {
     return this.getAttribute('placement') || '';
   }
 
-  set placement(placement: string) {
-    if (placement) {
-      this.setAttribute('placement', placement);
+  set placement(selectVPlacement: string) {
+    if (selectVPlacement) {
+      this.setAttribute('placement', selectVPlacement);
     } else {
       this.removeAttribute('placement');
     }
@@ -66,8 +67,8 @@ export class LitSelectV extends BaseElement {
     return this.getAttribute('border') || 'true';
   }
 
-  set border(value) {
-    if (value) {
+  set border(selectVBorder) {
+    if (selectVBorder) {
       this.setAttribute('border', 'true');
     } else {
       this.setAttribute('border', 'false');
@@ -82,16 +83,16 @@ export class LitSelectV extends BaseElement {
     return this.getAttribute('default-value') || '';
   }
 
-  set defaultValue(value) {
-    this.setAttribute('default-value', value);
+  set defaultValue(selectVDefaultValue) {
+    this.setAttribute('default-value', selectVDefaultValue);
   }
 
   get placeholder() {
     return this.getAttribute('placeholder') || this.defaultPlaceholder;
   }
 
-  set placeholder(value) {
-    this.setAttribute('placeholder', value);
+  set placeholder(selectVPlaceholder) {
+    this.setAttribute('placeholder', selectVPlaceholder);
   }
 
   set all(isAll: boolean) {
@@ -106,29 +107,29 @@ export class LitSelectV extends BaseElement {
     return this.hasAttribute('is-all');
   }
 
-  dataSource(value: Array<string>, valueStr: string) {
-    this.options!.innerHTML = '';
-    if (value.length > 0) {
-      this.body!.style.display = 'block';
+  dataSource(selectVData: Array<string>, valueStr: string) {
+    this.selectVOptions!.innerHTML = '';
+    if (selectVData.length > 0) {
+      this.selectVBody!.style.display = 'block';
       this.valueStr = valueStr;
-      this.itemValue = value;
+      this.itemValue = selectVData;
       if (valueStr != '') {
         let option = document.createElement('lit-select-option');
         if (this.all) {
           option.setAttribute('selected', '');
-          this.showItems = value;
+          this.showItems = selectVData;
         }
         option.setAttribute('value', valueStr);
         option.textContent = valueStr;
-        this.options!.appendChild(option);
-        this.initDataItem(value);
+        this.selectVOptions!.appendChild(option);
+        this.initDataItem(selectVData);
         this.initCustomOptions();
       } else {
-        this.initDataItem(value);
+        this.initDataItem(selectVData);
         this.initOptions();
       }
     } else {
-      this.body!.style.display = 'none';
+      this.selectVBody!.style.display = 'none';
     }
     if (this.title == 'Event List') {
       let inputElement = this.shadowRoot?.querySelector('input') as HTMLInputElement;
@@ -136,27 +137,27 @@ export class LitSelectV extends BaseElement {
     }
   }
 
-  initDataItem(value: Array<string>) {
-    value.forEach((item) => {
-      let option = document.createElement('lit-select-option');
+  initDataItem(selectVDataItem: Array<string>) {
+    selectVDataItem.forEach((item) => {
+      let selectVOption = document.createElement('lit-select-option');
       if (this.showItems.indexOf(item) > -1 || this.all) {
-        option.setAttribute('selected', '');
+        selectVOption.setAttribute('selected', '');
       }
-      option.className = 'option';
-      option.setAttribute('value', item);
-      option.textContent = item;
-      this.options!.appendChild(option);
+      selectVOption.className = 'option';
+      selectVOption.setAttribute('value', item);
+      selectVOption.textContent = item;
+      this.selectVOptions!.appendChild(selectVOption);
     });
   }
 
   initElements(): void {
     this.tabIndex = 0;
     this.focused = false;
-    this.inputElement = this.shadowRoot!.querySelector('#select-input') as HTMLInputElement;
-    this.searchInputElement = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
-    this.body = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
-    this.options = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
-    this.iconElement = this.shadowRoot!.querySelector('.icon');
+    this.selectVInputEl = this.shadowRoot!.querySelector('#select-input') as HTMLInputElement;
+    this.selectVSearchInputEl = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
+    this.selectVBody = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
+    this.selectVOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
+    this.selectVIconEl = this.shadowRoot!.querySelector('.icon');
     this.onclick = (ev: any) => {
       if (this.focused === false) {
         this.focused = true;
@@ -164,10 +165,10 @@ export class LitSelectV extends BaseElement {
         this.focused = false;
       }
     };
-    this.searchInputElement?.addEventListener('keyup', () => {
+    this.selectVSearchInputEl?.addEventListener('keyup', () => {
       let options = [...this.shadowRoot!.querySelectorAll<LitSelectOption>('.option')];
       options.filter((a: LitSelectOption) => {
-        if (a.textContent!.indexOf(this.searchInputElement!.value) <= -1) {
+        if (a.textContent!.indexOf(this.selectVSearchInputEl!.value) <= -1) {
           a.style.display = 'none';
         } else {
           a.style.display = 'flex';
@@ -178,87 +179,29 @@ export class LitSelectV extends BaseElement {
     this.onmouseout = this.onblur = (ev) => {
       this.focused = false;
     };
-    this.inputElement.onfocus = (ev: any) => {
+    this.selectVInputEl.onfocus = (ev: any) => {
       if (this.hasAttribute('disabled')) return;
     };
-    this.inputElement.onblur = (ev: any) => {
+    this.selectVInputEl.onblur = (ev: any) => {
       if (this.hasAttribute('disabled')) return;
     };
   }
 
   initHtml() {
     return `
-        <style>
-        :host{
-            display: inline-flex;
-            position: relative;
-            overflow: visible;
-            cursor: pointer;
-            border-radius: 2px;
-            outline: none;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
-        }
-        :host(:not([border])),
-        :host([border='true']){
-            border: 1px solid var(--bark-prompt,#dcdcdc);
-        }
-        input{
-            border: 0;
-            outline: none;
-            background-color: transparent;
-            cursor: pointer;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
-            display: inline-flex;
-            color: var(--dark-color2,rgba(0,0,0,0.9));
-        }
-        :host([highlight]) input {
-            color: rgba(255,255,255,0.9);
-        }
-        input{
-            width: 100%;
-        }
-        :host([mode])  input{
-            padding: 6px 0px;
-        }
-        :host([mode])  .root{
-            padding: 1px 8px;
-        }
-        .root{
-            position: relative;
-            padding: 3px 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-radius: 2px;
-            outline: none;
-            font-size: 1rem;
-            z-index: 2;
-            -webkit-user-select:none ;
-            -moz-user-select:none;
-            user-select:none;
-            width: 100%;
-        }
+        <style> 
+        ${selectHtmlStr()}
         .body{
             max-height: 286px;
-            position: absolute;
-            bottom: 100%;
-            z-index: 99;
-            padding-top: 5px;
-            margin-top: 2px;
-            background-color: var(--dark-background4,#fff);
-            width: 100%;
-            transform: scaleY(.6);
-            visibility: hidden;
-            opacity: 0;
-            transform-origin: bottom center;
             box-shadow: 0 5px 15px 0px #00000033;
-            display: block;
-            flex-direction: column;
             border-radius: 10px;
+        }
+        input{
+            width: 100%;
+        }
+        #search-input {
+          outline: none;
+          border: none;
         }
         .body-select {
            margin-top: 3px;
@@ -266,87 +209,26 @@ export class LitSelectV extends BaseElement {
            width: 100%;
            border-bottom: none;
         }
-        #search-input {
-          border: none;
-          outline: none;
-        }
         .body-opt{
-            border-top: none;
-            max-height: 256px;
-            background-color: var(--dark-background4,#fff);
             width: 100%;
+            max-height: 256px;
+            border-top: none;
+            overflow: auto;
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
-            overflow: auto;
-        }
-        .body-bottom{
-            bottom: auto;
-            top: 100%;
-            transform-origin: top center;
-        }
-        :host([placement="bottom"]) .body{
-            bottom:unset;
-            top: 100%;
-            transition: none;
-            transform: none;
-        }
-
-        :host([rounded]) .body {
-            border-radius: 16px;
-        }
-        :host([rounded]) .root {
-            border-radius: 16px;
-            height: 25px;
-        }
-        .icon{
-            pointer-events: none;
-        }
-        .noSelect{
-          -moz-user-select:none;
-          -ms-user-select:none;
-          user-select:none;
-          -khtml-user-select:none;
-          -webkit-touch-callout:none;
-          -webkit-user-select:none;
-        }
-
-        :host(:not([border]):not([disabled]):focus),
-        :host([border='true']:not([disabled]):focus),
-        :host(:not([border]):not([disabled]):hover),
-        :host([border='true']:not([disabled]):hover){
-            border:1px solid var(--bark-prompt,#ccc)
-        }
-        :host(:not([disabled]):focus) .body,
-        :host(:not([disabled]):focus-within) .body{
-            transform: scaleY(1);
-            opacity: 1;
-            z-index: 99;
-            visibility: visible;
-        }
-        :host(:not([disabled]):focus)  input{
-            color: var(--dark-color,#bebebe);
-        }
-        input::-webkit-input-placeholder {
-                color: var(--dark-color,#aab2bd);
-        }
-        :host(:not([border])[disabled]) *,
-        :host([border='true'][disabled]) *{
-            background-color: var(--dark-background1,#f5f5f5);
-            color: #b7b7b7;
-            cursor: not-allowed;
-        }
-        :host([border='false'][disabled]) *{
-            color: #b7b7b7;
-            cursor: not-allowed;
+            background-color: var(--dark-background4,#fff);
         }
         .loading{
             display: none;
         }
-        .icon{
-            display: flex;
+        input::-webkit-input-placeholder {
+                color: var(--dark-color,#aab2bd);
         }
         #search-input{
            margin-left: 15px;
+        }
+        .icon{
+            display: flex;
         }
         /*Define the height, width and background of the scroll bar*/
         ::-webkit-scrollbar
@@ -393,7 +275,7 @@ export class LitSelectV extends BaseElement {
           let number = this.showItems.indexOf(a.textContent!);
           if (number > -1) {
             this.showItems!.splice(number, 1);
-            this.inputElement!.value = this.showItems;
+            this.selectVInputEl!.value = this.showItems;
           }
           this.all = false;
           querySelector.removeAttribute('selected');
@@ -404,7 +286,7 @@ export class LitSelectV extends BaseElement {
           let value = this.showItems.indexOf(a.textContent!);
           if (index > -1 && value == -1) {
             this.showItems.push(a.textContent!);
-            this.inputElement!.value = this.showItems;
+            this.selectVInputEl!.value = this.showItems;
           }
           if (this.showItems.length >= this.itemValue.length) {
             querySelector.setAttribute('selected', '');
@@ -421,8 +303,8 @@ export class LitSelectV extends BaseElement {
   }
 
   initOptions() {
-    this.options!.addEventListener('click', (ev) => {
-      let items = this.inputElement!.value.split(',');
+    this.selectVOptions!.addEventListener('click', (ev) => {
+      let items = this.selectVInputEl!.value.split(',');
       this.customItem = [];
       items.forEach((item: string) => {
         if (item.trim() != '') {
@@ -433,9 +315,9 @@ export class LitSelectV extends BaseElement {
         }
       });
       if (this.customItem.length > 0) {
-        this.inputElement.value = this.customItem.concat(this.showItems);
+        this.selectVInputEl.value = this.customItem.concat(this.showItems);
       } else {
-        this.inputElement.value = this.showItems;
+        this.selectVInputEl.value = this.showItems;
       }
     });
     this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
@@ -469,14 +351,14 @@ export class LitSelectV extends BaseElement {
         this.itemValue.forEach((i) => {
           this.showItems.push(i);
         });
-        this.inputElement.value = this.itemValue;
+        this.selectVInputEl.value = this.itemValue;
       } else {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((i) => {
           i.removeAttribute('selected');
           this.all = false;
         });
         this.showItems = [];
-        this.inputElement.value = '';
+        this.selectVInputEl.value = '';
       }
     });
   }

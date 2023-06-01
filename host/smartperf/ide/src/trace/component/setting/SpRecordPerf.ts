@@ -38,30 +38,30 @@ export class SpRecordPerf extends BaseElement {
   private eventSelect: LitSelectV | undefined | null;
 
   private frequencySetInput: HTMLInputElement | undefined | null;
-  private processInput: HTMLInputElement | undefined | null;
+  private recordProcessInput: HTMLInputElement | undefined | null;
   private offCPUSwitch: LitSwitch | undefined | null;
   private callSelect: LitSelect | undefined | null;
-  private configList: Array<any> = [];
+  private perfConfigList: Array<any> = [];
 
   get show(): boolean {
     return this.hasAttribute('show');
   }
 
-  set show(show: boolean) {
-    if (show) {
+  set show(perfShow: boolean) {
+    if (perfShow) {
       this.setAttribute('show', '');
     } else {
       this.removeAttribute('show');
     }
   }
 
-  set startSamp(start: boolean) {
-    if (start) {
+  set startSamp(perfStart: boolean) {
+    if (perfStart) {
       this.setAttribute('startSamp', '');
-      this.processInput!.removeAttribute('readonly');
+      this.recordProcessInput!.removeAttribute('readonly');
     } else {
       this.removeAttribute('startSamp');
-      this.processInput!.setAttribute('readonly', 'readonly');
+      this.recordProcessInput!.setAttribute('readonly', 'readonly');
     }
   }
 
@@ -70,7 +70,7 @@ export class SpRecordPerf extends BaseElement {
   }
 
   getPerfConfig(): PerfConfig | undefined {
-    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    let recordPerfConfigVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
     let perfConfig: PerfConfig = {
       process: 'ALL',
       cpu: 'select ALL',
@@ -85,7 +85,7 @@ export class SpRecordPerf extends BaseElement {
       mmap: 256,
       clockType: 'monotonic',
     };
-    configVal!.forEach((value) => {
+    recordPerfConfigVal!.forEach((value) => {
       switch (value.title) {
         case 'Process':
           let processSelect = value as LitSelectV;
@@ -177,25 +177,25 @@ export class SpRecordPerf extends BaseElement {
   initElements(): void {
     let that = this;
     this.initConfigList();
-    let configList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
+    let recordPerfConfigList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
     this.addOptionButton = this.shadowRoot?.querySelector<HTMLButtonElement>('#addOptions');
-    this.configList.forEach((config) => {
-      let div = document.createElement('div');
+    this.perfConfigList.forEach((config) => {
+      let recordPerfDiv = document.createElement('div');
       if (config.hidden) {
-        div.className = 'config-div hidden';
+        recordPerfDiv.className = 'record-perf-config-div hidden';
       } else {
-        div.className = 'config-div';
+        recordPerfDiv.className = 'record-perf-config-div';
       }
-      let headDiv = document.createElement('div');
-      div.appendChild(headDiv);
-      let title = document.createElement('span');
-      title.className = 'title';
-      title.textContent = config.title;
-      headDiv.appendChild(title);
-      let des = document.createElement('span');
-      des.textContent = config.des;
-      des.className = 'des';
-      headDiv.appendChild(des);
+      let recordPerfHeadDiv = document.createElement('div');
+      recordPerfDiv.appendChild(recordPerfHeadDiv);
+      let recordPerfTitle = document.createElement('span');
+      recordPerfTitle.className = 'record-perf-title';
+      recordPerfTitle.textContent = config.title;
+      recordPerfHeadDiv.appendChild(recordPerfTitle);
+      let recordPerfDes = document.createElement('span');
+      recordPerfDes.textContent = config.des;
+      recordPerfDes.className = 'record-perf-des';
+      recordPerfHeadDiv.appendChild(recordPerfDes);
       switch (config.type) {
         case 'select-multiple':
           let html = '';
@@ -203,22 +203,22 @@ export class SpRecordPerf extends BaseElement {
           if (config.title == 'Event List') {
             placeholder = 'NONE';
           }
-          html += `<lit-select-v default-value="" rounded="" class="select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
+          html += `<lit-select-v default-value="" rounded="" class="record-perf-select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
           config.selectArray.forEach((value: string) => {
             html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
           });
           html += `</lit-select-v>`;
-          div.innerHTML = div.innerHTML + html;
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + html;
           break;
         case 'lit-slider':
           let silder = `<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" class="silderclass config" title="${config.title}"></lit-slider>
                               <input readonly class="sliderInput" type="text" value = '    ${config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
                                </div>`;
-          div.innerHTML = div.innerHTML + silder;
-          let litSlider = div.querySelector<LitSlider>('.silderclass');
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + silder;
+          let litSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
           litSlider!.percent = config.litSliderStyle.defaultValue;
-          let sliderBody = div.querySelector<HTMLDivElement>('.sliderBody');
-          let bufferInput = div?.querySelector('.sliderInput') as HTMLInputElement;
+          let sliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
+          let bufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
           litSlider!.addEventListener('input', (evt) => {
             bufferInput.value = sliderBody!.getAttribute('percent') + config.litSliderStyle.resultUnit;
           });
@@ -229,11 +229,11 @@ export class SpRecordPerf extends BaseElement {
           let mapsilder = `<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" class="silderclass config" title="${config.title}"></lit-slider>
                               <input readonly class="sliderInput" type="text" value = '    ${defaultValue} ${config.litSliderStyle.resultUnit}' >
                                </div>`;
-          div.innerHTML = div.innerHTML + mapsilder;
-          let maplitSlider = div.querySelector<LitSlider>('.silderclass');
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + mapsilder;
+          let maplitSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
           maplitSlider!.percent = config.litSliderStyle.defaultValue;
-          let mapsliderBody = div.querySelector<HTMLDivElement>('.sliderBody');
-          let mapbufferInput = div?.querySelector('.sliderInput') as HTMLInputElement;
+          let mapsliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
+          let mapbufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
           maplitSlider!.addEventListener('input', (evt) => {
             let percnet = mapsliderBody!.getAttribute('percent');
             if (percnet != null) {
@@ -243,36 +243,36 @@ export class SpRecordPerf extends BaseElement {
           maplitSlider!.sliderStyle = config.litSliderStyle;
           break;
         case 'input':
-          let input = document.createElement('input');
-          input.className = 'input config';
-          input.textContent = config.value;
-          input.value = config.value;
-          input.title = config.title;
-          input.oninput = (ev) => {
-            input.value = input.value.replace(/\D/g, '');
+          let recordPerfInput = document.createElement('input');
+          recordPerfInput.className = 'record-perf-input config';
+          recordPerfInput.textContent = config.value;
+          recordPerfInput.value = config.value;
+          recordPerfInput.title = config.title;
+          recordPerfInput.oninput = (ev) => {
+            recordPerfInput.value = recordPerfInput.value.replace(/\D/g, '');
           };
-          div.appendChild(input);
+          recordPerfDiv.appendChild(recordPerfInput);
           break;
         case 'select':
-          let html1 = '';
-          html1 += `<lit-select rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+          let recordPerfSelect = '';
+          recordPerfSelect += `<lit-select rounded="" default-value="" class="record-perf-select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
           config.selectArray.forEach((value: string) => {
-            html1 += `<lit-select-option value="${value}">${value}</lit-select-option>`;
+            recordPerfSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
           });
-          html1 += `</lit-select>`;
-          div.innerHTML = div.innerHTML + html1;
+          recordPerfSelect += `</lit-select>`;
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + recordPerfSelect;
           break;
         case 'switch':
-          let switch1 = document.createElement('lit-switch') as LitSwitch;
-          switch1.className = 'config';
-          switch1.title = config.title;
+          let recordPerfSwitch = document.createElement('lit-switch') as LitSwitch;
+          recordPerfSwitch.className = 'config';
+          recordPerfSwitch.title = config.title;
           if (config.value) {
-            switch1.checked = true;
+            recordPerfSwitch.checked = true;
           } else {
-            switch1.checked = false;
+            recordPerfSwitch.checked = false;
           }
           if (config.title == 'Start Hiperf Sampling') {
-            switch1.addEventListener('change', (event: any) => {
+            recordPerfSwitch.addEventListener('change', (event: any) => {
               let detail = event.detail;
               if (detail.checked) {
                 this.startSamp = true;
@@ -286,19 +286,19 @@ export class SpRecordPerf extends BaseElement {
               }
             });
           }
-          headDiv.appendChild(switch1);
+          recordPerfHeadDiv.appendChild(recordPerfSwitch);
           break;
         default:
           break;
       }
-      configList!.appendChild(div);
+      recordPerfConfigList!.appendChild(recordPerfDiv);
     });
     let sp = document.querySelector('sp-application') as SpApplication;
-    let litSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
+    let recordPerfSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
     this.processSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
-    this.processInput = this.processSelect?.shadowRoot?.querySelector<HTMLInputElement>('input');
+    this.recordProcessInput = this.processSelect?.shadowRoot?.querySelector<HTMLInputElement>('input');
     let querySelector = this.processSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    let processData: Array<string> = [];
+    let recordPerfProcessData: Array<string> = [];
     querySelector.addEventListener('mousedown', (ev) => {
       if (SpRecordTrace.serialNumber == '') {
         this.processSelect!.dataSource([], 'ALL-Process');
@@ -310,57 +310,57 @@ export class SpRecordPerf extends BaseElement {
       } else {
         if (sp.search) {
           sp.search = false;
-          litSearch.clear();
+          recordPerfSearch.clear();
         }
         if (SpRecordTrace.isVscode) {
           let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
           Cmd.execHdcCmd(cmd, (res: string) => {
-            processData = [];
-            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-            for (let lineVal of lineValues) {
+            recordPerfProcessData = [];
+            let recordPerfValuesVs: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of recordPerfValuesVs) {
               if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                 continue;
               }
-              let process: string[] = lineVal.trim().split(' ');
-              if (process.length == 2) {
-                let processId = process[0];
-                let processName = process[1];
-                processData.push(processName + '(' + processId + ')');
+              let recordPerfProcessVs: string[] = lineVal.trim().split(' ');
+              if (recordPerfProcessVs.length == 2) {
+                let processId = recordPerfProcessVs[0];
+                let processName = recordPerfProcessVs[1];
+                recordPerfProcessData.push(processName + '(' + processId + ')');
               }
             }
-            if (processData.length > 0 && this.startSamp) {
-              this.processInput!.setAttribute('readonly', 'readonly');
+            if (recordPerfProcessData.length > 0 && this.startSamp) {
+              this.recordProcessInput!.setAttribute('readonly', 'readonly');
             }
-            this.processSelect?.dataSource(processData, 'ALL-Process');
+            this.processSelect?.dataSource(recordPerfProcessData, 'ALL-Process');
           });
         } else {
           HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
             if (conn) {
               HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
-                processData = [];
+                recordPerfProcessData = [];
                 if (res) {
-                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                  for (let lineVal of lineValues) {
+                  let recordPerfValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of recordPerfValues) {
                     if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                       continue;
                     }
-                    let process: string[] = lineVal.trim().split(' ');
-                    if (process.length == 2) {
-                      let processId = process[0];
-                      let processName = process[1];
-                      processData.push(processName + '(' + processId + ')');
+                    let recordPerfProcess: string[] = lineVal.trim().split(' ');
+                    if (recordPerfProcess.length == 2) {
+                      let processId = recordPerfProcess[0];
+                      let processName = recordPerfProcess[1];
+                      recordPerfProcessData.push(processName + '(' + processId + ')');
                     }
                   }
                 }
-                if (processData.length > 0 && this.startSamp) {
-                  this.processInput!.setAttribute('readonly', 'readonly');
+                if (recordPerfProcessData.length > 0 && this.startSamp) {
+                  this.recordProcessInput!.setAttribute('readonly', 'readonly');
                 }
-                this.processSelect?.dataSource(processData, 'ALL-Process');
+                this.processSelect?.dataSource(recordPerfProcessData, 'ALL-Process');
               });
             } else {
               sp.search = true;
-              litSearch.clear();
-              litSearch.setPercent('please kill other hdc-server !', -2);
+              recordPerfSearch.clear();
+              recordPerfSearch.setPercent('please kill other hdc-server !', -2);
             }
           });
         }
@@ -381,7 +381,7 @@ export class SpRecordPerf extends BaseElement {
       } else {
         if (sp.search) {
           sp.search = false;
-          litSearch.clear();
+          recordPerfSearch.clear();
         }
         if (SpRecordTrace.isVscode) {
           let cmd = Cmd.formatString(CmdConstant.CMD_GET_CPU_COUNT_DEVICES, [SpRecordTrace.serialNumber]);
@@ -408,8 +408,8 @@ export class SpRecordPerf extends BaseElement {
               });
             } else {
               sp.search = true;
-              litSearch.clear();
-              litSearch.setPercent('please kill other hdc-server !', -2);
+              recordPerfSearch.clear();
+              recordPerfSearch.setPercent('please kill other hdc-server !', -2);
             }
           });
         }
@@ -453,7 +453,7 @@ export class SpRecordPerf extends BaseElement {
       } else {
         if (sp.search) {
           sp.search = false;
-          litSearch.clear();
+          recordPerfSearch.clear();
         }
         if (SpRecordTrace.isVscode) {
           let cmd = Cmd.formatString(CmdConstant.CMD_GET_HIPERF_EVENTS_DEVICES, [SpRecordTrace.serialNumber]);
@@ -485,8 +485,8 @@ export class SpRecordPerf extends BaseElement {
               });
             } else {
               sp.search = true;
-              litSearch.clear();
-              litSearch.setPercent('please kill other hdc-server !', -2);
+              recordPerfSearch.clear();
+              recordPerfSearch.setPercent('please kill other hdc-server !', -2);
             }
           });
         }
@@ -584,7 +584,7 @@ export class SpRecordPerf extends BaseElement {
   }
 
   initConfigList(): void {
-    this.configList = [
+    this.perfConfigList = [
       {
         title: 'Start Hiperf Sampling',
         des: '',
@@ -698,36 +698,55 @@ export class SpRecordPerf extends BaseElement {
   initHtml(): string {
     return `
         <style>
+       input {
+           height: 25px;
+           border-radius: 16px;
+           outline:none;
+           text-indent:2%
+        }
+        
+        input::-webkit-input-placeholder{
+            color:var(--bark-prompt,#999999);
+        }
+        
+         :host([startSamp]) .record-perf-input {
+            background: var(--dark-background5,#FFFFFF);
+        }
+        
+        :host(:not([startSamp])) .record-perf-input {
+            color: #999999;
+        }
+        
         :host{
-            display: inline-block;
             width: 100%;
+            display: inline-block;
             height: 100%;
             background: var(--dark-background3,#FFFFFF);
             border-radius: 0px 16px 16px 0px;
         }
 
+        .record-perf-config-div {
+           display: flex;
+           flex-direction: column;
+           gap: 15px;
+           width: 80%;
+        }
+        
         .root {
             padding-top: 30px;
-            padding-left: 54px;
             margin-right: 30px;
+            padding-left: 54px;
             font-size:16px;
             margin-bottom: 30px;
         }
 
-        .config-div {
-           width: 80%;
-           display: flex;
-           flex-direction: column;
-           gap: 15px;
-        }
-
-        :host([show]) .config-div {
+        :host([show]) .record-perf-config-div {
            display: flex;
            flex-direction: column;
            margin-bottom: 1vh;
         }
 
-        :host(:not([show])) .config-div {
+        :host(:not([show])) .record-perf-config-div {
            margin-top: 5vh;
            margin-bottom: 5vh;
            gap: 25px;
@@ -759,63 +778,46 @@ export class SpRecordPerf extends BaseElement {
            background: #3391FF;
         }
 
-        .title {
+        .record-perf-title {
           opacity: 0.9;
           font-family: Helvetica-Bold;
+          margin-right: 10px;
           font-size: 18px;
           text-align: center;
           line-height: 40px;
           font-weight: 700;
-          margin-right: 10px;
         }
 
-        .des {
+        .record-perf-des {
           opacity: 0.6;
           font-family: Helvetica;
+          line-height: 35px;
           font-size: 14px;
           text-align: center;
-          line-height: 35px;
           font-weight: 400;
         }
 
-        .select {
+        .record-perf-select {
           border-radius: 15px;
         }
 
         lit-switch {
-          display:inline;
-          float: right;
           height: 38px;
           margin-top: 10px;
+          display:inline;
+          float: right;
         }
-        input {
-           height: 25px;
-           outline:none;
-           border-radius: 16px;
-           text-indent:2%
-        }
-        input::-webkit-input-placeholder{
-            color:var(--bark-prompt,#999999);
-        }
-
-        .input {
+     
+        .record-perf-input {
+            line-height: 20px;
+            font-weight: 400;
             border: 1px solid var(--dark-background5,#ccc);
             font-family: Helvetica;
             font-size: 14px;
             color: var(--dark-color1,#212121);
             text-align: left;
-            line-height: 20px;
-            font-weight: 400;
         }
 
-        :host([startSamp]) .input {
-            background: var(--dark-background5,#FFFFFF);
-        }
-        
-        :host(:not([startSamp])) .input {
-            color: #999999;
-        }
-     
         .sliderBody{
             width: 100%;
             height: min-content;
@@ -837,7 +839,7 @@ export class SpRecordPerf extends BaseElement {
         }
         </style>
         <div class="root">
-            <div class="configList">
+            <div class="configList record-perf-config">
             </div>
             <button id ="addOptions">Advance Options</button>
         </div>

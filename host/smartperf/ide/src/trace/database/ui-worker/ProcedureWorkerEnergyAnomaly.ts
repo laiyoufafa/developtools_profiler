@@ -67,77 +67,105 @@ export class EnergyAnomalyRender extends PerfRender {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
-    if (req.lazyRefresh) {
+  render(energyAnomalyRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    if (energyAnomalyRequest.lazyRefresh) {
       anomaly(
         list,
         filter,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.params.appName,
-        req.useCache || !req.range.refresh
+        energyAnomalyRequest.startNS,
+        energyAnomalyRequest.endNS,
+        energyAnomalyRequest.totalNS,
+        energyAnomalyRequest.frame,
+        energyAnomalyRequest.params.appName,
+        energyAnomalyRequest.useCache || !energyAnomalyRequest.range.refresh
       );
     } else {
-      if (!req.useCache) {
-        anomaly(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.params.appName, false);
-      }
-    }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.canvas.width, req.canvas.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-        drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS
+      if (!energyAnomalyRequest.useCache) {
+        anomaly(
+          list,
+          filter,
+          energyAnomalyRequest.startNS,
+          energyAnomalyRequest.endNS,
+          energyAnomalyRequest.totalNS,
+          energyAnomalyRequest.frame,
+          energyAnomalyRequest.params.appName,
+          false
         );
       }
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-      req.context.stroke();
-      req.context.beginPath();
+    }
+    if (energyAnomalyRequest.canvas) {
+      energyAnomalyRequest.context.clearRect(
+        0,
+        0,
+        energyAnomalyRequest.canvas.width,
+        energyAnomalyRequest.canvas.height
+      );
+      let energyAnomlyArr = filter;
+      if (
+        energyAnomlyArr.length > 0 &&
+        !energyAnomalyRequest.range.refresh &&
+        !energyAnomalyRequest.useCache &&
+        energyAnomalyRequest.lazyRefresh
+      ) {
+        drawLoading(
+          energyAnomalyRequest.context,
+          energyAnomalyRequest.startNS,
+          energyAnomalyRequest.endNS,
+          energyAnomalyRequest.totalNS,
+          energyAnomalyRequest.frame,
+          energyAnomlyArr[0].startNS,
+          energyAnomlyArr[energyAnomlyArr.length - 1].startNS
+        );
+      }
+      drawLines(
+        energyAnomalyRequest.context,
+        energyAnomalyRequest.xs,
+        energyAnomalyRequest.frame.height,
+        energyAnomalyRequest.lineColor
+      );
+      energyAnomalyRequest.context.stroke();
+      energyAnomalyRequest.context.beginPath();
       EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
-      if (req.isHover) {
+      if (energyAnomalyRequest.isHover) {
         let offset = 3;
         for (let re of filter) {
-          if (re.frame && req.hoverX >= re.frame.x - offset && req.hoverX <= re.frame.x + re.frame.width + offset) {
+          if (
+            re.frame &&
+            energyAnomalyRequest.hoverX >= re.frame.x - offset &&
+            energyAnomalyRequest.hoverX <= re.frame.x + re.frame.width + offset
+          ) {
             EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
             break;
           }
         }
       } else {
-        EnergyAnomalyStruct.hoverEnergyAnomalyStruct = req.params.hoverStruct;
+        EnergyAnomalyStruct.hoverEnergyAnomalyStruct = energyAnomalyRequest.params.hoverStruct;
       }
-      EnergyAnomalyStruct.selectEnergyAnomalyStruct = req.params.selectEnergyAnomalyStruct;
-      req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-      req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+      EnergyAnomalyStruct.selectEnergyAnomalyStruct = energyAnomalyRequest.params.selectEnergyAnomalyStruct;
+      energyAnomalyRequest.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+      energyAnomalyRequest.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
       for (let re of filter) {
-        EnergyAnomalyStruct.draw(req.context, re);
+        EnergyAnomalyStruct.draw(energyAnomalyRequest.context, re);
       }
-      drawLegend(req);
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawLegend(energyAnomalyRequest);
+      drawSelection(energyAnomalyRequest.context, energyAnomalyRequest.params);
+      energyAnomalyRequest.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        energyAnomalyRequest.context,
+        energyAnomalyRequest.flagMoveInfo,
+        energyAnomalyRequest.flagSelectedInfo,
+        energyAnomalyRequest.startNS,
+        energyAnomalyRequest.endNS,
+        energyAnomalyRequest.totalNS,
+        energyAnomalyRequest.frame,
+        energyAnomalyRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: energyAnomalyRequest.id,
+      type: energyAnomalyRequest.type,
+      results: energyAnomalyRequest.canvas ? undefined : filter,
       hover: EnergyAnomalyStruct.hoverEnergyAnomalyStruct,
     });
   }

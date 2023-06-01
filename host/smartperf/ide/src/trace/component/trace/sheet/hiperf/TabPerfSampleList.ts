@@ -33,32 +33,32 @@ import { Cmd } from '../../../../../command/Cmd.js';
 
 @element('tabpane-perf-sample')
 export class TabPanePerfSample extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private perfSampleTbl: LitTable | null | undefined;
   private tblData: LitTable | null | undefined;
-  private source: Array<PerfSample> = [];
+  private perfSampleSource: Array<PerfSample> = [];
   private processMap: Map<number, PerfThread> = new Map<number, PerfThread>();
-  private modal: DisassemblingWindow | null | undefined;
+  private perfSampleListModal: DisassemblingWindow | null | undefined;
   private sortKey: string = 'timeString';
   private sortType: number = 0;
 
-  set data(val: SelectionParam | null | undefined) {
-    this.modal!.style.display = 'none';
-    this.tbl!.style.visibility = 'visible';
+  set data(perfSampleSelection: SelectionParam | null | undefined) {
+    this.perfSampleListModal!.style.display = 'none';
+    this.perfSampleTbl!.style.visibility = 'visible';
     // @ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 40 + 'px';
-    this.tbl!.recycleDataSource = [];
+    this.perfSampleTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 40 + 'px';
+    this.perfSampleTbl!.recycleDataSource = [];
     // @ts-ignore
     this.tblData?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 25 + 'px';
     this.tblData!.recycleDataSource = [];
-    if (val) {
+    if (perfSampleSelection) {
       Promise.all([
         queryPerfProcess(),
         queryPerfSampleListByTimeRange(
-          val.leftNs,
-          val.rightNs,
-          val.perfAll ? [] : val.perfCpus,
-          val.perfAll ? [] : val.perfProcess,
-          val.perfAll ? [] : val.perfThread
+          perfSampleSelection.leftNs,
+          perfSampleSelection.rightNs,
+          perfSampleSelection.perfAll ? [] : perfSampleSelection.perfCpus,
+          perfSampleSelection.perfAll ? [] : perfSampleSelection.perfProcess,
+          perfSampleSelection.perfAll ? [] : perfSampleSelection.perfThread
         ),
       ]).then((results) => {
         let processes = results[0] as Array<PerfThread>;
@@ -92,8 +92,8 @@ export class TabPanePerfSample extends BaseElement {
             sample.backtrace.push(`(${sample.depth} other frames)`);
           }
         }
-        this.source = samples;
-        this.sortTable(this.sortKey, this.sortType);
+        this.perfSampleSource = samples;
+        this.sortPerfSampleTable(this.sortKey, this.sortType);
       });
     }
   }
@@ -110,57 +110,57 @@ export class TabPanePerfSample extends BaseElement {
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-perf-sample');
+    this.perfSampleTbl = this.shadowRoot?.querySelector<LitTable>('#tb-perf-sample');
     this.tblData = this.shadowRoot?.querySelector<LitTable>('#tb-stack-data');
-    this.modal = this.shadowRoot?.querySelector<DisassemblingWindow>('tab-native-data-modal');
-    this.tbl!.addEventListener('row-click', (e) => {
+    this.perfSampleListModal = this.shadowRoot?.querySelector<DisassemblingWindow>('tab-native-data-modal');
+    this.perfSampleTbl!.addEventListener('row-click', (e) => {
       // @ts-ignore
       let data = e.detail.data as PerfSample;
       this.setRightTableData(data);
     });
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.perfSampleTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortKey = evt.detail.key;
       // @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
-      this.sortTable(evt.detail.key, evt.detail.sort);
+      this.sortPerfSampleTable(evt.detail.key, evt.detail.sort);
     });
     let lastClikTime = 0;
     let spApplication = <SpApplication>document.getElementsByTagName('sp-application')[0];
     this.tblData!.addEventListener('row-click', (e) => {
       if (Date.now() - lastClikTime < 200 && spApplication.vs) {
-        this.tbl!.style.visibility = 'hidden';
+        this.perfSampleTbl!.style.visibility = 'hidden';
         new ResizeObserver((entries) => {
-          this.modal!.style.width = this.tbl!.clientWidth + 'px';
-          this.modal!.style.height = this.tbl!.clientHeight + 'px';
-        }).observe(this.tbl!);
-        this.modal!.showLoading();
+          this.perfSampleListModal!.style.width = this.perfSampleTbl!.clientWidth + 'px';
+          this.perfSampleListModal!.style.height = this.perfSampleTbl!.clientHeight + 'px';
+        }).observe(this.perfSampleTbl!);
+        this.perfSampleListModal!.showLoading();
         // @ts-ignore
         let data = e.detail.data as PerfStack;
-        let path = data.path;
-        let addr = data.vaddrInFile;
-        let addrHex = addr.toString(16);
-        if (path.trim() === '[kernel.kallsyms]') {
-          this.modal?.showContent(`error : Symbol ${data.symbol} lib is [kernel.kallsyms] ,not support `, addrHex);
-        } else if (path.trim() === '') {
-          this.modal?.showContent(`error : Symbol ${data.symbol} lib is null `, addrHex);
-        } else if (addr < 0) {
-          this.modal?.showContent(`error : Symbol ${data.symbol} current addr is error ` + addrHex, addrHex);
+        let perfSampleListPath = data.path;
+        let perfSampleListAddr = data.vaddrInFile;
+        let perfSampleListAddrHex = perfSampleListAddr.toString(16);
+        if (perfSampleListPath.trim() === '[kernel.kallsyms]') {
+          this.perfSampleListModal?.showContent(`error : Symbol ${data.symbol} lib is [kernel.kallsyms] ,not support `, perfSampleListAddrHex);
+        } else if (perfSampleListPath.trim() === '') {
+          this.perfSampleListModal?.showContent(`error : Symbol ${data.symbol} lib is null `, perfSampleListAddrHex);
+        } else if (perfSampleListAddr < 0) {
+          this.perfSampleListModal?.showContent(`error : Symbol ${data.symbol} current addr is error ` + perfSampleListAddrHex, perfSampleListAddrHex);
         } else {
           const binDir = 'C:/binary_cache';
-          let binPath = binDir + path;
+          let binPath = binDir + perfSampleListPath;
           let cmd = 'C:/binary_cache/llvm-objdump.exe -S ' + binPath;
-          Cmd.execObjDump(cmd, addrHex, (result: any) => {
-            this.modal?.showContent(result, addrHex);
+          Cmd.execObjDump(cmd, perfSampleListAddrHex, (result: any) => {
+            this.perfSampleListModal?.showContent(result, perfSampleListAddrHex);
           });
         }
       }
       lastClikTime = Date.now();
     });
-    this.modal!.setCloseListener(() => {
-      this.modal!.style.display = 'none';
-      this.tbl!.style.visibility = 'visible';
+    this.perfSampleListModal!.setCloseListener(() => {
+      this.perfSampleListModal!.style.display = 'none';
+      this.perfSampleTbl!.style.visibility = 'visible';
     });
   }
 
@@ -169,37 +169,37 @@ export class TabPanePerfSample extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
+        this.perfSampleTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
         // @ts-ignore
         this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 25 + 'px';
-        this.tbl?.reMeauseHeight();
+        this.perfSampleTbl?.reMeauseHeight();
         this.tblData?.reMeauseHeight();
       }
-      this.modal!.style.height = this.tbl!.clientHeight - 2 + 'px'; //2 is borderWidth
+      this.perfSampleListModal!.style.height = this.perfSampleTbl!.clientHeight - 2 + 'px'; //2 is borderWidth
     }).observe(this.parentElement!);
   }
 
-  sortTable(key: string, type: number) {
-    this.source.sort((a, b): number => {
+  sortPerfSampleTable(key: string, type: number) {
+    this.perfSampleSource.sort((perfSampleA, perfSampleB): number => {
       if (key == 'timeString') {
         if (type == 0) {
-          return a.time - b.time;
+          return perfSampleA.time - perfSampleB.time;
         } else if (type == 1) {
-          return a.time - b.time;
+          return perfSampleA.time - perfSampleB.time;
         } else {
-          return b.time - a.time;
+          return perfSampleB.time - perfSampleA.time;
         }
       } else {
         if (type == 0) {
-          return a.core - b.core;
+          return perfSampleA.core - perfSampleB.core;
         } else if (type == 1) {
-          return a.core - b.core;
+          return perfSampleA.core - perfSampleB.core;
         } else {
-          return b.core - a.core;
+          return perfSampleB.core - perfSampleA.core;
         }
       }
     });
-    this.tbl!.recycleDataSource = this.source;
+    this.perfSampleTbl!.recycleDataSource = this.perfSampleSource;
   }
 
   initHtml(): string {
@@ -211,20 +211,20 @@ export class TabPanePerfSample extends BaseElement {
     padding: 10px 10px;
 }
 </style>
-<div style="display: flex;flex-direction: row">
+<div class="perf-sample-content" style="display: flex;flex-direction: row">
     <lit-slicer style="width:100%">
     <div id="left_table" style="width: 65%">
         <tab-native-data-modal style="display:none;"/></tab-native-data-modal>
         <lit-table id="tb-perf-sample" style="height: auto">
-            <lit-table-column order width="1fr" title="Sample Time" data-index="timeString" key="timeString" align="flex-start" ></lit-table-column>
-            <lit-table-column order width="70px" title="Core" data-index="coreName" key="coreName" align="flex-start" ></lit-table-column>
-            <lit-table-column width="1fr" title="Process" data-index="processName" key="processName" align="flex-start" ></lit-table-column>
-            <lit-table-column width="1fr" title="Thread" data-index="threadName" key="threadName" align="flex-start" ></lit-table-column>
-            <lit-table-column width="1fr" title="State" data-index="state" key="state" align="flex-start" ></lit-table-column>
-            <lit-table-column width="1fr" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
+            <lit-table-column class="perf-sample-column" order width="1fr" title="Sample Time" data-index="timeString" key="timeString" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" order width="70px" title="Core" data-index="coreName" key="coreName" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="Process" data-index="processName" key="processName" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="Thread" data-index="threadName" key="threadName" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="State" data-index="state" key="state" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
                 <template>
                     <div>
-                        <span>{{backtrace[0]}}</span>
+                        <span class="title-span">{{backtrace[0]}}</span>
                         <span v-if="backtrace.length > 1">⬅</span>
                         <span v-if="backtrace.length > 1"style="color: #565656"> {{backtrace[1]}}</span>
                     </div>

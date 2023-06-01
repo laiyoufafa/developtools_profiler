@@ -13,47 +13,48 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabPaneCounterSampleData } from '../../../../database/SqlLite.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { Utils } from '../../base/Utils.js';
+import {BaseElement, element} from '../../../../../base-ui/BaseElement.js';
+import {LitTable} from '../../../../../base-ui/table/lit-table.js';
+import {SelectionParam} from '../../../../bean/BoxSelection.js';
+import {getTabPaneCounterSampleData} from '../../../../database/SqlLite.js';
+import {LitProgressBar} from '../../../../../base-ui/progress-bar/LitProgressBar.js';
+import {Utils} from '../../base/Utils.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-counter-sample')
 export class TabPaneCounterSample extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private counterSampleTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private loadDataInCache: boolean = true;
   private selectionParam: SelectionParam | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private loadingPage: any;
-  private loadingList: number[] = [];
-  private source: any[] = [];
-  private sortKey: string = 'counter';
-  private sortType: number = 0;
+  private sampleProgressEL: LitProgressBar | null | undefined;
+  private counterLoadingPage: any;
+  private counterLoadingList: number[] = [];
+  private counterSampleSource: any[] = [];
+  private counterSortKey: string = 'counter';
+  private counterSortType: number = 0;
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(counterSampleValue: SelectionParam | any) {
+    if (counterSampleValue == this.selectionParam) {
       return;
     }
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
-    this.selectionParam = val;
+    this.sampleProgressEL!.loading = true;
+    this.counterLoadingPage.style.visibility = 'visible';
+    this.selectionParam = counterSampleValue;
     // @ts-ignore
-    this.tbl!.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-    this.queryDataByDB(val);
+    this.counterSampleTbl!.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
+    this.queryDataByDB(counterSampleValue);
   }
 
   initElements(): void {
-    this.progressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
-    this.loadingPage = this.shadowRoot!.querySelector('.loading');
-    this.tbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.sampleProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progressCounter');
+    this.counterLoadingPage = this.shadowRoot!.querySelector('.loadingCounter');
+    this.counterSampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-counter-sample');
+    this.counterSampleTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.counterSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.counterSortType = evt.detail.sort;
       // @ts-ignore
       this.sortTable(evt.detail.key, evt.detail.sort);
     });
@@ -61,63 +62,56 @@ export class TabPaneCounterSample extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement!.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-        this.tbl!.reMeauseHeight();
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.counterSampleTbl!, 25, this.counterLoadingPage, 24)
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    this.loadingList.push(1);
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
+  queryDataByDB(counterSampleParam: SelectionParam | any) {
+    this.counterLoadingList.push(1);
+    this.sampleProgressEL!.loading = true;
+    this.counterLoadingPage.style.visibility = 'visible';
 
     getTabPaneCounterSampleData(
-      val.leftNs + val.recordStartNs,
-      val.rightNs + val.recordStartNs,
-      val.cpuStateFilterIds
+      counterSampleParam.leftNs + counterSampleParam.recordStartNs,
+      counterSampleParam.rightNs + counterSampleParam.recordStartNs,
+      counterSampleParam.cpuStateFilterIds
     ).then((result) => {
-      this.loadingList.splice(0, 1);
-      if (this.loadingList.length == 0) {
-        this.progressEL!.loading = false;
-        this.loadingPage.style.visibility = 'hidden';
+      this.counterLoadingList.splice(0, 1);
+      if (this.counterLoadingList.length == 0) {
+        this.sampleProgressEL!.loading = false;
+        this.counterLoadingPage.style.visibility = 'hidden';
       }
       let sampleMap = new Map<any, any>();
-      val.cpuStateFilterIds.forEach((a: number) => {
+      counterSampleParam.cpuStateFilterIds.forEach((a: number) => {
         this.getInitTime(
           result.filter((f) => f.filterId == a),
           sampleMap,
-          val
+          counterSampleParam
         );
       });
-      let dataList: Array<any> = [];
+      let counterSampleList: Array<any> = [];
       sampleMap.forEach((a) => {
         a.timeStr = Utils.getProbablyTime(a.time);
-        dataList.push(a);
+        counterSampleList.push(a);
       });
-      this.source = dataList;
-      this.sortTable(this.sortKey, this.sortType);
+      this.counterSampleSource = counterSampleList;
+      this.sortTable(this.counterSortKey, this.counterSortType);
     });
   }
 
-  getInitTime(result: Array<any>, sampleMap: Map<any, any>, val: SelectionParam) {
+  getInitTime(initCounterResultList: Array<any>, sampleMap: Map<any, any>, val: SelectionParam) {
     let leftNs = val.leftNs + val.recordStartNs;
     let rightNs = val.rightNs + val.recordStartNs;
-    if (result.length == 0) return;
-    let idx = result.findIndex((a) => a.ts >= leftNs);
+    if (initCounterResultList.length == 0) return;
+    let idx = initCounterResultList.findIndex((a) => a.ts >= leftNs);
     if (idx !== 0) {
-      result = result.slice(idx == -1 ? result.length - 1 : idx - 1, result.length);
+      initCounterResultList = initCounterResultList.slice(idx == -1 ? initCounterResultList.length - 1 : idx - 1, initCounterResultList.length);
     }
-    if (result[0].ts < leftNs && idx !== 0) result[0].ts = leftNs;
-    result.forEach((item, idx) => {
-      if (idx + 1 == result.length) {
+    if (initCounterResultList[0].ts < leftNs && idx !== 0) initCounterResultList[0].ts = leftNs;
+    initCounterResultList.forEach((item, idx) => {
+      if (idx + 1 == initCounterResultList.length) {
         item.time = rightNs - item.ts;
       } else {
-        item.time = result[idx + 1].ts - item.ts;
+        item.time = initCounterResultList[idx + 1].ts - item.ts;
       }
       if (sampleMap.has(item.filterId + '-' + item.value)) {
         let obj = sampleMap.get(item.filterId + '-' + item.value);
@@ -133,73 +127,76 @@ export class TabPaneCounterSample extends BaseElement {
 
   sortTable(key: string, type: number) {
     if (type == 0) {
-      this.tbl!.recycleDataSource = this.source;
+      this.counterSampleTbl!.recycleDataSource = this.counterSampleSource;
     } else {
-      let arr = Array.from(this.source);
-      arr.sort((a, b): number => {
+      let arr = Array.from(this.counterSampleSource);
+      arr.sort((sortByColumnLeftData, sortByColumnRightData): number => {
         if (key == 'timeStr') {
           if (type == 1) {
-            return a.time - b.time;
+            return sortByColumnLeftData.time - sortByColumnRightData.time;
           } else {
-            return b.time - a.time;
+            return sortByColumnRightData.time - sortByColumnLeftData.time;
           }
         } else if (key == 'counter') {
-          if (a.counter > b.counter) {
+          if (sortByColumnLeftData.counter > sortByColumnRightData.counter) {
             return type === 2 ? -1 : 1;
-          } else if (a.counter == b.counter) {
+          } else if (sortByColumnLeftData.counter == sortByColumnRightData.counter) {
             return 0;
           } else {
             return type === 2 ? 1 : -1;
           }
         } else if (key == 'value') {
           if (type == 1) {
-            return a.value - b.value;
+            return sortByColumnLeftData.value - sortByColumnRightData.value;
           } else {
-            return b.value - a.value;
+            return sortByColumnRightData.value - sortByColumnLeftData.value;
           }
         } else {
           return 0;
         }
       });
-      this.tbl!.recycleDataSource = arr;
+      this.counterSampleTbl!.recycleDataSource = arr;
     }
   }
 
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px;
-        }
-        .progress{
-            bottom: 5px;
-            position: absolute;
+        .progressCounter{
             height: 1px;
             left: 0;
             right: 0;
-        }
-        .loading{
-            bottom: 0;
+            bottom: 5px;
             position: absolute;
+        }
+        :host{
+            display: flex;
+            padding: 10px 10px;
+            flex-direction: column;
+        }
+        .loadingCounter{
             left: 0;
             right: 0;
             width:100%;
+            bottom: 0;
+            position: absolute;
             background:transparent;
             z-index: 999999;
         }
+        .counter-sample-table{
+            height: auto;
+        }
         </style>
-        <lit-table id="tb-states" style="height: auto" >
-            <lit-table-column width="20%" title="Cpu" data-index="counter" key="counter" align="flex-start" order>
+        <lit-table id="tb-counter-sample" class="counter-sample-table">
+            <lit-table-column class="counter-sample-column" width="20%" order data-index="counter" key="counter" align="flex-start" title="Cpu" >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start" order>
+            <lit-table-column class="counter-sample-column" width="1fr" order data-index="timeStr" key="timeStr" align="flex-start" title="Time" >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Value" data-index="value" key="value" align="flex-start" order>
+            <lit-table-column class="counter-sample-column" width="1fr" order data-index="value" key="value" align="flex-start" title="Value" >
             </lit-table-column>
         </lit-table>
-        <lit-progress-bar class="progress"></lit-progress-bar>
-        <div class="loading"></div>
+        <lit-progress-bar class="progressCounter"></lit-progress-bar>
+        <div class="loadingCounter"></div>
         `;
   }
 }

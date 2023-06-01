@@ -143,7 +143,7 @@ export class TabCpuAnalysis extends BaseElement {
   }
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
-    let time = new Date().getTime();
+    let cpuAnalysisTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic1',
       option,
@@ -154,7 +154,7 @@ export class TabCpuAnalysis extends BaseElement {
       undefined,
       handler
     );
-    let durTime = new Date().getTime() - time;
+    let durTime = new Date().getTime() - cpuAnalysisTime;
     info(log, durTime);
   }
 

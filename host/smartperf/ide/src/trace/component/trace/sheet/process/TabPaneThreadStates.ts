@@ -21,20 +21,21 @@ import { getTabThreadStates } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { StackBar } from '../../../StackBar.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private threadStatesTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private stackBar: StackBar | null | undefined;
-  private source: Array<SelectionData> = [];
+  private threadStatesTblSource: Array<SelectionData> = [];
 
-  set data(val: SelectionParam | any) {
+  set data(threadStatesParam: SelectionParam | any) {
     //@ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     // // @ts-ignore
-    this.range!.textContent = 'Selected range: ' + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + ' ms';
-    getTabThreadStates(val.threadIds, val.leftNs, val.rightNs).then((result) => {
+    this.range!.textContent = 'Selected range: ' + ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    getTabThreadStates(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs).then((result) => {
       if (result != null && result.length > 0) {
         log('getTabThreadStates result size : ' + result.length);
         let sumWall = 0.0;
@@ -57,98 +58,96 @@ export class TabPaneThreadStates extends BaseElement {
         count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
         count.occurrences = sumOcc;
         result.splice(0, 0, count);
-        this.source = result;
-        this.tbl!.recycleDataSource = result;
+        this.threadStatesTblSource = result;
+        this.threadStatesTbl!.recycleDataSource = result;
         this.stackBar!.data = result;
       } else {
-        this.source = [];
+        this.threadStatesTblSource = [];
         this.stackBar!.data = [];
-        this.tbl!.recycleDataSource = [];
+        this.threadStatesTbl!.recycleDataSource = [];
       }
     });
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.stackBar = this.shadowRoot?.querySelector('#stack-bar');
-    this.tbl!.addEventListener('column-click', (evt: any) => {
+    this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
+    this.range = this.shadowRoot?.querySelector('#thread-states-time-range');
+    this.stackBar = this.shadowRoot?.querySelector('#thread-states-stack-bar');
+    this.threadStatesTbl!.addEventListener('column-click', (evt: any) => {
       this.sortByColumn(evt.detail);
     });
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!,this.threadStatesTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .tread-states-table{
+            display: flex;
+            height: 20px;
+        }
         :host{
             display: flex;
             flex-direction: column;
             padding: 10px 10px;
         }
         </style>
-        <div style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
-            <stack-bar id="stack-bar" style="flex: 1"></stack-bar>
-            <label id="time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
+        <div class="tread-states-table" style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
+            <stack-bar id="thread-states-stack-bar" style="flex: 1"></stack-bar>
+            <label id="thread-states-time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
         </div>
         <lit-table id="tb-thread-states" style="height: auto;overflow-x: auto">
-            <lit-table-column width="240px" title="Process" data-index="process" key="process"  align="flex-start" order>
+            <lit-table-column class="tread-states-column" width="240px" title="Process" data-index="process" key="process"  align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="120px" title="PID" data-index="pid" key="pid"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="PID" data-index="pid" key="pid"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="240px" title="Thread" data-index="thread" key="thread"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="240px" title="Thread" data-index="thread" key="thread"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="120px" title="TID" data-index="tid" key="tid"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="TID" data-index="tid" key="tid"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="240px" title="State" data-index="state" key="state"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="240px" title="State" data-index="state" key="state"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="120px" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="120px" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="120px" title="Occurrences" data-index="occurrences" key="occurrences"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="Occurrences" data-index="occurrences" key="occurrences"  align="flex-start" order >
             </lit-table-column>
         </lit-table>
         `;
   }
 
-  sortByColumn(detail: any) {
-    function compare(property: any, sort: any, type: any) {
-      return function (a: SelectionData | any, b: SelectionData | any) {
-        if (a.process == ' ' || b.process == ' ') {
+  sortByColumn(treadStatesDetail: any) {
+    function compare(property: any, treadStatesSort: any, type: any) {
+      return function (threadStatesLeftData: SelectionData | any, threadStatesRightData: SelectionData | any) {
+        if (threadStatesLeftData.process == ' ' || threadStatesRightData.process == ' ') {
           return 0;
         }
         if (type === 'number') {
-          return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+          return treadStatesSort === 2
+            ? parseFloat(threadStatesRightData[property]) - parseFloat(threadStatesLeftData[property])
+            : parseFloat(threadStatesLeftData[property]) - parseFloat(threadStatesRightData[property]);
         } else {
-          if (b[property] > a[property]) {
-            return sort === 2 ? 1 : -1;
-          } else if (b[property] == a[property]) {
+          if (threadStatesRightData[property] > threadStatesLeftData[property]) {
+            return treadStatesSort === 2 ? 1 : -1;
+          } else if (threadStatesRightData[property] == threadStatesLeftData[property]) {
             return 0;
           } else {
-            return sort === 2 ? -1 : 1;
+            return treadStatesSort === 2 ? -1 : 1;
           }
         }
       };
     }
 
-    if (detail.key === 'name' || detail.key === 'thread' || detail.key === 'state') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+    if (treadStatesDetail.key === 'name' || treadStatesDetail.key === 'thread' || treadStatesDetail.key === 'state') {
+      this.threadStatesTblSource.sort(compare(treadStatesDetail.key, treadStatesDetail.sort, 'string'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.threadStatesTblSource.sort(compare(treadStatesDetail.key, treadStatesDetail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.threadStatesTbl!.recycleDataSource = this.threadStatesTblSource;
   }
 }

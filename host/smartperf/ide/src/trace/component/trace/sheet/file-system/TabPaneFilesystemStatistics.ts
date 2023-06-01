@@ -22,43 +22,41 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 
 @element('tabpane-file-statistics')
 export class TabPaneFileStatistics extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private loadDataInCache: boolean = true;
+  private fileStatisticsTbl: LitTable | null | undefined;
   private selectionParam: SelectionParam | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private loadingPage: any;
-  private loadingList: number[] = [];
-  private source: Array<any> = [];
+  private fileStatisticsProgressEL: LitProgressBar | null | undefined;
+  private fileStatisticsLoadingPage: any;
+  private fileStatisticsLoadingList: number[] = [];
+  private fileStatisticsSource: Array<any> = [];
   private typeList: Array<string> = ['OPEN', 'CLOSE', 'READ', 'WRITE'];
-  private sortKey: string = '';
-  private sortType: number = 0;
+  private fileStatisticsSortKey: string = '';
+  private fileStatisticsSortType: number = 0;
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(fileStatisticsSelection: SelectionParam | any) {
+    if (fileStatisticsSelection == this.selectionParam) {
       return;
     }
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
-    this.selectionParam = val;
+    this.fileStatisticsProgressEL!.loading = true;
+    this.fileStatisticsLoadingPage.style.visibility = 'visible';
+    this.selectionParam = fileStatisticsSelection;
     // @ts-ignore
-    this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-    this.queryDataByDB(val);
+    this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
+    this.queryDataByDB(fileStatisticsSelection);
   }
 
   initElements(): void {
-    this.progressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
-    this.loadingPage = this.shadowRoot!.querySelector('.loading');
-    this.tbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.fileStatisticsProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.file-statistics-progress');
+    this.fileStatisticsLoadingPage = this.shadowRoot!.querySelector('.file-statistics-loading');
+    this.fileStatisticsTbl = this.shadowRoot!.querySelector<LitTable>('#tb-file-statistics');
+    this.fileStatisticsTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.fileStatisticsSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.fileStatisticsSortType = evt.detail.sort;
 
-      let newSource = JSON.parse(JSON.stringify(this.source));
-      if (this.sortType != 0 && newSource.length > 0) this.sortTable(newSource[0], this.sortKey);
-      this.tbl!.recycleDataSource = newSource;
+      let newSource = JSON.parse(JSON.stringify(this.fileStatisticsSource));
+      if (this.fileStatisticsSortType != 0 && newSource.length > 0) this.sortTable(newSource[0], this.fileStatisticsSortKey);
+      this.fileStatisticsTbl!.recycleDataSource = newSource;
     });
   }
 
@@ -67,9 +65,9 @@ export class TabPaneFileStatistics extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement!.clientHeight != 0) {
         // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-        this.tbl!.reMeauseHeight();
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
+        this.fileStatisticsTbl!.reMeauseHeight();
+        this.fileStatisticsLoadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
@@ -90,21 +88,21 @@ export class TabPaneFileStatistics extends BaseElement {
   }
 
   queryDataByDB(val: SelectionParam | any) {
-    this.loadingList.push(1);
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
+    this.fileStatisticsLoadingList.push(1);
+    this.fileStatisticsProgressEL!.loading = true;
+    this.fileStatisticsLoadingPage.style.visibility = 'visible';
     getTabPaneFilesystemStatistics(
       val.leftNs + val.recordStartNs,
       val.rightNs + val.recordStartNs,
       val.fileSystemType
     ).then((result) => {
-      this.loadingList.splice(0, 1);
-      if (this.loadingList.length == 0) {
-        this.progressEL!.loading = false;
-        this.loadingPage.style.visibility = 'hidden';
+      this.fileStatisticsLoadingList.splice(0, 1);
+      if (this.fileStatisticsLoadingList.length == 0) {
+        this.fileStatisticsProgressEL!.loading = false;
+        this.fileStatisticsLoadingPage.style.visibility = 'hidden';
       }
-      let fatherMap = new Map<any, any>();
-      let allNode: any = {
+      let fileStatisticsFatherMap = new Map<any, any>();
+      let fileStatisticsAllNode: any = {
         title: 'All',
         count: 0,
         logicalReads: 0,
@@ -117,18 +115,18 @@ export class TabPaneFileStatistics extends BaseElement {
         children: [],
       };
       result.forEach((item, idx) => {
-        if (fatherMap.has(item.type)) {
-          let obj1 = fatherMap.get(item.type);
-          obj1.count += item.count;
-          obj1.logicalReads += item.logicalReads;
-          obj1.logicalWrites += item.logicalWrites;
-          obj1.otherFile += item.otherFile;
-          obj1.allDuration += item.allDuration;
-          obj1.minDuration = obj1.minDuration <= item.minDuration ? obj1.minDuration : item.minDuration;
-          obj1.maxDuration = obj1.maxDuration >= item.maxDuration ? obj1.maxDuration : item.maxDuration;
-          obj1.children.push(this.getInitData(item));
+        if (fileStatisticsFatherMap.has(item.type)) {
+          let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);
+          fileStatisticsObj.count += item.count;
+          fileStatisticsObj.logicalReads += item.logicalReads;
+          fileStatisticsObj.logicalWrites += item.logicalWrites;
+          fileStatisticsObj.otherFile += item.otherFile;
+          fileStatisticsObj.allDuration += item.allDuration;
+          fileStatisticsObj.minDuration = fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration;
+          fileStatisticsObj.maxDuration = fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration;
+          fileStatisticsObj.children.push(this.getInitData(item));
         } else {
-          fatherMap.set(item.type, {
+          fileStatisticsFatherMap.set(item.type, {
             type: item.type,
             count: item.count,
             logicalReads: item.logicalReads,
@@ -141,18 +139,18 @@ export class TabPaneFileStatistics extends BaseElement {
           });
         }
         if (idx == 0) {
-          allNode.minDuration = item.minDuration;
+          fileStatisticsAllNode.minDuration = item.minDuration;
         } else {
-          allNode.minDuration = allNode.minDuration <= item.minDuration ? allNode.minDuration : item.minDuration;
+          fileStatisticsAllNode.minDuration = fileStatisticsAllNode.minDuration <= item.minDuration ? fileStatisticsAllNode.minDuration : item.minDuration;
         }
-        allNode.count += item.count;
-        allNode.logicalReads += item.logicalReads;
-        allNode.logicalWrites += item.logicalWrites;
-        allNode.otherFile += item.otherFile;
-        allNode.allDuration += item.allDuration;
-        allNode.maxDuration = allNode.maxDuration >= item.maxDuration ? allNode.maxDuration : item.maxDuration;
+        fileStatisticsAllNode.count += item.count;
+        fileStatisticsAllNode.logicalReads += item.logicalReads;
+        fileStatisticsAllNode.logicalWrites += item.logicalWrites;
+        fileStatisticsAllNode.otherFile += item.otherFile;
+        fileStatisticsAllNode.allDuration += item.allDuration;
+        fileStatisticsAllNode.maxDuration = fileStatisticsAllNode.maxDuration >= item.maxDuration ? fileStatisticsAllNode.maxDuration : item.maxDuration;
       });
-      fatherMap.forEach((item) => {
+      fileStatisticsFatherMap.forEach((item) => {
         item.avgDuration = item.allDuration / item.count;
         let node = this.getInitData(item);
         if (item.type < 4) {
@@ -160,32 +158,32 @@ export class TabPaneFileStatistics extends BaseElement {
         } else {
           node.title = item.type;
         }
-        allNode.children.push(node);
+        fileStatisticsAllNode.children.push(node);
       });
-      allNode.avgDuration = allNode.allDuration / allNode.count;
-      allNode = this.getInitData(allNode);
-      allNode.title = 'All';
-      this.source = result.length > 0 ? [allNode] : [];
-      let newSource = JSON.parse(JSON.stringify(this.source));
-      if (this.sortType != 0 && result.length > 0) this.sortTable(newSource[0], this.sortKey);
-      this.tbl!.recycleDataSource = newSource;
+      fileStatisticsAllNode.avgDuration = fileStatisticsAllNode.allDuration / fileStatisticsAllNode.count;
+      fileStatisticsAllNode = this.getInitData(fileStatisticsAllNode);
+      fileStatisticsAllNode.title = 'All';
+      this.fileStatisticsSource = result.length > 0 ? [fileStatisticsAllNode] : [];
+      let newSource = JSON.parse(JSON.stringify(this.fileStatisticsSource));
+      if (this.fileStatisticsSortType != 0 && result.length > 0) this.sortTable(newSource[0], this.fileStatisticsSortKey);
+      this.fileStatisticsTbl!.recycleDataSource = newSource;
     });
   }
 
-  sortTable(allNode: any, key: string) {
-    allNode.children.sort((a: any, b: any) => {
-      if (this.sortType == 1) {
-        return a.node[key] - b.node[key];
-      } else if (this.sortType == 2) {
-        return b.node[key] - a.node[key];
+  sortTable(fileStatisticsAllNode: any, key: string) {
+    fileStatisticsAllNode.children.sort((fileStatisticsA: any, fileStatisticsB: any) => {
+      if (this.fileStatisticsSortType == 1) {
+        return fileStatisticsA.node[key] - fileStatisticsB.node[key];
+      } else if (this.fileStatisticsSortType == 2) {
+        return fileStatisticsB.node[key] - fileStatisticsA.node[key];
       }
     });
-    allNode.children.forEach((item: any) => {
-      item.children.sort((a: any, b: any) => {
-        if (this.sortType == 1) {
-          return a.node[key] - b.node[key];
-        } else if (this.sortType == 2) {
-          return b.node[key] - a.node[key];
+    fileStatisticsAllNode.children.forEach((item: any) => {
+      item.children.sort((fileStatisticsA: any, fileStatisticsB: any) => {
+        if (this.fileStatisticsSortType == 1) {
+          return fileStatisticsA.node[key] - fileStatisticsB.node[key];
+        } else if (this.fileStatisticsSortType == 2) {
+          return fileStatisticsB.node[key] - fileStatisticsA.node[key];
         }
       });
     });
@@ -199,14 +197,14 @@ export class TabPaneFileStatistics extends BaseElement {
             flex-direction: column;
             padding: 10px 10px;
         }
-        .progress{
+        .file-statistics-progress{
             bottom: 5px;
             position: absolute;
             height: 1px;
             left: 0;
             right: 0;
         }
-        .loading{
+        .file-statistics-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -216,28 +214,28 @@ export class TabPaneFileStatistics extends BaseElement {
             z-index: 999999;
         }
         </style>
-        <lit-table id="tb-states" style="height: auto" tree>
-            <lit-table-column width="20%" title="Syscall/Process" data-index="title" key="title" align="flex-start">
+        <lit-table id="tb-file-statistics" style="height: auto" tree>
+            <lit-table-column class="fs-stat-column" width="20%" title="Syscall/Process" data-index="title" key="title" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Logical Writes" data-index="logicalWrites" key="logicalWrites" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Logical Writes" data-index="logicalWrites" key="logicalWrites" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Logical Reads" data-index="logicalReads" key="logicalReads" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Logical Reads" data-index="logicalReads" key="logicalReads" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Other Filesystem Bytes" data-index="otherFile" key="otherFile" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Other Filesystem Bytes" data-index="otherFile" key="otherFile" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration" data-index="allDuration" key="allDuration" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Duration" data-index="allDuration" key="allDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Min Duration" data-index="minDuration" key="minDuration" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Min Duration" data-index="minDuration" key="minDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Avg Duration" data-index="avgDuration" key="avgDuration" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Avg Duration" data-index="avgDuration" key="avgDuration" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Duration" data-index="maxDuration" key="maxDuration" align="flex-start" order>
+            <lit-table-column class="fs-stat-column" width="1fr" title="Max Duration" data-index="maxDuration" key="maxDuration" align="flex-start" order>
             </lit-table-column>
         </lit-table>
-        <lit-progress-bar class="progress"></lit-progress-bar>
-        <div class="loading"></div>
+        <lit-progress-bar class="file-statistics-progress"></lit-progress-bar>
+        <div class="file-statistics-loading"></div>
         `;
   }
 }

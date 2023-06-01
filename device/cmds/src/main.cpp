@@ -45,9 +45,9 @@ constexpr int KEEP_SESSION_TIMEOUT_MS = 5 * 1000;
 constexpr int KEEP_SESSION_SLEEP_SECOND = 3;
 constexpr int DEFAULT_SESSION_TIME_S = 10;
 const std::string DEFAULT_OUTPUT_FILE = "/data/local/tmp/hiprofiler_data.htrace";
-std::string HIPROFILERD_NAME("hiprofilerd");
-std::string HIPROFILER_PLUGINS_NAME("hiprofiler_plugins");
-std::string NATIVE_DAEMON_NAME("native_daemon");
+const std::string HIPROFILERD_NAME("hiprofilerd");
+const std::string HIPROFILER_PLUGINS_NAME("hiprofiler_plugins");
+const std::string NATIVE_DAEMON_NAME("native_daemon");
 
 uint32_t g_sampleDuration = 0;
 int g_hiprofilerdPid = -1;

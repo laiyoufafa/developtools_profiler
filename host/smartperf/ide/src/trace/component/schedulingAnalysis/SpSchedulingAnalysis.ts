@@ -63,11 +63,6 @@ export class SpSchedulingAnalysis extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host {
-            width: 100%;
-            height: 100%;
-            background: var(--dark-background5,#F6F6F6);
-        }
         .content{
             display: flex;
             flex-direction: column;
@@ -84,6 +79,11 @@ export class SpSchedulingAnalysis extends BaseElement {
             width: 100%;
             height: calc(100% - 55px);
             background-color: var(--dark-background,#FFFFFF);
+        }
+        :host {
+            width: 100%;
+            height: 100%;
+            background: var(--dark-background5,#F6F6F6);
         }
         .interval{
             height: 55px;

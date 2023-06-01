@@ -179,7 +179,7 @@ export class HeapLoader {
   }
 
   private distributeDOMState(): void {
-    // 1.重用反序列化字段来存储传播的状态。虽然已知节点的状态已经设置，
+    // 1.存储传播的状态。虽然已知节点的状态已经设置，
     // 但仍然需要经过处理以调整其名称并将其放入各自的队列中。
     let domState = new DOMState(this.nodeCount);
     for (let node of this.nodes) {
@@ -245,7 +245,7 @@ export class HeapLoader {
           if (!childNode || visited[childNode!.nodeIndex]) {
             continue;
           }
-          //跳过从非页面拥有的节点到页面拥有的节点的边缘
+          //Skip the edges from non-page-object nodes to page-object nodes
           let childNodeFlag = childNode.flag & PAGE_PROJECT;
           if (node.id != this.rootNode!.id && childNodeFlag && !node.flag) {
             continue;
@@ -406,7 +406,7 @@ export class HeapLoader {
     if (!this.rootNode) return;
     let nodesToVisit = new Uint32Array(this.nodeCount);
     let nodesToVisitLen = 0;
-    // root节点下所有的edge distance 为1
+    // root node's edges distance is 1
     for (let edge of this.rootNode.edges) {
       let node = this.nodeMap.get(edge.toNodeId);
       if (!node) {
@@ -441,9 +441,6 @@ export class HeapLoader {
     //赋值两个数组:
     //-dominatedNodes是一个连续数组，其中每个节点拥有一个与相应的被支配节点的间隔(可以为空)。
     //—indexArray 是dominatedNodes中与_nodeIndex位置相同的索引数组。
-    // const indexArray = this.firstDominatedNodeIdx;
-    // // All nodes except the root have dominators.
-    // const dominatedNodes = this.dominatedNodes;
     let fromNodeIdx = 0;
     let toNodeIdx = this.nodeCount;
 
@@ -472,7 +469,7 @@ export class HeapLoader {
       let dominatorIdx = this.dominatorTree[nodeIdx];
       let dominatorRefIdx = this.firstDominatedNodesIdx[dominatorIdx];
       dominatorRefIdx += --this.dominatedNodes[dominatorRefIdx];
-      this.dominatedNodes[dominatorRefIdx] = nodeIdx * 7;
+      this.dominatedNodes[dominatorRefIdx] = nodeIdx;
     }
   }
 
@@ -552,7 +549,7 @@ export class HeapLoader {
           continue;
         }
         let childNode = this.nodeMap.get(edge.toNodeId);
-        // 如果已经设置过一次distance了 不再设置
+        // if distance is set,not set again
         if (!childNode || childNode.distance != -5 || !this.filterForBpf(node, edge)) {
           continue;
         }
@@ -690,33 +687,33 @@ export class HeapLoader {
     return true;
   }
 
-  private calClassDiff(baseClass: ConstructorItem, classItem?: ConstructorItem) {
+  private calClassDiff(targetClass: ConstructorItem, baseClass?: ConstructorItem) {
     let diff = new ConstructorComparison();
     diff.type = ConstructorType.ComparisonType;
     diff.fileId = this.fileId;
-    diff.targetFileId = baseClass.fileId;
-    diff.nodeName = baseClass.nodeName;
+    diff.targetFileId = targetClass.fileId;
+    diff.nodeName = targetClass.nodeName;
     let i = 0;
     let j = 0;
-    let classLen = classItem ? classItem.childCount : 0;
-    let baseLen = baseClass.childCount;
-    baseClass.classChildren.sort((a, b) => a.id - b.id);
-    if (classItem) {
-      classItem.classChildren.sort((a, b) => a.id - b.id);
+    let baseLen = baseClass ? baseClass.childCount : 0;
+    let targetLen = targetClass.childCount;
+    targetClass.classChildren.sort((a, b) => a.id - b.id);
+    if (baseClass) {
+      baseClass.classChildren.sort((a, b) => a.id - b.id);
     }
     // The overlap between the base class and the target class
-    while (i < baseLen && j < classLen) {
-      let classNode = classItem!.classChildren[j];
-      let baseNode = baseClass.classChildren[i];
-      if (baseNode.id < classNode.id) {
-        diff.deletedIdx.push(baseNode.index);
+    while (i < targetLen && j < baseLen) {
+      let baseNode = baseClass!.classChildren[j];
+      let targetNode = targetClass.classChildren[i];
+      if (targetNode.id < baseNode.id) {
+        diff.deletedIdx.push(targetNode.index);
         diff.removedCount++;
-        diff.removedSize += baseNode.shallowSize;
+        diff.removedSize += targetNode.shallowSize;
         i++;
-      } else if (baseNode.id > classNode.id) {
-        diff.addedIndx.push(classNode.index);
+      } else if (targetNode.id > baseNode.id) {
+        diff.addedIndx.push(baseNode.index);
         diff.addedCount++;
-        diff.addedSize += classNode.shallowSize;
+        diff.addedSize += baseNode.shallowSize;
         j++;
       } else {
         i++;
@@ -724,19 +721,19 @@ export class HeapLoader {
       }
     }
     // base more then target
-    while (i < baseLen) {
-      let baseNode = baseClass!.classChildren[i];
-      diff.deletedIdx.push(baseNode.index);
+    while (i < targetLen) {
+      let targetNode = targetClass!.classChildren[i];
+      diff.deletedIdx.push(targetNode.index);
       diff.removedCount++;
-      diff.removedSize += baseNode.shallowSize;
+      diff.removedSize += targetNode.shallowSize;
       i++;
     }
     //
-    while (j < classLen) {
-      let classNode = classItem!.classChildren[j];
-      diff.addedIndx.push(classNode.index);
+    while (j < baseLen) {
+      let baseNode = baseClass!.classChildren[j];
+      diff.addedIndx.push(baseNode.index);
       diff.addedCount++;
-      diff.addedSize += classNode.shallowSize;
+      diff.addedSize += baseNode.shallowSize;
       j++;
     }
     diff.deltaCount = diff.addedCount - diff.removedCount;
@@ -842,8 +839,8 @@ export class HeapLoader {
       }
 
       for (let idx = dominatorFromIdx; idx < dominatorToIdx; idx++) {
-        let nodeOldIdx = this.dominatedNodes[idx];
-        let domNode = this.nodes[nodeOldIdx / 7];
+        let nodeIdx = this.dominatedNodes[idx];
+        let domNode = this.nodes[nodeIdx];
         list.push(domNode);
       }
 
@@ -858,15 +855,16 @@ export class HeapLoader {
     }
     return classes;
   }
+
   /**
    * compare base file and target file, calculate delta size and count to target class
-   * @param baseFileId to compare file's id
+   * @param targetFileId to compare file's id
    * @param targetFileClasses to compare file's constructor
    */
-  public getClassesForComparison(baseFileId: number, targetFileClasses: Map<string, ConstructorItem>) {
+  public getClassesForComparison(targetFileId: number, targetFileClasses: Map<string, ConstructorItem>) {
     // Return the result if it has been obtained before
-    if (this.diffToOtherFile.has(baseFileId)) {
-      return this.diffToOtherFile.get(baseFileId);
+    if (this.diffToOtherFile.has(targetFileId)) {
+      return this.diffToOtherFile.get(targetFileId);
     }
     // get base file class if not init before
     if (!this.allClasses) {
@@ -875,11 +873,11 @@ export class HeapLoader {
 
     //deal target class
     let diffMap = new Map<string, ConstructorComparison>();
-    for (let baseClass of targetFileClasses.values()) {
-      let classes = this.allClasses.get(baseClass.nodeName);
-      let different = this.calClassDiff(baseClass, classes);
+    for (let targetClass of targetFileClasses.values()) {
+      let classes = this.allClasses.get(targetClass.nodeName);
+      let different = this.calClassDiff(targetClass, classes);
       if (different) {
-        diffMap.set(baseClass.nodeName, different);
+        diffMap.set(targetClass.nodeName, different);
       }
     }
 
@@ -893,7 +891,7 @@ export class HeapLoader {
         diffMap.set(classItem.nodeName, different);
       }
     }
-    this.diffToOtherFile.set(baseFileId, diffMap);
+    this.diffToOtherFile.set(targetFileId, diffMap);
     return diffMap;
   }
 
@@ -960,7 +958,6 @@ export class HeapLoader {
    * @returns reference nodes
    */
   public getRetains(item: ConstructorItem): Array<ConstructorItem> {
-    let obj: any;
     if (item.retains.length > 0) {
       return item.retains;
     }

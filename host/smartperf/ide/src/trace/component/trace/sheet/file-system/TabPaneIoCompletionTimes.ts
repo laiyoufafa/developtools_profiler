@@ -34,90 +34,90 @@ export class TabPaneIoCompletionTimes extends BaseElement {
   // @ts-ignore
   private defaultNativeTypes = ['All', ...Object.values(VM_TYPE_MAP)];
   private native_type: Array<string> = [...this.defaultNativeTypes];
-  private tbl: LitTable | null | undefined;
-  private tblData: LitTable | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private loadingList: number[] = [];
-  private loadingPage: any;
-  private sortKey: string = 'startTs';
-  private sortType: number = 0;
+  private ioCompletionTimesTbl: LitTable | null | undefined;
+  private ioCompletionTimesTblData: LitTable | null | undefined;
+  private ioCompletionTimesProgressEL: LitProgressBar | null | undefined;
+  private ioCompletionTimesLoadingList: number[] = [];
+  private ioCompletionTimesLoadingPage: any;
+  private ioCompletionTimesSortKey: string = 'startTs';
+  private ioCompletionTimesSortType: number = 0;
   private currentSelection: SelectionParam | undefined | null;
-  private source: Array<IoCompletionTimes> = [];
-  private queryDataSource: Array<IoCompletionTimes> = [];
-  private statsticsSelection: Array<any> = [];
+  private ioCompletionTimesSource: Array<IoCompletionTimes> = [];
+  private ioCompletionTimesQueryDataSource: Array<IoCompletionTimes> = [];
+  private ioCompletionTimesSelection: Array<any> = [];
 
-  set data(val: SelectionParam | null | undefined) {
-    if (val == this.currentSelection) {
+  set data(ioCompletionTimesSelection: SelectionParam | null | undefined) {
+    if (ioCompletionTimesSelection == this.currentSelection) {
       return;
     }
-    this.currentSelection = val;
-    this.initFilterTypes(val!).then(() => {
-      this.queryData(val!);
+    this.currentSelection = ioCompletionTimesSelection;
+    this.initFilterTypes(ioCompletionTimesSelection!).then(() => {
+      this.queryData(ioCompletionTimesSelection!);
     });
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.ioCompletionTimesTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     // @ts-ignore
-    this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
-    this.tbl!.recycleDataSource = [];
-    this.tblData!.recycleDataSource = [];
+    this.ioCompletionTimesTblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.ioCompletionTimesTbl!.recycleDataSource = [];
+    this.ioCompletionTimesTblData!.recycleDataSource = [];
   }
 
   connectedCallback() {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
-        this.tbl?.reMeauseHeight();
+        this.ioCompletionTimesTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
+        this.ioCompletionTimesTbl?.reMeauseHeight();
         // @ts-ignore
-        this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
-        this.tblData?.reMeauseHeight();
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        this.ioCompletionTimesTblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
+        this.ioCompletionTimesTblData?.reMeauseHeight();
+        this.ioCompletionTimesLoadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
 
   initElements(): void {
-    this.loadingPage = this.shadowRoot?.querySelector('.loading');
-    this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tbl');
-    this.tblData = this.shadowRoot?.querySelector<LitTable>('#tbr');
-    this.tbl!.addEventListener('row-click', (e) => {
+    this.ioCompletionTimesLoadingPage = this.shadowRoot?.querySelector('.io-completiontimes-loading');
+    this.ioCompletionTimesProgressEL = this.shadowRoot?.querySelector('.io-completion-progress') as LitProgressBar;
+    this.ioCompletionTimesTbl = this.shadowRoot?.querySelector<LitTable>('#tbl-io-completion-times');
+    this.ioCompletionTimesTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-io-completion-times');
+    this.ioCompletionTimesTbl!.addEventListener('row-click', (e) => {
       // @ts-ignore
-      let data = e.detail.data as FileSysEvent;
+      let ioCompletionTimeData = e.detail.data as FileSysEvent;
       procedurePool.submitWithName(
         'logic0',
         'fileSystem-queryStack',
-        { callchainId: data.callchainId },
+        { callchainId: ioCompletionTimeData.callchainId },
         undefined,
         (res: any) => {
-          this.tblData!.recycleDataSource = res;
+          this.ioCompletionTimesTblData!.recycleDataSource = res;
         }
       );
     });
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.ioCompletionTimesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.ioCompletionTimesSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.ioCompletionTimesSortType = evt.detail.sort;
       // @ts-ignore
-      this.sortTable(evt.detail.key, evt.detail.sort);
+      this.sortioCompletionTimesTable(evt.detail.key, evt.detail.sort);
     });
-    this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
+    this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter')!.getFilterData((data: FilterData) => {
       let index = parseInt(data.firstSelect || '0');
       if (index > this.defaultNativeTypes.length - 1) {
-        this.filterTypeData(this.statsticsSelection[index - this.defaultNativeTypes.length]);
+        this.filterTypeData(this.ioCompletionTimesSelection[index - this.defaultNativeTypes.length]);
       } else {
         this.filterTypeData(undefined);
       }
-      this.tbl!.recycleDataSource = this.source;
+      this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     });
   }
 
-  async initFilterTypes(val: SelectionParam) {
-    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-    let typeKeys = await getTabIoCompletionTimesType(val.leftNs, val.rightNs);
+  async initFilterTypes(ioCompletionTimeParam: SelectionParam) {
+    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
+    let typeKeys = await getTabIoCompletionTimesType(ioCompletionTimeParam.leftNs, ioCompletionTimeParam.rightNs);
     this.defaultNativeTypes = ['All'];
-    this.statsticsSelection = [];
+    this.ioCompletionTimesSelection = [];
     typeKeys.forEach((item) => {
       // @ts-ignore
       this.defaultNativeTypes.push(item.tier + '');
@@ -127,74 +127,74 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     filter!.firstSelect = '0';
   }
 
-  async fromStastics(val: SelectionParam | any) {
-    if (val.fileSystemIoData == undefined) {
+  async fromStastics(ioCompletionTimeParam: SelectionParam | any) {
+    if (ioCompletionTimeParam.fileSystemIoData == undefined) {
       return;
     }
-    this.tblData!.recycleDataSource = [];
-    this.tblData?.clearAllSelection(undefined);
-    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-    if (this.currentSelection != val) {
-      await this.initFilterTypes(val);
+    this.ioCompletionTimesTblData!.recycleDataSource = [];
+    this.ioCompletionTimesTblData?.clearAllSelection(undefined);
+    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
+    if (this.currentSelection != ioCompletionTimeParam) {
+      await this.initFilterTypes(ioCompletionTimeParam);
     }
-    let typeIndexOf = this.native_type.indexOf(val.fileSystemIoData.path.value);
+    let typeIndexOf = this.native_type.indexOf(ioCompletionTimeParam.fileSystemIoData.path.value);
     if (typeIndexOf == -1) {
-      this.statsticsSelection.push(val.fileSystemIoData.path);
-      this.native_type.push(val.fileSystemIoData.path.value);
+      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path);
+      this.native_type.push(ioCompletionTimeParam.fileSystemIoData.path.value);
       typeIndexOf = this.native_type.length - 1;
     }
-    if (this.currentSelection != val) {
-      this.currentSelection = val;
+    if (this.currentSelection != ioCompletionTimeParam) {
+      this.currentSelection = ioCompletionTimeParam;
       filter!.setSelectList(this.native_type, null, 'Tier');
       filter!.firstSelect = typeIndexOf + '';
-      this.queryData(val);
+      this.queryData(ioCompletionTimeParam);
     } else {
       if (typeIndexOf == parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Tier');
       filter!.firstSelect = typeIndexOf + '';
-      this.filterTypeData(val?.fileSystemIoData?.path || undefined);
-      val.fileSystemIoData = undefined;
-      this.tbl!.recycleDataSource = this.source;
+      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
+      ioCompletionTimeParam.fileSystemIoData = undefined;
+      this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     }
   }
 
-  queryData(val: SelectionParam) {
-    this.loadingList.push(1);
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
-    this.source = [];
-    this.queryDataSource = [];
+  queryData(ioCompletionTimeParam: SelectionParam) {
+    this.ioCompletionTimesLoadingList.push(1);
+    this.ioCompletionTimesProgressEL!.loading = true;
+    this.ioCompletionTimesLoadingPage.style.visibility = 'visible';
+    this.ioCompletionTimesSource = [];
+    this.ioCompletionTimesQueryDataSource = [];
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-queryIOEvents',
       {
-        leftNs: val.leftNs,
-        rightNs: val.rightNs,
-        diskIOipids: val.diskIOipids,
+        leftNs: ioCompletionTimeParam.leftNs,
+        rightNs: ioCompletionTimeParam.rightNs,
+        diskIOipids: ioCompletionTimeParam.diskIOipids,
       },
       undefined,
       (res: any) => {
-        this.source = this.source.concat(res.data);
-        this.queryDataSource = this.queryDataSource.concat(res.data);
-        this.filterTypeData(val?.fileSystemIoData?.path || undefined);
-        val.fileSystemIoData = undefined;
+        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data);
+        this.ioCompletionTimesQueryDataSource = this.ioCompletionTimesQueryDataSource.concat(res.data);
+        this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
+        ioCompletionTimeParam.fileSystemIoData = undefined;
         res.data = null;
         if (!res.isSending) {
-          this.tbl!.recycleDataSource = this.source;
-          this.loadingList.splice(0, 1);
-          if (this.loadingList.length == 0) {
-            this.progressEL!.loading = false;
-            this.loadingPage.style.visibility = 'hidden';
+          this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
+          this.ioCompletionTimesLoadingList.splice(0, 1);
+          if (this.ioCompletionTimesLoadingList.length == 0) {
+            this.ioCompletionTimesProgressEL!.loading = false;
+            this.ioCompletionTimesLoadingPage.style.visibility = 'hidden';
           }
         }
       }
     );
   }
 
-  filterTypeData(pathData: any) {
-    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
+  filterTypeData(pathTypeData: any) {
+    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
     let firstSelect = filter!.firstSelect;
     let tier = -1;
     let path = '';
@@ -202,97 +202,97 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     if (parseInt(firstSelect) <= this.defaultNativeTypes.length - 1) {
       let index = parseInt(firstSelect);
       tier = index == 0 ? -1 : parseInt(this.defaultNativeTypes[index]);
-    } else if (pathData != undefined) {
-      tier = parseInt(pathData.tier);
-      path = pathData.path || '';
-      pid = pathData.pid || -1;
-    } else if (pathData == undefined) {
+    } else if (pathTypeData != undefined) {
+      tier = parseInt(pathTypeData.tier);
+      path = pathTypeData.path || '';
+      pid = pathTypeData.pid || -1;
+    } else if (pathTypeData == undefined) {
       return;
     }
     let isTierFilter = false;
     let isPidFilter = false;
     let isPathFilter = false;
-    this.source = this.queryDataSource.filter((item) => {
+    this.ioCompletionTimesSource = this.ioCompletionTimesQueryDataSource.filter((ioCompletionTimesQueryData) => {
       if (tier == -1) {
         isTierFilter = true;
       } else {
-        isTierFilter = item.tier == tier;
+        isTierFilter = ioCompletionTimesQueryData.tier == tier;
       }
       if (pid == -1) {
         isPidFilter = true;
       } else {
-        isPidFilter = item.pid == pid;
+        isPidFilter = ioCompletionTimesQueryData.pid == pid;
       }
-      isPathFilter = path == '' || item.path == path;
+      isPathFilter = path == '' || ioCompletionTimesQueryData.path == path;
       return isTierFilter && isPidFilter && isPathFilter;
     });
   }
 
-  sortTable(key: string, type: number) {
+  sortioCompletionTimesTable(ioCompletionTimesKey: string, type: number) {
     if (type == 0) {
-      this.tbl!.recycleDataSource = this.source;
+      this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     } else {
-      let arr = Array.from(this.source);
-      arr.sort((a, b): number => {
-        if (key == 'startTsStr') {
+      let arr = Array.from(this.ioCompletionTimesSource);
+      arr.sort((ioCompletionTimesA, ioCompletionTimesB): number => {
+        if (ioCompletionTimesKey == 'startTsStr') {
           if (type == 1) {
-            return a.startTs - b.startTs;
+            return ioCompletionTimesA.startTs - ioCompletionTimesB.startTs;
           } else {
-            return b.startTs - a.startTs;
+            return ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
           }
-        } else if (key == 'durStr') {
+        } else if (ioCompletionTimesKey == 'durStr') {
           if (type == 1) {
-            return a.dur - b.dur;
+            return ioCompletionTimesA.dur - ioCompletionTimesB.dur;
           } else {
-            return b.dur - a.dur;
+            return ioCompletionTimesB.dur - ioCompletionTimesA.dur;
           }
-        } else if (key == 'process') {
-          if (a.process > b.process) {
+        } else if (ioCompletionTimesKey == 'process') {
+          if (ioCompletionTimesA.process > ioCompletionTimesB.process) {
             return type === 2 ? 1 : -1;
-          } else if (a.process == b.process) {
+          } else if (ioCompletionTimesA.process == ioCompletionTimesB.process) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
-        } else if (key == 'durPer4kStr') {
+        } else if (ioCompletionTimesKey == 'durPer4kStr') {
           if (type == 1) {
-            return a.durPer4k - b.durPer4k;
+            return ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k;
           } else {
-            return b.durPer4k - a.durPer4k;
+            return ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
           }
-        } else if (key == 'thread') {
-          if (a.thread > b.thread) {
+        } else if (ioCompletionTimesKey == 'thread') {
+          if (ioCompletionTimesA.thread > ioCompletionTimesB.thread) {
             return type === 2 ? 1 : -1;
-          } else if (a.thread == b.thread) {
+          } else if (ioCompletionTimesA.thread == ioCompletionTimesB.thread) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
-        } else if (key == 'operation') {
-          if (a.operation > b.operation) {
+        } else if (ioCompletionTimesKey == 'operation') {
+          if (ioCompletionTimesA.operation > ioCompletionTimesB.operation) {
             return type === 2 ? 1 : -1;
-          } else if (a.operation == b.operation) {
+          } else if (ioCompletionTimesA.operation == ioCompletionTimesB.operation) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
-        } else if (key == 'sizeStr') {
+        } else if (ioCompletionTimesKey == 'sizeStr') {
           if (type == 1) {
-            return a.size - b.size;
+            return ioCompletionTimesA.size - ioCompletionTimesB.size;
           } else {
-            return b.size - a.size;
+            return ioCompletionTimesB.size - ioCompletionTimesA.size;
           }
-        } else if (key == 'tier') {
+        } else if (ioCompletionTimesKey == 'tier') {
           if (type == 1) {
-            return a.tier - b.tier;
+            return ioCompletionTimesA.tier - ioCompletionTimesB.tier;
           } else {
-            return b.tier - a.tier;
+            return ioCompletionTimesB.tier - ioCompletionTimesA.tier;
           }
         } else {
           return 0;
         }
       });
-      this.tbl!.recycleDataSource = arr;
+      this.ioCompletionTimesTbl!.recycleDataSource = arr;
     }
   }
 
@@ -304,7 +304,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .loading{
+        .io-completiontimes-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -313,7 +313,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             background:transparent;
             z-index: 999999;
         }
-        .progress{
+        .io-completion-progress{
             bottom: 33px;
             position: absolute;
             height: 1px;
@@ -321,7 +321,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             left: 0;
             right: 0;
         }
-        tab-pane-filter {
+        #io-completion-filter {
             border: solid rgb(216,216,216) 1px;
             float: left;
             position: fixed;
@@ -329,22 +329,22 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             width: 100%;
         }
         </style>
-        <div style="display: flex;flex-direction: column">
+        <div class="io-completion-content" style="display: flex;flex-direction: column">
             <div style="display: flex;flex-direction: row;">
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
-                        <lit-table id="tbl" style="height: auto">
-                            <lit-table-column width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="260px" title="Total Latency" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="200px" title="Latency per 4KB" data-index="durPer4kStr" key="durPer4kStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="200px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="200px" title="Operation" data-index="operation" key="operation" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="200px" title="Bytes" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="280px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="200px" title="Block number" data-index="blockNumber" key="blockNumber" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="240px" title="Tier" data-index="tier" key="tier" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
+                        <lit-table id="tbl-io-completion-times" style="height: auto">
+                            <lit-table-column class="io-completion-column" width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="260px" title="Total Latency" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="200px" title="Latency per 4KB" data-index="durPer4kStr" key="durPer4kStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="200px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="200px" title="Operation" data-index="operation" key="operation" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="200px" title="Bytes" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="280px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="200px" title="Block number" data-index="blockNumber" key="blockNumber" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="240px" title="Tier" data-index="tier" key="tier" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="io-completion-column" width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
                                 <template>
                                     <div>
                                         <span>{{backtrace[0]}}</span>
@@ -356,22 +356,22 @@ export class TabPaneIoCompletionTimes extends BaseElement {
                         </lit-table>
                     </div>
                     <lit-slicer-track ></lit-slicer-track>
-                    <lit-table id="tbr" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-                        <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                    <lit-table id="tbr-io-completion-times" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                        <lit-table-column class="io-completion-column" width="60px" title="" data-index="type" key="type"  align="flex-start" >
                             <template>
                                 <div v-if=" type == -1 ">Thread:</div>
                                 <img src="img/library.png" size="20" v-if=" type == 1 ">
                                 <img src="img/function.png" size="20" v-if=" type == 0 ">
                             </template>
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
+                        <lit-table-column class="io-completion-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>
             </div>
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-filter id="filter" first></tab-pane-filter>
-            <div class="loading"></div>
+            <lit-progress-bar class="progress io-completion-progress"></lit-progress-bar>
+            <tab-pane-filter id="io-completion-filter" first></tab-pane-filter>
+            <div class="io-completiontimes-loading"></div>
         </div>
 `;
   }

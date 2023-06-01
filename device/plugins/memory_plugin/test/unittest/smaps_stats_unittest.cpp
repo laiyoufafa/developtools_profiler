@@ -30,7 +30,8 @@ const int PERCENT = 100;
 class SmapsStatsTest : public ::testing::Test {
 public:
     static void SetUpTestCase() {}
-    static void TearDownTestCase() {
+    static void TearDownTestCase()
+    {
         if (access(DEFAULT_TEST_PATH.c_str(), F_OK) == 0) {
             std::string str = "rm -rf " + DEFAULT_TEST_PATH;
             system(str.c_str());

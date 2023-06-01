@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include <sstream>
+#include <cstdio>
 #include <ctime>
+#include <sstream>
 
-#include <stdio.h>
 #include <sys/time.h>
 
 

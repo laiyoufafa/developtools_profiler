@@ -15,15 +15,14 @@
 
 import {
   BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
   drawSelection,
-  drawWakeUp,
   isFrameContainPoint,
   ns2x,
   Render,
+  drawFlagLine,
   RequestMessage,
+  drawLines,
+  drawLoading,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
@@ -38,13 +37,13 @@ export class SdkCounterRender extends Render {
     },
     row: TraceRow<CounterStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let counterList = row.dataList;
+    let counterFilter = row.dataListCache;
     let maxCounter = req.maxValue;
     let maxCounterName = req.maxName;
     this.counter(
-      list,
-      filter,
+      counterList,
+      counterFilter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
       TraceRow.range?.totalNS ?? 0,
@@ -52,15 +51,15 @@ export class SdkCounterRender extends Render {
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
     req.context.beginPath();
-    let find = false;
-    for (let re of filter) {
+    let sdkCounterFind = false;
+    for (let re of counterFilter) {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         CounterStruct.hoverCounterStruct = re;
-        find = true;
+        sdkCounterFind = true;
       }
       CounterStruct.draw(req.context, re, maxCounter);
     }
-    if (!find && row.isHover) CounterStruct.hoverCounterStruct = undefined;
+    if (!sdkCounterFind && row.isHover) CounterStruct.hoverCounterStruct = undefined;
     req.context.closePath();
     let textMetrics = req.context.measureText(maxCounterName);
     req.context.globalAlpha = 0.8;
@@ -72,83 +71,109 @@ export class SdkCounterRender extends Render {
     req.context.fillText(maxCounterName, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      this.counter(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(sdkCounterRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (sdkCounterRequest.lazyRefresh) {
+      this.counter(
+        list,
+        filter,
+        sdkCounterRequest.startNS,
+        sdkCounterRequest.endNS,
+        sdkCounterRequest.totalNS,
+        sdkCounterRequest.frame,
+        sdkCounterRequest.useCache || !sdkCounterRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        this.counter(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
-      }
-    }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-        drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
+      if (!sdkCounterRequest.useCache) {
+        this.counter(
+          list,
+          filter,
+          sdkCounterRequest.startNS,
+          sdkCounterRequest.endNS,
+          sdkCounterRequest.totalNS,
+          sdkCounterRequest.frame,
+          false
         );
       }
-      req.context.beginPath();
-      let maxCounter = req.params.maxCounter;
-      let maxCounterName = req.params.maxCounterName;
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+    }
+    if (sdkCounterRequest.canvas) {
+      sdkCounterRequest.context.clearRect(0, 0, sdkCounterRequest.frame.width, sdkCounterRequest.frame.height);
+      let sdkCounterArr = filter;
+      if (
+        sdkCounterArr.length > 0 &&
+        !sdkCounterRequest.range.refresh &&
+        !sdkCounterRequest.useCache &&
+        sdkCounterRequest.lazyRefresh
+      ) {
+        drawLoading(
+          sdkCounterRequest.context,
+          sdkCounterRequest.startNS,
+          sdkCounterRequest.endNS,
+          sdkCounterRequest.totalNS,
+          sdkCounterRequest.frame,
+          sdkCounterArr[0].startNS,
+          sdkCounterArr[sdkCounterArr.length - 1].startNS + sdkCounterArr[sdkCounterArr.length - 1].dur
+        );
+      }
+      sdkCounterRequest.context.beginPath();
+      let maxCounter = sdkCounterRequest.params.maxCounter;
+      let maxCounterName = sdkCounterRequest.params.maxCounterName;
+      drawLines(
+        sdkCounterRequest.context,
+        sdkCounterRequest.xs,
+        sdkCounterRequest.frame.height,
+        sdkCounterRequest.lineColor
+      );
       CounterStruct.hoverCounterStruct = undefined;
-      if (req.isHover) {
+      if (sdkCounterRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            sdkCounterRequest.hoverX >= re.frame.x &&
+            sdkCounterRequest.hoverX <= re.frame.x + re.frame.width &&
+            sdkCounterRequest.hoverY >= re.frame.y &&
+            sdkCounterRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             CounterStruct.hoverCounterStruct = re;
             break;
           }
         }
       }
-      CounterStruct.selectCounterStruct = req.params.selectCounterStruct;
+      CounterStruct.selectCounterStruct = sdkCounterRequest.params.selectCounterStruct;
       for (let re of filter) {
-        CounterStruct.draw(req.context, re, maxCounter);
+        CounterStruct.draw(sdkCounterRequest.context, re, maxCounter);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
-      let textMetrics = req.context.measureText(maxCounterName);
-      req.context.globalAlpha = 0.8;
-      req.context.fillStyle = '#f0f0f0';
-      req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-      req.context.globalAlpha = 1;
-      req.context.fillStyle = '#333';
-      req.context.textBaseline = 'middle';
-      req.context.fillText(maxCounterName, 4, 5 + 9);
+      drawSelection(sdkCounterRequest.context, sdkCounterRequest.params);
+      sdkCounterRequest.context.closePath();
+      let textMetrics = sdkCounterRequest.context.measureText(maxCounterName);
+      sdkCounterRequest.context.globalAlpha = 0.8;
+      sdkCounterRequest.context.fillStyle = '#f0f0f0';
+      sdkCounterRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
+      sdkCounterRequest.context.globalAlpha = 1;
+      sdkCounterRequest.context.fillStyle = '#333';
+      sdkCounterRequest.context.textBaseline = 'middle';
+      sdkCounterRequest.context.fillText(maxCounterName, 4, 5 + 9);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        sdkCounterRequest.context,
+        sdkCounterRequest.flagMoveInfo,
+        sdkCounterRequest.flagSelectedInfo,
+        sdkCounterRequest.startNS,
+        sdkCounterRequest.endNS,
+        sdkCounterRequest.totalNS,
+        sdkCounterRequest.frame,
+        sdkCounterRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: sdkCounterRequest.id,
+      type: sdkCounterRequest.type,
+      results: sdkCounterRequest.canvas ? undefined : filter,
       hover: CounterStruct.hoverCounterStruct,
     });
   }
 
   counter(
-    list: Array<any>,
+    sdkCounteraList: Array<any>,
     res: Array<any>,
     startNS: number,
     endNS: number,
@@ -168,20 +193,20 @@ export class SdkCounterRender extends Render {
       return;
     }
     res.length = 0;
-    if (list) {
-      for (let index = 0; index < list.length; index++) {
-        let item = list[index];
-        if (index === list.length - 1) {
+    if (sdkCounteraList) {
+      for (let index = 0; index < sdkCounteraList.length; index++) {
+        let item = sdkCounteraList[index];
+        if (index === sdkCounteraList.length - 1) {
           item.dur = (endNS || 0) - (item.ts || 0);
         } else {
-          item.dur = (list[index + 1].ts || 0) - (item.ts || 0);
+          item.dur = (sdkCounteraList[index + 1].ts || 0) - (item.ts || 0);
         }
         if ((item.ts || 0) + (item.dur || 0) > (startNS || 0) && (item.ts || 0) < (endNS || 0)) {
-          CounterStruct.setCounterFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+          CounterStruct.setCounterFrame(sdkCounteraList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
           if (
             index > 0 &&
-            (list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) &&
-            (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0)
+            (sdkCounteraList[index - 1].frame?.x || 0) == (sdkCounteraList[index].frame?.x || 0) &&
+            (sdkCounteraList[index - 1].frame?.width || 0) == (sdkCounteraList[index].frame?.width || 0)
           ) {
           } else {
             res.push(item);
@@ -202,55 +227,63 @@ export class CounterStruct extends BaseStruct {
   ts: number | undefined;
   counter_id: number | undefined;
 
-  static draw(context2D: CanvasRenderingContext2D, data: CounterStruct, maxCounter: number) {
+  static draw(sdkCounterContext: CanvasRenderingContext2D, data: CounterStruct, maxCounter: number) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      context2D.fillStyle = '#67B0FC';
-      context2D.strokeStyle = '#67B0FC';
+      sdkCounterContext.fillStyle = '#67B0FC';
+      sdkCounterContext.strokeStyle = '#67B0FC';
       if (data.ts === CounterStruct.hoverCounterStruct?.ts) {
-        context2D.lineWidth = 1;
+        sdkCounterContext.lineWidth = 1;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxCounter);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
-        context2D.beginPath();
-        context2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
-        context2D.fill();
-        context2D.globalAlpha = 1.0;
-        context2D.stroke();
-        context2D.beginPath();
-        context2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.lineWidth = 3;
-        context2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.stroke();
+        sdkCounterContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        sdkCounterContext.beginPath();
+        sdkCounterContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
+        sdkCounterContext.fill();
+        sdkCounterContext.globalAlpha = 1.0;
+        sdkCounterContext.stroke();
+        sdkCounterContext.beginPath();
+        sdkCounterContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
+        sdkCounterContext.lineWidth = 3;
+        sdkCounterContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
+        sdkCounterContext.stroke();
       } else {
-        context2D.lineWidth = 1;
+        sdkCounterContext.lineWidth = 1;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxCounter);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        sdkCounterContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
       }
     }
-    context2D.globalAlpha = 1.0;
-    context2D.lineWidth = 1;
+    sdkCounterContext.globalAlpha = 1.0;
+    sdkCounterContext.lineWidth = 1;
   }
 
-  static setCounterFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let startPointX: number, endPointX: number;
+  static setCounterFrame(
+    counterNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ) {
+    let sdkCounterStartPointX: number, sdkCountEndPointX: number;
 
-    if ((node.ts || 0) < startNS) {
-      startPointX = 0;
+    if ((counterNode.ts || 0) < startNS) {
+      sdkCounterStartPointX = 0;
     } else {
-      startPointX = ns2x(node.ts || 0, startNS, endNS, totalNS, frame);
+      sdkCounterStartPointX = ns2x(counterNode.ts || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.ts || 0) + (node.dur || 0) > endNS) {
-      endPointX = frame.width;
+    if ((counterNode.ts || 0) + (counterNode.dur || 0) > endNS) {
+      sdkCountEndPointX = frame.width;
     } else {
-      endPointX = ns2x((node.ts || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      sdkCountEndPointX = ns2x((counterNode.ts || 0) + (counterNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    let frameWidth: number =
+      sdkCountEndPointX - sdkCounterStartPointX <= 1 ? 1 : sdkCountEndPointX - sdkCounterStartPointX;
+    if (!counterNode.frame) {
+      counterNode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    counterNode.frame.x = Math.floor(sdkCounterStartPointX);
+    counterNode.frame.y = frame.y + padding;
+    counterNode.frame.width = Math.ceil(frameWidth);
+    counterNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

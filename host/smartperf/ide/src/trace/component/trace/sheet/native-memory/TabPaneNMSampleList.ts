@@ -35,10 +35,10 @@ import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart.js';
 @element('tabpane-native-sample')
 export class TabPaneNMSampleList extends BaseElement {
   static tblData: LitTable | null | undefined;
-  static tbl: LitTable | null | undefined;
+  static sampleTbl: LitTable | null | undefined;
   static filter: any;
   static filterSelect: string = '0';
-  static source: Array<NativeHookSamplerInfo> = [];
+  static samplerInfoSource: Array<NativeHookSamplerInfo> = [];
   static types: Array<string> = [];
   static native_type: Array<string> = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
   static tableMarkData: Array<NativeMemory> = [];
@@ -46,25 +46,25 @@ export class TabPaneNMSampleList extends BaseElement {
   static sampleTypes: Array<NativeHookSampleQueryInfo> = [];
   static sampleTypesList: any[] = [];
 
-  set data(val: SelectionParam | any) {
-    TabPaneNMSampleList.serSelection(val);
+  set data(sampleParam: SelectionParam | any) {
+    TabPaneNMSampleList.serSelection(sampleParam);
     this.filterAllList();
   }
 
-  static serSelection(val: SelectionParam) {
-    if (this.selectionParam !== val) {
+  static serSelection(sampleParam: SelectionParam) {
+    if (this.selectionParam !== sampleParam) {
       this.clearData();
-      this.selectionParam = val;
+      this.selectionParam = sampleParam;
       this.initTypes();
     }
-    if (val.nativeMemory.indexOf(this.native_type[0]) != -1) {
+    if (sampleParam.nativeMemory.indexOf(this.native_type[0]) != -1) {
       this.types.push("'AllocEvent'");
       this.types.push("'MmapEvent'");
     } else {
-      if (val.nativeMemory.indexOf(this.native_type[1]) != -1) {
+      if (sampleParam.nativeMemory.indexOf(this.native_type[1]) != -1) {
         this.types.push("'AllocEvent'");
       }
-      if (val.nativeMemory.indexOf(this.native_type[2]) != -1) {
+      if (sampleParam.nativeMemory.indexOf(this.native_type[2]) != -1) {
         this.types.push("'MmapEvent'");
       }
     }
@@ -84,7 +84,7 @@ export class TabPaneNMSampleList extends BaseElement {
     }
     TabPaneNMSampleList.tableMarkData.push(data);
     let rootSample = new NativeHookSamplerInfo();
-    rootSample.snapshot = 'Snapshot' + this.numberToWord(this.source.length + 1);
+    rootSample.snapshot = 'Snapshot' + this.numberToWord(this.samplerInfoSource.length + 1);
     rootSample.startTs = data.startTs;
     rootSample.timestamp =
       SpNativeMemoryChart.REAL_TIME_DIF == 0
@@ -133,8 +133,8 @@ export class TabPaneNMSampleList extends BaseElement {
       copyType.subType = type.subType;
       return copyType;
     });
-    queryAllHookData(data.startTs).then((result) => {
-      if (result.length > 0) {
+    queryAllHookData(data.startTs).then((nmSamplerHookResult) => {
+      if (nmSamplerHookResult.length > 0) {
         let nameGroup: any = {};
         copyTypes.forEach((item) => {
           nameGroup[item.eventType] = nameGroup[item.eventType] || [];
@@ -144,7 +144,7 @@ export class TabPaneNMSampleList extends BaseElement {
           TabPaneNMSampleList.tableMarkData.length == 1
             ? 0
             : TabPaneNMSampleList.tableMarkData[TabPaneNMSampleList.tableMarkData.length - 2].startTs;
-        result.forEach((item) => {
+        nmSamplerHookResult.forEach((item) => {
           item.threadId = rootSample.threadId;
           item.threadName = rootSample.threadName;
           if (nameGroup[item.eventType] != undefined) {
@@ -177,7 +177,7 @@ export class TabPaneNMSampleList extends BaseElement {
         this.sampleTypesList.push(copyTypes);
         this.createTree(nameGroup, rootSample);
         rootSample.tempList = [...rootSample.children];
-        this.source.push(rootSample);
+        this.samplerInfoSource.push(rootSample);
       }
     });
   }
@@ -234,9 +234,9 @@ export class TabPaneNMSampleList extends BaseElement {
 
   static clearData() {
     this.types = [];
-    this.source = [];
+    this.samplerInfoSource = [];
     this.tblData!.dataSource = [];
-    this.tbl!.recycleDataSource = [];
+    this.sampleTbl!.recycleDataSource = [];
     this.sampleTypesList = [];
     this.tableMarkData = [];
     TabPaneNMSampleList.filter!.firstSelect = '0';
@@ -259,19 +259,19 @@ export class TabPaneNMSampleList extends BaseElement {
     });
   }
 
-  setRightTableData(sample: NativeHookSamplerInfo) {
-    let args = new Map<string, any>();
-    args.set('eventId', sample.eventId);
-    args.set('actionType', 'memory-stack');
-    this.startWorker(args, (results: any[]) => {
+  setRightTableData(hookSamplerInfo: NativeHookSamplerInfo) {
+    let nmSamplerArgs = new Map<string, any>();
+    nmSamplerArgs.set('eventId', hookSamplerInfo.eventId);
+    nmSamplerArgs.set('actionType', 'memory-stack');
+    this.startWorker(nmSamplerArgs, (results: any[]) => {
       let source = [];
       if (results.length > 0) {
-        let thread = new NativeHookCallInfo();
-        thread.threadId = sample.threadId;
-        thread.threadName = sample.threadName;
-        thread.title = `${sample.threadName ?? ''}【${sample.threadId}】`;
-        thread.type = -1;
-        source.push(thread);
+        let hookCallInfo = new NativeHookCallInfo();
+        hookCallInfo.threadId = hookSamplerInfo.threadId;
+        hookCallInfo.threadName = hookSamplerInfo.threadName;
+        hookCallInfo.title = `${hookSamplerInfo.threadName ?? ''}【${hookSamplerInfo.threadId}】`;
+        hookCallInfo.type = -1;
+        source.push(hookCallInfo);
         source.push(...results);
       }
       // @ts-ignore
@@ -280,8 +280,8 @@ export class TabPaneNMSampleList extends BaseElement {
   }
 
   initElements(): void {
-    TabPaneNMSampleList.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-native-sample');
-    TabPaneNMSampleList.tbl!.addEventListener('row-click', (evt: any) => {
+    TabPaneNMSampleList.sampleTbl = this.shadowRoot?.querySelector<LitTable>('#tb-native-sample');
+    TabPaneNMSampleList.sampleTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       this.setRightTableData(evt.detail.data);
     });
@@ -302,8 +302,8 @@ export class TabPaneNMSampleList extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        TabPaneNMSampleList.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
-        TabPaneNMSampleList.tbl?.reMeauseHeight();
+        TabPaneNMSampleList.sampleTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
+        TabPaneNMSampleList.sampleTbl?.reMeauseHeight();
         // @ts-ignore
         TabPaneNMSampleList.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 + 'px';
         TabPaneNMSampleList.tblData?.reMeauseHeight();
@@ -312,85 +312,88 @@ export class TabPaneNMSampleList extends BaseElement {
   }
 
   filterAllList() {
-    TabPaneNMSampleList.source.forEach((rootSample) => {
-      rootSample.heapSize = 0;
-      rootSample.existing = 0;
-      rootSample.total = 0;
+    TabPaneNMSampleList.samplerInfoSource.forEach((nmRootSample) => {
+      nmRootSample.heapSize = 0;
+      nmRootSample.existing = 0;
+      nmRootSample.total = 0;
       if (TabPaneNMSampleList.filterSelect == '0') {
-        rootSample.children = [...rootSample.tempList];
-        rootSample.tempList.forEach((parentSample) => {
-          rootSample.heapSize += parentSample.heapSize;
-          rootSample.existing += parentSample.existing;
-          rootSample.total += parentSample.total;
+        nmRootSample.children = [...nmRootSample.tempList];
+        nmRootSample.tempList.forEach((parentSample) => {
+          nmRootSample.heapSize += parentSample.heapSize;
+          nmRootSample.existing += parentSample.existing;
+          nmRootSample.total += parentSample.total;
         });
-        rootSample.growth = Utils.getByteWithUnit(rootSample.heapSize);
-        rootSample.totalGrowth = Utils.getByteWithUnit(rootSample.total);
+        nmRootSample.growth = Utils.getByteWithUnit(nmRootSample.heapSize);
+        nmRootSample.totalGrowth = Utils.getByteWithUnit(nmRootSample.total);
       } else if (TabPaneNMSampleList.filterSelect == '2') {
-        if (rootSample.tempList.length > 1) {
-          rootSample.children = [rootSample.tempList[1]];
-          rootSample.heapSize += rootSample.tempList[1].heapSize;
-          rootSample.existing += rootSample.tempList[1].existing;
-          rootSample.growth = Utils.getByteWithUnit(rootSample.heapSize);
-          rootSample.total += rootSample.tempList[1].total;
-          rootSample.totalGrowth = Utils.getByteWithUnit(rootSample.total);
+        if (nmRootSample.tempList.length > 1) {
+          nmRootSample.children = [nmRootSample.tempList[1]];
+          nmRootSample.heapSize += nmRootSample.tempList[1].heapSize;
+          nmRootSample.existing += nmRootSample.tempList[1].existing;
+          nmRootSample.growth = Utils.getByteWithUnit(nmRootSample.heapSize);
+          nmRootSample.total += nmRootSample.tempList[1].total;
+          nmRootSample.totalGrowth = Utils.getByteWithUnit(nmRootSample.total);
         } else {
-          rootSample.children = [];
-          rootSample.growth = '';
-          rootSample.totalGrowth = '';
+          nmRootSample.children = [];
+          nmRootSample.growth = '';
+          nmRootSample.totalGrowth = '';
         }
       } else {
-        if (rootSample.tempList.length > 0) {
-          rootSample.children = [rootSample.tempList[0]];
-          rootSample.heapSize += rootSample.tempList[0].heapSize;
-          rootSample.existing += rootSample.tempList[0].existing;
-          rootSample.growth = Utils.getByteWithUnit(rootSample.heapSize);
-          rootSample.total += rootSample.tempList[0].total;
-          rootSample.totalGrowth = Utils.getByteWithUnit(rootSample.total);
+        if (nmRootSample.tempList.length > 0) {
+          nmRootSample.children = [nmRootSample.tempList[0]];
+          nmRootSample.heapSize += nmRootSample.tempList[0].heapSize;
+          nmRootSample.existing += nmRootSample.tempList[0].existing;
+          nmRootSample.growth = Utils.getByteWithUnit(nmRootSample.heapSize);
+          nmRootSample.total += nmRootSample.tempList[0].total;
+          nmRootSample.totalGrowth = Utils.getByteWithUnit(nmRootSample.total);
         } else {
-          rootSample.children = [];
-          rootSample.growth = '';
-          rootSample.totalGrowth = '';
+          nmRootSample.children = [];
+          nmRootSample.growth = '';
+          nmRootSample.totalGrowth = '';
         }
       }
     });
-    TabPaneNMSampleList.tbl!.recycleDataSource = TabPaneNMSampleList.source;
+    TabPaneNMSampleList.sampleTbl!.recycleDataSource = TabPaneNMSampleList.samplerInfoSource;
   }
 
   initHtml(): string {
     return `
         <style>
+        .nm-sample-tbl {
+            height: auto;
+        }
         :host{
+            padding: 10px 10px 0 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px 0 10px;
         }
         </style>
         <lit-slicer style="width:100%">
-        <div style="width: 65%">
-            <lit-table id="tb-native-sample" style="height: auto" tree>
-                <lit-table-column width="25%" title="Snapshot" data-index="snapshot" key="snapshot"  align="flex-start" >
+        <div class="nm-sample-content" style="width: 65%">
+            <lit-table id="tb-native-sample" class="nm-sample-tbl" tree>
+                <lit-table-column class="nm-sample-column" width="25%" title="Snapshot" data-index="snapshot" key="snapshot"  align="flex-start" >
                 </lit-table-column>
-                <lit-table-column width="1fr" title="Timestamp" data-index="timestamp" key="timestamp"  align="flex-start"  >
+                <lit-table-column class="nm-sample-column" width="1fr" title="Timestamp" data-index="timestamp" key="timestamp"  align="flex-start"  >
                 </lit-table-column>
-                <lit-table-column width="1fr" title="Net Growth" data-index="growth" key="growth"  align="flex-start"  >
+                <lit-table-column class="nm-sample-column" width="1fr" title="Net Growth" data-index="growth" key="growth"  align="flex-start"  >
                 </lit-table-column>
-                <lit-table-column width="1fr" title="Total Growth" data-index="totalGrowth" key="totalGrowth"  align="flex-start"  >
+                <lit-table-column class="nm-sample-column" width="1fr" title="Total Growth" data-index="totalGrowth" key="totalGrowth"  align="flex-start"  >
                 </lit-table-column>
-                <lit-table-column width="1fr" title="# Existing" data-index="existing" key="existing"  align="flex-start"  >
+                <lit-table-column class="nm-sample-column" width="1fr" title="# Existing" data-index="existing" key="existing"  align="flex-start"  >
                 </lit-table-column>
             </lit-table>
             <tab-pane-filter id="filter" first></tab-pane-filter>
         </div>
         <lit-slicer-track ></lit-slicer-track>
         <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-            <lit-table-column width="80px" title="" data-index="type" key="type"  align="flex-start" >
+            <lit-table-column class="nm-sample-column" width="80px" title="" data-index="type" key="type"  align="flex-start" >
                 <template>
                     <div v-if=" type == -1 ">Thread:</div>
                     <img src="img/library.png" size="20" v-if=" type == 1 ">
                     <img src="img/function.png" size="20" v-if=" type == 0 ">
                 </template>
             </lit-table-column>
-            <lit-table-column width="1fr" title="" data-index="title" key="title"  align="flex-start">
+            <lit-table-column class="nm-sample-column" width="1fr" title="" data-index="title" key="title"  align="flex-start">
             </lit-table-column>
         </lit-table>
         </lit-slicer>

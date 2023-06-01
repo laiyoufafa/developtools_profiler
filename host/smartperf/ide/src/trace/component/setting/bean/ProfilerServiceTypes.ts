@@ -853,8 +853,6 @@ export interface NativeHookConfig {
   smbPages: number;
   maxStackDepth: number;
   processName: string;
-  mallocFreeMatchingInterval: number;
-  mallocFreeMatchingCnt: number;
   stringCompressed: boolean;
   fpUnwind: boolean;
   blocked: boolean;

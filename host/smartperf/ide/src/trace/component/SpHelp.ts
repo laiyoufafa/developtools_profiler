@@ -298,6 +298,21 @@ export class SpHelp extends BaseElement {
                 ' width="100%" height="100%"></object>';
             },
           },
+          {
+            title: '调用栈可视化和不同库函数调用占比说明',
+            icon: '',
+            clickHandler: function (item: MenuItem) {
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'import_so',
+                action: 'help_doc',
+              });
+              that.appContent!.innerHTML =
+                  '<object type="text/html" data=' +
+                  '/application/doc/quickstart_Import_so.html?' +
+                  that.dark +
+                  ' width="100%" height="100%"></object>';
+            },
+          },
         ],
       },
       {
@@ -407,13 +422,13 @@ export class SpHelp extends BaseElement {
         ],
       },
     ];
-    mainMenu.style.width = '300px';
+    mainMenu.style.width = '330px';
     let body = mainMenu.shadowRoot?.querySelector('.menu-body') as HTMLDivElement;
     let groups = body.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
     groups.forEach((value) => {
       let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
       items.forEach((item) => {
-        item.style.width = '300px';
+        item.style.width = '330px';
       });
       if (value.title == 'TraceStreamer') {
         let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
@@ -432,13 +447,6 @@ export class SpHelp extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: block;
-            width: 100%;
-            height: 100%;
-            background-color: var(--dark-background5,#F6F6F6);
-        }
-
         .container {
             display: grid;
             grid-template-columns: 1fr;
@@ -446,7 +454,12 @@ export class SpHelp extends BaseElement {
             background-color: var(--dark-background5,#F6F6F6);
             min-height: 100%;
         }
-
+        :host{
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-background5,#F6F6F6);
+        }
         .body{
             width: 90%;
             margin-left: 3%;

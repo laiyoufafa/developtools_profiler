@@ -20,25 +20,25 @@ import { getTabDiskAbilityData } from '../../../../database/SqlLite.js';
 import { SystemDiskIOSummary } from '../../../../bean/AbilityMonitor.js';
 import { Utils } from '../../base/Utils.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
-import '../../../SpFilter.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-disk-ability')
 export class TabPaneDiskAbility extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<SystemDiskIOSummary> = [];
-  private queryResult: Array<SystemDiskIOSummary> = [];
+  private diskAbilityTbl: LitTable | null | undefined;
+  private diskAbilitySource: Array<SystemDiskIOSummary> = [];
+  private queryDiskResult: Array<SystemDiskIOSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(val: SelectionParam | any) {
+  set data(diskAbilityValue: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    this.queryDataByDB(val);
+    this.diskAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(diskAbilityValue);
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-disk-ability');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.diskAbilityTbl = this.shadowRoot?.querySelector<LitTable>('#tb-disk-ability');
+    this.diskAbilityTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -46,28 +46,22 @@ export class TabPaneDiskAbility extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl!.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.diskAbilityTbl!)
   }
 
   filterData() {
-    if (this.queryResult.length > 0) {
-      let filter = this.queryResult.filter((item) => {
+    if (this.queryDiskResult.length > 0) {
+      let filterDisk = this.queryDiskResult.filter((item) => {
         let array = this.toDiskAbilityArray(item);
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
-      if (filter.length > 0) {
-        this.source = filter;
-        this.tbl!.recycleDataSource = this.source;
+      if (filterDisk.length > 0) {
+        this.diskAbilitySource = filterDisk;
+        this.diskAbilityTbl!.recycleDataSource = this.diskAbilitySource;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.diskAbilitySource = [];
+        this.diskAbilityTbl!.recycleDataSource = [];
       }
     }
   }
@@ -106,13 +100,13 @@ export class TabPaneDiskAbility extends BaseElement {
           systemDiskIOSummary.writeOutStr = ColorUtils.formatNumberComma(systemDiskIOSummary.writeOut);
           systemDiskIOSummary.writeOutSecStr = systemDiskIOSummary.writeOutSec.toString();
         }
-        this.source = result;
-        this.queryResult = result;
-        this.tbl!.recycleDataSource = result;
+        this.diskAbilitySource = result;
+        this.queryDiskResult = result;
+        this.diskAbilityTbl!.recycleDataSource = result;
       } else {
-        this.source = [];
-        this.queryResult = [];
-        this.tbl!.recycleDataSource = [];
+        this.diskAbilitySource = [];
+        this.queryDiskResult = [];
+        this.diskAbilityTbl!.recycleDataSource = [];
       }
     });
   }
@@ -120,13 +114,16 @@ export class TabPaneDiskAbility extends BaseElement {
   initHtml(): string {
     return `
         <style>
+        .disk-ability-table{
+            height: auto;
+        }
         :host{
-            display: flex;
             flex-direction: column;
+            display: flex;
             padding: 10px 10px;
         }
         </style>
-        <lit-table id="tb-disk-ability" style="height: auto">
+        <lit-table id="tb-disk-ability" class="disk-ability-table">
             <lit-table-column order width="1fr" title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start">
             </lit-table-column>
             <lit-table-column order width="1fr" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
@@ -154,35 +151,35 @@ export class TabPaneDiskAbility extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SystemDiskIOSummary, b: SystemDiskIOSummary) {
+      return function (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(diskAbilityRightData[property]) - parseFloat(diskAbilityLeftData[property]) : parseFloat(diskAbilityLeftData[property]) - parseFloat(diskAbilityRightData[property]);
         } else if (type === 'durationStr') {
-          return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+          return sort === 2 ? diskAbilityRightData.duration - diskAbilityLeftData.duration : diskAbilityLeftData.duration - diskAbilityRightData.duration;
         } else if (type === 'dataReadStr') {
-          return sort === 2 ? b.dataRead - a.dataRead : a.dataRead - b.dataRead;
+          return sort === 2 ? diskAbilityRightData.dataRead - diskAbilityLeftData.dataRead : diskAbilityLeftData.dataRead - diskAbilityRightData.dataRead;
         } else if (type === 'dataReadSecStr') {
-          return sort === 2 ? b.dataReadSec - a.dataReadSec : a.dataReadSec - b.dataReadSec;
+          return sort === 2 ? diskAbilityRightData.dataReadSec - diskAbilityLeftData.dataReadSec : diskAbilityLeftData.dataReadSec - diskAbilityRightData.dataReadSec;
         } else if (type === 'dataWriteStr') {
-          return sort === 2 ? b.dataWrite - a.dataWrite : a.dataWrite - b.dataWrite;
+          return sort === 2 ? diskAbilityRightData.dataWrite - diskAbilityLeftData.dataWrite : diskAbilityLeftData.dataWrite - diskAbilityRightData.dataWrite;
         } else if (type === 'dataWriteSecStr') {
-          return sort === 2 ? b.dataWriteSec - a.dataWriteSec : a.dataWriteSec - b.dataWriteSec;
+          return sort === 2 ? diskAbilityRightData.dataWriteSec - diskAbilityLeftData.dataWriteSec : diskAbilityLeftData.dataWriteSec - diskAbilityRightData.dataWriteSec;
         } else if (type === 'readsInStr') {
-          return sort === 2 ? b.readsIn - a.readsIn : a.readsIn - b.readsIn;
+          return sort === 2 ? diskAbilityRightData.readsIn - diskAbilityLeftData.readsIn : diskAbilityLeftData.readsIn - diskAbilityRightData.readsIn;
         } else if (type === 'readsInSecStr') {
-          return sort === 2 ? b.readsInSec - a.readsInSec : a.readsInSec - b.readsInSec;
+          return sort === 2 ? diskAbilityRightData.readsInSec - diskAbilityLeftData.readsInSec : diskAbilityLeftData.readsInSec - diskAbilityRightData.readsInSec;
         } else if (type === 'writeOutStr') {
-          return sort === 2 ? b.writeOut - a.writeOut : a.writeOut - b.writeOut;
+          return sort === 2 ? diskAbilityRightData.writeOut - diskAbilityLeftData.writeOut : diskAbilityLeftData.writeOut - diskAbilityRightData.writeOut;
         } else if (type === 'writeOutSecStr') {
-          return sort === 2 ? b.writeOutSec - a.writeOutSec : a.writeOutSec - b.writeOutSec;
+          return sort === 2 ? diskAbilityRightData.writeOutSec - diskAbilityLeftData.writeOutSec : diskAbilityLeftData.writeOutSec - diskAbilityRightData.writeOutSec;
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (diskAbilityRightData[property] > diskAbilityLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (diskAbilityRightData[property] == diskAbilityLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -193,28 +190,28 @@ export class TabPaneDiskAbility extends BaseElement {
     }
 
     if (detail.key === 'startTime') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'string'));
     } else if (detail.key === 'durationStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'durationStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'durationStr'));
     } else if (detail.key === 'dataReadStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataReadStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataReadStr'));
     } else if (detail.key === 'dataReadSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataReadSecStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataReadSecStr'));
     } else if (detail.key === 'dataWriteStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataWriteStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataWriteStr'));
     } else if (detail.key === 'dataWriteSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataWriteSecStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataWriteSecStr'));
     } else if (detail.key === 'readsInStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'readsInStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'readsInStr'));
     } else if (detail.key === 'readsInSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'readsInSecStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'readsInSecStr'));
     } else if (detail.key === 'writeOutStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'writeOutStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'writeOutStr'));
     } else if (detail.key === 'writeOutSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'writeOutSecStr'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'writeOutSecStr'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.diskAbilityTbl!.recycleDataSource = this.diskAbilitySource;
   }
 }

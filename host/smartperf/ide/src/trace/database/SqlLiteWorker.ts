@@ -62,14 +62,14 @@ function deleteConnection(store: IDBObjectStore, id: number) {
   });
 }
 
-let mergedUnitArray = (bufferSlice: Array<Uint8Array>) => {
+let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>) => {
   let length = 0;
-  bufferSlice.forEach((item) => {
+  bufferSliceUint8.forEach((item) => {
     length += item.length;
   });
   let mergedArray = new Uint8Array(length);
   let offset = 0;
-  bufferSlice.forEach((item) => {
+  bufferSliceUint8.forEach((item) => {
     mergedArray.set(item, offset);
     offset += item.length;
   });

@@ -126,16 +126,16 @@ export class SpRecordTemplate extends BaseElement {
       let tracePluginConfig: TracePluginConfig = {
         ftraceEvents: traceEventSet,
         hitraceCategories: hitraceCategories,
+        flushIntervalMs: 1000,
         hitraceApps: [],
         bufferSizeKb: 2048,
-        flushIntervalMs: 1000,
+        debugOn: false,
         flushThresholdKb: 4096,
-        parseKsyms: true,
         clock: 'boot',
         tracePeriodMs: 200,
+        parseKsyms: true,
         rawDataPrefix: '',
         traceDurationMs: 0,
-        debugOn: false,
         hitraceTime: this.args.recordSetting!.maxDur,
       };
       let htraceProfilerPluginConfig: ProfilerPluginConfig<TracePluginConfig> = {
@@ -152,36 +152,36 @@ export class SpRecordTemplate extends BaseElement {
   initHtml(): string {
     return `
         <style>
-         :host{
+        .template-config-div {
+          flex-direction: column;
+          margin-bottom: 3vh;
+          width: 80%;
+          display: flex;
+        }
+        .template-title {
+            line-height: 40px;
+            font-weight: 700;
+            margin-right: 10px;
+            opacity: 0.9;
+            font-family: Helvetica-Bold;
+            font-size: 18px;
+            text-align: center;
+        }
+        :host{
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
             display: inline-block;
             width: 100%;
             height: 100%;
-            background: var(--dark-background3,#FFFFFF);
-            border-radius: 0px 16px 16px 0px;
          }
          .root {
+            font-size:16px;
             width: 100%;
             height: 95%;
             padding-top: 50px;
             padding-left: 54px;
             margin-right: 30px;
-            font-size:16px;
             margin-bottom: 30px;
-        }
-        .config-div {
-          width: 80%;
-          display: flex;
-          flex-direction: column;
-          margin-bottom: 3vh;
-        }
-        .title {
-            opacity: 0.9;
-            font-family: Helvetica-Bold;
-            font-size: 18px;
-            text-align: center;
-            line-height: 40px;
-            font-weight: 700;
-            margin-right: 10px;
         }
         lit-switch {
              display: inline;
@@ -191,15 +191,15 @@ export class SpRecordTemplate extends BaseElement {
         }
         </style>
         <div class="root">
-            <div class="config-div">
+            <div class="template-config-div">
                <div>
-                 <span class="title">Frame timeline</span>
+                 <span class="template-title">Frame timeline</span>
                  <lit-switch class="config_switch" id="frame_timeline"></lit-switch>
                </div>
             </div>
-             <div class="config-div">
+             <div class="template-config-div">
                <div>
-                 <span class="title">Scheduling analysis</span>
+                 <span class="template-title">Scheduling analysis</span>
                  <lit-switch class="config_switch" id="scheduling_analysis"></lit-switch>
                </div>
             </div>

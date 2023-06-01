@@ -23,37 +23,36 @@ export class LitCheckGroup extends BaseElement {
   }
 
   get value(): Array<string> {
-    let values = [];
+    let checkGroupValues = [];
     for (const litCheckBoxElement of this.querySelectorAll<LitCheckBox>('lit-check-box[checked]')) {
-      values.push(litCheckBoxElement.value);
+      checkGroupValues.push(litCheckBoxElement.value);
     }
-    return values;
+    return checkGroupValues;
   }
 
   initElements(): void {}
 
+  connectedCallback() {}
+
   initHtml(): string {
-    return `
-        <style>   
+    return `<style>   
         :host {
             display: -webkit-flex; 
             display: flex;
             flex-direction: column;
         }
-        :host([direction]) {
-            flex-direction: ${this.direction};
-        }
         :host(:not([direction])) {
             flex-direction: column;
         }
-        
-        :host([layout="compact"]) {
-            gap:5px;
+        :host([direction]) {
+            flex-direction: ${this.direction};
         }
         :host([layout="dispersion"]) {
            gap:10px;
         }
-        
+        :host([layout="compact"]) {
+            gap:5px;
+        }
         </style>
         <slot class="check-group"></slot>`;
   }

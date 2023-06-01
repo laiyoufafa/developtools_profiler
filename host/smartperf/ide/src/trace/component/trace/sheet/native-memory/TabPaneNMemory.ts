@@ -28,12 +28,12 @@ import { procedurePool } from '../../../../database/Procedure.js';
 @element('tabpane-native-memory')
 export class TabPaneNMemory extends BaseElement {
   private defaultNativeTypes = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
-  private tbl: LitTable | null | undefined;
+  private memoryTbl: LitTable | null | undefined;
   private tblData: LitTable | null | undefined;
   private progressEL: LitProgressBar | null | undefined;
   private loadingList: number[] = [];
   private loadingPage: any;
-  private source: Array<NativeMemory> = [];
+  private memorySource: Array<NativeMemory> = [];
   private native_type: Array<string> = [...this.defaultNativeTypes];
   private statsticsSelection: Array<any> = [];
   private queryResult: Array<NativeHookStatistics> = [];
@@ -49,44 +49,44 @@ export class TabPaneNMemory extends BaseElement {
   private rightNs: number = 0;
   private responseTypes: any[] = [];
 
-  set data(val: SelectionParam | any) {
-    if (val == this.currentSelection) {
+  set data(memoryParam: SelectionParam | any) {
+    if (memoryParam == this.currentSelection) {
       return;
     }
-    this.currentSelection = val;
+    this.currentSelection = memoryParam;
     this.initFilterTypes();
-    this.queryData(val);
+    this.queryData(memoryParam);
   }
 
-  queryData(val: SelectionParam | any) {
+  queryData(memoryParam: SelectionParam | any) {
     let types: Array<string> = [];
-    if (val.nativeMemory.indexOf(this.defaultNativeTypes[0]) != -1) {
+    if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[0]) != -1) {
       types.push("'AllocEvent'");
       types.push("'MmapEvent'");
     } else {
-      if (val.nativeMemory.indexOf(this.defaultNativeTypes[1]) != -1) {
+      if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[1]) != -1) {
         types.push("'AllocEvent'");
       }
-      if (val.nativeMemory.indexOf(this.defaultNativeTypes[2]) != -1) {
+      if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[2]) != -1) {
         types.push("'MmapEvent'");
       }
     }
-    TabPaneNMSampleList.serSelection(val);
+    TabPaneNMSampleList.serSelection(memoryParam);
     // @ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.memoryTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     // @ts-ignore
     this.tblData?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     // @ts-ignore
     this.tblData?.recycleDataSource = [];
     // @ts-ignore
-    this.tbl?.recycleDataSource = [];
-    this.leftNs = val.leftNs;
-    this.rightNs = val.rightNs;
+    this.memoryTbl?.recycleDataSource = [];
+    this.leftNs = memoryParam.leftNs;
+    this.rightNs = memoryParam.rightNs;
     this.progressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    queryNativeHookEventTid(val.leftNs, val.rightNs, types).then((result) => {
+    queryNativeHookEventTid(memoryParam.leftNs, memoryParam.rightNs, types).then((result) => {
       this.queryResult = result;
-      this.getDataByNativeMemoryWorker(val);
+      this.getDataByNativeMemoryWorker(memoryParam);
     });
   }
 
@@ -113,11 +113,11 @@ export class TabPaneNMemory extends BaseElement {
       this.tblData!.recycleDataSource = [];
       this.progressEL!.loading = false;
       if (results.length > 0) {
-        this.source = results;
+        this.memorySource = results;
         this.sortByColumn(this.sortColumn, this.sortType);
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.memorySource = [];
+        this.memoryTbl!.recycleDataSource = [];
       }
     });
   }
@@ -223,9 +223,9 @@ export class TabPaneNMemory extends BaseElement {
   initElements(): void {
     this.loadingPage = this.shadowRoot?.querySelector('.loading');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-native-memory');
+    this.memoryTbl = this.shadowRoot?.querySelector<LitTable>('#tb-native-memory');
     this.tblData = this.shadowRoot?.querySelector<LitTable>('#tb-native-data');
-    this.tbl!.addEventListener('row-click', (e) => {
+    this.memoryTbl!.addEventListener('row-click', (e) => {
       // @ts-ignore
       let data = e.detail.data as NativeMemory;
       this.rowSelectData = data;
@@ -236,7 +236,7 @@ export class TabPaneNMemory extends BaseElement {
         })
       );
     });
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.memoryTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
@@ -252,7 +252,7 @@ export class TabPaneNMemory extends BaseElement {
               timeCallback: (t: any) => {
                 let minTs = 0;
                 let minItem: any = undefined;
-                let filterTemp = this.source.filter((tempItem) => {
+                let filterTemp = this.memorySource.filter((tempItem) => {
                   if (minTs == 0 || (tempItem.startTs - t != 0 && Math.abs(tempItem.startTs - t) < minTs)) {
                     minTs = Math.abs(tempItem.startTs - t);
                     minItem = tempItem;
@@ -276,7 +276,7 @@ export class TabPaneNMemory extends BaseElement {
                     currentSelection[0].isSelected = true;
                   }
                   TabPaneNMSampleList.addSampleData(this.rowSelectData);
-                  this.tbl!.scrollToData(this.rowSelectData);
+                  this.memoryTbl!.scrollToData(this.rowSelectData);
                 }
               },
             },
@@ -302,8 +302,8 @@ export class TabPaneNMemory extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
-        this.tbl?.reMeauseHeight();
+        this.memoryTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
+        this.memoryTbl?.reMeauseHeight();
         // @ts-ignore
         this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
         this.tblData?.reMeauseHeight();
@@ -312,79 +312,79 @@ export class TabPaneNMemory extends BaseElement {
     }).observe(this.parentElement!);
   }
 
-  sortByColumn(column: string, sort: number) {
-    this.sortColumn = column;
-    this.sortType = sort;
-    if (sort == 0) {
-      this.tbl!.recycleDataSource = this.source;
+  sortByColumn(nmMemoryColumn: string, nmMemorySort: number) {
+    this.sortColumn = nmMemoryColumn;
+    this.sortType = nmMemorySort;
+    if (nmMemorySort == 0) {
+      this.memoryTbl!.recycleDataSource = this.memorySource;
     } else {
-      let arr = [...this.source];
-      if (column == 'index') {
-        this.tbl!.recycleDataSource = arr.sort((a, b) => {
-          return sort == 1 ? a.index - b.index : b.index - a.index;
+      let arr = [...this.memorySource];
+      if (nmMemoryColumn == 'index') {
+        this.memoryTbl!.recycleDataSource = arr.sort((memoryLeftData, memoryRightData) => {
+          return nmMemorySort == 1 ? memoryLeftData.index - memoryRightData.index : memoryRightData.index - memoryLeftData.index;
         });
-      } else if (column == 'addr') {
-        this.tbl!.recycleDataSource = arr.sort((a, b) => {
-          if (sort == 1) {
-            if (a.addr > b.addr) {
+      } else if (nmMemoryColumn == 'addr') {
+        this.memoryTbl!.recycleDataSource = arr.sort((memoryLeftData, memoryRightData) => {
+          if (nmMemorySort == 1) {
+            if (memoryLeftData.addr > memoryRightData.addr) {
               return 1;
-            } else if (a.addr == b.addr) {
+            } else if (memoryLeftData.addr == memoryRightData.addr) {
               return 0;
             } else {
               return -1;
             }
           } else {
-            if (b.addr > a.addr) {
+            if (memoryRightData.addr > memoryLeftData.addr) {
               return 1;
-            } else if (a.addr == b.addr) {
+            } else if (memoryLeftData.addr == memoryRightData.addr) {
               return 0;
             } else {
               return -1;
             }
           }
         });
-      } else if (column == 'timestamp') {
-        this.tbl!.recycleDataSource = arr.sort((a, b) => {
-          return sort == 1 ? a.startTs - b.startTs : b.startTs - a.startTs;
+      } else if (nmMemoryColumn == 'timestamp') {
+        this.memoryTbl!.recycleDataSource = arr.sort((memoryLeftData, memoryRightData) => {
+          return nmMemorySort == 1 ? memoryLeftData.startTs - memoryRightData.startTs : memoryRightData.startTs - memoryLeftData.startTs;
         });
-      } else if (column == 'heapSizeUnit') {
-        this.tbl!.recycleDataSource = arr.sort((a, b) => {
-          return sort == 1 ? a.heapSize - b.heapSize : b.heapSize - a.heapSize;
+      } else if (nmMemoryColumn == 'heapSizeUnit') {
+        this.memoryTbl!.recycleDataSource = arr.sort((memoryLeftData, memoryRightData) => {
+          return nmMemorySort == 1 ? memoryLeftData.heapSize - memoryRightData.heapSize : memoryRightData.heapSize - memoryLeftData.heapSize;
         });
-      } else if (column == 'library') {
-        this.tbl!.recycleDataSource = arr.sort((a, b) => {
-          if (sort == 1) {
-            if (a.library > b.library) {
+      } else if (nmMemoryColumn == 'library') {
+        this.memoryTbl!.recycleDataSource = arr.sort((memoryLeftData, memoryRightData) => {
+          if (nmMemorySort == 1) {
+            if (memoryLeftData.library > memoryRightData.library) {
               return 1;
-            } else if (a.library == b.library) {
+            } else if (memoryLeftData.library == memoryRightData.library) {
               return 0;
             } else {
               return -1;
             }
           } else {
-            if (b.library > a.library) {
+            if (memoryRightData.library > memoryLeftData.library) {
               return 1;
-            } else if (a.library == b.library) {
+            } else if (memoryLeftData.library == memoryRightData.library) {
               return 0;
             } else {
               return -1;
             }
           }
         });
-      } else if (column == 'symbol') {
-        this.tbl!.recycleDataSource = arr.sort((a, b) => {
-          if (sort == 1) {
-            if (a.symbol > b.symbol) {
+      } else if (nmMemoryColumn == 'symbol') {
+        this.memoryTbl!.recycleDataSource = arr.sort((memoryLeftData, memoryRightData) => {
+          if (nmMemorySort == 1) {
+            if (memoryLeftData.symbol > memoryRightData.symbol) {
               return 1;
-            } else if (a.symbol == b.symbol) {
+            } else if (memoryLeftData.symbol == memoryRightData.symbol) {
               return 0;
             } else {
               return -1;
             }
           } else {
-            if (b.symbol > a.symbol) {
+            if (memoryRightData.symbol > memoryLeftData.symbol) {
               return 1;
-            } else if (a.symbol == b.symbol) {
+            } else if (memoryLeftData.symbol == memoryRightData.symbol) {
               return 0;
             } else {
               return -1;
@@ -395,21 +395,21 @@ export class TabPaneNMemory extends BaseElement {
     }
   }
 
-  setRightTableData(hook: NativeMemory) {
+  setRightTableData(nativeMemoryHook: NativeMemory) {
     let args = new Map<string, any>();
-    args.set('eventId', hook.eventId);
+    args.set('eventId', nativeMemoryHook.eventId);
     args.set('actionType', 'memory-stack');
     this.startWorker(args, (results: any[]) => {
       let thread = new NativeHookCallInfo();
-      thread.threadId = hook.threadId;
-      thread.threadName = hook.threadName;
-      thread.title = `${hook.threadName ?? ''}【${hook.threadId}】`;
+      thread.threadId = nativeMemoryHook.threadId;
+      thread.threadName = nativeMemoryHook.threadName;
+      thread.title = `${nativeMemoryHook.threadName ?? ''}【${nativeMemoryHook.threadId}】`;
       thread.type = -1;
-      let source = [];
-      source.push(thread);
-      source.push(...results);
+      let currentSource = [];
+      currentSource.push(thread);
+      currentSource.push(...results);
       this.progressEL!.loading = false;
-      this.tblData!.dataSource = source;
+      this.tblData!.dataSource = currentSource;
     });
   }
 
@@ -421,7 +421,7 @@ export class TabPaneNMemory extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .loading{
+        .nm-memory-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -430,14 +430,14 @@ export class TabPaneNMemory extends BaseElement {
             background:transparent;
             z-index: 999999;
         }
-        .progress{
+        .nm-memory-progress{
             bottom: 33px;
             position: absolute;
             height: 1px;
             left: 0;
             right: 0;
         }
-        tab-pane-filter {
+        .nm-memory-filter {
             border: solid rgb(216,216,216) 1px;
             float: left;
             position: fixed;
@@ -445,46 +445,46 @@ export class TabPaneNMemory extends BaseElement {
             width: 100%;
         }
         </style>
-        <div style="display: flex;flex-direction: column">
+        <div class="nm-memory-content" style="display: flex;flex-direction: column">
             <div style="display: flex;flex-direction: row">
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
                         <lit-table id="tb-native-memory" style="height: auto">
-                            <lit-table-column width="60px" title="#" data-index="index" key="index"  align="flex-start" order>
+                            <lit-table-column class="nm-memory-column" width="60px" title="#" data-index="index" key="index"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width="1fr" title="Address" data-index="addr" key="addr"  align="flex-start" order>
+                            <lit-table-column class="nm-memory-column" width="1fr" title="Address" data-index="addr" key="addr"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width="1fr" title="Memory Type" data-index="eventType" key="eventType"  align="flex-start">
+                            <lit-table-column class="nm-memory-column" width="1fr" title="Memory Type" data-index="eventType" key="eventType"  align="flex-start">
                             </lit-table-column>
-                            <lit-table-column width="1fr" title="Timestamp" data-index="timestamp" key="timestamp"  align="flex-start" order>
+                            <lit-table-column class="nm-memory-column" width="1fr" title="Timestamp" data-index="timestamp" key="timestamp"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width="1fr" title="State" data-index="state" key="state"  align="flex-start">
+                            <lit-table-column class="nm-memory-column" width="1fr" title="State" data-index="state" key="state"  align="flex-start">
                             </lit-table-column>
-                            <lit-table-column width="1fr" title="Size" data-index="heapSizeUnit" key="heapSizeUnit"  align="flex-start" order>
+                            <lit-table-column class="nm-memory-column" width="1fr" title="Size" data-index="heapSizeUnit" key="heapSizeUnit"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width="20%" title="Responsible Library" data-index="library" key="library"  align="flex-start" order>
+                            <lit-table-column class="nm-memory-column" width="20%" title="Responsible Library" data-index="library" key="library"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width="20%" title="Responsible Caller" data-index="symbol" key="symbol"  align="flex-start" order>
+                            <lit-table-column class="nm-memory-column" width="20%" title="Responsible Caller" data-index="symbol" key="symbol"  align="flex-start" order>
                             </lit-table-column>
                         </lit-table>
                     </div>
                     <lit-slicer-track ></lit-slicer-track>
                     <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-                        <lit-table-column width="80px" title="" data-index="type" key="type"  align="flex-start" >
+                        <lit-table-column class="nm-memory-column" width="80px" title="" data-index="type" key="type"  align="flex-start" >
                             <template>
                                 <div v-if=" type == -1 ">Thread:</div>
                                 <img src="img/library.png" size="20" v-if=" type == 1 ">
                                 <img src="img/function.png" size="20" v-if=" type == 0 ">
                             </template>
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="" data-index="title" key="title"  align="flex-start">
+                        <lit-table-column class="nm-memory-column" width="1fr" title="" data-index="title" key="title"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>
             </div>
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-filter id="filter" mark first second></tab-pane-filter>
-            <div class="loading"></div>
+            <lit-progress-bar class="progress nm-memory-progress"></lit-progress-bar>
+            <tab-pane-filter id="filter" class="nm-memory-filter" mark first second></tab-pane-filter>
+            <div class="loading nm-memory-loading"></div>
         </div>
         `;
   }

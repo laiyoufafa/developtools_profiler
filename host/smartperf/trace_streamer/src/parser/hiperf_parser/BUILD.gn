@@ -29,7 +29,7 @@ ohos_source_set("hiperf_parser_src") {
     "../../filter",
     "../../trace_data",
     "..",
-    "../htrace_parser",
+    "../htrace_pbreader_parser",
     "../../trace_streamer",
     "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",

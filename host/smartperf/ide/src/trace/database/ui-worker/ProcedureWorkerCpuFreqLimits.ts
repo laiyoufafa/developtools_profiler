@@ -16,15 +16,14 @@
 import {
   BaseStruct,
   dataFilterHandler,
-  drawFlagLine,
-  drawLines,
   drawLoading,
-  drawSelection,
-  drawWakeUp,
   isFrameContainPoint,
   ns2x,
+  drawLines,
   Render,
+  drawFlagLine,
   RequestMessage,
+  drawSelection,
 } from './ProcedureWorkerCommon.js';
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
@@ -32,7 +31,7 @@ import { convertJSON } from '../logic-worker/ProcedureLogicWorkerCommon.js';
 
 export class CpuFreqLimitRender extends Render {
   renderMainThread(
-    req: {
+    cpuFreqLimitReq: {
       useCache: boolean;
       context: CanvasRenderingContext2D;
       cpu: number;
@@ -52,11 +51,11 @@ export class CpuFreqLimitRender extends Render {
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
       paddingTop: 5,
-      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+      useCache: cpuFreqLimitReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.context.beginPath();
-    let maxFreq = req.maxFreq;
-    let maxFreqName = req.maxFreqName;
+    cpuFreqLimitReq.context.beginPath();
+    let maxFreq = cpuFreqLimitReq.maxFreq;
+    let maxFreqName = cpuFreqLimitReq.maxFreqName;
     if (row.isHover) {
       for (let re of filter) {
         if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
@@ -66,101 +65,117 @@ export class CpuFreqLimitRender extends Render {
       }
     }
     for (let re of filter) {
-      CpuFreqLimitsStruct.draw(req.context, re, maxFreq);
+      CpuFreqLimitsStruct.draw(cpuFreqLimitReq.context, re, maxFreq);
     }
-    req.context.closePath();
+    cpuFreqLimitReq.context.closePath();
     let s = maxFreqName;
-    let textMetrics = req.context.measureText(s);
-    req.context.globalAlpha = 0.8;
-    req.context.fillStyle = '#f0f0f0';
-    req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-    req.context.globalAlpha = 1;
-    req.context.fillStyle = '#333';
-    req.context.textBaseline = 'middle';
-    req.context.fillText(s, 4, 5 + 9);
+    let textMetrics = cpuFreqLimitReq.context.measureText(s);
+    cpuFreqLimitReq.context.globalAlpha = 0.8;
+    cpuFreqLimitReq.context.fillStyle = '#f0f0f0';
+    cpuFreqLimitReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
+    cpuFreqLimitReq.context.globalAlpha = 1;
+    cpuFreqLimitReq.context.fillStyle = '#333';
+    cpuFreqLimitReq.context.textBaseline = 'middle';
+    cpuFreqLimitReq.context.fillText(s, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      freqLimits(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(freqLimitsReq: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (freqLimitsReq.lazyRefresh) {
+      freqLimits(
+        list,
+        filter,
+        freqLimitsReq.startNS,
+        freqLimitsReq.endNS,
+        freqLimitsReq.totalNS,
+        freqLimitsReq.frame,
+        freqLimitsReq.useCache || !freqLimitsReq.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        freqLimits(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!freqLimitsReq.useCache) {
+        freqLimits(
+          list,
+          filter,
+          freqLimitsReq.startNS,
+          freqLimitsReq.endNS,
+          freqLimitsReq.totalNS,
+          freqLimitsReq.frame,
+          false
+        );
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+    if (freqLimitsReq.canvas) {
+      freqLimitsReq.context.clearRect(0, 0, freqLimitsReq.frame.width, freqLimitsReq.frame.height);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (arr.length > 0 && !freqLimitsReq.range.refresh && !freqLimitsReq.useCache && freqLimitsReq.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          freqLimitsReq.context,
+          freqLimitsReq.startNS,
+          freqLimitsReq.endNS,
+          freqLimitsReq.totalNS,
+          freqLimitsReq.frame,
           arr[0].startNs,
           arr[arr.length - 1].startNs + arr[arr.length - 1].dur
         );
       }
-      req.context.beginPath();
-      let maxFreq = req.params.maxFreq;
-      let maxFreqName = req.params.maxFreqName;
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      freqLimitsReq.context.beginPath();
+      let maxFreq = freqLimitsReq.params.maxFreq;
+      let maxFreqName = freqLimitsReq.params.maxFreqName;
+      drawLines(freqLimitsReq.context, freqLimitsReq.xs, freqLimitsReq.frame.height, freqLimitsReq.lineColor);
       CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = undefined;
-      if (req.isHover) {
+      if (freqLimitsReq.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            freqLimitsReq.hoverX >= re.frame.x &&
+            freqLimitsReq.hoverX <= re.frame.x + re.frame.width &&
+            freqLimitsReq.hoverY >= re.frame.y &&
+            freqLimitsReq.hoverY <= re.frame.y + re.frame.height
           ) {
             CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = re;
             break;
           }
         }
       } else {
-        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = req.params.hoverCpuFreqLimitsStruct;
+        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = freqLimitsReq.params.hoverCpuFreqLimitsStruct;
       }
-      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = req.params.selectCpuFreqLimitsStruct;
+      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = freqLimitsReq.params.selectCpuFreqLimitsStruct;
       for (let re of filter) {
-        CpuFreqLimitsStruct.draw(req.context, re, maxFreq);
+        CpuFreqLimitsStruct.draw(freqLimitsReq.context, re, maxFreq);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(freqLimitsReq.context, freqLimitsReq.params);
+      freqLimitsReq.context.closePath();
       let s = maxFreqName;
-      let textMetrics = req.context.measureText(s);
-      req.context.globalAlpha = 0.8;
-      req.context.fillStyle = '#f0f0f0';
-      req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-      req.context.globalAlpha = 1;
-      req.context.fillStyle = '#333';
-      req.context.textBaseline = 'middle';
-      req.context.fillText(s, 4, 5 + 9);
+      let textMetrics = freqLimitsReq.context.measureText(s);
+      freqLimitsReq.context.globalAlpha = 0.8;
+      freqLimitsReq.context.fillStyle = '#f0f0f0';
+      freqLimitsReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
+      freqLimitsReq.context.globalAlpha = 1;
+      freqLimitsReq.context.fillStyle = '#333';
+      freqLimitsReq.context.textBaseline = 'middle';
+      freqLimitsReq.context.fillText(s, 4, 5 + 9);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        freqLimitsReq.context,
+        freqLimitsReq.flagMoveInfo,
+        freqLimitsReq.flagSelectedInfo,
+        freqLimitsReq.startNS,
+        freqLimitsReq.endNS,
+        freqLimitsReq.totalNS,
+        freqLimitsReq.frame,
+        freqLimitsReq.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: freqLimitsReq.id,
+      type: freqLimitsReq.type,
+      results: freqLimitsReq.canvas ? undefined : filter,
       hover: CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct,
     });
   }
 }
 
 export function freqLimits(
-  list: Array<any>,
+  freqLimitsList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -173,20 +188,20 @@ export function freqLimits(
     return;
   }
   res.length = 0;
-  if (list) {
-    for (let i = 0, len = list.length; i < len; i++) {
-      let it = list[i];
-      if (i === list.length - 1) {
+  if (freqLimitsList) {
+    for (let i = 0, len = freqLimitsList.length; i < len; i++) {
+      let it = freqLimitsList[i];
+      if (i === freqLimitsList.length - 1) {
         it.dur = (endNS || 0) - (it.startNs || 0);
       } else {
-        it.dur = (list[i + 1].startNs || 0) - (it.startNs || 0);
+        it.dur = (freqLimitsList[i + 1].startNs || 0) - (it.startNs || 0);
       }
       if ((it.startNs || 0) + (it.dur || 0) > (startNS || 0) && (it.startNs || 0) < (endNS || 0)) {
-        CpuFreqLimitsStruct.setFreqLimitFrame(list[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        CpuFreqLimitsStruct.setFreqLimitFrame(freqLimitsList[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
         if (
           i > 0 &&
-          (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
-          (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)
+          (freqLimitsList[i - 1].frame?.x || 0) == (freqLimitsList[i].frame?.x || 0) &&
+          (freqLimitsList[i - 1].frame?.width || 0) == (freqLimitsList[i].frame?.width || 0)
         ) {
         } else {
           res.push(it);
@@ -264,25 +279,32 @@ export class CpuFreqLimitsStruct extends BaseStruct {
     }
   }
 
-  static setFreqLimitFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setFreqLimitFrame(
+    freqLimitNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ) {
     let x1: number, x2: number;
-    if ((node.startNs || 0) < startNS) {
+    if ((freqLimitNode.startNs || 0) < startNS) {
       x1 = 0;
     } else {
-      x1 = ns2x(node.startNs || 0, startNS, endNS, totalNS, frame);
+      x1 = ns2x(freqLimitNode.startNs || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startNs || 0) + (node.dur || 0) > endNS) {
+    if ((freqLimitNode.startNs || 0) + (freqLimitNode.dur || 0) > endNS) {
       x2 = frame.width;
     } else {
-      x2 = ns2x((node.startNs || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      x2 = ns2x((freqLimitNode.startNs || 0) + (freqLimitNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-    if (!node.frame) {
-      node.frame = {};
+    let cpuFreqLimitsGetV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+    if (!freqLimitNode.frame) {
+      freqLimitNode.frame = {};
     }
-    node.frame.x = Math.floor(x1);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(getV);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    freqLimitNode.frame.x = Math.floor(x1);
+    freqLimitNode.frame.y = frame.y + padding;
+    freqLimitNode.frame.width = Math.ceil(cpuFreqLimitsGetV);
+    freqLimitNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

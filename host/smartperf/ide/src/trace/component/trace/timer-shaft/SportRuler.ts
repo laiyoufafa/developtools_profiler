@@ -85,28 +85,28 @@ export class SportRuler extends Graph {
     this.c.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height + 1);
     this.c.beginPath();
     this.lineColor = window.getComputedStyle(this.canvas!, null).getPropertyValue('color');
-    this.c.strokeStyle = this.lineColor; //"#dadada"
     this.c.lineWidth = 1;
+    this.c.strokeStyle = this.lineColor; //"#dadada"
     this.c.moveTo(this.frame.x, this.frame.y);
     this.c.lineTo(this.frame.x + this.frame.width, this.frame.y);
     this.c.stroke();
     this.c.closePath();
     this.c.beginPath();
-    this.c.lineWidth = 3;
     this.c.strokeStyle = '#999999';
+    this.c.lineWidth = 3;
     this.c.moveTo(this.frame.x, this.frame.y);
     this.c.lineTo(this.frame.x, this.frame.y + this.frame.height);
     this.c.stroke();
     this.c.closePath();
     this.c.beginPath();
-    this.c.lineWidth = 1;
     this.c.strokeStyle = this.lineColor; //"#999999"
+    this.c.lineWidth = 1;
     this.c.fillStyle = '#999999';
     this.c.font = '8px sans-serif';
-    this.range.xs?.forEach((it, i) => {
-      this.c.moveTo(it, this.frame.y);
-      this.c.lineTo(it, this.frame.y + this.frame.height);
-      this.c.fillText(`+${this.range.xsTxt[i]}`, it + 3, this.frame.y + 12);
+    this.range.xs?.forEach((item, index) => {
+      this.c.moveTo(item, this.frame.y);
+      this.c.lineTo(item, this.frame.y + this.frame.height);
+      this.c.fillText(`+${this.range.xsTxt[index]}`, item + 3, this.frame.y + 12);
     });
     this.c.stroke();
     this.c.closePath();
@@ -131,22 +131,22 @@ export class SportRuler extends Graph {
         this.c.strokeStyle = '#000';
         this.c.fillStyle = '#000';
       }
-      let startX = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
+      let start_X = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
       let endX = ns2x(range?.endNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
-      let lineWidth = endX - startX;
+      let lineWidth = endX - start_X;
       let txt = ns2s((range?.endNS || 0) - (range?.startNS || 0));
-      this.c.moveTo(startX, this.frame.y + 22);
+      this.c.moveTo(start_X, this.frame.y + 22);
       this.c.lineTo(endX, this.frame.y + 22);
-      this.c.moveTo(startX, this.frame.y + 22 - 5);
-      this.c.lineTo(startX, this.frame.y + 22 + 5);
+      this.c.moveTo(start_X, this.frame.y + 22 - 5);
+      this.c.lineTo(start_X, this.frame.y + 22 + 5);
       this.c.moveTo(endX, this.frame.y + 22 - 5);
       this.c.lineTo(endX, this.frame.y + 22 + 5);
-      let txtWidth = this.c.measureText(txt).width;
-      if (lineWidth > txtWidth) {
-        this.c.fillText(`${txt}`, startX + (lineWidth - txtWidth) / 2, this.frame.y + 20);
+      let textWidth = this.c.measureText(txt).width;
+      if (lineWidth > textWidth) {
+        this.c.fillText(`${txt}`, start_X + (lineWidth - textWidth) / 2, this.frame.y + 20);
       } else {
-        if (endX + txtWidth >= this.frame.width) {
-          this.c.fillText(`${txt}`, startX - 5 - txtWidth, this.frame.y + 20);
+        if (endX + textWidth >= this.frame.width) {
+          this.c.fillText(`${txt}`, start_X - 5 - textWidth, this.frame.y + 20);
         } else {
           this.c.fillText(`${txt}`, endX + 5, this.frame.y + 20);
         }
@@ -325,7 +325,7 @@ export class SportRuler extends Graph {
   }
 
   //绘制旗子
-  drawFlag(x: number, color: string = '#999999', isFill: boolean = false, text: string = '', type: string = '') {
+  drawFlag(x: number, color: string = '#999999', isFill: boolean = false, textStr: string = '', type: string = '') {
     if (x < 0) return;
     this.c.beginPath();
     this.c.fillStyle = color;
@@ -347,13 +347,13 @@ export class SportRuler extends Graph {
     this.c.closePath();
     isFill && this.c.fill();
     this.c.stroke();
-    if (text !== '') {
+    if (textStr !== '') {
       this.c.font = '10px Microsoft YaHei';
-      const { width } = this.c.measureText(text);
+      const { width } = this.c.measureText(textStr);
       this.c.fillStyle = 'rgba(255, 255, 255, 0.8)'; //
       this.c.fillRect(x + 21, 132, width + 4, 12);
       this.c.fillStyle = 'black';
-      this.c.fillText(text, x + 23, 142);
+      this.c.fillText(textStr, x + 23, 142);
       this.c.stroke();
     }
   }

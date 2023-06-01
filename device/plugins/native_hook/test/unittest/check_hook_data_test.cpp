@@ -28,25 +28,25 @@
 using namespace testing::ext;
 
 namespace {
-const int DEFAULT_MALLOC_SIZE = 10;
-const int DEFAULT_CALLOC_SIZE = 100;
-const int DEFAULT_REALLOC_SIZE = 1000;
-const int DATA_SIZE = 50;
-const int WAIT_KILL_SIGNL = 4;
-const int SLEEP_TIME = 5;
-const int WAIT_FLUSH = 2;
+constexpr int DEFAULT_MALLOC_SIZE = 10;
+constexpr int DEFAULT_CALLOC_SIZE = 100;
+constexpr int DEFAULT_REALLOC_SIZE = 1000;
+constexpr int DATA_SIZE = 50;
+constexpr int WAIT_KILL_SIGNL = 4;
+constexpr int SLEEP_TIME = 5;
+constexpr int WAIT_FLUSH = 2;
 
 const std::string DEFAULT_NATIVE_DAEMON_PATH("/system/bin/native_daemon");
 std::string DEFAULT_PATH("/data/local/tmp/");
-const int g_shareMemorySize = 1000 * 4096;
-const int BUFFER_SIZE = 100 * 1024;
-const int DEFAULT_DEPTH = 32;
-const int CALLOC_DEPTH = 13;
-const int REALLOC_DEPTH = 10;
-const int MALLOC_VEC_SIZE = 5;
-const int FREE_VEC_SIZE = 4;
-const int MALLOC_GET_DATE_SIZE = 3;
-const int FREE_GET_DATA_SIZE = 2;
+constexpr int SHARE_MEMORY_SIZE = 1000 * 4096;
+constexpr int BUFFER_SIZE = 100 * 1024;
+constexpr int DEFAULT_DEPTH = 32;
+constexpr int CALLOC_DEPTH = 13;
+constexpr int REALLOC_DEPTH = 10;
+constexpr int MALLOC_VEC_SIZE = 5;
+constexpr int FREE_VEC_SIZE = 4;
+constexpr int MALLOC_GET_DATE_SIZE = 3;
+constexpr int FREE_GET_DATA_SIZE = 2;
 std::unique_ptr<uint8_t[]> g_buffer = std::make_unique<uint8_t[]>(BUFFER_SIZE);
 
 using StaticSpace = struct {
@@ -64,7 +64,7 @@ public:
         if (processNum == 0) {
             // start running native_daemon -o -s -p
             execl(DEFAULT_NATIVE_DAEMON_PATH.c_str(), DEFAULT_NATIVE_DAEMON_PATH.c_str(), "-o", outFile.c_str(),
-                "-s", std::to_string(g_shareMemorySize).c_str(), "-p", std::to_string(pid).c_str(), nullptr);
+                "-s", std::to_string(SHARE_MEMORY_SIZE).c_str(), "-p", std::to_string(pid).c_str(), nullptr);
             _exit(1);
         } else {
             daemonPid_ = processNum;
@@ -77,7 +77,7 @@ public:
         if (processNum == 0) {
             // start running native_daemon -o -s -p -d
             execl(DEFAULT_NATIVE_DAEMON_PATH.c_str(), DEFAULT_NATIVE_DAEMON_PATH.c_str(), "-o", outFile.c_str(),
-                "-s", std::to_string(g_shareMemorySize).c_str(), "-p", std::to_string(pid).c_str(),
+                "-s", std::to_string(SHARE_MEMORY_SIZE).c_str(), "-p", std::to_string(pid).c_str(),
                 "-d", std::to_string(setHookDepth).c_str(), nullptr);
             _exit(1);
         } else {

@@ -19,7 +19,7 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 
 export class ClockRender extends Render {
   renderMainThread(
-    req: {
+    clockReq: {
       context: CanvasRenderingContext2D;
       useCache: boolean;
       type: string;
@@ -29,10 +29,10 @@ export class ClockRender extends Render {
     },
     row: TraceRow<ClockStruct>
   ) {
-    ClockStruct.index = req.index;
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    ClockStruct.index = clockReq.index;
+    let clockList = row.dataList;
+    let clockFilter = row.dataListCache;
+    dataFilterHandler(clockList, clockFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -40,28 +40,28 @@ export class ClockRender extends Render {
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
       paddingTop: 5,
-      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+      useCache: clockReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.context.beginPath();
+    clockReq.context.beginPath();
     let find = false;
-    for (let re of filter) {
-      ClockStruct.draw(req.context, re, req.maxValue);
+    for (let re of clockFilter) {
+      ClockStruct.draw(clockReq.context, re, clockReq.maxValue);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         ClockStruct.hoverClockStruct = re;
         find = true;
       }
     }
     if (!find && row.isHover) ClockStruct.hoverClockStruct = undefined;
-    req.context.closePath();
-    let s = req.maxName;
-    let textMetrics = req.context.measureText(s);
-    req.context.globalAlpha = 0.8;
-    req.context.fillStyle = '#f0f0f0';
-    req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-    req.context.globalAlpha = 1;
-    req.context.fillStyle = '#333';
-    req.context.textBaseline = 'middle';
-    req.context.fillText(s, 4, 5 + 9);
+    clockReq.context.closePath();
+    let s = clockReq.maxName;
+    let textMetrics = clockReq.context.measureText(s);
+    clockReq.context.globalAlpha = 0.8;
+    clockReq.context.fillStyle = '#f0f0f0';
+    clockReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
+    clockReq.context.globalAlpha = 1;
+    clockReq.context.fillStyle = '#333';
+    clockReq.context.textBaseline = 'middle';
+    clockReq.context.fillText(s, 4, 5 + 9);
   }
 }
 
@@ -77,37 +77,37 @@ export class ClockStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   delta: number | undefined; //自补充，数据库没有返回
 
-  static draw(ctx: CanvasRenderingContext2D, data: ClockStruct, maxValue: number) {
+  static draw(clockContext: CanvasRenderingContext2D, data: ClockStruct, maxValue: number) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      ctx.fillStyle = ColorUtils.colorForTid(ClockStruct.index);
-      ctx.strokeStyle = ColorUtils.colorForTid(ClockStruct.index);
+      clockContext.fillStyle = ColorUtils.colorForTid(ClockStruct.index);
+      clockContext.strokeStyle = ColorUtils.colorForTid(ClockStruct.index);
       let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxValue);
       if (drawHeight === 0) {
         drawHeight = 1;
       }
       if (ClockStruct.isHover(data)) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        clockContext.lineWidth = 1;
+        clockContext.globalAlpha = 0.6;
+        clockContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        clockContext.beginPath();
+        clockContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        clockContext.fill();
+        clockContext.globalAlpha = 1.0;
+        clockContext.stroke();
+        clockContext.beginPath();
+        clockContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+        clockContext.lineWidth = 3;
+        clockContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
+        clockContext.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        clockContext.globalAlpha = 0.6;
+        clockContext.lineWidth = 1;
+        clockContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    clockContext.globalAlpha = 1.0;
+    clockContext.lineWidth = 1;
   }
 
   static isHover(clock: ClockStruct) {

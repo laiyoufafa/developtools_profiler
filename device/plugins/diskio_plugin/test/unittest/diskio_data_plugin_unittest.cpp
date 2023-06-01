@@ -235,7 +235,7 @@ HWTEST_F(DiskioDataPluginTest, TestSystemFile, TestSize.Level1)
     EXPECT_TRUE(PluginDiskioInfoStub(plugin2, diskioData2, false));
     EXPECT_LE(diskioData1.wr_sectors_kb() + WRITE_KB, diskioData2.wr_sectors_kb());
 
-    while (waitpid(-1, NULL, WNOHANG) == 0) {
+    while (waitpid(-1, nullptr, WNOHANG) == 0) {
         kill(pid, SIGKILL);
     }
 

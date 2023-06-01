@@ -197,20 +197,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
     }
   }
-  queryData(queryName: string, sql: string, args: any) {
-    self.postMessage({
-      id: this.currentEventId,
-      type: queryName,
-      isQuery: true,
-      args: args,
-      sql: sql,
-    });
-  }
+
   initDataDict() {
-    this.queryData('native-memory-queryDataDICT', `select * from data_dict;`, {});
+    this.queryData(this.currentEventId, 'native-memory-queryDataDICT', `select * from data_dict;`, {});
   }
   initNMChartData() {
     this.queryData(
+      this.currentEventId,
       'native-memory-queryNMChartData',
       `
             select * from (
@@ -249,11 +242,11 @@ select callchain_id callchainId,
 from native_hook_statistic,trace_range
 where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
         `;
-    this.queryData('native-memory-queryNativeHookStatistic', sql, {});
+    this.queryData(this.currentEventId, 'native-memory-queryNativeHookStatistic', sql, {});
   }
 
   statisticDataHandler(arr: Array<any>) {
-    let callGroupMap : Map<number,any[]> = new Map<number, any[]>();
+    let callGroupMap: Map<number, any[]> = new Map<number, any[]>();
     let obj = {};
     for (let hook of arr) {
       if ((obj as any)[hook.ts]) {
@@ -263,13 +256,13 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
         if (callGroupMap.has(hook.callchainId)) {
           let calls = callGroupMap.get(hook.callchainId);
           let last = calls![calls!.length - 1];
-          data.heapsize += ((hook.applySize - last.applySize) - (hook.releaseSize - last.releaseSize));
-          data.density += ((hook.applyCount - last.applyCount) - (hook.releaseCount - last.releaseCount));
+          data.heapsize += hook.applySize - last.applySize - (hook.releaseSize - last.releaseSize);
+          data.density += hook.applyCount - last.applyCount - (hook.releaseCount - last.releaseCount);
           calls!.push(hook);
         } else {
-          data.heapsize += (hook.applySize - hook.releaseSize);
-          data.density += (hook.applyCount - hook.releaseCount);
-          callGroupMap.set(hook.callchainId,[hook]);
+          data.heapsize += hook.applySize - hook.releaseSize;
+          data.density += hook.applyCount - hook.releaseCount;
+          callGroupMap.set(hook.callchainId, [hook]);
         }
       } else {
         let data: any = {};
@@ -278,13 +271,13 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
         if (callGroupMap.has(hook.callchainId)) {
           let calls = callGroupMap.get(hook.callchainId);
           let last = calls![calls!.length - 1];
-          data.heapsize = (hook.applySize - last.applySize) - (hook.releaseSize - last.releaseSize);
-          data.density = (hook.applyCount - last.applyCount) - (hook.releaseCount - last.releaseCount);
+          data.heapsize = hook.applySize - last.applySize - (hook.releaseSize - last.releaseSize);
+          data.density = hook.applyCount - last.applyCount - (hook.releaseCount - last.releaseCount);
           calls!.push(hook);
         } else {
           data.heapsize = hook.applySize - hook.releaseSize;
           data.density = hook.applyCount - hook.releaseCount;
-          callGroupMap.set(hook.callchainId,[hook]);
+          callGroupMap.set(hook.callchainId, [hook]);
         }
         (obj as any)[hook.ts] = data;
       }
@@ -353,6 +346,7 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
   }
   initNMFrameData() {
     this.queryData(
+      this.currentEventId,
       'native-memory-queryNMFrameData',
       `
             select h.symbol_id as symbolId, h.file_id as fileId, h.depth, h.callchain_id as eventId, h.vaddr as addr
@@ -720,6 +714,7 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
   }
   queryCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<string>) {
     this.queryData(
+      this.currentEventId,
       action,
       `select A.id,
                 callchain_id as eventId,
@@ -730,7 +725,8 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
                 tid,
                 ifnull(last_lib_id,0) as lastLibId,
                 t.name as threadName,
-                A.addr
+                A.addr,
+                A.sub_type_id as subTypeId
             from
                 native_hook A,
                 trace_range B
@@ -747,6 +743,7 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
   }
   queryStatisticCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<number>) {
     this.queryData(
+      this.currentEventId,
       action,
       `select A.id,
                 0 as tid,
@@ -774,7 +771,7 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
     let analysisSampleList = new Array<AnalysisSample>();
     samples.forEach((sample, idx, _) => {
       let applySample = sample;
-	  // @ts-ignore
+      // @ts-ignore
       if (['FreeEvent', 'MunmapEvent'].includes(sample.eventType)) {
         applySample = this.releaseSetApplyCallChain(idx, samples);
         if (!applySample) return;
@@ -810,18 +807,23 @@ where ts between start_ts and end_ts ${type === -1 ? '' : `and type = ${type}`};
         libName = path[path.length - 1];
       }
       let count = this.isStatistic ? sample.count : 1;
-      let symbolName = this.DATA_DICT.get(lastFilterCallChain.symbolId) || libName + ' (' + sample.addr + ')';
+      const symbolName = this.DATA_DICT.get(lastFilterCallChain.symbolId) || libName + ' (' + sample.addr + ')';
+      let subType = undefined;
+      if (sample.subTypeId) {
+        subType = this.DATA_DICT.get(sample.subTypeId);
+      }
+
       let analysisSample = new AnalysisSample(
         sample.id,
         count,
         sample.heapSize,
         sample.eventId,
-        1,
         sample.eventType,
         lastFilterCallChain.fileId,
         libName,
         lastFilterCallChain.symbolId,
-        symbolName
+        symbolName,
+        subType
       );
       analysisSample.startTs = sample.startTs;
       analysisSample.endTs = sample.endTs;
@@ -1241,6 +1243,7 @@ class AnalysisSample {
   callChainId: number = 0;
   pid: number = 0;
   type: number;
+  subType?: string;
 
   releaseCount?: number;
   releaseSize?: number;
@@ -1259,18 +1262,17 @@ class AnalysisSample {
     count: number,
     size: number,
     callChainId: number,
-    pid: number,
     type: number | string,
     libId: number,
     libName: string,
     symbolId: number,
-    symbolName: string
+    symbolName: string,
+    subType: string | undefined
   ) {
     this.id = id;
     this.count = count;
     this.size = size;
     this.callChainId = callChainId;
-    this.pid = pid;
     switch (type) {
       case 'AllocEvent':
       case '0':
@@ -1293,5 +1295,6 @@ class AnalysisSample {
     this.libName = libName;
     this.symbolId = symbolId;
     this.symbolName = symbolName;
+    this.subType = subType;
   }
 }

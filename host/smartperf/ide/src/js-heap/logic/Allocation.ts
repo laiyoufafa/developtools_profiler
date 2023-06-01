@@ -25,10 +25,6 @@ export class AllocationLogic {
     this.fileStruct = fileStruct;
     this.bottomUpList = [];
     this.traceNodes = this.fileStruct.snapshotStruct.traceNodes;
-    this.init();
-  }
-
-  private init() {
     this.setBottomUpTree();
   }
 

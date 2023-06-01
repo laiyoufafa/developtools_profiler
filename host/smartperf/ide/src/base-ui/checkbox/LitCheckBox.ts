@@ -39,8 +39,8 @@ export class LitCheckBox extends BaseElement {
     return this.getAttribute('checked') !== null;
   }
 
-  set checked(value: boolean) {
-    if (value === null || !value) {
+  set checked(boxCheck: boolean) {
+    if (boxCheck === null || !boxCheck) {
       this.removeAttribute('checked');
     } else {
       this.setAttribute('checked', '');

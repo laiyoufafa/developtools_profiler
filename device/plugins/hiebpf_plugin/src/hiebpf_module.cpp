@@ -26,7 +26,7 @@
 
 namespace {
 constexpr uint32_t MAX_BUFFER_SIZE = 4 * 1024 * 1024;
-std::mutex taskMutex;
+std::mutex g_taskMutex;
 constexpr int32_t RET_OK = 0;
 constexpr int32_t RET_ERR = -1;
 bool g_releaseResources = false;
@@ -50,7 +50,7 @@ void RunCmd(std::string& cmd)
 
 static int32_t HiebpfSessionStart(const uint8_t* configData, uint32_t configSize)
 {
-    std::lock_guard<std::mutex> guard(taskMutex);
+    std::lock_guard<std::mutex> guard(g_taskMutex);
     CHECK_TRUE(!g_releaseResources, 0, "%s: hiebpf released resources, return", __func__);
     HILOG_DEBUG(LOG_CORE, "enter");
     if (configData == nullptr || configSize < 0) {
@@ -82,7 +82,7 @@ static int32_t HiebpfSessionStart(const uint8_t* configData, uint32_t configSize
 
 static int32_t HiebpfSessionStop()
 {
-    std::lock_guard<std::mutex> guard(taskMutex);
+    std::lock_guard<std::mutex> guard(g_taskMutex);
     CHECK_TRUE(!g_releaseResources, 0, "%s: hiebpf released resources, return", __func__);
     HILOG_DEBUG(LOG_CORE, "enter");
     std::string stop = "hiebpf --stop true";

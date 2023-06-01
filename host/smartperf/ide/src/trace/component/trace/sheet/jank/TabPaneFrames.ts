@@ -18,126 +18,101 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { JankFramesStruct } from '../../../../bean/JankFramesStruct.js';
 import { JanksStruct } from '../../../../bean/JanksStruct.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
-  private litTable: LitTable | null | undefined;
+  private framesTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
-  private source: Array<any> = [];
-  set data(val: SelectionParam | any) {
+  private framesSource: Array<any> = [];
+  set data(framesParam: SelectionParam | any) {
     this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    this.queryDataByDB(val);
+      'Selected range: ' + parseFloat(((framesParam.rightNs - framesParam.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    this.queryDataByDB(framesParam);
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(framesParam: SelectionParam | any) {
     let tablelist = new Array<JankFramesStruct>();
     let sumRes: JankFramesStruct = new JankFramesStruct();
     let appJank: JankFramesStruct = new JankFramesStruct();
     let rsJank: JankFramesStruct = new JankFramesStruct();
     let noJank: JankFramesStruct = new JankFramesStruct();
-    val.jankFramesData.forEach((data: Array<JanksStruct>) => {
+    framesParam.jankFramesData.forEach((data: Array<JanksStruct>) => {
       sumRes.occurrences += data.length;
-      data.forEach((da: JanksStruct) => {
-        if (da.dur == null || da.dur == undefined) {
-          da.dur = 0;
+      data.forEach((structValue: JanksStruct) => {
+        if (structValue.dur == null || structValue.dur == undefined) {
+          structValue.dur = 0;
         }
-        if (da.frame_type == 'app') {
-          if (da.jank_tag) {
-            appJank.flag = da.jank_tag;
+        if (structValue.frame_type == 'app') {
+          if (structValue.jank_tag) {
+            appJank.flag = structValue.jank_tag;
             appJank.jankType = 'APP Deadline Missed';
             appJank.occurrences += 1;
-            appJank.maxDuration = Math.max(da.dur, appJank.maxDuration!);
+            appJank.maxDuration = Math.max(structValue.dur, appJank.maxDuration!);
             if (appJank.minDuration == -1) {
-              appJank.minDuration = da.dur;
+              appJank.minDuration = structValue.dur;
             } else {
-              appJank.minDuration = Math.min(da.dur, appJank.minDuration!);
+              appJank.minDuration = Math.min(structValue.dur, appJank.minDuration!);
             }
             if (appJank.meanDuration == -1) {
-              appJank.meanDuration = da.dur;
+              appJank.meanDuration = structValue.dur;
             } else {
-              appJank.meanDuration = Number(((da.dur + appJank.meanDuration!) / 2).toFixed(2));
+              appJank.meanDuration = Number(((structValue.dur + appJank.meanDuration!) / 2).toFixed(2));
             }
           } else {
-            noJank.flag = da.jank_tag;
-            noJank.jankType = 'None';
-            noJank.occurrences += 1;
-            noJank.maxDuration = Math.max(da.dur, noJank.maxDuration!);
-            if (noJank.minDuration == -1) {
-              noJank.minDuration = da.dur;
-            } else {
-              noJank.minDuration = Math.min(da.dur, noJank.minDuration!);
-            }
-            if (noJank.meanDuration == -1) {
-              noJank.meanDuration = da.dur;
-            } else {
-              noJank.meanDuration = Number(((da.dur + noJank.meanDuration!) / 2).toFixed(2));
-            }
+            this.refreshNoJankData(noJank, structValue);
           }
-        } else if (da.frame_type == 'renderService') {
-          if (da.jank_tag) {
-            rsJank.flag = da.jank_tag;
+        } else if (structValue.frame_type == 'renderService') {
+          if (structValue.jank_tag) {
+            rsJank.flag = structValue.jank_tag;
             rsJank.jankType = 'RenderService Deadline Missed';
             rsJank.occurrences += 1;
-            rsJank.maxDuration = Math.max(da.dur, rsJank.maxDuration!);
+            rsJank.maxDuration = Math.max(structValue.dur, rsJank.maxDuration!);
             if (rsJank.minDuration == -1) {
-              rsJank.minDuration = da.dur;
+              rsJank.minDuration = structValue.dur;
             } else {
-              rsJank.minDuration = Math.min(da.dur, rsJank.minDuration!);
+              rsJank.minDuration = Math.min(structValue.dur, rsJank.minDuration!);
             }
             if (rsJank.meanDuration == -1) {
-              rsJank.meanDuration = da.dur;
+              rsJank.meanDuration = structValue.dur;
             } else {
-              rsJank.meanDuration = Number(((da.dur + rsJank.meanDuration!) / 2).toFixed(2));
+              rsJank.meanDuration = Number(((structValue.dur + rsJank.meanDuration!) / 2).toFixed(2));
             }
           } else {
-            noJank.flag = da.jank_tag;
-            noJank.jankType = 'None';
-            noJank.occurrences += 1;
-            noJank.maxDuration = Math.max(da.dur, noJank.maxDuration);
-            if (noJank.minDuration == -1) {
-              noJank.minDuration = da.dur;
-            } else {
-              noJank.minDuration = Math.min(da.dur, noJank.minDuration!);
-            }
-            if (noJank.meanDuration == -1) {
-              noJank.meanDuration = da.dur;
-            } else {
-              noJank.meanDuration = Number(((da.dur + noJank.meanDuration) / 2).toFixed(2));
-            }
+            this.refreshNoJankData(noJank, structValue);
           }
         } else {
           // frameTime
-          if (da.jank_tag) {
-            appJank.flag = da.jank_tag;
+          if (structValue.jank_tag) {
+            appJank.flag = structValue.jank_tag;
             appJank.jankType = 'Deadline Missed';
             appJank.occurrences += 1;
-            appJank.maxDuration = Math.max(da.dur, appJank.maxDuration);
-            appJank.minDuration = Math.min(da.dur, appJank.minDuration);
+            appJank.maxDuration = Math.max(structValue.dur, appJank.maxDuration);
+            appJank.minDuration = Math.min(structValue.dur, appJank.minDuration);
             if (appJank.minDuration == -1) {
-              appJank.minDuration = da.dur;
+              appJank.minDuration = structValue.dur;
             } else {
-              appJank.minDuration = Math.min(da.dur, appJank.minDuration!);
+              appJank.minDuration = Math.min(structValue.dur, appJank.minDuration!);
             }
             if (appJank.meanDuration == -1) {
-              appJank.meanDuration = da.dur;
+              appJank.meanDuration = structValue.dur;
             } else {
-              appJank.meanDuration = Number(((da.dur + appJank.meanDuration) / 2).toFixed(2));
+              appJank.meanDuration = Number(((structValue.dur + appJank.meanDuration) / 2).toFixed(2));
             }
           } else {
-            noJank.flag = da.jank_tag;
+            noJank.flag = structValue.jank_tag;
             noJank.jankType = 'None';
             noJank.occurrences += 1;
-            noJank.maxDuration = Math.max(da.dur, noJank.maxDuration);
+            noJank.maxDuration = Math.max(structValue.dur, noJank.maxDuration);
             if (noJank.minDuration == -1) {
-              noJank.minDuration = da.dur;
+              noJank.minDuration = structValue.dur;
             } else {
-              noJank.minDuration = Math.min(da.dur, noJank.minDuration!);
+              noJank.minDuration = Math.min(structValue.dur, noJank.minDuration!);
             }
             if (noJank.meanDuration == -1) {
-              noJank.meanDuration = da.dur;
+              noJank.meanDuration = structValue.dur;
             } else {
-              noJank.meanDuration = Number(((da.dur + noJank.meanDuration) / 2).toFixed(2));
+              noJank.meanDuration = Number(((structValue.dur + noJank.meanDuration) / 2).toFixed(2));
             }
           }
         }
@@ -162,14 +137,31 @@ export class TabPaneFrames extends BaseElement {
       noJank.meanDurationStr = noJank.meanDuration + '';
       tablelist.push(noJank);
     }
-    this.source = tablelist;
-    this.litTable!.recycleDataSource = tablelist;
+    this.framesSource = tablelist;
+    this.framesTbl!.recycleDataSource = tablelist;
+  }
+
+  private refreshNoJankData(noJank: JankFramesStruct, structValue: JanksStruct) {
+    noJank.flag = structValue.jank_tag;
+    noJank.jankType = 'None';
+    noJank.occurrences += 1;
+    noJank.maxDuration = Math.max(structValue.dur!, noJank.maxDuration!);
+    if (noJank.minDuration == -1) {
+      noJank.minDuration = structValue.dur!;
+    } else {
+      noJank.minDuration = Math.min(structValue.dur!, noJank.minDuration!);
+    }
+    if (noJank.meanDuration == -1) {
+      noJank.meanDuration = structValue.dur!;
+    } else {
+      noJank.meanDuration = Number(((structValue.dur! + noJank.meanDuration!) / 2).toFixed(2));
+    }
   }
 
   initElements(): void {
-    this.litTable = this.shadowRoot?.querySelector<LitTable>('#tb-frames');
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.litTable!.addEventListener('column-click', (evt) => {
+    this.framesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-frames');
+    this.range = this.shadowRoot?.querySelector('#jank-frames-time-range');
+    this.framesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -177,57 +169,55 @@ export class TabPaneFrames extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.litTable?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.litTable?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.framesTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .frames-label{
+          height: 20px;
+          text-align: end;
+        }
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="jank-frames-time-range" class="frames-label" style="width: 100%;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-frames" style="height: auto">
-            <lit-table-column title="Jank Type" width="1fr" data-index="jankType" key="jankType"  align="flex-start" order>
+            <lit-table-column class="jank-frames-column" title="Jank Type" width="1fr" data-index="jankType" key="jankType"  align="flex-start" order>
             </lit-table-column>
-            <lit-table-column title="Min duration" width="1fr" data-index="minDurationStr" key="minDurationStr"  align="flex-start" order >
+            <lit-table-column class="jank-frames-column" title="Min duration" width="1fr" data-index="minDurationStr" key="minDurationStr"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column title="Max duration" width="1fr" data-index="maxDurationStr" key="maxDurationStr"  align="flex-start" order >
+            <lit-table-column class="jank-frames-column" title="Max duration" width="1fr" data-index="maxDurationStr" key="maxDurationStr"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column title="Mean duration" width="1fr" data-index="meanDurationStr" key="meanDurationStr"  align="flex-start" order >
+            <lit-table-column class="jank-frames-column" title="Mean duration" width="1fr" data-index="meanDurationStr" key="meanDurationStr"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column title="Occurrences" width="1fr" data-index="occurrences" key="occurrences"  align="flex-start" order >
+            <lit-table-column class="jank-frames-column" title="Occurrences" width="1fr" data-index="occurrences" key="occurrences"  align="flex-start" order >
             </lit-table-column>
         </lit-table>
         `;
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(framesDetail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SelectionData, b: SelectionData) {
-        if (a.process == ' ' || b.process == ' ') {
+      return function (framesLeftData: SelectionData, framesRightData: SelectionData) {
+        if (framesLeftData.process == ' ' || framesRightData.process == ' ') {
           return 0;
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(framesRightData[property]) - parseFloat(framesLeftData[property]) : parseFloat(framesLeftData[property]) - parseFloat(framesRightData[property]);
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (framesRightData[property] > framesLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (framesRightData[property] == framesLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -237,11 +227,11 @@ export class TabPaneFrames extends BaseElement {
       };
     }
 
-    if (detail.key === 'jankType') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+    if (framesDetail.key === 'jankType') {
+      this.framesSource.sort(compare(framesDetail.key, framesDetail.sort, 'string'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.framesSource.sort(compare(framesDetail.key, framesDetail.sort, 'number'));
     }
-    this.litTable!.recycleDataSource = this.source;
+    this.framesTbl!.recycleDataSource = this.framesSource;
   }
 }

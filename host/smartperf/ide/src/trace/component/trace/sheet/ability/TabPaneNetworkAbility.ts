@@ -19,27 +19,27 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabNetworkAbilityData } from '../../../../database/SqlLite.js';
 import { SystemNetworkSummary } from '../../../../bean/AbilityMonitor.js';
 import { Utils } from '../../base/Utils.js';
-import '../../../SpFilter.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-network-ability')
 export class TabPaneNetworkAbility extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<SystemNetworkSummary> = [];
+  private networkAbilityTbl: LitTable | null | undefined;
+  private networkAbilitySource: Array<SystemNetworkSummary> = [];
   private float: HTMLDivElement | null | undefined;
   private queryResult: Array<SystemNetworkSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(val: SelectionParam | any) {
+  set data(networkAbilityValue: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    this.queryDataByDB(val);
+    this.networkAbilityTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(networkAbilityValue);
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-network-ability');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.networkAbilityTbl = this.shadowRoot?.querySelector<LitTable>('#tb-network-ability');
+    this.networkAbilityTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -47,28 +47,22 @@ export class TabPaneNetworkAbility extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.networkAbilityTbl!)
   }
 
   filterData() {
     if (this.queryResult.length > 0) {
-      let filter = this.queryResult.filter((item) => {
+      let filterNetwork = this.queryResult.filter((item) => {
         let array = this.toNetWorkAbilityArray(item);
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
-      if (filter.length > 0) {
-        this.source = filter;
-        this.tbl!.recycleDataSource = this.source;
+      if (filterNetwork.length > 0) {
+        this.networkAbilitySource = filterNetwork;
+        this.networkAbilityTbl!.recycleDataSource = this.networkAbilitySource;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.networkAbilitySource = [];
+        this.networkAbilityTbl!.recycleDataSource = [];
       }
     }
   }
@@ -107,13 +101,13 @@ export class TabPaneNetworkAbility extends BaseElement {
           systemNetworkSummary.packetsOutStr = ColorUtils.formatNumberComma(systemNetworkSummary.packetsOut);
           systemNetworkSummary.packetsOutSecStr = systemNetworkSummary.packetsOutSec.toFixed(2);
         }
-        this.source = item;
+        this.networkAbilitySource = item;
         this.queryResult = item;
-        this.tbl!.recycleDataSource = this.source;
+        this.networkAbilityTbl!.recycleDataSource = this.networkAbilitySource;
       } else {
-        this.source = [];
+        this.networkAbilitySource = [];
         this.queryResult = [];
-        this.tbl!.recycleDataSource = [];
+        this.networkAbilityTbl!.recycleDataSource = [];
       }
     });
   }
@@ -121,13 +115,16 @@ export class TabPaneNetworkAbility extends BaseElement {
   initHtml(): string {
     return `
 <style>
+.network-ability-table{
+    height: auto;
+}
 :host{
+    padding: 10px 10px;
     display: flex;
     flex-direction: column;
-    padding: 10px 10px;
 }
 </style>
-<lit-table id="tb-network-ability" style="height: auto">
+<lit-table id="tb-network-ability" class="network-ability-table">
     <lit-table-column order width="1fr" title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start"></lit-table-column>
     <lit-table-column order width="1fr" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" ></lit-table-column>
     <lit-table-column order width="1fr" title="Data Received" data-index="dataReceivedStr" key="dataReceivedStr" align="flex-start" ></lit-table-column>
@@ -145,35 +142,35 @@ export class TabPaneNetworkAbility extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SystemNetworkSummary, b: SystemNetworkSummary) {
+      return function (networkAbilityLeftData: SystemNetworkSummary, networkAbilityRightData: SystemNetworkSummary) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(networkAbilityRightData[property]) - parseFloat(networkAbilityLeftData[property]) : parseFloat(networkAbilityLeftData[property]) - parseFloat(networkAbilityRightData[property]);
         } else if (type === 'durationStr') {
-          return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+          return sort === 2 ? networkAbilityRightData.duration - networkAbilityLeftData.duration : networkAbilityLeftData.duration - networkAbilityRightData.duration;
         } else if (type === 'dataReceivedStr') {
-          return sort === 2 ? b.dataReceived - a.dataReceived : a.dataReceived - b.dataReceived;
+          return sort === 2 ? networkAbilityRightData.dataReceived - networkAbilityLeftData.dataReceived : networkAbilityLeftData.dataReceived - networkAbilityRightData.dataReceived;
         } else if (type === 'dataReceivedSecStr') {
-          return sort === 2 ? b.dataReceivedSec - a.dataReceivedSec : a.dataReceivedSec - b.dataReceivedSec;
+          return sort === 2 ? networkAbilityRightData.dataReceivedSec - networkAbilityLeftData.dataReceivedSec : networkAbilityLeftData.dataReceivedSec - networkAbilityRightData.dataReceivedSec;
         } else if (type === 'dataSendStr') {
-          return sort === 2 ? b.dataSend - a.dataSend : a.dataSend - b.dataSend;
+          return sort === 2 ? networkAbilityRightData.dataSend - networkAbilityLeftData.dataSend : networkAbilityLeftData.dataSend - networkAbilityRightData.dataSend;
         } else if (type === 'dataSendSecStr') {
-          return sort === 2 ? b.dataSendSec - a.dataSendSec : a.dataSendSec - b.dataSendSec;
+          return sort === 2 ? networkAbilityRightData.dataSendSec - networkAbilityLeftData.dataSendSec : networkAbilityLeftData.dataSendSec - networkAbilityRightData.dataSendSec;
         } else if (type === 'packetsInStr') {
-          return sort === 2 ? b.packetsIn - a.packetsIn : a.packetsIn - b.packetsIn;
+          return sort === 2 ? networkAbilityRightData.packetsIn - networkAbilityLeftData.packetsIn : networkAbilityLeftData.packetsIn - networkAbilityRightData.packetsIn;
         } else if (type === 'packetsInSecStr') {
-          return sort === 2 ? b.packetsInSec - a.packetsInSec : a.packetsInSec - b.packetsInSec;
+          return sort === 2 ? networkAbilityRightData.packetsInSec - networkAbilityLeftData.packetsInSec : networkAbilityLeftData.packetsInSec - networkAbilityRightData.packetsInSec;
         } else if (type === 'packetsOutStr') {
-          return sort === 2 ? b.packetsOut - a.packetsOut : a.packetsOut - b.packetsOut;
+          return sort === 2 ? networkAbilityRightData.packetsOut - networkAbilityLeftData.packetsOut : networkAbilityLeftData.packetsOut - networkAbilityRightData.packetsOut;
         } else if (type === 'packetsOutSecStr') {
-          return sort === 2 ? b.packetsOutSec - a.packetsOutSec : a.packetsOutSec - b.packetsOutSec;
+          return sort === 2 ? networkAbilityRightData.packetsOutSec - networkAbilityLeftData.packetsOutSec : networkAbilityLeftData.packetsOutSec - networkAbilityRightData.packetsOutSec;
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (networkAbilityRightData[property] > networkAbilityLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (networkAbilityRightData[property] == networkAbilityLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -184,28 +181,28 @@ export class TabPaneNetworkAbility extends BaseElement {
     }
 
     if (detail.key === 'startTime') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'string'));
     } else if (detail.key === 'durationStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'durationStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'durationStr'));
     } else if (detail.key === 'dataReceivedStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataReceivedStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'dataReceivedStr'));
     } else if (detail.key === 'dataReceivedSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataReceivedSecStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'dataReceivedSecStr'));
     } else if (detail.key === 'dataSendStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataSendStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'dataSendStr'));
     } else if (detail.key === 'dataSendSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'dataSendSecStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'dataSendSecStr'));
     } else if (detail.key === 'packetsInStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'packetsInStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'packetsInStr'));
     } else if (detail.key === 'packetsInSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'packetsInSecStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'packetsInSecStr'));
     } else if (detail.key === 'packetsOutStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'packetsOutStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'packetsOutStr'));
     } else if (detail.key === 'packetsOutSecStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'packetsOutSecStr'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'packetsOutSecStr'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.networkAbilitySource.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.networkAbilityTbl!.recycleDataSource = this.networkAbilitySource;
   }
 }

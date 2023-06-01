@@ -211,7 +211,7 @@ HWTEST_F(PrintkFormatsParserTest, PrintkFormatsParserNormalRand, TestSize.Level1
         std::string line = BuildPrintkLine(addr, symbol);
         EXPECT_TRUE(PrintkFormatsParser::GetInstance().Parse(line));
 
-        std::string symbolGot = PrintkFormatsParser::GetInstance().GetSymbol(strtoull(addr.c_str(), NULL, HEX_BASE));
+        std::string symbolGot = PrintkFormatsParser::GetInstance().GetSymbol(strtoull(addr.c_str(), nullptr, HEX_BASE));
         EXPECT_EQ(symbolGot, symbol);
     }
 }

@@ -26,18 +26,18 @@ import { TableNoData } from './TableNoData.js';
 @element('tab-cpu-details-threads')
 export class TabCpuDetailsThreads extends BaseElement {
   private tableNoData: TableNoData | null | undefined;
-  private table: LitTable | null | undefined;
+  private cpuDetailsThreadUsageTbl: LitTable | null | undefined;
   private progress: LitProgressBar | null | undefined;
-  private pie: LitChartPie | null | undefined;
+  private cpuDetailsThreadPie: LitChartPie | null | undefined;
   private data: Array<any> = [];
-  private sortColumn: string = '';
+  private cpuDetailsThreadSortColumn: string = '';
   private sortType: number = 0;
 
   initElements(): void {
     this.tableNoData = this.shadowRoot!.querySelector<TableNoData>('#table-no-data');
     this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-    this.pie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
-    this.table = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
+    this.cpuDetailsThreadPie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
+    this.cpuDetailsThreadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
 
     this.shadowRoot!.querySelector<HTMLDivElement>('.go-back')!.onclick = (e) => {
       if (!this.progress!.loading) {
@@ -46,7 +46,7 @@ export class TabCpuDetailsThreads extends BaseElement {
       }
     };
 
-    this.table!.addEventListener('row-click', (evt: any) => {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
@@ -57,13 +57,13 @@ export class TabCpuDetailsThreads extends BaseElement {
       }
     });
 
-    this.table!.addEventListener('column-click', (evt: any) => {
-      this.sortColumn = evt.detail.key;
+    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: any) => {
+      this.cpuDetailsThreadSortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.table!.addEventListener('row-hover', (evt: any) => {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: any) => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -71,7 +71,7 @@ export class TabCpuDetailsThreads extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       }
-      this.pie?.showHover();
+      this.cpuDetailsThreadPie?.showHover();
     });
   }
 
@@ -104,7 +104,7 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.data = getDataNo(this.data);
     this.tableNoData!.noData = this.data.length == 0;
     this.noData(this.data.length == 0);
-    this.pie!.config = {
+    this.cpuDetailsThreadPie!.config = {
       appendPadding: 0,
       data: this.data,
       angleField: 'dur',
@@ -126,9 +126,9 @@ export class TabCpuDetailsThreads extends BaseElement {
       },
       hoverHandler: (data) => {
         if (data) {
-          this.table!.setCurrentHover(data);
+          this.cpuDetailsThreadUsageTbl!.setCurrentHover(data);
         } else {
-          this.table!.mouseOut();
+          this.cpuDetailsThreadUsageTbl!.mouseOut();
         }
       },
       interactions: [
@@ -137,12 +137,12 @@ export class TabCpuDetailsThreads extends BaseElement {
         },
       ],
     };
-    if (this.sortColumn != '') {
-      this.sortByColumn({ key: this.sortColumn, sort: this.sortType });
+    if (this.cpuDetailsThreadSortColumn != '') {
+      this.sortByColumn({ key: this.cpuDetailsThreadSortColumn, sort: this.sortType });
     } else {
-      this.table!.recycleDataSource = this.data;
+      this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;
     }
-    this.table?.reMeauseHeight();
+    this.cpuDetailsThreadUsageTbl?.reMeauseHeight();
   }
 
   noData(value: boolean) {
@@ -151,25 +151,25 @@ export class TabCpuDetailsThreads extends BaseElement {
   }
 
   clearData() {
-    this.pie!.dataSource = [];
-    this.table!.recycleDataSource = [];
+    this.cpuDetailsThreadPie!.dataSource = [];
+    this.cpuDetailsThreadUsageTbl!.recycleDataSource = [];
     this.noData(false);
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(cpuDetailsThreadProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty])
+            : parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[cpuDetailsThreadProperty].toString().localeCompare(a[cpuDetailsThreadProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[cpuDetailsThreadProperty].toString().localeCompare(b[cpuDetailsThreadProperty].toString());
           }
         }
       };
@@ -189,7 +189,7 @@ export class TabCpuDetailsThreads extends BaseElement {
     } else {
       this.data.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.table!.recycleDataSource = this.data;
+    this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;
   }
 
   initHtml(): string {
@@ -215,6 +215,17 @@ export class TabCpuDetailsThreads extends BaseElement {
         #tb-cpu-usage{
             height: 100%;
         }
+        .back-box{
+            background-color: var(--bark-expansion,#0C65D1);
+            border-radius: 5px;
+            color: #fff;
+            display: flex;
+            margin-right: 10px;
+            width: 40px;
+            height: 20px;
+            justify-content: center;
+            align-items: center;
+        }
         .table-box{
             width: 60%;
             max-height: calc(100vh - 165px);
@@ -229,17 +240,6 @@ export class TabCpuDetailsThreads extends BaseElement {
             display:flex;
             align-items: center;
             cursor: pointer;
-        }
-        .back-box{
-            background-color: var(--bark-expansion,#0C65D1);
-            border-radius: 5px;
-            color: #fff;
-            display: flex;
-            margin-right: 10px;
-            width: 40px;
-            height: 20px;
-            justify-content: center;
-            align-items: center;
         }
         </style>
         <lit-progress-bar id="loading" style="height: 1px;width: 100%"></lit-progress-bar>

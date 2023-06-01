@@ -22,7 +22,7 @@
 
 #include "get_thread_id.h"
 
-long get_thread_id(void)
+long GetThreadId(void)
 {
 #if !is_mingw
     return syscall(SYS_gettid);

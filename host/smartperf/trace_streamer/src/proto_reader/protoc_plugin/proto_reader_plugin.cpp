@@ -122,7 +122,6 @@ void ProtoReaderGenerator::ParserDependencies()
 void ProtoReaderGenerator::ParserNamespace()
 {
     vNamespaces_.push_back(SYS_NAMESPACE);
-    // vNamespaces_.push_back(PROTOREADER);
     if (!wrapperNamespace_.empty()) {
         vNamespaces_.push_back(wrapperNamespace_);
     }

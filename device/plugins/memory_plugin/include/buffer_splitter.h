@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef _BUFFER_SPLITTER_H_
-#define _BUFFER_SPLITTER_H_
+#ifndef BUFFER_SPLITTER_H
+#define BUFFER_SPLITTER_H
 
 #include <string>
 

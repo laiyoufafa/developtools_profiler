@@ -26,7 +26,7 @@ import { SpRecordTrace } from '../SpRecordTrace.js';
 @element('sp-sdk-config')
 export class SpSdkConfig extends BaseElement {
   private worker: Worker | undefined;
-  private configList: any;
+  private sdkConfigList: any;
   private customConfig: HTMLDivElement | undefined | null;
   private selectConfig: LitAllocationSelect | undefined | null;
   private list: Array<HTMLElement> | undefined;
@@ -41,16 +41,16 @@ export class SpSdkConfig extends BaseElement {
     return this.hasAttribute('show');
   }
 
-  set show(show: boolean) {
-    if (show) {
+  set show(sdkConfigShow: boolean) {
+    if (sdkConfigShow) {
       this.setAttribute('show', '');
     } else {
       this.removeAttribute('show');
     }
   }
 
-  set startSamp(start: boolean) {
-    if (start) {
+  set startSamp(sdkConfigStart: boolean) {
+    if (sdkConfigStart) {
       this.setAttribute('startSamp', '');
     } else {
       this.removeAttribute('startSamp');
@@ -101,7 +101,7 @@ export class SpSdkConfig extends BaseElement {
     this.worker!.postMessage(pam);
     this.worker!.onmessage = (event: MessageEvent) => {
       let results = event.data.results;
-      this.configList = results.settingConfig;
+      this.sdkConfigList = results.settingConfig;
       this.initConfig();
     };
   }
@@ -199,47 +199,47 @@ export class SpSdkConfig extends BaseElement {
     this.customConfig!.innerHTML = '';
     this.list = [];
     this.list.push(this.selectConfig!);
-    let switch1 = document.createElement('lit-switch') as LitSwitch;
-    for (let key in this.configList.configuration) {
+    let sdkConfigSwitch = document.createElement('lit-switch') as LitSwitch;
+    for (let key in this.sdkConfigList.configuration) {
       let html = '';
-      let div = document.createElement('div');
-      div.className = 'config-div';
-      let headDiv = document.createElement('div');
-      div.appendChild(headDiv);
-      let title = document.createElement('span');
-      title.className = 'title';
-      title.textContent = key;
-      headDiv.appendChild(title);
-      let des = document.createElement('span');
-      des.textContent = this.configList.configuration[key].description;
-      des.className = 'des';
-      headDiv.appendChild(des);
-      switch (this.configList.configuration[key].type) {
+      let sdkConfigDiv = document.createElement('div');
+      sdkConfigDiv.className = 'sdk-config-div';
+      let sdkConfigHeadDiv = document.createElement('div');
+      sdkConfigDiv.appendChild(sdkConfigHeadDiv);
+      let sdkConfigTitle = document.createElement('span');
+      sdkConfigTitle.className = 'sdk-config-title';
+      sdkConfigTitle.textContent = key;
+      sdkConfigHeadDiv.appendChild(sdkConfigTitle);
+      let sdkConfigDes = document.createElement('span');
+      sdkConfigDes.textContent = this.sdkConfigList.configuration[key].description;
+      sdkConfigDes.className = 'sdk-config-des';
+      sdkConfigHeadDiv.appendChild(sdkConfigDes);
+      switch (this.sdkConfigList.configuration[key].type) {
         case 'string':
-          if (this.configList.configuration[key].enum) {
+          if (this.sdkConfigList.configuration[key].enum) {
             let placeholder = '';
-            if (this.configList.configuration[key].default) {
-              placeholder = this.configList.configuration[key].default;
+            if (this.sdkConfigList.configuration[key].default) {
+              placeholder = this.sdkConfigList.configuration[key].default;
             }
-            html += `<lit-select-v id="${key}" type="${this.configList.configuration[key].type}" default-value="" rounded="" class="select config" mode="multiple" canInsert="" rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"></lit-select-v>`;
-            div.innerHTML = div.innerHTML + html;
+            html += `<lit-select-v id="${key}" type="${this.sdkConfigList.configuration[key].type}" default-value="" rounded="" class="sdk-config-select config" mode="multiple" canInsert="" rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"></lit-select-v>`;
+            sdkConfigDiv.innerHTML = sdkConfigDiv.innerHTML + html;
           } else {
             let inputElement = document.createElement('input');
-            inputElement.className = 'input config';
-            if (this.configList.configuration[key].default) {
-              inputElement.value = this.configList.configuration[key].default;
+            inputElement.className = 'sdk-config-input config';
+            if (this.sdkConfigList.configuration[key].default) {
+              inputElement.value = this.sdkConfigList.configuration[key].default;
             }
             inputElement.setAttribute('configName', key);
-            inputElement.setAttribute('type', this.configList.configuration[key].type);
-            div.appendChild(inputElement);
+            inputElement.setAttribute('type', this.sdkConfigList.configuration[key].type);
+            sdkConfigDiv.appendChild(inputElement);
             this.list.push(inputElement);
           }
           break;
         case 'number':
           let numberInput = document.createElement('input');
-          numberInput.className = 'input config';
-          if (this.configList.configuration[key].default) {
-            numberInput.value = this.configList.configuration[key].default;
+          numberInput.className = 'sdk-config-input config';
+          if (this.sdkConfigList.configuration[key].default) {
+            numberInput.value = this.sdkConfigList.configuration[key].default;
           }
           numberInput.setAttribute('configName', key);
           numberInput.setAttribute('type', 'num');
@@ -247,57 +247,57 @@ export class SpSdkConfig extends BaseElement {
             let inputValue = this.checkFloatInput(numberInput.value);
             numberInput.value = inputValue;
           };
-          div.appendChild(numberInput);
+          sdkConfigDiv.appendChild(numberInput);
           this.list.push(numberInput);
           break;
         case 'integer':
           let input = document.createElement('input');
-          input.className = 'input config';
-          if (this.configList.configuration[key].default) {
-            input.value = this.configList.configuration[key].default;
+          input.className = 'sdk-config-input config';
+          if (this.sdkConfigList.configuration[key].default) {
+            input.value = this.sdkConfigList.configuration[key].default;
           }
           input.setAttribute('configName', key);
-          input.setAttribute('type', this.configList.configuration[key].type);
+          input.setAttribute('type', this.sdkConfigList.configuration[key].type);
           input.oninput = (ev) => {
             let inputValue = this.checkIntegerInput(input.value);
             input.value = inputValue;
-            title.setAttribute('value', input.value);
+            sdkConfigTitle.setAttribute('value', input.value);
           };
-          div.appendChild(input);
+          sdkConfigDiv.appendChild(input);
           this.list.push(input);
           break;
         case 'boolean':
-          switch1.className = 'switch1 config';
-          switch1.setAttribute('configName', key);
-          switch1.setAttribute('type', this.configList.configuration[key].type);
-          if (this.configList.configuration[key].default == 'true') {
-            switch1.setAttribute('checked', '');
-            switch1.setAttribute('value', 'true');
+          sdkConfigSwitch.className = 'switch1 config';
+          sdkConfigSwitch.setAttribute('configName', key);
+          sdkConfigSwitch.setAttribute('type', this.sdkConfigList.configuration[key].type);
+          if (this.sdkConfigList.configuration[key].default == 'true') {
+            sdkConfigSwitch.setAttribute('checked', '');
+            sdkConfigSwitch.setAttribute('value', 'true');
           } else {
-            switch1.removeAttribute('checked');
-            switch1.setAttribute('value', 'false');
+            sdkConfigSwitch.removeAttribute('checked');
+            sdkConfigSwitch.setAttribute('value', 'false');
           }
-          headDiv.appendChild(switch1);
-          this.list.push(switch1);
+          sdkConfigHeadDiv.appendChild(sdkConfigSwitch);
+          this.list.push(sdkConfigSwitch);
           break;
       }
-      this.customConfig!.appendChild(div);
-      if (this.configList.configuration[key].enum) {
+      this.customConfig!.appendChild(sdkConfigDiv);
+      if (this.sdkConfigList.configuration[key].enum) {
         let select = this.shadowRoot!.querySelector<LitSelectV>(`#${key}`);
         select!.setAttribute('type', 'enum');
-        select!.setAttribute('value', this.configList.configuration[key].default);
-        select!.dataSource(this.configList.configuration[key].enum, '');
+        select!.setAttribute('value', this.sdkConfigList.configuration[key].default);
+        select!.dataSource(this.sdkConfigList.configuration[key].enum, '');
         this.list.push(select!);
         select!.addEventListener('click', (event: any) => {
           select!.setAttribute('value', select!.value);
         });
       }
     }
-    switch1.addEventListener('change', (event: any) => {
-      if (switch1.hasAttribute('checked')) {
-        switch1.setAttribute('value', 'true');
+    sdkConfigSwitch.addEventListener('change', (event: any) => {
+      if (sdkConfigSwitch.hasAttribute('checked')) {
+        sdkConfigSwitch.setAttribute('value', 'true');
       } else {
-        switch1.setAttribute('value', 'false');
+        sdkConfigSwitch.setAttribute('value', 'false');
       }
     });
   }
@@ -333,40 +333,15 @@ export class SpSdkConfig extends BaseElement {
     }
   }
 
-  initConfigList(): void {
-    this.configList = {
-      name: '',
-      configuration: {
-        ss: {
-          type: 'string',
-          default: 'strsadsa',
-          description: 'xxxx',
-        },
-        aa: {
-          type: 'string',
-          default: '11',
-          enum: ['consistent', '11', 'delegated'],
-        },
-        cc: {
-          type: 'number',
-          description: 'number1111',
-        },
-        ee: {
-          type: 'integer',
-          default: '12',
-          description: 'integer1222',
-        },
-        ff: {
-          type: 'boolean',
-          description: 'switchhh',
-        },
-      },
-    };
-  }
-
   initHtml(): string {
     return `
         <style>
+        .sdk-config-div {
+           flex-direction: column;
+           width: 80%;
+           display: flex;
+           gap: 15px;
+        }
         :host{
             display: inline-block;
             width: 100%;
@@ -374,29 +349,20 @@ export class SpSdkConfig extends BaseElement {
             background: var(--dark-background3,#FFFFFF);
             border-radius: 0px 16px 16px 0px;
         }
-
         .root {
-            padding-top: 30px;
+            font-size:16px;
             padding-left: 54px;
             margin-right: 30px;
-            font-size:16px;
+            padding-top: 30px;
             margin-bottom: 30px;
         }
-
-        .config-div {
-           width: 80%;
-           display: flex;
-           flex-direction: column;
-           gap: 15px;
-        }
-
-        :host([show]) .config-div {
+        :host([show]) .sdk-config-div {
            display: flex;
            flex-direction: column;
            margin-bottom: 1vh;
         }
 
-        :host(:not([show])) .config-div {
+        :host(:not([show])) .sdk-config-div {
            margin-top: 5vh;
            margin-bottom: 5vh;
            gap: 25px;
@@ -406,17 +372,17 @@ export class SpSdkConfig extends BaseElement {
            display: none;
         }
 
-        .title {
+        .sdk-config-title {
           opacity: 0.9;
+          line-height: 40px;
           font-family: Helvetica-Bold;
           font-size: 18px;
           text-align: center;
-          line-height: 40px;
           font-weight: 700;
           margin-right: 10px;
         }
 
-        .des {
+        .sdk-config-des {
           opacity: 0.6;
           font-family: Helvetica;
           font-size: 14px;
@@ -425,16 +391,10 @@ export class SpSdkConfig extends BaseElement {
           font-weight: 400;
         }
 
-        .select {
+        .sdk-config-select {
           border-radius: 15px;
         }
 
-        lit-switch {
-          display:inline;
-          float: right;
-          height: 38px;
-          margin-top: 10px;
-        }
         input {
            height: 25px;
            outline:none;
@@ -444,8 +404,13 @@ export class SpSdkConfig extends BaseElement {
         input::-webkit-input-placeholder{
             color:var(--bark-prompt,#999999);
         }
-
-        .input {
+        lit-switch {
+          display:inline;
+          float: right;
+          height: 38px;
+          margin-top: 10px;
+        }
+        .sdk-config-input {
             border: 1px solid var(--dark-background5,#ccc);
             font-family: Helvetica;
             font-size: 14px;
@@ -455,23 +420,23 @@ export class SpSdkConfig extends BaseElement {
             font-weight: 400;
         }
         
-        :host([startSamp]) .input {
+        :host([startSamp]) .sdk-config-input {
             background: var(--dark-background5,#FFFFFF);
         }
         
-        :host(:not([startSamp])) .input {
+        :host(:not([startSamp])) .sdk-config-input {
             color: var(--dark-color1,#212121);
         }
        
         </style>
         <div class="root">
-            <div class="config-div">
+            <div class="sdk-config-div">
                 <div>
-                    <span class="title">Start Custom Config</span>
+                    <span class="sdk-config-title">Start Custom Config</span>
                     <lit-switch class="config_switch" ></lit-switch>
                 </div>
             </div>
-            <div class="config-div" id="select_config">
+            <div class="sdk-config-div" id="select_config">
                 <lit-allocation-select show-search class="processSelect" rounded default-value="" id="pid" placement="bottom" style="width:100%"></lit-allocation-select>
             </div>
             <div class="configList">

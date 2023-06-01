@@ -30,8 +30,8 @@ export class LitRadioBox extends BaseElement {
     return this.getAttribute('checked') !== null;
   }
 
-  set checked(value: boolean) {
-    if (value === null || !value) {
+  set checked(radioValue: boolean) {
+    if (radioValue === null || !radioValue) {
       this.removeAttribute('checked');
     } else {
       this.setAttribute('checked', '');

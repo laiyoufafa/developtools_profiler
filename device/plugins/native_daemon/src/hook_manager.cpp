@@ -73,7 +73,7 @@ bool HookManager::CheckProcess()
 void HookManager::CheckProcessName()
 {
     int pidValue = -1;
-    std::string processName = hookConfig_.process_name();
+    const std::string processName = hookConfig_.process_name();
     bool isExist = COMMON::IsProcessExist(processName, pidValue);
     if (hookConfig_.startup_mode() || !isExist) {
         HILOG_INFO(LOG_CORE, "Wait process %s start or restart, set param", hookConfig_.process_name().c_str());
@@ -162,8 +162,8 @@ bool HookManager::UnloadPlugin(const uint32_t pluginId)
 
 void HookManager::GetClientConfig(const NativeHookConfig& nativeHookConfig, ClientConfig& clientConfig)
 {
-    clientConfig.shareMemroySize = hookConfig_.smb_pages() * PAGE_BYTES;
-    clientConfig.filterSize = static_cast<uint32_t>(hookConfig_.filter_size());
+    clientConfig.shareMemroySize = static_cast<uint32_t>(hookConfig_.smb_pages() * PAGE_BYTES);
+    clientConfig.filterSize = static_cast<int32_t>(hookConfig_.filter_size());
     clientConfig.clockId = COMMON::GetClockId(hookConfig_.clock());
     clientConfig.maxStackDepth = hookConfig_.max_stack_depth();
     clientConfig.mallocDisable = hookConfig_.malloc_disable();

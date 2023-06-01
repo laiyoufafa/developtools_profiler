@@ -32,21 +32,21 @@ export class SpVirtualMemChart {
     if (array.length == 0) {
       return;
     }
-    let folder = TraceRow.skeleton();
-    folder.rowId = `VirtualMemory`;
-    folder.index = 0;
-    folder.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY_GROUP;
-    folder.rowParentId = '';
-    folder.folder = true;
-    folder.name = `Virtual Memory`;
-    folder.style.height = '40px';
-    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    folder.selectChangeHandler = this.trace.selectChangeHandler;
-    folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    folder.onThreadHandler = (useCache) => {
-      folder.canvasSave(this.trace.canvasPanelCtx!);
-      if (folder.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+    let vmFolder = TraceRow.skeleton();
+    vmFolder.rowId = `VirtualMemory`;
+    vmFolder.index = 0;
+    vmFolder.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY_GROUP;
+    vmFolder.rowParentId = '';
+    vmFolder.folder = true;
+    vmFolder.name = `Virtual Memory`;
+    vmFolder.style.height = '40px';
+    vmFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    vmFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    vmFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    vmFolder.onThreadHandler = (useCache) => {
+      vmFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (vmFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, vmFolder.frame.width, vmFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -54,64 +54,64 @@ export class SpVirtualMemChart {
             useCache: useCache,
             type: ``,
           },
-          folder
+          vmFolder
         );
       }
-      folder.canvasRestore(this.trace.canvasPanelCtx!);
+      vmFolder.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    this.trace.rowsEL?.appendChild(folder);
-    array.forEach((it, idx) => this.initVirtualMemoryRow(folder, it.id, it.name, idx));
+    this.trace.rowsEL?.appendChild(vmFolder);
+    array.forEach((it, idx) => this.initVirtualMemoryRow(vmFolder, it.id, it.name, idx));
   }
 
   initVirtualMemoryRow(folder: TraceRow<any>, id: number, name: string, idx: number) {
-    let row = TraceRow.skeleton<VirtualMemoryStruct>();
-    row.rowId = `${id}`;
-    row.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY;
-    row.rowParentId = folder.rowId;
-    row.rowHidden = !folder.expansion;
-    row.style.height = '40px';
-    row.name = `${name.substring(16)}`;
-    row.setAttribute('children', '');
-    row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    row.selectChangeHandler = this.trace.selectChangeHandler;
-    row.supplier = () =>
-      queryVirtualMemoryData(id).then((res) => {
-        let maxValue = Math.max(...res.map((it) => it.value || 0));
-        for (let j = 0; j < res.length; j++) {
-          res[j].maxValue = maxValue;
-          if (j == res.length - 1) {
-            res[j].duration = (TraceRow.range?.totalNS || 0) - (res[j].startTime || 0);
+    let virtualMemoryRow = TraceRow.skeleton<VirtualMemoryStruct>();
+    virtualMemoryRow.rowId = `${id}`;
+    virtualMemoryRow.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY;
+    virtualMemoryRow.rowParentId = folder.rowId;
+    virtualMemoryRow.rowHidden = !folder.expansion;
+    virtualMemoryRow.style.height = '40px';
+    virtualMemoryRow.name = `${name.substring(16)}`;
+    virtualMemoryRow.setAttribute('children', '');
+    virtualMemoryRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    virtualMemoryRow.selectChangeHandler = this.trace.selectChangeHandler;
+    virtualMemoryRow.supplier = () =>
+      queryVirtualMemoryData(id).then((resultVm) => {
+        let maxValue = Math.max(...resultVm.map((it) => it.value || 0));
+        for (let j = 0; j < resultVm.length; j++) {
+          resultVm[j].maxValue = maxValue;
+          if (j == resultVm.length - 1) {
+            resultVm[j].duration = (TraceRow.range?.totalNS || 0) - (resultVm[j].startTime || 0);
           } else {
-            res[j].duration = (res[j + 1].startTime || 0) - (res[j].startTime || 0);
+            resultVm[j].duration = (resultVm[j + 1].startTime || 0) - (resultVm[j].startTime || 0);
           }
           if (j > 0) {
-            res[j].delta = (res[j].value || 0) - (res[j - 1].value || 0);
+            resultVm[j].delta = (resultVm[j].value || 0) - (resultVm[j - 1].value || 0);
           } else {
-            res[j].delta = 0;
+            resultVm[j].delta = 0;
           }
         }
-        return res;
+        return resultVm;
       });
-    row.focusHandler = () => {
+    virtualMemoryRow.focusHandler = () => {
       this.trace?.displayTip(
-        row,
+        virtualMemoryRow,
         VirtualMemoryStruct.hoverStruct,
         `<span>value:${VirtualMemoryStruct.hoverStruct?.value}</span>`
       );
     };
-    row.onThreadHandler = (useCache) => {
-      let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      row.canvasSave(context);
+    virtualMemoryRow.onThreadHandler = (useCache) => {
+      let context = virtualMemoryRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      virtualMemoryRow.canvasSave(context);
       (renders['virtual-memory-cell'] as VirtualMemoryRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
           type: `virtual-memory-cell-${id}`,
         },
-        row
+        virtualMemoryRow
       );
-      row.canvasRestore(context);
+      virtualMemoryRow.canvasRestore(context);
     };
-    folder.addChildTraceRow(row);
+    folder.addChildTraceRow(virtualMemoryRow);
   }
 }

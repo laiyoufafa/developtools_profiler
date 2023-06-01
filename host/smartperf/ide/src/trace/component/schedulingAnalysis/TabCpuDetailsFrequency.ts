@@ -30,24 +30,24 @@ import { TableNoData } from './TableNoData.js';
 @element('tab-cpu-details-frequency')
 export class TabCpuDetailsFrequency extends BaseElement {
   private tableNoData: TableNoData | null | undefined;
-  private progress: LitProgressBar | null | undefined;
+  private cpuDetailsFrequencyProgress: LitProgressBar | null | undefined;
   traceChange: boolean = false;
-  private pie: LitChartPie | null | undefined;
-  private table: LitTable | null | undefined;
+  private cpuDetailsFrequencyPie: LitChartPie | null | undefined;
+  private cpuDetailsFrequencyUsageTbl: LitTable | null | undefined;
   private tabCpuDetailsThreads: TabCpuDetailsThreads | null | undefined;
   private cpu: number = 0;
-  private data: Array<any> = [];
-  private sortColumn: string = '';
+  private cpuDetailsFrequencyData: Array<any> = [];
+  private cpuDetailsFrequencySortColumn: string = '';
   private sortType: number = 0;
 
   initElements(): void {
     this.tableNoData = this.shadowRoot!.querySelector<TableNoData>('#table-no-data');
-    this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-    this.pie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
-    this.table = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
+    this.cpuDetailsFrequencyProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+    this.cpuDetailsFrequencyPie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
+    this.cpuDetailsFrequencyUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
     this.tabCpuDetailsThreads = this.shadowRoot!.querySelector<TabCpuDetailsThreads>('#tab-cpu-details-threads');
 
-    this.table!.addEventListener('row-click', (evt: any) => {
+    this.cpuDetailsFrequencyUsageTbl!.addEventListener('row-click', (evt: any) => {
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -57,13 +57,13 @@ export class TabCpuDetailsFrequency extends BaseElement {
       }
     });
 
-    this.table!.addEventListener('column-click', (evt: any) => {
-      this.sortColumn = evt.detail.key;
+    this.cpuDetailsFrequencyUsageTbl!.addEventListener('column-click', (evt: any) => {
+      this.cpuDetailsFrequencySortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.table!.addEventListener('row-hover', (evt: any) => {
+    this.cpuDetailsFrequencyUsageTbl!.addEventListener('row-hover', (evt: any) => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -71,7 +71,7 @@ export class TabCpuDetailsFrequency extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       }
-      this.pie?.showHover();
+      this.cpuDetailsFrequencyPie?.showHover();
     });
   }
 
@@ -84,17 +84,17 @@ export class TabCpuDetailsFrequency extends BaseElement {
     if (this.traceChange) {
       return;
     }
-    this.progress!.loading = true;
+    this.cpuDetailsFrequencyProgress!.loading = true;
     this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res) => {
       this.traceChange = true;
-      this.progress!.loading = false;
-      this.data = res.get(cpu) || [];
-      this.data = getDataNo(this.data);
-      this.tableNoData!.noData = this.data.length == 0;
-      this.noData(this.data.length == 0);
-      this.pie!.config = {
+      this.cpuDetailsFrequencyProgress!.loading = false;
+      this.cpuDetailsFrequencyData = res.get(cpu) || [];
+      this.cpuDetailsFrequencyData = getDataNo(this.cpuDetailsFrequencyData);
+      this.tableNoData!.noData = this.cpuDetailsFrequencyData.length == 0;
+      this.noData(this.cpuDetailsFrequencyData.length == 0);
+      this.cpuDetailsFrequencyPie!.config = {
         appendPadding: 0,
-        data: this.data,
+        data: this.cpuDetailsFrequencyData,
         angleField: 'sum',
         colorField: 'value',
         radius: 1,
@@ -114,9 +114,9 @@ export class TabCpuDetailsFrequency extends BaseElement {
         },
         hoverHandler: (data) => {
           if (data) {
-            this.table!.setCurrentHover(data);
+            this.cpuDetailsFrequencyUsageTbl!.setCurrentHover(data);
           } else {
-            this.table!.mouseOut();
+            this.cpuDetailsFrequencyUsageTbl!.mouseOut();
           }
         },
         angleClick: (it) => {
@@ -130,15 +130,15 @@ export class TabCpuDetailsFrequency extends BaseElement {
           },
         ],
       };
-      if (this.sortColumn != '') {
+      if (this.cpuDetailsFrequencySortColumn != '') {
         this.sortByColumn({
-          key: this.sortColumn,
+          key: this.cpuDetailsFrequencySortColumn,
           sort: this.sortType,
         });
       } else {
-        this.table!.recycleDataSource = this.data;
+        this.cpuDetailsFrequencyUsageTbl!.recycleDataSource = this.cpuDetailsFrequencyData;
       }
-      this.table?.reMeauseHeight();
+      this.cpuDetailsFrequencyUsageTbl?.reMeauseHeight();
     });
   }
 
@@ -149,8 +149,8 @@ export class TabCpuDetailsFrequency extends BaseElement {
 
   clearData() {
     this.traceChange = false;
-    this.pie!.dataSource = [];
-    this.table!.recycleDataSource = [];
+    this.cpuDetailsFrequencyPie!.dataSource = [];
+    this.cpuDetailsFrequencyUsageTbl!.recycleDataSource = [];
     this.shadowRoot!.querySelector<HTMLDivElement>('.d-box')!.style.display = 'flex';
     this.tabCpuDetailsThreads!.setShow = false;
     this.noData(false);
@@ -165,7 +165,7 @@ export class TabCpuDetailsFrequency extends BaseElement {
   }
 
   queryLoginWorker(option: string, log: string, handler: (res: any) => void) {
-    let time = new Date().getTime();
+    let cpuDetailsFrequencyTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic1',
       option,
@@ -176,24 +176,24 @@ export class TabCpuDetailsFrequency extends BaseElement {
       undefined,
       handler
     );
-    let durTime = new Date().getTime() - time;
+    let durTime = new Date().getTime() - cpuDetailsFrequencyTime;
     info(log, durTime);
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(cpuDetailsFrequencyProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[cpuDetailsFrequencyProperty]) - parseFloat(a[cpuDetailsFrequencyProperty])
+            : parseFloat(a[cpuDetailsFrequencyProperty]) - parseFloat(b[cpuDetailsFrequencyProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[cpuDetailsFrequencyProperty].toString().localeCompare(a[cpuDetailsFrequencyProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[cpuDetailsFrequencyProperty].toString().localeCompare(b[cpuDetailsFrequencyProperty].toString());
           }
         }
       };
@@ -201,27 +201,31 @@ export class TabCpuDetailsFrequency extends BaseElement {
 
     if (detail.key === 'min') {
       detail.key = 'minValue';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'max') {
       detail.key = 'maxValue';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'avg') {
       detail.key = 'avgValue';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'sumTimeStr') {
       detail.key = 'sum';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'value' || detail.key === 'ratio' || detail.key === 'index') {
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      this.data.sort(compare(detail.key, detail.sort, 'string'));
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.table!.recycleDataSource = this.data;
+    this.cpuDetailsFrequencyUsageTbl!.recycleDataSource = this.cpuDetailsFrequencyData;
   }
 
   initHtml(): string {
     return `
         <style>
+        #loading{
+            height: 1px;
+            width: 100%
+        }
         :host {
             width: 100%;
             height: 100%;
@@ -241,15 +245,15 @@ export class TabCpuDetailsFrequency extends BaseElement {
         .table-box{
             width: 60%;
             max-height: calc(100vh - 165px);
+            padding: 10px;
             border: solid 1px var(--dark-border1,#e0e0e0);
             border-radius: 5px;
-            padding: 10px;
         }
         #chart-pie{
             height: 360px;
         }
         </style>
-        <lit-progress-bar id="loading" style="height: 1px;width: 100%"></lit-progress-bar>
+        <lit-progress-bar id="loading"></lit-progress-bar>
         <div class="d-box">
             <div class="chart-box">
                 <div style="text-align: center">Statistics By Duration</div>

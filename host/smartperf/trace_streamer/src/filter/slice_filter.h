@@ -101,8 +101,6 @@ private:
     using SlicesStack = std::vector<SliceData>;
     using StackOfSlices = StackInfo;
     using StackOnDepth = std::map<uint32_t, bool>;
-    // uint64_t GenHashByStack(const StackOfSlices& sliceStack) const;
-    // bool BeginSliceInternal(const SliceData& sliceData);
     void RememberSliceData(InternalTid internalTid,
                            std::unordered_map<InternalTid, StackOfSlices>& stackMap,
                            SliceData& slice,

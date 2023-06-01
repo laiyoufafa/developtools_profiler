@@ -14,7 +14,7 @@
  */
 
 #include <fcntl.h>
-#include <math.h>
+#include <cmath>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -383,7 +383,7 @@ HWTEST_F(RingbufferTest, Peek, TestSize.Level1)
     EXPECT_EQ(ret, -1);
 
     uint32_t num = 4294967295;
-    char* ptr = (char*)&num;
+    char* ptr = static_cast<char *>(&num);
     auto len = ringBuffer->Put(ptr, sizeof(ptr));
     EXPECT_EQ(len, sizeof(ptr));
 

@@ -110,23 +110,23 @@ function match(type: string, req: RequestMessage) {
 let dec = new TextDecoder();
 let convertJSON = (arr: any) => {
   if (arr instanceof ArrayBuffer) {
-    let jsonArray = [];
+    let jsonArr = [];
     let str = dec.decode(new Uint8Array(arr));
     str = str.substring(str.indexOf('\n') + 1);
     if (!str) {
     } else {
-      let parse = JSON.parse(translateJsonString(str));
-      let columns = parse.columns;
-      let values = parse.values;
+      let parsed = JSON.parse(translateJsonString(str));
+      let columns = parsed.columns;
+      let values = parsed.values;
       for (let i = 0; i < values.length; i++) {
         let obj: any = {};
         for (let j = 0; j < columns.length; j++) {
           obj[columns[j]] = values[i][j];
         }
-        jsonArray.push(obj);
+        jsonArr.push(obj);
       }
     }
-    return jsonArray;
+    return jsonArr;
   } else {
     return arr;
   }

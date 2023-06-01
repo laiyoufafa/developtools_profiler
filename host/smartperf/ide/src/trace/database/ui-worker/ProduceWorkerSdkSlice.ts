@@ -14,16 +14,16 @@
  */
 
 import {
-  BaseStruct,
   drawFlagLine,
   drawLines,
   drawLoading,
-  drawSelection,
   drawWakeUp,
-  isFrameContainPoint,
-  ns2x,
   Render,
   RequestMessage,
+  BaseStruct,
+  isFrameContainPoint,
+  ns2x,
+  drawSelection,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 import { CounterStruct } from './ProduceWorkerSdkCounter.js';
@@ -39,13 +39,13 @@ export class SdkSliceRender extends Render {
     },
     row: TraceRow<SdkSliceStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let sdkList = row.dataList;
+    let sdkFilter = row.dataListCache;
     SdkSliceStruct.maxSdkSlice = req.maxValue;
     SdkSliceStruct.maxSdkSliceName = req.maxName;
     this.sdkSlice(
-      list,
-      filter,
+      sdkList,
+      sdkFilter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
       TraceRow.range?.totalNS ?? 0,
@@ -53,92 +53,113 @@ export class SdkSliceRender extends Render {
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
     req.context.beginPath();
-    let find = false;
-    for (let re of filter) {
+    let sdkSliceFind = false;
+    for (let re of sdkFilter) {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         SdkSliceStruct.hoverSdkSliceStruct = re;
-        find = true;
+        sdkSliceFind = true;
       }
       SdkSliceStruct.draw(req.context, re);
     }
-    if (!find && row.isHover) SdkSliceStruct.hoverSdkSliceStruct = undefined;
+    if (!sdkSliceFind && row.isHover) SdkSliceStruct.hoverSdkSliceStruct = undefined;
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      this.sdkSlice(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(sdkSliceRequest: RequestMessage, sdkList: Array<any>, filter: Array<any>) {
+    if (sdkSliceRequest.lazyRefresh) {
+      this.sdkSlice(
+        sdkList,
+        filter,
+        sdkSliceRequest.startNS,
+        sdkSliceRequest.endNS,
+        sdkSliceRequest.totalNS,
+        sdkSliceRequest.frame,
+        sdkSliceRequest.useCache || !sdkSliceRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        this.sdkSlice(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
-      }
-    }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.canvas.width, req.canvas.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-        drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
+      if (!sdkSliceRequest.useCache) {
+        this.sdkSlice(
+          sdkList,
+          filter,
+          sdkSliceRequest.startNS,
+          sdkSliceRequest.endNS,
+          sdkSliceRequest.totalNS,
+          sdkSliceRequest.frame,
+          false
         );
       }
-      req.context.beginPath();
-      SdkSliceStruct.maxSdkSlice = req.params.maxSdkSlice;
-      SdkSliceStruct.maxSdkSliceName = req.params.maxSdkSliceName;
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+    }
+    if (sdkSliceRequest.canvas) {
+      sdkSliceRequest.context.clearRect(0, 0, sdkSliceRequest.canvas.width, sdkSliceRequest.canvas.height);
+      let sdkSliceArr = filter;
+      if (
+        sdkSliceArr.length > 0 &&
+        !sdkSliceRequest.range.refresh &&
+        !sdkSliceRequest.useCache &&
+        sdkSliceRequest.lazyRefresh
+      ) {
+        drawLoading(
+          sdkSliceRequest.context,
+          sdkSliceRequest.startNS,
+          sdkSliceRequest.endNS,
+          sdkSliceRequest.totalNS,
+          sdkSliceRequest.frame,
+          sdkSliceArr[0].startNS,
+          sdkSliceArr[sdkSliceArr.length - 1].startNS + sdkSliceArr[sdkSliceArr.length - 1].dur
+        );
+      }
+      sdkSliceRequest.context.beginPath();
+      SdkSliceStruct.maxSdkSlice = sdkSliceRequest.params.maxSdkSlice;
+      SdkSliceStruct.maxSdkSliceName = sdkSliceRequest.params.maxSdkSliceName;
+      drawLines(sdkSliceRequest.context, sdkSliceRequest.xs, sdkSliceRequest.frame.height, sdkSliceRequest.lineColor);
       SdkSliceStruct.hoverSdkSliceStruct = undefined;
-      if (req.isHover) {
+      if (sdkSliceRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            sdkSliceRequest.hoverX >= re.frame.x &&
+            sdkSliceRequest.hoverX <= re.frame.x + re.frame.width &&
+            sdkSliceRequest.hoverY >= re.frame.y &&
+            sdkSliceRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             SdkSliceStruct.hoverSdkSliceStruct = re;
             break;
           }
         }
       }
-      SdkSliceStruct.selectSdkSliceStruct = req.params.selectSdkSliceStruct;
+      SdkSliceStruct.selectSdkSliceStruct = sdkSliceRequest.params.selectSdkSliceStruct;
       for (let re of filter) {
-        SdkSliceStruct.draw(req.context, re);
+        SdkSliceStruct.draw(sdkSliceRequest.context, re);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
-      req.context.globalAlpha = 0.8;
-      req.context.fillStyle = '#f0f0f0';
-      req.context.globalAlpha = 1;
-      req.context.fillStyle = '#333';
-      req.context.textBaseline = 'middle';
+      drawSelection(sdkSliceRequest.context, sdkSliceRequest.params);
+      sdkSliceRequest.context.closePath();
+      sdkSliceRequest.context.globalAlpha = 0.8;
+      sdkSliceRequest.context.fillStyle = '#f0f0f0';
+      sdkSliceRequest.context.globalAlpha = 1;
+      sdkSliceRequest.context.fillStyle = '#333';
+      sdkSliceRequest.context.textBaseline = 'middle';
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        sdkSliceRequest.context,
+        sdkSliceRequest.flagMoveInfo,
+        sdkSliceRequest.flagSelectedInfo,
+        sdkSliceRequest.startNS,
+        sdkSliceRequest.endNS,
+        sdkSliceRequest.totalNS,
+        sdkSliceRequest.frame,
+        sdkSliceRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: sdkSliceRequest.id,
+      type: sdkSliceRequest.type,
+      results: sdkSliceRequest.canvas ? undefined : filter,
       hover: SdkSliceStruct.hoverSdkSliceStruct,
     });
   }
 
   sdkSlice(
-    list: Array<any>,
+    sdkList: Array<any>,
     res: Array<any>,
     startNS: number,
     endNS: number,
@@ -158,18 +179,18 @@ export class SdkSliceRender extends Render {
       return;
     }
     res.length = 0;
-    if (list) {
-      for (let index = 0; index < list.length; index++) {
-        let item = list[index];
+    if (sdkList) {
+      for (let index = 0; index < sdkList.length; index++) {
+        let item = sdkList[index];
         if (item.start_ts >= startNS && item.end_ts == 0) {
           item.end_ts = endNS;
         }
         if ((item.end_ts || 0) > (startNS || 0) && (item.start_ts || 0) < (endNS || 0)) {
-          SdkSliceStruct.setSdkSliceFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+          SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
           if (
             index > 0 &&
-            (list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) &&
-            (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0)
+            (sdkList[index - 1].frame?.x || 0) == (sdkList[index].frame?.x || 0) &&
+            (sdkList[index - 1].frame?.width || 0) == (sdkList[index].frame?.width || 0)
           ) {
           } else {
             res.push(item);
@@ -218,26 +239,26 @@ export class SdkSliceStruct extends BaseStruct {
     }
   }
 
-  static setSdkSliceFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let startPointX: number, endPointX: number;
+  static setSdkSliceFrame(SdkSliceNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+    let sdkSliceStartPointX: number, sdkSliceEndPointX: number;
 
-    if ((node.start_ts || 0) < startNS) {
-      startPointX = 0;
+    if ((SdkSliceNode.start_ts || 0) < startNS) {
+      sdkSliceStartPointX = 0;
     } else {
-      startPointX = ns2x(node.start_ts || 0, startNS, endNS, totalNS, frame);
+      sdkSliceStartPointX = ns2x(SdkSliceNode.start_ts || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.end_ts || 0) > endNS) {
-      endPointX = frame.width;
+    if ((SdkSliceNode.end_ts || 0) > endNS) {
+      sdkSliceEndPointX = frame.width;
     } else {
-      endPointX = ns2x(node.end_ts || 0, startNS, endNS, totalNS, frame);
+      sdkSliceEndPointX = ns2x(SdkSliceNode.end_ts || 0, startNS, endNS, totalNS, frame);
     }
-    let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    let frameWidth: number = sdkSliceEndPointX - sdkSliceStartPointX <= 1 ? 1 : sdkSliceEndPointX - sdkSliceStartPointX;
+    if (!SdkSliceNode.frame) {
+      SdkSliceNode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    SdkSliceNode.frame.x = Math.floor(sdkSliceStartPointX);
+    SdkSliceNode.frame.y = frame.y + padding;
+    SdkSliceNode.frame.width = Math.ceil(frameWidth);
+    SdkSliceNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

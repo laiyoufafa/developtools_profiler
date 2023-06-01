@@ -22,7 +22,7 @@
 
 namespace COMMON {
 bool IsProcessRunning(); // add file lock, only one process can run
-bool IsProcessExist(std::string& processName, int& pid); // Check if the process exists and get PID
+bool IsProcessExist(const std::string& processName, int& pid); // Check if the process exists and get PID
 int StartProcess(const std::string& processBin, std::vector<char*>& argv);
 int KillProcess(int pid);
 void PrintMallinfoLog(const std::string& mallInfoPrefix);

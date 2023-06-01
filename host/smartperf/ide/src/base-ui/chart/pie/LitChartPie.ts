@@ -48,29 +48,29 @@ class Sector {
 @element('lit-chart-pie')
 export class LitChartPie extends BaseElement {
   private eleShape: Element | null | undefined;
-  private tipEL: HTMLDivElement | null | undefined;
+  private pieTipEL: HTMLDivElement | null | undefined;
   private labelsEL: HTMLDivElement | null | undefined;
   canvas: HTMLCanvasElement | undefined | null;
   ctx: CanvasRenderingContext2D | undefined | null;
-  cfg: LitChartPieConfig | null | undefined;
+  litChartPieConfig: LitChartPieConfig | null | undefined;
   centerX: number | null | undefined;
   centerY: number | null | undefined;
   data: Sector[] = [];
   radius: number | undefined;
   private textRects: Rectangle[] = [];
 
-  set config(cfg: LitChartPieConfig | null | undefined) {
-    if (!cfg) return;
-    this.cfg = cfg;
+  set config(litChartPieCfg: LitChartPieConfig | null | undefined) {
+    if (!litChartPieCfg) return;
+    this.litChartPieConfig = litChartPieCfg;
     (this.shadowRoot!.querySelector('#root') as HTMLDivElement).className =
-      cfg && cfg.data.length > 0 ? 'bg_hasdata' : 'bg_nodata';
+      litChartPieCfg && litChartPieCfg.data.length > 0 ? 'bg_hasdata' : 'bg_nodata';
     this.measure();
     this.render();
   }
 
-  set dataSource(arr: any[]) {
-    if (this.cfg) {
-      this.cfg.data = arr;
+  set dataSource(litChartPieArr: any[]) {
+    if (this.litChartPieConfig) {
+      this.litChartPieConfig.data = litChartPieArr;
       this.measure();
       this.render();
     }
@@ -88,7 +88,7 @@ export class LitChartPie extends BaseElement {
         this.showTip(
           this.centerX || 0,
           this.centerY || 0,
-          this.cfg!.tip ? this.cfg!.tip(it) : `${it.key}: ${it.value}`
+          this.litChartPieConfig!.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
         );
       }
     });
@@ -99,42 +99,42 @@ export class LitChartPie extends BaseElement {
   }
 
   measure() {
-    if (!this.cfg) return;
+    if (!this.litChartPieConfig) return;
     this.data = [];
     this.radius = (Math.min(this.clientHeight, this.clientWidth) * 0.65) / 2 - 10;
-    let cfg = this.cfg!;
+    let pieCfg = this.litChartPieConfig!;
     let startAngle = 0;
     let startDegree = 0;
     let full = Math.PI / 180; //每度
     let fullDegree = 0; //每度
-    let sum = this.cfg.data.reduce((previousValue, currentValue) => currentValue[cfg.angleField] + previousValue, 0);
+    let sum = this.litChartPieConfig.data.reduce((previousValue, currentValue) => currentValue[pieCfg.angleField] + previousValue, 0);
     this.labelsEL!.textContent = '';
     let labelArray: string[] = [];
-    this.cfg.data.forEach((it, index) => {
+    this.litChartPieConfig.data.forEach((pieItem, index) => {
       let item: Sector = {
         id: `id-${Utils.uuid()}`,
-        color: this.cfg!.label.color ? this.cfg!.label.color(it) : pieChartColors[index % pieChartColors.length],
-        obj: it,
-        key: it[cfg.colorField],
-        value: it[cfg.angleField],
+        color: this.litChartPieConfig!.label.color ? this.litChartPieConfig!.label.color(pieItem) : pieChartColors[index % pieChartColors.length],
+        obj: pieItem,
+        key: pieItem[pieCfg.colorField],
+        value: pieItem[pieCfg.angleField],
         startAngle: startAngle,
-        endAngle: startAngle + full * ((it[cfg.angleField] / sum) * 360),
+        endAngle: startAngle + full * ((pieItem[pieCfg.angleField] / sum) * 360),
         startDegree: startDegree,
-        endDegree: startDegree + fullDegree + (it[cfg.angleField] / sum) * 360,
+        endDegree: startDegree + fullDegree + (pieItem[pieCfg.angleField] / sum) * 360,
         ease: {
           initVal: 0,
-          step: (startAngle + full * ((it[cfg.angleField] / sum) * 360)) / startDegree,
+          step: (startAngle + full * ((pieItem[pieCfg.angleField] / sum) * 360)) / startDegree,
           process: true,
         },
       };
       this.data.push(item);
-      startAngle += full * ((it[cfg.angleField] / sum) * 360);
-      startDegree += fullDegree + (it[cfg.angleField] / sum) * 360;
+      startAngle += full * ((pieItem[pieCfg.angleField] / sum) * 360);
+      startDegree += fullDegree + (pieItem[pieCfg.angleField] / sum) * 360;
       labelArray.push(`<label class="label">
                     <div style="display: flex;flex-direction: row;margin-left: 5px;align-items: center;overflow: hidden;text-overflow: ellipsis" 
                         id="${item.id}">
                         <div class="tag" style="background-color: ${item.color}"></div>
-                        <span class="name">${item.obj[cfg.colorField]}</span>
+                        <span class="name">${item.obj[pieCfg.colorField]}</span>
                     </div>
                 </label>`);
     });
@@ -142,13 +142,13 @@ export class LitChartPie extends BaseElement {
   }
 
   get config(): LitChartPieConfig | null | undefined {
-    return this.cfg;
+    return this.litChartPieConfig;
   }
 
   connectedCallback() {
     super.connectedCallback();
     this.eleShape = this.shadowRoot!.querySelector<Element>('#shape');
-    this.tipEL = this.shadowRoot!.querySelector<HTMLDivElement>('#tip');
+    this.pieTipEL = this.shadowRoot!.querySelector<HTMLDivElement>('#tip');
     this.labelsEL = this.shadowRoot!.querySelector<HTMLDivElement>('#labels');
     this.canvas = this.shadowRoot!.querySelector<HTMLCanvasElement>('#canvas');
     this.ctx = this.canvas!.getContext('2d', { alpha: true });
@@ -189,12 +189,12 @@ export class LitChartPie extends BaseElement {
           it.hover = degree >= it.startDegree! && degree <= it.endDegree!;
           this.updateHoverItemStatus(it);
           it.obj.isHover = it.hover;
-          if (it.hover && this.cfg) {
-            this.cfg.hoverHandler?.(it.obj);
+          if (it.hover && this.litChartPieConfig) {
+            this.litChartPieConfig.hoverHandler?.(it.obj);
             this.showTip(
               ev.pageX - rect.left + 10,
               ev.pageY - this.offsetTop - 10,
-              this.cfg.tip ? this.cfg!.tip(it) : `${it.key}: ${it.value}`
+              this.litChartPieConfig.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
             );
           }
         });
@@ -205,7 +205,7 @@ export class LitChartPie extends BaseElement {
           it.obj.isHover = false;
           this.updateHoverItemStatus(it);
         });
-        this.cfg?.hoverHandler?.(undefined);
+        this.litChartPieConfig?.hoverHandler?.(undefined);
       }
       this.render();
     };
@@ -247,7 +247,7 @@ export class LitChartPie extends BaseElement {
   }
 
   render(ease: boolean = true) {
-    if (!this.canvas || !this.cfg) return;
+    if (!this.canvas || !this.litChartPieConfig) return;
     if (this.radius! <= 0) return;
     this.ctx?.clearRect(0 - this.centerX!, 0 - this.centerY!, this.clientWidth, this.clientHeight);
     this.data.forEach((it) => {
@@ -294,16 +294,16 @@ export class LitChartPie extends BaseElement {
       });
 
     this.textRects = [];
-    if (this.cfg.showChartLine) {
-      this.data.forEach((it) => {
-        let text = `${it.value}`;
+    if (this.litChartPieConfig.showChartLine) {
+      this.data.forEach((dataItem) => {
+        let text = `${dataItem.value}`;
         let metrics = this.ctx!.measureText(text);
         let textWidth = metrics.width;
         let textHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
         this.ctx!.beginPath();
-        this.ctx!.strokeStyle = it.color!;
+        this.ctx!.strokeStyle = dataItem.color!;
         this.ctx!.fillStyle = '#595959';
-        let deg = it.startDegree! + (it.endDegree! - it.startDegree!) / 2;
+        let deg = dataItem.startDegree! + (dataItem.endDegree! - dataItem.startDegree!) / 2;
         let dep = 25;
         let x1 = 0 + this.radius! * Math.cos((deg * Math.PI) / 180);
         let y1 = 0 + this.radius! * Math.sin((deg * Math.PI) / 180);
@@ -329,37 +329,37 @@ export class LitChartPie extends BaseElement {
     }
   }
 
-  correctRect(rect: Rectangle): Rectangle {
+  correctRect(pieRect: Rectangle): Rectangle {
     if (this.textRects.length == 0) {
-      this.textRects.push(rect);
-      return rect;
+      this.textRects.push(pieRect);
+      return pieRect;
     } else {
-      let rectangles = this.textRects.filter((it) => this.intersect(it, rect).cross);
+      let rectangles = this.textRects.filter((it) => this.intersect(it, pieRect).cross);
       if (rectangles.length == 0) {
-        this.textRects.push(rect);
-        return rect;
+        this.textRects.push(pieRect);
+        return pieRect;
       } else {
         let it = rectangles[0];
-        let inter = this.intersect(it, rect);
+        let inter = this.intersect(it, pieRect);
         if (inter.direction == 'Right') {
-          rect.x += inter.crossW;
+          pieRect.x += inter.crossW;
         } else if (inter.direction == 'Bottom') {
-          rect.y += inter.crossH;
+          pieRect.y += inter.crossH;
         } else if (inter.direction == 'Left') {
-          rect.x -= inter.crossW;
+          pieRect.x -= inter.crossW;
         } else if (inter.direction == 'Top') {
-          rect.y -= inter.crossH;
+          pieRect.y -= inter.crossH;
         } else if (inter.direction == 'Right-Top') {
-          rect.y -= inter.crossH;
+          pieRect.y -= inter.crossH;
         } else if (inter.direction == 'Right-Bottom') {
-          rect.y += inter.crossH;
+          pieRect.y += inter.crossH;
         } else if (inter.direction == 'Left-Top') {
-          rect.y -= inter.crossH;
+          pieRect.y -= inter.crossH;
         } else if (inter.direction == 'Left-Bottom') {
-          rect.y += inter.crossH;
+          pieRect.y += inter.crossH;
         }
-        this.textRects.push(rect);
-        return rect;
+        this.textRects.push(pieRect);
+        return pieRect;
       }
     }
   }
@@ -433,14 +433,14 @@ export class LitChartPie extends BaseElement {
   }
 
   showTip(x: number, y: number, msg: string) {
-    this.tipEL!.style.display = 'flex';
-    this.tipEL!.style.top = `${y}px`;
-    this.tipEL!.style.left = `${x}px`;
-    this.tipEL!.innerHTML = msg;
+    this.pieTipEL!.style.display = 'flex';
+    this.pieTipEL!.style.top = `${y}px`;
+    this.pieTipEL!.style.left = `${x}px`;
+    this.pieTipEL!.innerHTML = msg;
   }
 
   hideTip() {
-    this.tipEL!.style.display = 'none';
+    this.pieTipEL!.style.display = 'none';
   }
 
   initHtml(): string {

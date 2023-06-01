@@ -45,7 +45,7 @@ export class SpQuerySQL extends BaseElement {
   private maxPageSize: number = 500000;
 
   initElements(): void {
-    this.progressLoad = this.shadowRoot?.querySelector('.load-metric') as LitProgressBar;
+    this.progressLoad = this.shadowRoot?.querySelector('.load-query-sql') as LitProgressBar;
     this.selector = this.shadowRoot?.querySelector('.sql-select') as HTMLTextAreaElement;
     this.queryTableEl = new LitTable();
     this.querySize = this.shadowRoot?.querySelector('.query_size') as HTMLElement;
@@ -516,22 +516,18 @@ export class SpQuerySQL extends BaseElement {
         .sql-select{
             background-color: var(--dark-background5, #F6F6F6);
         }
-
-        /*Define the height, width and background of the scroll bar*/
         ::-webkit-scrollbar
         {
           width: 8px;
           background-color: var(--dark-background3,#FFFFFF);
         }
-
-        /*define slider*/
         ::-webkit-scrollbar-thumb
         {
           border-radius: 6px;
           background-color: var(--dark-background7,rgba(0,0,0,0.1));
         }
         
-        .load-metric{
+        .load-query-sql{
             width: 95%;
             bottom: 0;
         }
@@ -569,7 +565,7 @@ export class SpQuerySQL extends BaseElement {
             <div class="query-message request">
                 <p class="query_select" style="color: #999999">Enter query and press cmd/ctrl + Enter</p>
                 <textarea class="sql-select"></textarea>
-                <lit-progress-bar class="load-metric"></lit-progress-bar>
+                <lit-progress-bar class="load-query-sql"></lit-progress-bar>
             </div>
             <div class="query-message response">
                    <div style="display: flex;justify-content: space-between">

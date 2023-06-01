@@ -75,28 +75,28 @@ export class SpFrameTimeChart {
     if (frameExpectedData.length > 0) {
       let isIntersect = (a: JanksStruct, b: JanksStruct) =>
         Math.max(a.ts! + a.dur!, b.ts! + b.dur!) - Math.min(a.ts!, b.ts!) < a.dur! + b.dur!;
-      let depthArray: any = [];
+      let depths: any = [];
       for (let i = 0; i < frameExpectedData.length; i++) {
         let it = frameExpectedData[i];
         if (!it.dur || it.dur < 0) {
           continue;
         }
-        if (depthArray.length == 0) {
+        if (depths.length == 0) {
           it.depth = 0;
-          depthArray[0] = it;
+          depths[0] = it;
         } else {
           let index = 0;
           let isContinue = true;
           while (isContinue) {
-            if (isIntersect(depthArray[index], it)) {
-              if (depthArray[index + 1] == undefined || !depthArray[index + 1]) {
+            if (isIntersect(depths[index], it)) {
+              if (depths[index + 1] == undefined || !depths[index + 1]) {
                 it.depth = index + 1;
-                depthArray[index + 1] = it;
+                depths[index + 1] = it;
                 isContinue = false;
               }
             } else {
               it.depth = index;
-              depthArray[index] = it;
+              depths[index] = it;
               isContinue = false;
             }
             index++;
@@ -209,50 +209,45 @@ export class SpFrameTimeChart {
     frameTimeLineRow.addChildTraceRow(actualTimeLineRow);
     let offsetYTimeOut: any = undefined;
     frameTimeLineRow.addEventListener('expansion-change', (e: any) => {
+      JankStruct.delJankLineFlag = false;
       if (offsetYTimeOut) {
         clearTimeout(offsetYTimeOut);
       }
       if (e.detail.expansion) {
-        if (JankStruct!.selectJankStruct) {
-          JankStruct.delJankLineFlag = true;
-        } else {
-          JankStruct.delJankLineFlag = false;
-        }
         offsetYTimeOut = setTimeout(() => {
-          this.trace.linkNodes.forEach((linkNode) => {
+          this.trace.linkNodes.forEach((linkFrameNode) => {
             JankStruct.selectJankStructList?.forEach((dat: any) => {
               if (e.detail.rowId == dat.pid) {
                 JankStruct.selectJankStruct = dat;
                 JankStruct.hoverJankStruct = dat;
               }
             });
-            if (linkNode[0].rowEL.collect) {
-              linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+            if (linkFrameNode[0].rowEL.collect) {
+              linkFrameNode[0].rowEL.translateY = linkFrameNode[0].rowEL.getBoundingClientRect().top - 195;
             } else {
-              linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              linkFrameNode[0].rowEL.translateY = linkFrameNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
             }
-            linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
-            if (linkNode[1].rowEL.collect) {
-              linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+            linkFrameNode[0].y = linkFrameNode[0].rowEL!.translateY! + linkFrameNode[0].offsetY;
+            if (linkFrameNode[1].rowEL.collect) {
+              linkFrameNode[1].rowEL.translateY = linkFrameNode[1].rowEL.getBoundingClientRect().top - 195;
             } else {
-              linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              linkFrameNode[1].rowEL.translateY = linkFrameNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
             }
-            linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
-            if (linkNode[0].rowEL.rowId == e.detail.rowId) {
-              linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
-              linkNode[0].y = actualTimeLineRow!.translateY! + linkNode[0].offsetY * 2;
-              linkNode[0].offsetY = linkNode[0].offsetY * 2;
-              linkNode[0].rowEL = actualTimeLineRow;
-            } else if (linkNode[1].rowEL.rowId == e.detail.rowId) {
-              linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
-              linkNode[1].y = actualTimeLineRow!.translateY! + linkNode[1].offsetY * 2;
-              linkNode[1].offsetY = linkNode[1].offsetY * 2;
-              linkNode[1].rowEL = actualTimeLineRow!;
+            linkFrameNode[1].y = linkFrameNode[1].rowEL!.translateY! + linkFrameNode[1].offsetY;
+            if (linkFrameNode[0].rowEL.rowId == e.detail.rowId) {
+              linkFrameNode[0].x = ns2xByTimeShaft(linkFrameNode[0].ns, this.trace.timerShaftEL!);
+              linkFrameNode[0].y = actualTimeLineRow!.translateY! + linkFrameNode[0].offsetY * 2;
+              linkFrameNode[0].offsetY = linkFrameNode[0].offsetY * 2;
+              linkFrameNode[0].rowEL = actualTimeLineRow;
+            } else if (linkFrameNode[1].rowEL.rowId == e.detail.rowId) {
+              linkFrameNode[1].x = ns2xByTimeShaft(linkFrameNode[1].ns, this.trace.timerShaftEL!);
+              linkFrameNode[1].y = actualTimeLineRow!.translateY! + linkFrameNode[1].offsetY * 2;
+              linkFrameNode[1].offsetY = linkFrameNode[1].offsetY * 2;
+              linkFrameNode[1].rowEL = actualTimeLineRow!;
             }
           });
         }, 300);
       } else {
-        JankStruct.delJankLineFlag = false;
         if (JankStruct!.selectJankStruct) {
           JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
         }

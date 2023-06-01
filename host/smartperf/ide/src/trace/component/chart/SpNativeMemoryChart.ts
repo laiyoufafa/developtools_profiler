@@ -68,13 +68,11 @@ export class SpNativeMemoryChart {
     nativeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     nativeRow.selectChangeHandler = this.trace.selectChangeHandler;
     nativeRow.onDrawTypeChangeHandler = (type) => {
-      this.trace.rowsEL?.querySelectorAll<TraceRow<any>>(`trace-row[row-type='heap']`).forEach((it) => {
-        it.drawType = type;
-        this.trace.refreshCanvas(false);
-      });
+      nativeRow.childrenList.forEach(row => row.drawType = type);
       this.trace.favoriteRowsEL?.querySelectorAll<TraceRow<any>>(`trace-row[row-type='heap']`).forEach((it) => {
         it.drawType = type;
       });
+      this.trace.refreshCanvas(false);
     };
     nativeRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
     nativeRow.onThreadHandler = (useCache) => {
@@ -151,7 +149,7 @@ export class SpNativeMemoryChart {
   };
 
   getNativeMemoryStatisticByChartType = async (chartType: number): Promise<Array<HeapStruct>> => {
-    let arr: Array<HeapStruct> = [];
+    let nmStatisticArray: Array<HeapStruct> = [];
     await new Promise<Array<HeapStruct>>((resolve, reject) => {
       procedurePool.submitWithName(
         'logic1',
@@ -159,15 +157,15 @@ export class SpNativeMemoryChart {
         { type: chartType, totalNS: TraceRow.range?.totalNS! },
         undefined,
         (res: any) => {
-          arr = arr.concat(res.data);
+          nmStatisticArray = nmStatisticArray.concat(res.data);
           res.data = null;
           if (res.tag == 'end') {
-            resolve(arr);
+            resolve(nmStatisticArray);
           }
         }
       );
     });
-    return arr;
+    return nmStatisticArray;
   };
 
   getNativeMemoryDataByChartType = async (nativeMemoryType: number, chartType: number): Promise<Array<HeapStruct>> => {
@@ -176,17 +174,17 @@ export class SpNativeMemoryChart {
     args.set('chartType', chartType);
     args.set('totalNS', TraceRow.range?.totalNS!);
     args.set('actionType', 'memory-chart');
-    let arr: Array<HeapStruct> = [];
+    let nmArray: Array<HeapStruct> = [];
     await new Promise<Array<HeapStruct>>((resolve, reject) => {
       procedurePool.submitWithName('logic1', 'native-memory-chart-action', args, undefined, (res: any) => {
-        arr = arr.concat(res.data);
+        nmArray = nmArray.concat(res.data);
         res.data = null;
         if (res.tag == 'end') {
-          resolve(arr);
+          resolve(nmArray);
         }
       });
     });
-    return arr;
+    return nmArray;
   };
 
   initNativeMemory = async () => {

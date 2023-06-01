@@ -21,8 +21,8 @@
 #include "logging.h"
 #include "plugin_module_api.h"
 
-PluginModule::PluginModule(const std::string& path) : handle_(nullptr), running_(false), path_(path),
-                                                        structPtr_(nullptr) {}
+PluginModule::PluginModule(const std::string& path)
+    : handle_(nullptr), running_(false), path_(path), structPtr_(nullptr) {}
 
 PluginModule::~PluginModule() {}
 

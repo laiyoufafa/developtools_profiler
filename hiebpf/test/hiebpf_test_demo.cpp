@@ -69,7 +69,7 @@ private:
 static int g_sleepUs = 0;
 void CallStack1(const char * filename)
 {
-    int fd = open(filename, O_RDWR|O_CREAT|O_TRUNC, FILE_MODE);
+    int fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, FILE_MODE);
     if (fd < 0) {
         printf("NOTE Open file err: %s!\n", filename);
         return ;
@@ -78,7 +78,7 @@ void CallStack1(const char * filename)
         usleep(g_sleepUs);
     }
 
-    std::vector<char> buf(BUF_SIZE * 2,'a'); // 2: double
+    std::vector<char> buf(BUF_SIZE * 2, 'a'); // 2: double
     write(fd, buf.data(), buf.size());
     fsync(fd);
     if (g_sleepUs) {
@@ -102,7 +102,7 @@ void CallStack0(const char * filename)
     CallStack1(filename);
 }
 
-void* thread_func_cpp(void* param)
+void* ThreadFuncCpp(void* param)
 {
     unsigned int idx = 0;
     int threadNo = static_cast<int*>(param)[0];
@@ -116,8 +116,8 @@ void* thread_func_cpp(void* param)
     prctl(PR_SET_NAME, name.c_str());
     name = DEFAULT_PATH + name;
     const auto startTime = std::chrono::steady_clock::now();
-    std::chrono::seconds timeOut_{time};
-    const auto endTime = startTime + timeOut_;
+    std::chrono::seconds timeOut{time};
+    const auto endTime = startTime + timeOut;
 
     while (true) {
         const auto thisTime = std::chrono::steady_clock::now();
@@ -133,7 +133,8 @@ void* thread_func_cpp(void* param)
     return nullptr;
 }
 
-long ThreadTimeCost(int threadNum, int writeReadTime) {
+long ThreadTimeCost(int threadNum, int writeReadTime)
+{
     Timer timer = {};
     int idx;
     int args[threadNum][2];
@@ -143,8 +144,8 @@ long ThreadTimeCost(int threadNum, int writeReadTime) {
         return 1;
     }
 
-    pthread_t* thr_array = new (std::nothrow) pthread_t[threadNum];
-    if (!thr_array) {
+    pthread_t* thrArray = new (std::nothrow) pthread_t[threadNum];
+    if (!thrArray) {
         printf("new thread array failed.\n");
         return 1;
     }
@@ -152,15 +153,15 @@ long ThreadTimeCost(int threadNum, int writeReadTime) {
     for (idx = 0; idx < threadNum; ++idx) {
         args[idx][0] = idx;
         args[idx][1] = writeReadTime;
-        if (pthread_create(thr_array + idx, nullptr, thread_func_cpp, static_cast<void*>(args[idx])) != 0) {
+        if (pthread_create(thrArray + idx, nullptr, ThreadFuncCpp, static_cast<void*>(args[idx])) != 0) {
             printf("Creating thread failed.\n");
         }
     }
 
     for (idx = 0; idx < threadNum; ++idx) {
-        pthread_join(thr_array[idx], nullptr);
+        pthread_join(thrArray[idx], nullptr);
     }
-    delete []thr_array;
+    delete []thrArray;
 
     return timer.ElapsedUs();
 }
@@ -187,9 +188,8 @@ int main(int argc, char *argv[])
     printf("First isn't bpf hook.");
 
     auto timeCost = ThreadTimeCost(threadNum, writeReadTime);
-
     if (timeCost > 0) {
-        printf("Time cost %ld us.\n",timeCost);
+        printf("Time cost %ld us.\n", timeCost);
     } else {
         printf("Test failure end!\n");
         return 0;

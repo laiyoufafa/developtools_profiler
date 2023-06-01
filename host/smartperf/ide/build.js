@@ -15,7 +15,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const os = require('os');
 const log4js = require('log4js');
 
@@ -66,15 +66,15 @@ function cpFile(from, to) {
 }
 
 function checkEnvironment() {
-  let goVersion = child_process.execSync('go version', {
+  let goVersion = childProcess.execSync('go version', {
     encoding: 'utf-8',
   });
   log.info('go is', goVersion);
-  let nodeVersion = child_process.execSync('node -v', {
+  let nodeVersion = childProcess.execSync('node -v', {
     encoding: 'utf-8',
   });
   log.info('node version is', nodeVersion);
-  let tscVersion = child_process.execSync('tsc -v', {
+  let tscVersion = childProcess.execSync('tsc -v', {
     encoding: 'utf-8',
   });
   log.info('tsc version is', tscVersion);
@@ -120,7 +120,7 @@ function main() {
   // run tsc compile
   log.info('start compiling typeScript code');
   let rootPath = path.join(__dirname, '/');
-  child_process.execSync('tsc -p ' + rootPath, {
+  childProcess.execSync('tsc -p ' + rootPath, {
     encoding: 'utf-8',
   });
   log.info('compiling typeScript code success');
@@ -178,15 +178,11 @@ function main() {
     let serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
     let rs;
     if (os.type() === 'Windows_NT') {
-      rs = child_process.spawnSync('go', ['build', '-o', outPath, serverSrc], {
-        encoding: 'utf-8',
-      });
-    } else if (os.type() == 'Darwin') {
-      rs = child_process.spawnSync('go', ['build', '-o', outPath + '/main', serverSrc], {
+      rs = childProcess.spawnSync('go', ['build', '-o', outPath, serverSrc], {
         encoding: 'utf-8',
       });
     } else {
-      rs = child_process.spawnSync('go', ['build', '-o', outPath + '/main', serverSrc], {
+      rs = childProcess.spawnSync('go', ['build', '-o', outPath + '/main', serverSrc], {
         encoding: 'utf-8',
       });
     }

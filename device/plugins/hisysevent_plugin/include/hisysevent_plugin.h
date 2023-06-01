@@ -21,8 +21,8 @@
 #include "logging.h"
 #include "plugin_module_api.h"
 
-#include <stdio.h>
 #include <atomic>
+#include <cstdio>
 #include <mutex>
 #include <thread>
 #include <vector>

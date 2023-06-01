@@ -71,17 +71,17 @@ export class SmapsChart {
   };
 
   private initRows = async (nodeRow: TraceRow<BaseStruct>, rowName: string) => {
-    let traceRow = TraceRow.skeleton<SmapsStruct>();
-    traceRow.rowParentId = `smapsRow`;
-    traceRow.rowHidden = !nodeRow.expansion;
-    traceRow.rowId = rowName;
-    traceRow.rowType = TraceRow.ROW_TYPE_SMAPS;
-    traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    traceRow.style.height = '40px';
-    traceRow.style.width = `100%`;
-    traceRow.setAttribute('children', '');
-    traceRow.name = rowName;
+    let smapsTraceRow = TraceRow.skeleton<SmapsStruct>();
+    smapsTraceRow.rowParentId = `smapsRow`;
+    smapsTraceRow.rowHidden = !nodeRow.expansion;
+    smapsTraceRow.rowId = rowName;
+    smapsTraceRow.rowType = TraceRow.ROW_TYPE_SMAPS;
+    smapsTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    smapsTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
+    smapsTraceRow.style.height = '40px';
+    smapsTraceRow.style.width = `100%`;
+    smapsTraceRow.setAttribute('children', '');
+    smapsTraceRow.name = rowName;
     let columnName = '';
     if (rowName == 'Dirty Size') {
       columnName = 'dirty';
@@ -90,19 +90,19 @@ export class SmapsChart {
     } else {
       columnName = 'resident_size';
     }
-    traceRow.supplier = () => querySmapsData(columnName);
+    smapsTraceRow.supplier = () => querySmapsData(columnName);
     let maxList = await querySmapsDataMax(columnName);
     let maxValue = maxList[0].max_value;
-    traceRow.focusHandler = (ev) => {
+    smapsTraceRow.focusHandler = (ev) => {
       this.trace?.displayTip(
-        traceRow,
+        smapsTraceRow,
         SmapsStruct.hoverSmapsStruct,
         `<span>${Utils.getBinaryByteWithUnit((SmapsStruct.hoverSmapsStruct?.value || 0) * 1024)}</span>`
       );
     };
-    traceRow.onThreadHandler = (useCache) => {
-      let context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      traceRow.canvasSave(context);
+    smapsTraceRow.onThreadHandler = (useCache) => {
+      let context = smapsTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      smapsTraceRow.canvasSave(context);
       (renders['smaps'] as SmapsRender).renderMainThread(
         {
           context: context,
@@ -111,10 +111,10 @@ export class SmapsChart {
           rowName: columnName,
           maxValue: maxValue,
         },
-        traceRow
+        smapsTraceRow
       );
-      traceRow.canvasRestore(context);
+      smapsTraceRow.canvasRestore(context);
     };
-    nodeRow.addChildTraceRow(traceRow);
+    nodeRow.addChildTraceRow(smapsTraceRow);
   };
 }

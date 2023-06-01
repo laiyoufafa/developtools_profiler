@@ -63,13 +63,13 @@ const std::string BASE_SOURCE_STRING = R"(
 #include "unix_socket_server.h"
 #include <unistd.h>
 
-namespace{
-    const uint32_t WAIT_FOR_EVER=24*60*60*1000;
+namespace {
+    constexpr uint32_t WAIT_FOR_EVER = 24 * 60 * 60 * 1000;
 }
 
 #SERVICE_CLASS_NAME#::#SERVICE_CLASS_NAME#()
 {
-    serviceName_="#SERVICE_NAME#";
+    serviceName_ = "#SERVICE_NAME#";
 }
 
 #RESPONSE_IMPLEMENT#
@@ -85,18 +85,18 @@ bool #SERVICE_CLASS_NAME#::ProtocolProc(SocketContext &context, uint32_t pnum, c
 
 #CLIENT_CLASS_NAME#::#CLIENT_CLASS_NAME#()
 {
-    unixSocketClient_=nullptr;
-    serviceName_="#SERVICE_NAME#";
+    unixSocketClient_ = nullptr;
+    serviceName_ = "#SERVICE_NAME#";
 }
 bool #CLIENT_CLASS_NAME#::Connect(const std::string addrname)
 {
-    if (unixSocketClient_!=nullptr) {
+    if (unixSocketClient_ != nullptr) {
         return false;
     }
     unixSocketClient_ = std::make_shared<UnixSocketClient>();
     if (!unixSocketClient_->Connect(addrname, *this)) {
         printf("Socket Connect failed\n");
-        unixSocketClient_=nullptr;
+        unixSocketClient_ = nullptr;
         return false;
     }
     return true;
@@ -110,8 +110,8 @@ bool #CLIENT_CLASS_NAME#::ProtocolProc(SocketContext &context, uint32_t pnum, co
     switch (pnum) {
 #CLIENT_PROTOCOL_PROC#
     }
-    if (waitingFor==pnum) {
-        waitingFor=-1;
+    if (waitingFor == pnum) {
+        waitingFor = -1;
         mWait_.unlock();
     }
     return false;
@@ -308,7 +308,7 @@ namespace {
 const std::string SERVICE_CALL_IMPL_STRING = R"(
 bool #SERVER_CLASS_NAME#::#METHOD_NAME#(SocketContext &context,
                                         #PACKAGE_NAME##REQUEST_NAME# &request,
-                                        #PACKAGE_NAME##RESPONSE_NAME# &response){
+                                        #PACKAGE_NAME##RESPONSE_NAME# &response) {
     return false;
 }
 )";

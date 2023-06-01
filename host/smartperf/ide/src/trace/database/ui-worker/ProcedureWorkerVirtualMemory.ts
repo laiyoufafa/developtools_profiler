@@ -16,15 +16,14 @@
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
   BaseStruct,
-  drawFlagLine,
   drawLines,
   drawLoading,
-  drawSelection,
-  drawWakeUp,
-  isFrameContainPoint,
-  ns2x,
   Render,
   RequestMessage,
+  mem,
+  drawFlagLine,
+  drawSelection,
+  isFrameContainPoint,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
@@ -59,131 +58,96 @@ export class VirtualMemoryRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      mem(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(virtualMemoryRequest: RequestMessage, virtualMemoryList: Array<any>, filter: Array<any>) {
+    if (virtualMemoryRequest.lazyRefresh) {
+      mem(
+        virtualMemoryList,
+        filter,
+        virtualMemoryRequest.startNS,
+        virtualMemoryRequest.endNS,
+        virtualMemoryRequest.totalNS,
+        virtualMemoryRequest.frame,
+        virtualMemoryRequest.useCache || !virtualMemoryRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        mem(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!virtualMemoryRequest.useCache) {
+        mem(
+          virtualMemoryList,
+          filter,
+          virtualMemoryRequest.startNS,
+          virtualMemoryRequest.endNS,
+          virtualMemoryRequest.totalNS,
+          virtualMemoryRequest.frame,
+          false
+        );
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+    if (virtualMemoryRequest.canvas) {
+      virtualMemoryRequest.context.clearRect(0, 0, virtualMemoryRequest.frame.width, virtualMemoryRequest.frame.height);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (
+        arr.length > 0 &&
+        !virtualMemoryRequest.range.refresh &&
+        !virtualMemoryRequest.useCache &&
+        virtualMemoryRequest.lazyRefresh
+      ) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          virtualMemoryRequest.context,
+          virtualMemoryRequest.startNS,
+          virtualMemoryRequest.endNS,
+          virtualMemoryRequest.totalNS,
+          virtualMemoryRequest.frame,
           arr[0].startTime,
           arr[arr.length - 1].startTime + arr[arr.length - 1].dur
         );
       }
-      req.context.beginPath();
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      virtualMemoryRequest.context.beginPath();
+      drawLines(
+        virtualMemoryRequest.context,
+        virtualMemoryRequest.xs,
+        virtualMemoryRequest.frame.height,
+        virtualMemoryRequest.lineColor
+      );
       VirtualMemoryStruct.hoverStruct = undefined;
-      if (req.isHover) {
+      if (virtualMemoryRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            virtualMemoryRequest.hoverX >= re.frame.x &&
+            virtualMemoryRequest.hoverX <= re.frame.x + re.frame.width &&
+            virtualMemoryRequest.hoverY >= re.frame.y &&
+            virtualMemoryRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             VirtualMemoryStruct.hoverStruct = re;
             break;
           }
         }
       } else {
-        VirtualMemoryStruct.hoverStruct = req.params.hoverStruct;
+        VirtualMemoryStruct.hoverStruct = virtualMemoryRequest.params.hoverStruct;
       }
       for (let re of filter) {
-        VirtualMemoryStruct.draw(req.context, re);
+        VirtualMemoryStruct.draw(virtualMemoryRequest.context, re);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(virtualMemoryRequest.context, virtualMemoryRequest.params);
+      virtualMemoryRequest.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        virtualMemoryRequest.context,
+        virtualMemoryRequest.flagMoveInfo,
+        virtualMemoryRequest.flagSelectedInfo,
+        virtualMemoryRequest.startNS,
+        virtualMemoryRequest.endNS,
+        virtualMemoryRequest.totalNS,
+        virtualMemoryRequest.frame,
+        virtualMemoryRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: virtualMemoryRequest.id,
+      type: virtualMemoryRequest.type,
+      results: virtualMemoryRequest.canvas ? undefined : filter,
       hover: VirtualMemoryStruct.hoverStruct,
     });
-  }
-}
-
-function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-  let x1: number;
-  let x2: number;
-  if ((node.startTime || 0) <= startNS) {
-    x1 = 0;
-  } else {
-    x1 = ns2x(node.startTime || 0, startNS, endNS, totalNS, frame);
-  }
-  if ((node.startTime || 0) + (node.duration || 0) >= endNS) {
-    x2 = frame.width;
-  } else {
-    x2 = ns2x((node.startTime || 0) + (node.duration || 0), startNS, endNS, totalNS, frame);
-  }
-  let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-  if (!node.frame) {
-    node.frame = {};
-  }
-  node.frame.x = Math.floor(x1);
-  node.frame.y = Math.floor(frame.y + padding);
-  node.frame.width = Math.ceil(getV);
-  node.frame.height = Math.floor(frame.height - padding * 2);
-}
-
-export function mem(
-  list: Array<any>,
-  res: Array<any>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any,
-  use: boolean
-) {
-  if (use && res.length > 0) {
-    for (let i = 0, len = res.length; i < len; i++) {
-      if ((res[i].startTime || 0) + (res[i].duration || 0) > startNS && (res[i].startTime || 0) < endNS) {
-        setMemFrame(res[i], 5, startNS, endNS, totalNS, frame);
-      } else {
-        res[i].frame = null;
-      }
-    }
-    return;
-  }
-  res.length = 0;
-  if (list) {
-    for (let i = 0, len = list.length; i < len; i++) {
-      let it = list[i];
-      if ((it.startTime || 0) + (it.duration || 0) > startNS && (it.startTime || 0) < endNS) {
-        setMemFrame(list[i], 5, startNS, endNS, totalNS, frame);
-        if (
-          i > 0 &&
-          (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
-          (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)
-        ) {
-        } else {
-          res.push(list[i]);
-        }
-      }
-    }
   }
 }
 
@@ -196,36 +160,36 @@ export class VirtualMemoryStruct extends BaseStruct {
   maxValue: number | undefined;
   delta: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: VirtualMemoryStruct) {
+  static draw(virtualMemoryContext: CanvasRenderingContext2D, data: VirtualMemoryStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);
-      ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0);
+      virtualMemoryContext.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);
+      virtualMemoryContext.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0);
       if (data === VirtualMemoryStruct.hoverStruct) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
-        let drawHeight: number = Math.floor(
+        virtualMemoryContext.lineWidth = 1;
+        virtualMemoryContext.globalAlpha = 0.6;
+        let virtualMemoryDrawHeight: number = Math.floor(
           ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1)
         );
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        virtualMemoryContext.fillRect(data.frame.x, data.frame.y + data.frame.height - virtualMemoryDrawHeight, width, virtualMemoryDrawHeight);
+        virtualMemoryContext.beginPath();
+        virtualMemoryContext.arc(data.frame.x, data.frame.y + data.frame.height - virtualMemoryDrawHeight, 3, 0, 2 * Math.PI, true);
+        virtualMemoryContext.fill();
+        virtualMemoryContext.globalAlpha = 1.0;
+        virtualMemoryContext.stroke();
+        virtualMemoryContext.beginPath();
+        virtualMemoryContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - virtualMemoryDrawHeight);
+        virtualMemoryContext.lineWidth = 3;
+        virtualMemoryContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - virtualMemoryDrawHeight);
+        virtualMemoryContext.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
+        virtualMemoryContext.globalAlpha = 0.6;
+        virtualMemoryContext.lineWidth = 1;
         let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        virtualMemoryContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    virtualMemoryContext.globalAlpha = 1.0;
+    virtualMemoryContext.lineWidth = 1;
   }
 }

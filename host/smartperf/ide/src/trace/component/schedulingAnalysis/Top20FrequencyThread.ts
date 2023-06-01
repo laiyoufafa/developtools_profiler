@@ -32,33 +32,33 @@ import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorke
 export class Top20FrequencyThread extends BaseElement {
   static threads: { id: number; tid: number; name: string }[] | undefined;
   traceChange: boolean = false;
-  private table: LitTable | null | undefined;
+  private frequencyThreadTbl: LitTable | null | undefined;
   private threadSelect: LitSelect | null | undefined;
-  private pie: LitChartPie | null | undefined;
+  private frequencyThreadPie: LitChartPie | null | undefined;
   private currentThread: HTMLDivElement | null | undefined;
-  private progress: LitProgressBar | null | undefined;
+  private frequencyThreadProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
   private currentTid: number = 0;
-  private data: Array<any> = [];
+  private frequencyThreadData: Array<any> = [];
   private sortColumn: string = '';
   private sortType: number = 0;
 
   initElements(): void {
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
-    this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-    this.table = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
+    this.frequencyThreadProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+    this.frequencyThreadTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
     this.currentThread = this.shadowRoot!.querySelector<HTMLDivElement>('#current_thread');
     this.threadSelect = this.shadowRoot!.querySelector<LitSelect>('#thread_select');
-    this.pie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
+    this.frequencyThreadPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
     this.threadSelect!.onchange = (e) => {
       this.currentThread!.textContent = (e as any).detail.text;
       this.currentTid = parseInt((e as any).detail.value);
-      this.progress!.loading = true;
+      this.frequencyThreadProgress!.loading = true;
       this.queryData();
     };
 
-    this.table!.addEventListener('row-click', (evt: any) => {
+    this.frequencyThreadTbl!.addEventListener('row-click', (evt: any) => {
       let data = evt.detail.data;
       data.isSelected = true;
       if ((evt.detail as any).callBack) {
@@ -66,13 +66,13 @@ export class Top20FrequencyThread extends BaseElement {
       }
     });
 
-    this.table!.addEventListener('column-click', (evt: any) => {
+    this.frequencyThreadTbl!.addEventListener('column-click', (evt: any) => {
       this.sortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.table!.addEventListener('row-hover', (evt: any) => {
+    this.frequencyThreadTbl!.addEventListener('row-hover', (evt: any) => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -80,24 +80,24 @@ export class Top20FrequencyThread extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       }
-      this.pie?.showHover();
+      this.frequencyThreadPie?.showHover();
     });
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(frequencyThreadProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[frequencyThreadProperty]) - parseFloat(a[frequencyThreadProperty])
+            : parseFloat(a[frequencyThreadProperty]) - parseFloat(b[frequencyThreadProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[frequencyThreadProperty].toString().localeCompare(a[frequencyThreadProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[frequencyThreadProperty].toString().localeCompare(b[frequencyThreadProperty].toString());
           }
         }
       };
@@ -105,24 +105,24 @@ export class Top20FrequencyThread extends BaseElement {
 
     if (detail.key === 'timeStr') {
       detail.key = 'time';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'no' || detail.key === 'cpu' || detail.key === 'freq' || detail.key === 'ratio') {
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      this.data.sort(compare(detail.key, detail.sort, 'string'));
+      this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.table!.recycleDataSource = this.data;
+    this.frequencyThreadTbl!.recycleDataSource = this.frequencyThreadData;
   }
 
   async init() {
     if (!this.traceChange) {
-      if (this.table!.recycleDataSource.length > 0) {
-        this.table?.reMeauseHeight();
+      if (this.frequencyThreadTbl!.recycleDataSource.length > 0) {
+        this.frequencyThreadTbl?.reMeauseHeight();
       }
       return;
     }
     this.traceChange = false;
-    this.progress!.loading = true;
+    this.frequencyThreadProgress!.loading = true;
     if (Top20FrequencyThread.threads === undefined) {
       Top20FrequencyThread.threads = (await queryThreads()) || [];
       this.nodata!.noData = Top20FrequencyThread.threads === undefined || Top20FrequencyThread.threads.length === 0;
@@ -152,17 +152,17 @@ export class Top20FrequencyThread extends BaseElement {
       (res as any[]).map((it: any, index: number) => {
         it.no = index + 1;
       });
-      this.data = res;
+      this.frequencyThreadData = res;
       if (this.sortColumn != '') {
         this.sortByColumn({
           key: this.sortColumn,
           sort: this.sortType,
         });
       } else {
-        this.table!.recycleDataSource = res;
+        this.frequencyThreadTbl!.recycleDataSource = res;
       }
-      this.table!.reMeauseHeight();
-      this.pie!.config = {
+      this.frequencyThreadTbl!.reMeauseHeight();
+      this.frequencyThreadPie!.config = {
         appendPadding: 10,
         data: this.getPieChartData(res),
         angleField: 'time',
@@ -182,9 +182,9 @@ export class Top20FrequencyThread extends BaseElement {
         },
         hoverHandler: (data) => {
           if (data) {
-            this.table!.setCurrentHover(data);
+            this.frequencyThreadTbl!.setCurrentHover(data);
           } else {
-            this.table!.mouseOut();
+            this.frequencyThreadTbl!.mouseOut();
           }
         },
         interactions: [
@@ -193,7 +193,7 @@ export class Top20FrequencyThread extends BaseElement {
           },
         ],
       };
-      this.progress!.loading = false;
+      this.frequencyThreadProgress!.loading = false;
       this.shadowRoot!.querySelector('#tb_container')!.scrollTop = 0;
     });
   }
@@ -227,14 +227,14 @@ export class Top20FrequencyThread extends BaseElement {
   clearData() {
     this.traceChange = true;
     this.threadSelect!.innerHTML = '';
-    this.pie!.dataSource = [];
-    this.table!.recycleDataSource = [];
+    this.frequencyThreadPie!.dataSource = [];
+    this.frequencyThreadTbl!.recycleDataSource = [];
   }
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
-    let time = new Date().getTime();
+    let frequencyThreadTime = new Date().getTime();
     procedurePool.submitWithName('logic1', option, { tid: this.currentTid }, undefined, handler);
-    let durTime = new Date().getTime() - time;
+    let durTime = new Date().getTime() - frequencyThreadTime;
     info(log, durTime);
   }
 

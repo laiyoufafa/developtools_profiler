@@ -16,7 +16,6 @@
 import './sql-wasm.js';
 
 import { Counter, Fps, SelectionData } from '../bean/BoxSelection.js';
-import { WakeUpTimeBean } from '../bean/WakeUpTimeBean.js';
 import { WakeupBean } from '../bean/WakeupBean.js';
 import { BinderArgBean } from '../bean/BinderArgBean.js';
 import { SPT, SPTChild } from '../bean/StateProcessThread.js';
@@ -635,14 +634,14 @@ export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: numb
     select
       cpu,
       value,
-      (ts - tb.start_ts) as startNs
+      (ts - tr.start_ts) as startNs
     from
-      measure c,
-      trace_range tb
+      measure m,
+      trace_range tr
     inner join
       cpu_measure_filter t
     on
-      c.filter_id = t.id
+      m.filter_id = t.id
     where
       (name = 'cpufreq' or name='cpu_frequency')
     and
@@ -723,18 +722,18 @@ export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime
     'getTabVirtualCounters',
     `
     select
-      t1.filter_id as trackId,
-      t2.name,
+      table1.filter_id as trackId,
+      table2.name,
       value,
-      t1.ts - t3.start_ts as startTime
+      table1.ts - table3.start_ts as startTime
     from
-      sys_mem_measure t1
+      sys_mem_measure table1
     left join
-      sys_event_filter t2
+      sys_event_filter table2
     on
-      t1.filter_id = t2.id
+      table1.filter_id = table2.id
     left join
-      trace_range t3
+      trace_range table3
     where
       filter_id in (${virtualFilterIds.join(',')})
     and
@@ -772,23 +771,23 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
     'getTabCpuByThread',
     `
     select
-      B.pid as pid,
-      B.tid as tid,
-      B.cpu,
-      sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration,
-      count(B.tid) as occurrences
+      TS.pid as pid,
+      TS.tid as tid,
+      TS.cpu,
+      sum( min(${rightNS},(TS.ts - TR.start_ts + TS.dur)) - max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
+      count(TS.tid) as occurrences
     from
-      thread_state AS B
+      thread_state AS TS
     left join
       trace_range AS TR
     where
-      B.cpu in (${cpus.join(',')})
+      TS.cpu in (${cpus.join(',')})
     and
-      not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS))
+      not ((TS.ts - TR.start_ts + TS.dur < $leftNS) or (TS.ts - TR.start_ts > $rightNS))
     group by
-      B.cpu,
-      B.pid,
-      B.tid
+      TS.cpu,
+      TS.pid,
+      TS.tid
     order by
       wallDuration desc;`,
     { $rightNS: rightNS, $leftNS: leftNS }
@@ -804,17 +803,17 @@ export const getTabSlices = (funTids: Array<number>, leftNS: number, rightNS: nu
       avg(c.dur) as avgDuration,
       count(c.name) as occurrences
     from
-      thread A, trace_range D
+      thread T, trace_range TR
     left join
       callstack C
     on
-      A.id = C.callid
+      T.id = C.callid
     where
       C.ts not null
     and
       c.dur >= 0
     and
-      A.tid in (${funTids.join(',')})
+      T.tid in (${funTids.join(',')})
     and
       c.name != 'binder transaction async'
     and
@@ -822,7 +821,7 @@ export const getTabSlices = (funTids: Array<number>, leftNS: number, rightNS: nu
     and
       c.cookie is null
     and
-      not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
+      not ((C.ts - TR.start_ts + C.dur < $leftNS) or (C.ts - TR.start_ts > $rightNS))
     group by
       c.name
     order by
@@ -1405,15 +1404,15 @@ export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number
       event_type as eventType,
       sub_type_id as subTypeId,
       max(heap_size) as max,
-      sum(case when ((A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}) then heap_size else 0 end) as allocByte,
-      sum(case when ((A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}) then 1 else 0 end) as allocCount,
-      sum(case when ((A.end_ts - B.start_ts) between ${leftNs} and ${rightNs} ) then heap_size else 0 end) as freeByte,
-      sum(case when ((A.end_ts - B.start_ts) between ${leftNs} and ${rightNs} ) then 1 else 0 end) as freeCount
+      sum(case when ((NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}) then heap_size else 0 end) as allocByte,
+      sum(case when ((NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}) then 1 else 0 end) as allocCount,
+      sum(case when ((NH.end_ts - TR.start_ts) between ${leftNs} and ${rightNs} ) then heap_size else 0 end) as freeByte,
+      sum(case when ((NH.end_ts - TR.start_ts) between ${leftNs} and ${rightNs} ) then 1 else 0 end) as freeCount
     from
-      native_hook A,
-      trace_range B
+      native_hook NH,
+      trace_range TR
     where
-      (A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}
+      (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
     and
       (event_type = 'MmapEvent')
     group by
@@ -1811,18 +1810,18 @@ export const queryTraceMemoryTop = (): Promise<
         max(value) as maxNum,
         min(value) as minNum,
         avg(value) as avgNum,
-        filter.name as name,
+        f.name as name,
         p.name as processName
         from process_measure
-        left join process_measure_filter as filter on filter.id= filter_id
-        left join process as p on p.id = filter.ipid
-    where 
-    filter_id > 0 
-    and 
-    filter.name = 'mem.rss.anon' 
-    group by 
-    filter_id 
-    order by 
+        left join process_measure_filter as f on f.id= filter_id
+        left join process as p on p.id = f.ipid
+    where
+    filter_id > 0
+    and
+    f.name = 'mem.rss.anon'
+    group by
+    filter_id
+    order by
     avgNum desc limit 10`
   );
 
@@ -2613,20 +2612,21 @@ export const getTabPaneFilesystemStatisticsFather = (leftNs: number, rightNs: nu
   query(
     'getTabPaneFilesystemStatisticsFather',
     `
-        select SUM(dur)    as allDuration,
-        count(f.type) as count,
-        min(dur)    as minDuration,
-        max(dur)    as maxDuration,
-        round(avg(dur),2)    as avgDuration,
-        p.name,
-        f.type,
-        p.pid,
-        sum(ifnull(size,0))    as size
-        from file_system_sample as f left join process as p on f.ipid=p.ipid
-        where f.start_ts >= $leftNs
-        and end_ts <= $rightNs
-        group by f.type;
-`,
+    select SUM(dur) as allDuration,
+    count(f.type) as count,
+    min(dur) as minDuration,
+    max(dur) as maxDuration,
+    round(avg(dur),2) as avgDuration,
+    p.name,
+    f.type,
+    p.pid,
+    sum(ifnull(size,0)) as size
+    from file_system_sample as f
+    left join process as p on f.ipid=p.ipid
+    where f.start_ts >= $leftNs
+    and end_ts <= $rightNs
+    group by f.type;
+    `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
@@ -3059,19 +3059,20 @@ export const querySystemDetailsData = (rightNs: number, eventName: string): Prom
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue 
-        FROM
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue
+    FROM
         trace_range AS TR,
         hisys_event_measure AS S
         LEFT JOIN data_dict AS D ON D.id = S.name_id
         LEFT JOIN app_name AS APP ON APP.id = S.key_id
-        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
-        WHERE
-        D.data in ($eventName) 
-        and 
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key
+    WHERE
+        D.data in ($eventName)
+    AND
         D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
-        and (S.ts - TR.start_ts) <= $rightNS
-        GROUP BY
+    AND
+        (S.ts - TR.start_ts) <= $rightNS
+    GROUP BY
         S.serial,
         APP.app_key,
         D.data,
@@ -3086,16 +3087,19 @@ export const querySystemWorkData = (rightNs: number): Promise<Array<SystemDetail
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue 
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
-        LEFT JOIN data_dict AS D ON D.id = S.name_id
-        LEFT JOIN app_name AS APP ON APP.id = S.key_id
-        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
+        LEFT JOIN data_dict AS D
+        ON D.id = S.name_id
+        LEFT JOIN app_name AS APP
+        ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2
+        ON D2.id = APP.app_key
         WHERE
-        D.data in ("WORK_REMOVE", "WORK_STOP", "WORK_ADD", "WORK_START") 
-        and 
+        D.data in ("WORK_REMOVE", "WORK_STOP", "WORK_ADD", "WORK_START")
+        and
         D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
         and (S.ts - TR.start_ts) <= $rightNS
         GROUP BY
@@ -3144,22 +3148,25 @@ export const queryPowerData = (): Promise<
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue 
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
-        LEFT JOIN data_dict AS D ON D.id = S.name_id
-        LEFT JOIN app_name AS APP ON APP.id = S.key_id
-        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
-        where 
+        LEFT JOIN data_dict AS D
+        ON D.id = S.name_id
+        LEFT JOIN app_name AS APP
+        ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2
+        ON D2.id = APP.app_key
+        where
         D.data in ('POWER_IDE_CPU','POWER_IDE_LOCATION','POWER_IDE_GPU','POWER_IDE_DISPLAY','POWER_IDE_CAMERA','POWER_IDE_BLUETOOTH','POWER_IDE_FLASHLIGHT','POWER_IDE_AUDIO','POWER_IDE_WIFISCAN')
-        and 
+        and
         D2.data in ('BACKGROUND_ENERGY','FOREGROUND_ENERGY','SCREEN_ON_ENERGY','SCREEN_OFF_ENERGY','ENERGY','APPNAME')
         GROUP BY
         S.serial,
         APP.app_key,
         D.data,
-        D2.data 
+        D2.data
         ORDER BY
         eventName;`,
     {}
@@ -3182,16 +3189,16 @@ export const getTabPowerDetailsData = (
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue 
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
         LEFT JOIN data_dict AS D ON D.id = S.name_id
         LEFT JOIN app_name AS APP ON APP.id = S.key_id
-        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
-        where 
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key
+        where
         D.data in ('POWER_IDE_CPU','POWER_IDE_LOCATION','POWER_IDE_GPU','POWER_IDE_DISPLAY','POWER_IDE_CAMERA','POWER_IDE_BLUETOOTH','POWER_IDE_FLASHLIGHT','POWER_IDE_AUDIO','POWER_IDE_WIFISCAN')
-        and 
+        and
         D2.data in ('APPNAME')
         GROUP BY
         S.serial,
@@ -3201,30 +3208,30 @@ export const getTabPowerDetailsData = (
         UNION
         SELECT
         ( S.ts - TR.start_ts ) AS startNS,
-        D.data AS eventName,
+        D1.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue 
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
-        LEFT JOIN data_dict AS D ON D.id = S.name_id
+        LEFT JOIN data_dict AS D1 ON D1.id = S.name_id
         LEFT JOIN app_name AS APP ON APP.id = S.key_id
-        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
-        where 
-        D.data in ('POWER_IDE_CPU','POWER_IDE_LOCATION','POWER_IDE_GPU','POWER_IDE_DISPLAY','POWER_IDE_CAMERA','POWER_IDE_BLUETOOTH','POWER_IDE_FLASHLIGHT','POWER_IDE_AUDIO','POWER_IDE_WIFISCAN')
-        and 
-        D2.data in ('CHARGE','BACKGROUND_TIME','SCREEN_ON_TIME','SCREEN_OFF_TIME','LOAD','USAGE','DURATION','CAMERA_ID', 
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key
+        where
+        D1.data in ('POWER_IDE_CPU','POWER_IDE_LOCATION','POWER_IDE_GPU','POWER_IDE_DISPLAY','POWER_IDE_CAMERA','POWER_IDE_BLUETOOTH','POWER_IDE_FLASHLIGHT','POWER_IDE_AUDIO','POWER_IDE_WIFISCAN')
+        and
+        D2.data in ('CHARGE','BACKGROUND_TIME','SCREEN_ON_TIME','SCREEN_OFF_TIME','LOAD','USAGE','DURATION','CAMERA_ID',
         'FOREGROUND_COUNT','BACKGROUND_COUNT','SCREEN_ON_COUNT','SCREEN_OFF_COUNT','COUNT','UID','FOREGROUND_DURATION',
         'FOREGROUND_ENERGY','BACKGROUND_DURATION','BACKGROUND_ENERGY','SCREEN_ON_DURATION','SCREEN_ON_ENERGY',
         'SCREEN_OFF_DURATION','SCREEN_OFF_ENERGY','ENERGY')
-        and 
+        and
         (S.ts - TR.start_ts) >= $leftNS
         and (S.ts - TR.start_ts) <= $rightNS
         GROUP BY
         S.serial,
         APP.app_key,
-        D.data,
-        D2.data 
+        D1.data,
+        D2.data
         ORDER BY
         eventName;`,
     { $leftNS: leftNs, $rightNS: rightNs }
@@ -3333,44 +3340,44 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
     `select
   S.ts,
   D.data as eventName,
-  D2.data as appKey, 
-  group_concat((case when S.type==1 then S.string_value else S.int_value end), ',') as Value 
-  from trace_range AS TR,hisys_event_measure as S 
-  left join data_dict as D on D.id=S.name_id 
-  left join app_name as APP on APP.id=S.key_id 
+  D2.data as appKey,
+  group_concat((case when S.type==1 then S.string_value else S.int_value end), ',') as Value
+  from trace_range AS TR,hisys_event_measure as S
+  left join data_dict as D on D.id=S.name_id
+  left join app_name as APP on APP.id=S.key_id
   left join data_dict as D2 on D2.id=APP.app_key
   where D.data in ('ANOMALY_SCREEN_OFF_ENERGY','ANOMALY_ALARM_WAKEUP','ANOMALY_KERNEL_WAKELOCK',
   'ANOMALY_RUNNINGLOCK','ANORMALY_APP_ENERGY','ANOMALY_GNSS_ENERGY','ANOMALY_CPU_HIGH_FREQUENCY','ANOMALY_CPU_ENERGY','ANOMALY_WAKEUP')
   and D2.data in ('APPNAME')
   and (S.ts - TR.start_ts) >= $leftNS
-   and (S.ts - TR.start_ts) <= $rightNS 
+   and (S.ts - TR.start_ts) <= $rightNS
   group by S.serial,APP.app_key,D.data,D2.data
-  union 
+  union
   select
   S.ts,
   D.data as eventName,
-  D2.data as appKey, 
-  group_concat((case when S.type==1 then S.string_value else S.int_value end), ',') as Value 
-  from trace_range AS TR,hisys_event_measure as S 
-  left join data_dict as D on D.id=S.name_id 
-  left join app_name as APP on APP.id=S.key_id 
-  left join data_dict as D2 on D2.id=APP.app_key
-  where D.data in ('ANOMALY_SCREEN_OFF_ENERGY','ANOMALY_ALARM_WAKEUP','ANOMALY_KERNEL_WAKELOCK',
-  'ANOMALY_RUNNINGLOCK','ANORMALY_APP_ENERGY','ANOMALY_GNSS_ENERGY','ANOMALY_CPU_HIGH_FREQUENCY','ANOMALY_CPU_ENERGY','ANOMALY_WAKEUP')
-  and D2.data not in ('pid_','tid_','type_','tz_','uid_','domain_', 'id_', 'level_', 'info_', 'tag_', 'APPNAME')
+  D2.data as appKey,
+  group_concat((case when S.type == 1 then S.string_value else S.int_value end), ',') as Value
+  from trace_range AS TR,hisys_event_measure as S
+  left join data_dict as D on D.id = S.name_id
+  left join app_name as APP on APP.id = S.key_id
+  left join data_dict as D2 on D2.id = APP.app_key
+  where D.data in ('ANOMALY_SCREEN_OFF_ENERGY', 'ANOMALY_ALARM_WAKEUP', 'ANOMALY_KERNEL_WAKELOCK',
+  'ANOMALY_RUNNINGLOCK', 'ANORMALY_APP_ENERGY', 'ANOMALY_GNSS_ENERGY', 'ANOMALY_CPU_HIGH_FREQUENCY', 'ANOMALY_CPU_ENERGY', 'ANOMALY_WAKEUP')
+  and D2.data not in ('pid_', 'tid_', 'type_', 'tz_', 'uid_', 'domain_', 'id_', 'level_', 'info_', 'tag_', 'APPNAME')
   and (S.ts - TR.start_ts) >= $leftNS
-   and (S.ts - TR.start_ts) <= $rightNS 
-  group by S.serial,APP.app_key,D.data,D2.data;`,
+  and (S.ts - TR.start_ts) <= $rightNS
+  group by S.serial, APP.app_key, D.data, D2.data;`,
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
 export const querySmapsExits = (): Promise<Array<any>> =>
   query(
     'querySmapsExits',
-    `select 
-      event_name 
-      from stat s 
-      where s.event_name = 'trace_smaps' 
+    `select
+      event_name
+      from stat s
+      where s.event_name = 'trace_smaps'
       and s.stat_type ='received' and s.count > 0`
   );
 
@@ -3498,23 +3505,21 @@ export const querySysLockDetailsData = (rightNs: number, eventName: string): Pro
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue 
-        FROM
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue
+    FROM
         trace_range AS TR,
         hisys_event_measure AS S
         LEFT JOIN data_dict AS D ON D.id = S.name_id
         LEFT JOIN app_name AS APP ON APP.id = S.key_id
-        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
-        WHERE
-        D.data in ($eventName) 
-        and 
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key
+    WHERE
+        D.data in ($eventName)
+    AND
         D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
-        and (S.ts - TR.start_ts) <= $rightNS
-        GROUP BY
-        S.serial,
-        APP.app_key,
-        D.data,
-        D2.data;`,
+    AND
+        (S.ts - TR.start_ts) <= $rightNS
+    GROUP BY
+        S.serial, APP.app_key, D.data, D2.data;`,
     { $rightNS: rightNs, $eventName: eventName }
   );
 
@@ -3598,23 +3603,18 @@ export const queryClockData = (): Promise<
   query(
     'queryClockData',
     `
-    with freq as(
-    select measure.filter_id, measure.ts, measure.type, measure.value , clock_event_filter.name from clock_event_filter
-    left join measure
-    where  clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
-    order by measure.ts
-),state as (
-    select filter_id, ts, endts, endts-ts as dur, type, value,name from
-    (select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value,clock_event_filter.name from clock_event_filter,trace_range
-    left join measure
-    where clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
-    order by measure.ts)
-),count_freq as (
-    select COUNT(*) num,name srcname from freq group by name
-),count_state as (
-    select COUNT(*) num,name srcname from state group by name
-)
-select count_freq.srcname||' Frequency' as name,* from count_freq union select count_state.srcname||' State' as name,* from count_state order by name`
+    select name || ' Frequency' name, COUNT(*) num, name srcname
+from (select id, name
+      from clock_event_filter
+      where type = 'clock_set_rate')
+group by name
+union
+select name || ' State' name, COUNT(*) num, name srcname
+from (select id, name
+      from clock_event_filter
+      where type != 'clock_set_rate')
+group by name;
+`
   );
 
 export const queryClockFrequency = (clockName: string): Promise<Array<ClockStruct>> =>
@@ -3787,71 +3787,71 @@ export const queryExpectedFrameDate = (): Promise<Array<any>> =>
   query(
     'queryExpectedFrameDate',
     `
-        SELECT
-               sf.id,
-               'frameTime' as frame_type,
-               fs.ipid,
-               fs.vsync as name,
-               fs.dur as app_dur,
-               (sf.ts + sf.dur - fs.ts) as dur,
-               (fs.ts - TR.start_ts) AS ts,
-               fs.type,
-               fs.flag,
-               pro.pid,
-               pro.name as cmdline,
-               (sf.ts - TR.start_ts) AS rs_ts,
-               sf.vsync AS rs_vsync,
-               sf.dur AS rs_dur,
-               sf.ipid AS rs_ipid,
-               proc.pid AS rs_pid,
-               proc.name AS rs_name
-        FROM frame_slice AS fs
-                 LEFT JOIN process AS pro ON pro.id = fs.ipid
-                 LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
-                 LEFT JOIN process AS proc ON proc.id = sf.ipid
-                 LEFT JOIN trace_range TR
-        WHERE fs.dst IS NOT NULL
-          AND fs.type = 1
-        UNION
-        SELECT
-                -1 as id,
-               'frameTime' as frame_type,
-               fs.ipid,
-               fs.vsync  as name,
-               fs.dur as app_dur,
-               fs.dur,
-               (fs.ts - TR.start_ts) AS ts,
-               fs.type,
-               fs.flag,
-               pro.pid,
-               pro.name as cmdline,
-               NULL AS rs_ts,
-               NULL AS rs_vsync,
-               NULL AS rs_dur,
-               NULL AS rs_ipid,
-               NULL AS rs_pid,
-               NULL AS rs_name
-        FROM frame_slice AS fs
-                 LEFT JOIN process AS pro ON pro.id = fs.ipid
-                 LEFT JOIN trace_range TR
-        WHERE fs.dst IS NULL
-          AND pro.name NOT LIKE '%render_service%'
-          AND fs.type = 1
-        ORDER BY ts;`
+    SELECT
+        sf.id,
+        'frameTime' as frame_type,
+        fs.ipid,
+        fs.vsync as name,
+        fs.dur as app_dur,
+        (sf.ts + sf.dur - fs.ts) as dur,
+        (fs.ts - TR.start_ts) AS ts,
+        fs.type,
+        fs.flag,
+        pro.pid,
+        pro.name as cmdline,
+        (sf.ts - TR.start_ts) AS rs_ts,
+        sf.vsync AS rs_vsync,
+        sf.dur AS rs_dur,
+        sf.ipid AS rs_ipid,
+        proc.pid AS rs_pid,
+        proc.name AS rs_name
+    FROM frame_slice AS fs
+    LEFT JOIN process AS pro ON pro.id = fs.ipid
+    LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
+    LEFT JOIN process AS proc ON proc.id = sf.ipid
+    LEFT JOIN trace_range TR
+    WHERE fs.dst IS NOT NULL
+        AND fs.type = 1
+    UNION
+    SELECT
+        -1 as id,
+        'frameTime' as frame_type,
+        fs.ipid,
+        fs.vsync  as name,
+        fs.dur as app_dur,
+        fs.dur,
+        (fs.ts - TR.start_ts) AS ts,
+        fs.type,
+        fs.flag,
+        pro.pid,
+        pro.name as cmdline,
+        NULL AS rs_ts,
+        NULL AS rs_vsync,
+        NULL AS rs_dur,
+        NULL AS rs_ipid,
+        NULL AS rs_pid,
+        NULL AS rs_name
+    FROM frame_slice AS fs
+    LEFT JOIN process AS pro ON pro.id = fs.ipid
+    LEFT JOIN trace_range TR
+    WHERE fs.dst IS NULL
+    AND pro.name NOT LIKE '%render_service%'
+    AND fs.type = 1
+    ORDER BY ts;`
   );
 
 export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
   query(
     'queryFlowsData',
     `
-        SELECT a.vsync AS name,
-               p.pid,
-               p.name  AS cmdline,
-               a.type
-        FROM frame_slice AS a
-                 LEFT JOIN process AS p ON a.ipid = p.ipid
-        WHERE a.type = 0
-          AND a.id IN (${src_slice.join(',')});`
+    SELECT fs.vsync AS name,
+        p.pid,
+        p.name  AS cmdline,
+        fs.type
+    FROM frame_slice AS fs
+    LEFT JOIN process AS p ON fs.ipid = p.ipid
+    WHERE fs.type = 0
+        AND fs.id IN (${src_slice.join(',')});`
   );
 
 export const queryPrecedingData = (dst_slice: string): Promise<Array<any>> =>
@@ -3884,16 +3884,19 @@ export const queryGpuDur = (id: number): Promise<any> =>
     'queryGpuDur',
     `
         SELECT dur AS gpu_dur
-        FROM gpu_slice 
+        FROM gpu_slice
         WHERE frame_row = $id;`,
     { $id: id }
   );
 
-  export const queryHeapFile = (): Promise<Array<any>> =>
-  query('queryHeapFile',
-        `SELECT f.id, f.file_name, f.start_time, f.end_time, f.pid, t.start_ts, t.end_ts
+export const queryHeapFile = (): Promise<Array<any>> =>
+  query(
+    'queryHeapFile',
+    `SELECT f.id, f.file_name, f.start_time, f.end_time, f.pid, t.start_ts, t.end_ts
         FROM js_heap_files f,trace_range t
-        where t.end_ts >= f.end_time`);
+        where (t.end_ts >= f.end_time and f.file_name != 'Timeline')
+        OR f.file_name = 'Timeline'`
+  );
 
 export const queryHeapInfo = (fileId: number): Promise<Array<any>> =>
   query(
@@ -3996,9 +3999,6 @@ export const queryHiPerfProcessCount = (
   processes: Array<number>
 ): Promise<Array<any>> => {
   let str = '';
-  if (cpus.length > 0) {
-    str = ` and A.cpu_id in (${cpus.join(',')})`;
-  }
   if (processes.length > 0) {
     str = ` and C.process_id in (${processes.join(',')})`;
   }
@@ -4007,6 +4007,12 @@ export const queryHiPerfProcessCount = (
   }
   if (processes.length > 0 && threads.length > 0) {
     str = ` and (C.process_id in (${processes.join(',')}) or A.thread_id in (${threads.join(',')}))`;
+  }
+  if (cpus.length > 0) {
+    str = ` and A.cpu_id in (${cpus.join(',')})`;
+  }
+  if (cpus.length > 0 && processes.length > 0) {
+    str = ` and (C.process_id in (${processes.join(',')}) or A.cpu_id in (${cpus.join(',')}))`;
   }
   return query(
     'queryHiPerfProcessCount',

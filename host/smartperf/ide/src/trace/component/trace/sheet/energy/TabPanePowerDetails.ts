@@ -20,35 +20,30 @@ import { getTabPowerDetailsData } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
 import { PowerDetailsEnergy } from '../../../../bean/EnergyStruct.js';
 import { SpHiSysEventChart } from '../../../chart/SpHiSysEventChart.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-power-details')
 export class TabPanePowerDetails extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<any> = [];
+  private tblPowerDetails: LitTable | null | undefined;
+  private sourcePowerDetails: Array<any> = [];
   private itemType: any;
 
-  set data(val: SelectionParam | any) {
-    this.queryDataByDB(val);
+  set data(valPowerDetails: SelectionParam | any) {
+    this.queryDataByDB(valPowerDetails);
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl!.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.tblPowerDetails!)
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-power-details-energy');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.tblPowerDetails = this.shadowRoot?.querySelector<LitTable>('#tb-power-details-energy');
+    this.tblPowerDetails!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.source = [];
+    this.sourcePowerDetails = [];
     this.itemType = {
       time_type: [
         'foreground_duration',
@@ -182,20 +177,20 @@ export class TabPanePowerDetails extends BaseElement {
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_WIFISCAN', false, 'count_type'));
 
       if (detailsData.length > 0) {
-        this.source = detailsData;
-        this.tbl!.recycleDataSource = detailsData;
+        this.sourcePowerDetails = detailsData;
+        this.tblPowerDetails!.recycleDataSource = detailsData;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.sourcePowerDetails = [];
+        this.tblPowerDetails!.recycleDataSource = [];
       }
-      this.tbl?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+      this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
         td.style.fontSize = '14px';
         td.style.fontWeight = '400';
         td.style.opacity = '0.9';
         td.style.lineHeight = '16px';
       });
     });
-    let th = this.tbl?.shadowRoot?.querySelector<HTMLDivElement>('.th');
+    let th = this.tblPowerDetails?.shadowRoot?.querySelector<HTMLDivElement>('.th');
     if (th) {
       th!.style.gridColumnGap = '5px';
     }
@@ -232,14 +227,16 @@ export class TabPanePowerDetails extends BaseElement {
   initHtml(): string {
     return `
         <style>
+        .power-details-table{
+            height: auto;
+        }
         :host{
             display: flex;
             flex-direction: column;
             padding: 10px 10px;
         }
-
         </style>
-        <lit-table id="tb-power-details-energy" style="height: auto">
+        <lit-table id="tb-power-details-energy" class="power-details-table">
             <lit-table-column order width="100px" title="" data-index="event" key="event" align="flex-start" >
             </lit-table-column>
             <lit-table-column order width="60px" title="UID" data-index="uid" key="uid" align="flex-start" >
@@ -297,20 +294,20 @@ export class TabPanePowerDetails extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: PowerDetailsEnergy, b: PowerDetailsEnergy) {
+      return function (aPowerDetails: PowerDetailsEnergy, bPowerDetails: PowerDetailsEnergy) {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-              parseFloat(b[property] == '-' ? 0 : b[property]) - parseFloat(a[property] == '-' ? 0 : a[property])
+              parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]) - parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property])
             : // @ts-ignore
-              parseFloat(a[property] == '-' ? 0 : a[property]) - parseFloat(b[property] == '-' ? 0 : b[property]);
+              parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property]) - parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (bPowerDetails[property] > aPowerDetails[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (bPowerDetails[property] == aPowerDetails[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -321,13 +318,13 @@ export class TabPanePowerDetails extends BaseElement {
     }
 
     if (detail.key === 'appName') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.sourcePowerDetails.sort(compare(detail.key, detail.sort, 'string'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.sourcePowerDetails.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.tblPowerDetails!.recycleDataSource = this.sourcePowerDetails;
 
-    this.tbl?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
       td.style.fontSize = '14px';
       td.style.fontWeight = '400';
       td.style.opacity = '0.9';

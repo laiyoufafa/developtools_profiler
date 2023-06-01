@@ -107,7 +107,6 @@ void HisyseventPlugin::Run(void)
 {
     HILOG_INFO(LOG_CORE, "BEGN %s: ready!", __func__);
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(MAX_STRING_LEN);
-
     if (buffer == nullptr) {
         return;
     }

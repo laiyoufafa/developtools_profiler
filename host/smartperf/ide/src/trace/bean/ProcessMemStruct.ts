@@ -31,36 +31,36 @@ export class ProcessMemStruct extends BaseStruct {
   maxValue: number | undefined;
   delta: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: ProcessMemStruct) {
-    if (data.frame) {
-      let width = data.frame.width || 0;
-      if (data.startTime === ProcessMemStruct.hoverProcessMemStruct?.startTime) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
+  static draw(processMemBeanStructCanvasCtx: CanvasRenderingContext2D, processMemBeanStructData: ProcessMemStruct) {
+    if (processMemBeanStructData.frame) {
+      let width = processMemBeanStructData.frame.width || 0;
+      if (processMemBeanStructData.startTime === ProcessMemStruct.hoverProcessMemStruct?.startTime) {
+        processMemBeanStructCanvasCtx.lineWidth = 1;
+        processMemBeanStructCanvasCtx.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 0)
+          ((processMemBeanStructData.value || 0) * (processMemBeanStructData.frame.height || 0) * 1.0) / (processMemBeanStructData.maxValue || 0)
         );
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        processMemBeanStructCanvasCtx.fillRect(processMemBeanStructData.frame.x, processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight, width, drawHeight);
+        processMemBeanStructCanvasCtx.beginPath();
+        processMemBeanStructCanvasCtx.arc(processMemBeanStructData.frame.x, processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        processMemBeanStructCanvasCtx.fill();
+        processMemBeanStructCanvasCtx.globalAlpha = 1.0;
+        processMemBeanStructCanvasCtx.stroke();
+        processMemBeanStructCanvasCtx.beginPath();
+        processMemBeanStructCanvasCtx.moveTo(processMemBeanStructData.frame.x + 3, processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight);
+        processMemBeanStructCanvasCtx.lineWidth = 3;
+        processMemBeanStructCanvasCtx.lineTo(processMemBeanStructData.frame.x + width, processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight);
+        processMemBeanStructCanvasCtx.stroke();
       } else {
-        ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);
-        ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0);
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
-        let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        processMemBeanStructCanvasCtx.fillStyle = ColorUtils.colorForTid(processMemBeanStructData.maxValue || 0);
+        processMemBeanStructCanvasCtx.strokeStyle = ColorUtils.colorForTid(processMemBeanStructData.maxValue || 0);
+        processMemBeanStructCanvasCtx.globalAlpha = 0.6;
+        processMemBeanStructCanvasCtx.lineWidth = 1;
+        let drawHeight: number = ((processMemBeanStructData.value || 0) * (processMemBeanStructData.frame.height || 0) * 1.0) / (processMemBeanStructData.maxValue || 1);
+        processMemBeanStructCanvasCtx.fillRect(processMemBeanStructData.frame.x, processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    processMemBeanStructCanvasCtx.globalAlpha = 1.0;
+    processMemBeanStructCanvasCtx.lineWidth = 1;
   }
 }

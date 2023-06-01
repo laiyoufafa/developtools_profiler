@@ -16,6 +16,7 @@
 import { BaseStruct } from './BaseStruct.js';
 import { Rect } from '../component/trace/timer-shaft/Rect.js';
 import { ColorUtils } from '../component/trace/base/ColorUtils.js';
+import { drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
 
 export class FuncStruct extends BaseStruct {
   static hoverFuncStruct: FuncStruct | undefined;
@@ -33,43 +34,21 @@ export class FuncStruct extends BaseStruct {
   identify: number | undefined;
   track_id: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
-    if (data.frame) {
-      if (data.dur == undefined || data.dur == null || data.dur == 0 || FuncStruct.isBinder(data)) {
+  static draw(funcBeanStructCanvasCtx: CanvasRenderingContext2D, funcBeanStruct: FuncStruct) {
+    if (funcBeanStruct.frame) {
+      if (funcBeanStruct.dur == undefined || funcBeanStruct.dur == null || funcBeanStruct.dur == 0 || FuncStruct.isBinder(funcBeanStruct)) {
       } else {
-        let width = data.frame.width || 0;
-        ctx.fillStyle = ColorUtils.FUNC_COLOR[data.depth || 0 % ColorUtils.FUNC_COLOR.length];
+        funcBeanStructCanvasCtx.fillStyle = ColorUtils.FUNC_COLOR[funcBeanStruct.depth || 0 % ColorUtils.FUNC_COLOR.length];
         let miniHeight = 20;
-        ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
-        ctx.fillStyle = '#fff';
-        FuncStruct.drawString(ctx, data.funName || '', 5, data.frame);
-        if (FuncStruct.isSelected(data)) {
-          ctx.strokeStyle = '#000';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
+        funcBeanStructCanvasCtx.fillRect(funcBeanStruct.frame.x, funcBeanStruct.frame.y, funcBeanStruct.frame.width, miniHeight - padding * 2);
+        funcBeanStructCanvasCtx.fillStyle = '#fff';
+        drawString(funcBeanStructCanvasCtx, funcBeanStruct.funName || '', 5, funcBeanStruct.frame, funcBeanStruct);
+        if (FuncStruct.isSelected(funcBeanStruct)) {
+          funcBeanStructCanvasCtx.strokeStyle = '#000';
+          funcBeanStructCanvasCtx.lineWidth = 1;
+          funcBeanStructCanvasCtx.strokeRect(funcBeanStruct.frame.x, funcBeanStruct.frame.y, funcBeanStruct.frame.width, miniHeight - padding * 2);
         }
       }
-    }
-  }
-
-  static drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect) {
-    let textMetrics = ctx.measureText(str);
-    let charWidth = Math.round(textMetrics.width / str.length);
-    if (textMetrics.width < frame.width - textPadding * 2) {
-      let x2 = Math.floor(frame.width / 2 - textMetrics.width / 2 + frame.x + textPadding);
-      ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2 + 2), frame.width - textPadding * 2);
-      return;
-    }
-    if (frame.width - textPadding * 2 > charWidth * 4) {
-      let chatNum = (frame.width - textPadding * 2) / charWidth;
-      let x1 = frame.x + textPadding;
-      ctx.fillText(
-        str.substring(0, chatNum - 4) + '...',
-        x1,
-        Math.floor(frame.y + frame.height / 2 + 2),
-        frame.width - textPadding * 2
-      );
-      return;
     }
   }
 

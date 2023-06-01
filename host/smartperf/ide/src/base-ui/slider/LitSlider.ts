@@ -297,17 +297,6 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  renderDefaultSlider() {
-    let htmlInputElement = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
-    let attribute = htmlInputElement.getAttribute('type');
-    if (attribute === 'range') {
-      htmlInputElement!.setAttribute('value', this.defaultTimeText!);
-      htmlInputElement!.setAttribute('min', this.litSliderStyle!.minRange.toString());
-      htmlInputElement!.setAttribute('max', this.litSliderStyle!.maxRange.toString());
-      htmlInputElement!.setAttribute('step', this.litSliderStyle!.stepSize.toString());
-    }
-  }
-
   formatSeconds(value: string) {
     let result = parseInt(value);
     let hours = Math.floor(result / 3600) < 10 ? '0' + Math.floor(result / 3600) : Math.floor(result / 3600);

@@ -28,21 +28,21 @@ import { TableNoData } from './TableNoData.js';
 @element('tab-cpu-details-irq')
 export class TabCpuDetailsIrq extends BaseElement {
   private tableNoData: TableNoData | null | undefined;
-  private table: LitTable | null | undefined;
-  private progress: LitProgressBar | null | undefined;
+  private cpuDetailsLrqUsageTbl: LitTable | null | undefined;
+  private cpuDetailsLrqProgress: LitProgressBar | null | undefined;
   traceChange: boolean = false;
-  private pie: LitChartPie | null | undefined;
-  private data: Array<any> = [];
-  private sortColumn: string = '';
+  private cpuDetailsLrqPie: LitChartPie | null | undefined;
+  private cpuDetailsLrqData: Array<any> = [];
+  private cpuDetailsLrqSortColumn: string = '';
   private sortType: number = 0;
 
   initElements(): void {
     this.tableNoData = this.shadowRoot!.querySelector<TableNoData>('#table-no-data');
-    this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-    this.pie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
-    this.table = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
+    this.cpuDetailsLrqProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+    this.cpuDetailsLrqPie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
+    this.cpuDetailsLrqUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
 
-    this.table!.addEventListener('row-click', (evt: any) => {
+    this.cpuDetailsLrqUsageTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
@@ -53,13 +53,13 @@ export class TabCpuDetailsIrq extends BaseElement {
       }
     });
 
-    this.table!.addEventListener('column-click', (evt: any) => {
-      this.sortColumn = evt.detail.key;
+    this.cpuDetailsLrqUsageTbl!.addEventListener('column-click', (evt: any) => {
+      this.cpuDetailsLrqSortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.table!.addEventListener('row-hover', (evt: any) => {
+    this.cpuDetailsLrqUsageTbl!.addEventListener('row-hover', (evt: any) => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -67,7 +67,7 @@ export class TabCpuDetailsIrq extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       }
-      this.pie?.showHover();
+      this.cpuDetailsLrqPie?.showHover();
     });
   }
 
@@ -79,17 +79,17 @@ export class TabCpuDetailsIrq extends BaseElement {
     if (this.traceChange) {
       return;
     }
-    this.progress!.loading = true;
+    this.cpuDetailsLrqProgress!.loading = true;
     this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res) => {
       this.traceChange = true;
-      this.progress!.loading = false;
-      this.data = res.get(cpu) || [];
-      this.data = getDataNo(this.data);
-      this.tableNoData!.noData = this.data.length == 0;
-      this.noData(this.data.length == 0);
-      this.pie!.config = {
+      this.cpuDetailsLrqProgress!.loading = false;
+      this.cpuDetailsLrqData = res.get(cpu) || [];
+      this.cpuDetailsLrqData = getDataNo(this.cpuDetailsLrqData);
+      this.tableNoData!.noData = this.cpuDetailsLrqData.length == 0;
+      this.noData(this.cpuDetailsLrqData.length == 0);
+      this.cpuDetailsLrqPie!.config = {
         appendPadding: 0,
-        data: this.data,
+        data: this.cpuDetailsLrqData,
         angleField: 'sum',
         colorField: 'value',
         radius: 1,
@@ -110,9 +110,9 @@ export class TabCpuDetailsIrq extends BaseElement {
         },
         hoverHandler: (data) => {
           if (data) {
-            this.table!.setCurrentHover(data);
+            this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
           } else {
-            this.table!.mouseOut();
+            this.cpuDetailsLrqUsageTbl!.mouseOut();
           }
         },
         interactions: [
@@ -121,15 +121,15 @@ export class TabCpuDetailsIrq extends BaseElement {
           },
         ],
       };
-      if (this.sortColumn != '') {
+      if (this.cpuDetailsLrqSortColumn != '') {
         this.sortByColumn({
-          key: this.sortColumn,
+          key: this.cpuDetailsLrqSortColumn,
           sort: this.sortType,
         });
       } else {
-        this.table!.recycleDataSource = this.data;
+        this.cpuDetailsLrqUsageTbl!.recycleDataSource = this.cpuDetailsLrqData;
       }
-      this.table?.reMeauseHeight();
+      this.cpuDetailsLrqUsageTbl?.reMeauseHeight();
     });
   }
 
@@ -140,13 +140,13 @@ export class TabCpuDetailsIrq extends BaseElement {
 
   clearData() {
     this.traceChange = false;
-    this.pie!.dataSource = [];
-    this.table!.recycleDataSource = [];
+    this.cpuDetailsLrqPie!.dataSource = [];
+    this.cpuDetailsLrqUsageTbl!.recycleDataSource = [];
     this.noData(false);
   }
 
   queryLoginWorker(option: string, log: string, handler: (res: any) => void) {
-    let time = new Date().getTime();
+    let cpuDetailsLrqTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic1',
       option,
@@ -157,24 +157,24 @@ export class TabCpuDetailsIrq extends BaseElement {
       undefined,
       handler
     );
-    let durTime = new Date().getTime() - time;
+    let durTime = new Date().getTime() - cpuDetailsLrqTime;
     info(log, durTime);
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(cpuDetailsLrqProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[cpuDetailsLrqProperty]) - parseFloat(a[cpuDetailsLrqProperty])
+            : parseFloat(a[cpuDetailsLrqProperty]) - parseFloat(b[cpuDetailsLrqProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[cpuDetailsLrqProperty].toString().localeCompare(a[cpuDetailsLrqProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[cpuDetailsLrqProperty].toString().localeCompare(b[cpuDetailsLrqProperty].toString());
           }
         }
       };
@@ -182,32 +182,27 @@ export class TabCpuDetailsIrq extends BaseElement {
 
     if (detail.key === 'min') {
       detail.key = 'minValue';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'max') {
       detail.key = 'maxValue';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'avg') {
       detail.key = 'avgValue';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'sumTimeStr') {
       detail.key = 'sum';
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'ratio' || detail.key === 'index') {
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      this.data.sort(compare(detail.key, detail.sort, 'string'));
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.table!.recycleDataSource = this.data;
+    this.cpuDetailsLrqUsageTbl!.recycleDataSource = this.cpuDetailsLrqData;
   }
 
   initHtml(): string {
     return `
         <style>
-        :host {
-            width: 100%;
-            height: 100%;
-            background-color: var(--dark-background,#FFFFFF);
-        }
         .d-box{
             display: flex;
             margin: 20px;
@@ -225,6 +220,11 @@ export class TabCpuDetailsIrq extends BaseElement {
             border: solid 1px var(--dark-border1,#e0e0e0);
             border-radius: 5px;
             padding: 10px;
+        }
+        :host {
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-background,#FFFFFF);
         }
         #chart-pie{
             height: 360px;

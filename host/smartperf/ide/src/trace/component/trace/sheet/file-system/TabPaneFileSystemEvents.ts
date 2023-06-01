@@ -25,16 +25,16 @@ import '../TabPaneFilter.js';
 
 @element('tabpane-filesystem-event')
 export class TabPaneFileSystemEvents extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private tblData: LitTable | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private filter: TabPaneFilter | null | undefined;
-  private loadingList: number[] = [];
+  private fsSysEventTbl: LitTable | null | undefined;
+  private fsSysEventTblData: LitTable | null | undefined;
+  private fsSysEventProgressEL: LitProgressBar | null | undefined;
+  private fsSysEventFilter: TabPaneFilter | null | undefined;
+  private fsSysEventLoadingList: number[] = [];
   private loadingPage: any;
-  private source: Array<FileSysEvent> = [];
-  private filterSource: Array<FileSysEvent> = [];
-  private sortKey: string = 'startTs';
-  private sortType: number = 0;
+  private fsSysEventSource: Array<FileSysEvent> = [];
+  private fsSysEventFilterSource: Array<FileSysEvent> = [];
+  private fsSysEventSortKey: string = 'startTs';
+  private fsSysEventSortType: number = 0;
   private currentSelection: SelectionParam | undefined | null;
   private filterEventType: string = '0';
   private filterProcess: string = '0';
@@ -43,47 +43,47 @@ export class TabPaneFileSystemEvents extends BaseElement {
   private processList: string[] | null | undefined;
   private pathList: string[] | null | undefined;
 
-  set data(val: SelectionParam | null | undefined) {
-    if (val == this.currentSelection) {
+  set data(fsSysEventSelection: SelectionParam | null | undefined) {
+    if (fsSysEventSelection == this.currentSelection) {
       return;
     }
-    this.currentSelection = val;
+    this.currentSelection = fsSysEventSelection;
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.fsSysEventTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     // @ts-ignore
-    this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.fsSysEventTblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     this.filterEventType = '0';
     this.filterProcess = '0';
-    this.queryData(val);
+    this.queryData(fsSysEventSelection);
   }
 
-  queryData(val: SelectionParam | null | undefined) {
-    this.tbl!.recycleDataSource = [];
-    this.tblData!.recycleDataSource = [];
-    if (val) {
-      this.loadingList.push(1);
-      this.progressEL!.loading = true;
+  queryData(fsEventParam: SelectionParam | null | undefined) {
+    this.fsSysEventTbl!.recycleDataSource = [];
+    this.fsSysEventTblData!.recycleDataSource = [];
+    if (fsEventParam) {
+      this.fsSysEventLoadingList.push(1);
+      this.fsSysEventProgressEL!.loading = true;
       this.loadingPage.style.visibility = 'visible';
-      this.source = [];
+      this.fsSysEventSource = [];
       procedurePool.submitWithName(
         'logic0',
         'fileSystem-queryFileSysEvents',
         {
-          leftNs: val.leftNs,
-          rightNs: val.rightNs,
-          typeArr: val.fileSystemType,
+          leftNs: fsEventParam.leftNs,
+          rightNs: fsEventParam.rightNs,
+          typeArr: fsEventParam.fileSystemType,
           tab: 'events',
         },
         undefined,
         (res: any) => {
-          this.source = this.source.concat(res.data);
+          this.fsSysEventSource = this.fsSysEventSource.concat(res.data);
           res.data = null;
           if (!res.isSending) {
             this.setProcessFilter();
             this.filterData();
-            this.loadingList.splice(0, 1);
-            if (this.loadingList.length == 0) {
-              this.progressEL!.loading = false;
+            this.fsSysEventLoadingList.splice(0, 1);
+            if (this.fsSysEventLoadingList.length == 0) {
+              this.fsSysEventProgressEL!.loading = false;
               this.loadingPage.style.visibility = 'hidden';
             }
           }
@@ -95,7 +95,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
   setProcessFilter() {
     this.processList = ['All Process'];
     this.pathList = ['All Path'];
-    this.source.map((it) => {
+    this.fsSysEventSource.map((it) => {
       if (this.processList!.findIndex((a) => a === it.process) == -1) {
         this.processList!.push(it.process);
       }
@@ -103,51 +103,51 @@ export class TabPaneFileSystemEvents extends BaseElement {
         this.pathList!.push(it.path);
       }
     });
-    this.filter!.setSelectList(this.eventList, this.processList, '', '', this.pathList, '');
+    this.fsSysEventFilter!.setSelectList(this.eventList, this.processList, '', '', this.pathList, '');
     if (this.filterProcess == '-1') {
       this.filterProcess =
         this.processList.indexOf(
           `${this.currentSelection?.fileSystemFsData.name}[${this.currentSelection?.fileSystemFsData.pid}]`
         ) + '';
     }
-    this.filter!.firstSelect = this.filterEventType;
-    this.filter!.secondSelect = this.filterProcess;
-    this.filter!.thirdSelect = this.filterPath;
+    this.fsSysEventFilter!.firstSelect = this.filterEventType;
+    this.fsSysEventFilter!.secondSelect = this.filterProcess;
+    this.fsSysEventFilter!.thirdSelect = this.filterPath;
   }
 
   filterData() {
     let pfv = parseInt(this.filterProcess);
     let pathIndex = parseInt(this.filterPath);
     let eventType = parseInt(this.filterEventType) - 1;
-    this.filterSource = this.source.filter((it) => {
+    this.fsSysEventFilterSource = this.fsSysEventSource.filter((fsEvent) => {
       let pathFilter = true;
-      let eventFilter = it.type == eventType || eventType == -1;
+      let eventFilter = fsEvent.type == eventType || eventType == -1;
       let processFilter = true;
       if (this.filterPath != '0') {
-        pathFilter = it.path == this.pathList![pathIndex];
+        pathFilter = fsEvent.path == this.pathList![pathIndex];
       }
       if (this.filterProcess != '0') {
-        processFilter = it.process == this.processList![pfv];
+        processFilter = fsEvent.process == this.processList![pfv];
       }
       return pathFilter && eventFilter && processFilter;
     });
-    this.tblData!.recycleDataSource = [];
-    this.sortTable(this.sortKey, this.sortType);
+    this.fsSysEventTblData!.recycleDataSource = [];
+    this.sortFsSysEventTable(this.fsSysEventSortKey, this.fsSysEventSortType);
   }
 
   initElements(): void {
     this.loadingPage = this.shadowRoot?.querySelector('.loading');
-    this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tbl');
-    this.tblData = this.shadowRoot?.querySelector<LitTable>('#tbr');
-    this.tbl!.addEventListener('row-click', (e) => {
+    this.fsSysEventProgressEL = this.shadowRoot?.querySelector('.fs-event-progress') as LitProgressBar;
+    this.fsSysEventTbl = this.shadowRoot?.querySelector<LitTable>('#tbl-filesystem-event');
+    this.fsSysEventTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-filesystem-event');
+    this.fsSysEventTbl!.addEventListener('row-click', (fsEventRowClick) => {
       // @ts-ignore
-      let data = e.detail.data as FileSysEvent;
+      let data = fsEventRowClick.detail.data as FileSysEvent;
       (data as any).isSelected = true;
       // @ts-ignore
-      if ((e.detail as any).callBack) {
+      if ((fsEventRowClick.detail as any).callBack) {
         // @ts-ignore
-        (e.detail as any).callBack(true);
+        (fsEventRowClick.detail as any).callBack(true);
       }
       procedurePool.submitWithName(
         'logic0',
@@ -155,25 +155,25 @@ export class TabPaneFileSystemEvents extends BaseElement {
         { callchainId: data.callchainId },
         undefined,
         (res: any) => {
-          this.tblData!.recycleDataSource = res;
+          this.fsSysEventTblData!.recycleDataSource = res;
         }
       );
     });
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.fsSysEventTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.fsSysEventSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.fsSysEventSortType = evt.detail.sort;
       // @ts-ignore
-      this.sortTable(evt.detail.key, evt.detail.sort);
+      this.sortFsSysEventTable(evt.detail.key, evt.detail.sort);
     });
-    this.filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
+    this.fsSysEventFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#fs-event-filter');
     this.eventList = ['All Event', 'All Open Event', 'All Close Event', 'All Read Event', 'All Write Event'];
     this.processList = ['All Process'];
     this.pathList = ['All Path'];
-    this.filter!.setSelectList(this.eventList, this.processList, '', '', this.pathList, '');
-    this.filter!.firstSelect = '0';
-    this.filter!.getFilterData((data: FilterData) => {
+    this.fsSysEventFilter!.setSelectList(this.eventList, this.processList, '', '', this.pathList, '');
+    this.fsSysEventFilter!.firstSelect = '0';
+    this.fsSysEventFilter!.getFilterData((data: FilterData) => {
       this.filterEventType = data.firstSelect || '0';
       this.filterProcess = data.secondSelect || '0';
       this.filterPath = data.thirdSelect || '0';
@@ -201,9 +201,9 @@ export class TabPaneFileSystemEvents extends BaseElement {
         this.filterProcess =
           this.processList?.indexOf(`${val.fileSystemFsData.name}[${val.fileSystemFsData.pid}]`) + '';
       }
-      this.filter!.firstSelect = this.filterEventType;
-      this.filter!.secondSelect = this.filterProcess;
-      this.filter!.thirdSelect = this.filterPath;
+      this.fsSysEventFilter!.firstSelect = this.filterEventType;
+      this.fsSysEventFilter!.secondSelect = this.filterProcess;
+      this.fsSysEventFilter!.thirdSelect = this.filterPath;
       this.filterData();
     } else {
       this.currentSelection = val;
@@ -216,68 +216,68 @@ export class TabPaneFileSystemEvents extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
-        this.tbl?.reMeauseHeight();
+        this.fsSysEventTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
+        this.fsSysEventTbl?.reMeauseHeight();
         // @ts-ignore
-        this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
-        this.tblData?.reMeauseHeight();
+        this.fsSysEventTblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
+        this.fsSysEventTblData?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
 
-  sortTable(key: string, type: number) {
+  sortFsSysEventTable(key: string, type: number) {
     if (type == 0) {
-      this.tbl!.recycleDataSource = this.filterSource;
+      this.fsSysEventTbl!.recycleDataSource = this.fsSysEventFilterSource;
     } else {
-      let arr = Array.from(this.filterSource);
-      arr.sort((a, b): number => {
+      let arr = Array.from(this.fsSysEventFilterSource);
+      arr.sort((fsEventA, fsEventB): number => {
         if (key == 'startTsStr') {
           if (type == 1) {
-            return a.startTs - b.startTs;
+            return fsEventA.startTs - fsEventB.startTs;
           } else {
-            return b.startTs - a.startTs;
+            return fsEventB.startTs - fsEventA.startTs;
           }
         } else if (key == 'durStr') {
           if (type == 1) {
-            return a.dur - b.dur;
+            return fsEventA.dur - fsEventB.dur;
           } else {
-            return b.dur - a.dur;
+            return fsEventB.dur - fsEventA.dur;
           }
         } else if (key == 'process') {
-          if (a.process > b.process) {
+          if (fsEventA.process > fsEventB.process) {
             return type === 2 ? 1 : -1;
-          } else if (a.process == b.process) {
+          } else if (fsEventA.process == fsEventB.process) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
         } else if (key == 'thread') {
-          if (a.thread > b.thread) {
+          if (fsEventA.thread > fsEventB.thread) {
             return type === 2 ? 1 : -1;
-          } else if (a.thread == b.thread) {
+          } else if (fsEventA.thread == fsEventB.thread) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
         } else if (key == 'typeStr') {
-          if (a.typeStr > b.typeStr) {
+          if (fsEventA.typeStr > fsEventB.typeStr) {
             return type === 2 ? 1 : -1;
-          } else if (a.typeStr == b.typeStr) {
+          } else if (fsEventA.typeStr == fsEventB.typeStr) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
         } else if (key == 'fd') {
           if (type == 1) {
-            return (a.fd || 0) - (b.fd || 0);
+            return (fsEventA.fd || 0) - (fsEventB.fd || 0);
           } else {
-            return (b.fd || 0) - (a.fd || 0);
+            return (fsEventB.fd || 0) - (fsEventA.fd || 0);
           }
         } else if (key == 'path') {
-          if (a.path > b.path) {
+          if (fsEventA.path > fsEventB.path) {
             return type === 2 ? 1 : -1;
-          } else if (a.path == b.path) {
+          } else if (fsEventA.path == fsEventB.path) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
@@ -286,7 +286,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
           return 0;
         }
       });
-      this.tbl!.recycleDataSource = arr;
+      this.fsSysEventTbl!.recycleDataSource = arr;
     }
   }
 
@@ -298,7 +298,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .loading{
+        .fs-event-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -307,7 +307,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
             background:transparent;
             z-index: 999999;
         }
-        .progress{
+        .fs-event-progress{
             bottom: 33px;
             position: absolute;
             height: 1px;
@@ -315,7 +315,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
             left: 0;
             right: 0;
         }
-        tab-pane-filter {
+        #fs-event-filter {
             border: solid rgb(216,216,216) 1px;
             float: left;
             position: fixed;
@@ -323,25 +323,25 @@ export class TabPaneFileSystemEvents extends BaseElement {
             width: 100%;
         }
         </style>
-        <div style="display: flex;flex-direction: column">
+        <div class="fs-event-content" style="display: flex;flex-direction: column">
             <div style="display: flex;flex-direction: row;">
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
-                        <lit-table id="tbl" style="height: auto">
-                            <lit-table-column width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="160px" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="240px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="240px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="120px" title="Type" data-index="typeStr" key="typeStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="120px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="160px" title="File Path" data-index="path" key="path" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="160px" title="First Argument" data-index="firstArg" key="firstArg" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="160px" title="Second Argument" data-index="secondArg" key="secondArg" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="160px" title="Third Argument" data-index="thirdArg" key="thirdArg" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="160px" title="Fourth Argument" data-index="fourthArg" key="fourthArg" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="160px" title="Return" data-index="returnValue" key="returnValue" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="160px" title="Error" data-index="error" key="error" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
+                        <lit-table id="tbl-filesystem-event" style="height: auto">
+                            <lit-table-column class="fs-event-column" width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="240px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="240px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="120px" title="Type" data-index="typeStr" key="typeStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="120px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="File Path" data-index="path" key="path" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="First Argument" data-index="firstArg" key="firstArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Second Argument" data-index="secondArg" key="secondArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Third Argument" data-index="thirdArg" key="thirdArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Fourth Argument" data-index="fourthArg" key="fourthArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Return" data-index="returnValue" key="returnValue" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Error" data-index="error" key="error" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
                                 <template>
                                     <div>
                                         <span>{{backtrace[0]}}</span>
@@ -353,22 +353,22 @@ export class TabPaneFileSystemEvents extends BaseElement {
                         </lit-table>
                     </div>
                     <lit-slicer-track ></lit-slicer-track>
-                    <lit-table id="tbr" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-                        <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                    <lit-table id="tbr-filesystem-event" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                        <lit-table-column class="fs-event-column" width="60px" title="" data-index="type" key="type"  align="flex-start" >
                             <template>
                                 <div v-if=" type == -1 ">Thread:</div>
                                 <img src="img/library.png" size="20" v-if=" type == 1 ">
                                 <img src="img/function.png" size="20" v-if=" type == 0 ">
                             </template>
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
+                        <lit-table-column class="fs-event-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>
             </div>
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-filter id="filter" first second></tab-pane-filter>
-            <div class="loading"></div>
+            <lit-progress-bar class="progress fs-event-progress"></lit-progress-bar>
+            <tab-pane-filter id="fs-event-filter" first second></tab-pane-filter>
+            <div class="loading fs-event-loading"></div>
         </div>
 `;
   }
