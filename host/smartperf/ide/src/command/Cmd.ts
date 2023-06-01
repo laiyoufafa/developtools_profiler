@@ -14,21 +14,14 @@
  */
 
 export class Cmd {
-  /**
-   * exec objdump to disassembling binary and find addr to show 100 line
-   * @param command obj dump command
-   * @param addr addr of select line
-   * @param callback result callback
-   */
-  static execObjDump(command: string, addr: string, callback: Function) {
-    const data = { cmd: command, addr: addr };
-    let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/exec`;
+
+  static CmdSendPostUtils(uri: string, callback: Function, requestData: any) {
     fetch(uri, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestData),
     }).then((response) => {
       if (response.ok) {
         let result = response.text();
@@ -39,26 +32,25 @@ export class Cmd {
     });
   }
 
+  /**
+   * exec objdump to disassembling binary and find addr to show 100 line
+   * @param command obj dump command
+   * @param addr addr of select line
+   * @param callback result callback
+   */
+  static execObjDump(command: string, addr: string, callback: Function) {
+    const data = { cmd: command, addr: addr };
+    let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/exec`;
+    Cmd.CmdSendPostUtils(uri, callback, data);
+  }
+
   static execHdcCmd(command: string, callback: Function) {
     const data = {
       cmd: command,
       tag: 'shell',
     };
     let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
-    fetch(uri, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    }).then((response) => {
-      if (response.ok) {
-        let result = response.text();
-        result.then((output) => {
-          callback(output);
-        });
-      }
-    });
+    Cmd.CmdSendPostUtils(uri, callback, data);
   }
 
   static async execFileRecv(command: string, filePath: string, callback: Function) {
@@ -86,20 +78,7 @@ export class Cmd {
       serialNumber: serialNumber,
     };
     let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
-    fetch(uri, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    }).then((response) => {
-      if (response.ok) {
-        let result = response.text();
-        result.then((output) => {
-          callback(output);
-        });
-      }
-    });
+    Cmd.CmdSendPostUtils(uri, callback, data);
   }
 
   static formatString(string: string, params: string[]) {

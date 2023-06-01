@@ -20,6 +20,7 @@ import {
   drawLines,
   drawLoading,
   drawSelection,
+  HiPerfStruct,
   PerfRender,
   RequestMessage,
 } from './ProcedureWorkerCommon.js';
@@ -27,34 +28,34 @@ import {
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
 export class HiperfReportRender extends PerfRender {
-  renderMainThread(req: any, row: TraceRow<HiPerfReportStruct>) {
+  renderMainThread(hiPerfReportReq: any, row: TraceRow<HiPerfReportStruct>) {
     let list = row.dataList;
     let filter = row.dataListCache;
-    let groupBy10MS = req.scale > 30_000_000;
+    let groupBy10MS = hiPerfReportReq.scale > 30_000_000;
     if (list && row.dataList2.length == 0) {
-      row.dataList2 = HiPerfReportStruct.groupBy10MS(list, req.intervalPerf);
+      row.dataList2 = HiPerfReportStruct.reportGroupBy10MS(list, hiPerfReportReq.intervalPerf);
     }
     HiPerfReport(
       list,
       row.dataList2,
-      req.type!,
+      hiPerfReportReq.type!,
       filter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
       TraceRow.range?.totalNS ?? 0,
       row.frame,
       groupBy10MS,
-      req.intervalPerf,
-      req.useCache || (TraceRow.range?.refresh ?? false)
+      hiPerfReportReq.intervalPerf,
+      hiPerfReportReq.useCache || (TraceRow.range?.refresh ?? false)
     );
-    req.context.beginPath();
-    req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-    req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+    hiPerfReportReq.context.beginPath();
+    hiPerfReportReq.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+    hiPerfReportReq.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
     let path = new Path2D();
     let offset = groupBy10MS ? 0 : 3;
     let find = false;
     for (let re of filter) {
-      HiPerfReportStruct.draw(req.context, path, re, groupBy10MS);
+      HiPerfReportStruct.draw(hiPerfReportReq.context, path, re, groupBy10MS);
       if (row.isHover) {
         if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {
           HiPerfReportStruct.hoverStruct = re;
@@ -63,98 +64,112 @@ export class HiperfReportRender extends PerfRender {
       }
     }
     if (!find && row.isHover) HiPerfReportStruct.hoverStruct = undefined;
-    groupBy10MS ? req.context.fill(path) : req.context.stroke(path);
-    req.context.closePath();
+    groupBy10MS ? hiPerfReportReq.context.fill(path) : hiPerfReportReq.context.stroke(path);
+    hiPerfReportReq.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
-    let groupBy10MS = req.scale > 100_000_000;
-    if (req.lazyRefresh) {
+  render(hiPerfReportRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    let groupBy10MS = hiPerfReportRequest.scale > 100_000_000;
+    if (hiPerfReportRequest.lazyRefresh) {
       HiPerfReport(
         list,
         dataList2,
-        req.type!,
+        hiPerfReportRequest.type!,
         filter,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
+        hiPerfReportRequest.startNS,
+        hiPerfReportRequest.endNS,
+        hiPerfReportRequest.totalNS,
+        hiPerfReportRequest.frame,
         groupBy10MS,
-        req.intervalPerf,
-        req.useCache || !req.range.refresh
+        hiPerfReportRequest.intervalPerf,
+        hiPerfReportRequest.useCache || !hiPerfReportRequest.range.refresh
       );
     } else {
-      if (!req.useCache) {
+      if (!hiPerfReportRequest.useCache) {
         HiPerfReport(
           list,
           dataList2,
-          req.type!,
+          hiPerfReportRequest.type!,
           filter,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          hiPerfReportRequest.startNS,
+          hiPerfReportRequest.endNS,
+          hiPerfReportRequest.totalNS,
+          hiPerfReportRequest.frame,
           groupBy10MS,
-          req.intervalPerf,
+          hiPerfReportRequest.intervalPerf,
           false
         );
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+    if (hiPerfReportRequest.canvas) {
+      hiPerfReportRequest.context.clearRect(0, 0, hiPerfReportRequest.frame.width, hiPerfReportRequest.frame.height);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (
+        arr.length > 0 &&
+        !hiPerfReportRequest.range.refresh &&
+        !hiPerfReportRequest.useCache &&
+        hiPerfReportRequest.lazyRefresh
+      ) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          hiPerfReportRequest.context,
+          hiPerfReportRequest.startNS,
+          hiPerfReportRequest.endNS,
+          hiPerfReportRequest.totalNS,
+          hiPerfReportRequest.frame,
           arr[0].startNS,
           arr[arr.length - 1].startNS + arr[arr.length - 1].dur
         );
       }
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-      req.context.stroke();
-      req.context.beginPath();
+      drawLines(
+        hiPerfReportRequest.context,
+        hiPerfReportRequest.xs,
+        hiPerfReportRequest.frame.height,
+        hiPerfReportRequest.lineColor
+      );
+      hiPerfReportRequest.context.stroke();
+      hiPerfReportRequest.context.beginPath();
       HiPerfReportStruct.hoverStruct = undefined;
-      req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-      req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
-      if (req.isHover) {
+      hiPerfReportRequest.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+      hiPerfReportRequest.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+      if (hiPerfReportRequest.isHover) {
         let offset = groupBy10MS ? 0 : 3;
         for (let re of filter) {
-          if (re.frame && req.hoverX >= re.frame.x - offset && req.hoverX <= re.frame.x + re.frame.width + offset) {
+          if (
+            re.frame &&
+            hiPerfReportRequest.hoverX >= re.frame.x - offset &&
+            hiPerfReportRequest.hoverX <= re.frame.x + re.frame.width + offset
+          ) {
             HiPerfReportStruct.hoverStruct = re;
             break;
           }
         }
       } else {
-        HiPerfReportStruct.hoverStruct = req.params.hoverStruct;
+        HiPerfReportStruct.hoverStruct = hiPerfReportRequest.params.hoverStruct;
       }
-      HiPerfReportStruct.selectStruct = req.params.selectStruct;
+      HiPerfReportStruct.selectStruct = hiPerfReportRequest.params.selectStruct;
       let path = new Path2D();
       for (let re of filter) {
-        HiPerfReportStruct.draw(req.context, path, re, groupBy10MS);
+        HiPerfReportStruct.draw(hiPerfReportRequest.context, path, re, groupBy10MS);
       }
-      groupBy10MS ? req.context.fill(path) : req.context.stroke(path);
-      req.context.closePath();
-      drawSelection(req.context, req.params);
+      groupBy10MS ? hiPerfReportRequest.context.fill(path) : hiPerfReportRequest.context.stroke(path);
+      hiPerfReportRequest.context.closePath();
+      drawSelection(hiPerfReportRequest.context, hiPerfReportRequest.params);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        hiPerfReportRequest.context,
+        hiPerfReportRequest.flagMoveInfo,
+        hiPerfReportRequest.flagSelectedInfo,
+        hiPerfReportRequest.startNS,
+        hiPerfReportRequest.endNS,
+        hiPerfReportRequest.totalNS,
+        hiPerfReportRequest.frame,
+        hiPerfReportRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: hiPerfReportRequest.id,
+      type: hiPerfReportRequest.type,
+      results: hiPerfReportRequest.canvas ? undefined : filter,
       hover: HiPerfReportStruct.hoverStruct,
     });
   }
@@ -227,77 +242,11 @@ export function HiPerfReport(
   }
 }
 
-export class HiPerfReportStruct extends BaseStruct {
+export class HiPerfReportStruct extends HiPerfStruct {
   static hoverStruct: HiPerfReportStruct | undefined;
   static selectStruct: HiPerfReportStruct | undefined;
-  static path = new Path2D('M 100,100 h 50 v 50 h 50');
-  id: number | undefined;
-  callchain_id: number | undefined;
-  timestamp: number | undefined;
-  thread_id: number | undefined;
-  event_count: number | undefined;
-  event_type_id: number | undefined;
-  cpu_id: number | undefined;
-  thread_state: string | undefined;
-  startNS: number | undefined;
-  endNS: number | undefined;
-  dur: number | undefined;
-  height: number | undefined;
-  cpu: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: HiPerfReportStruct, groupBy10MS: boolean) {
-    if (data.frame) {
-      if (groupBy10MS) {
-        let width = data.frame.width;
-        path.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0);
-      } else {
-        path.moveTo(data.frame.x + 7, 20);
-        HiPerfReportStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3);
-        path.moveTo(data.frame.x, 27);
-        path.lineTo(data.frame.x, 33);
-      }
-    }
-  }
-
-  static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number) {
-    cxt.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
-    cxt.lineTo(x + radius, y + height);
-    cxt.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI);
-    cxt.lineTo(x + 0, y + radius);
-    cxt.arc(x + radius, y + radius, radius, Math.PI, (Math.PI * 3) / 2);
-    cxt.lineTo(x + width - radius, y + 0);
-    cxt.arc(x + width - radius, y + radius, radius, (Math.PI * 3) / 2, Math.PI * 2);
-    cxt.lineTo(x + width, y + height - radius);
-    cxt.moveTo(x + width / 3, y + height / 5);
-    cxt.lineTo(x + width / 3, y + (height / 5) * 4);
-    cxt.moveTo(x + width / 3, y + height / 5);
-    cxt.bezierCurveTo(
-      x + width / 3 + 7,
-      y + height / 5 - 2,
-      x + width / 3 + 7,
-      y + height / 5 + 6,
-      x + width / 3,
-      y + height / 5 + 4
-    );
-  }
-
-  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
-    if ((node.startNS || 0) < startNS) {
-      node.frame.x = 0;
-    } else {
-      node.frame.x = Math.floor(((node.startNS || 0) - startNS) / pns);
-    }
-    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
-      node.frame.width = frame.width - node.frame.x;
-    } else {
-      node.frame.width = Math.ceil(((node.startNS || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
-    }
-    if (node.frame.width < 1) {
-      node.frame.width = 1;
-    }
-  }
-
-  static groupBy10MS(array: Array<any>, intervalPerf: number): Array<any> {
+  static reportGroupBy10MS(array: Array<any>, intervalPerf: number): Array<any> {
     let obj = array
       .map((it) => {
         it.timestamp_group = Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
@@ -307,7 +256,7 @@ export class HiPerfReportStruct extends BaseStruct {
         (pre[current['timestamp_group']] = pre[current['timestamp_group']] || []).push(current);
         return pre;
       }, {});
-    let arr: any[] = [];
+    let reportArr: any[] = [];
     let max = 0;
     for (let aKey in obj) {
       let sum = obj[aKey].reduce((pre: any, cur: any) => {
@@ -315,17 +264,17 @@ export class HiPerfReportStruct extends BaseStruct {
       }, 0);
       if (sum > max) max = sum;
       let ns = parseInt(aKey);
-      arr.push({
+      reportArr.push({
         startNS: ns,
         dur: 1_000_000_0,
         height: 0,
         sum: sum,
       });
     }
-    arr.map((it) => {
+    reportArr.map((it) => {
       it.height = Math.floor((40 * it.sum) / max);
       return it;
     });
-    return arr;
+    return reportArr;
   }
 }

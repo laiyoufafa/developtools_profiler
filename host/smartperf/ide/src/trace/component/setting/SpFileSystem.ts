@@ -129,72 +129,72 @@ export class SpFileSystem extends BaseElement {
 
   initElements(): void {
     this.initConfigList();
-    let configList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
+    let fileSystemConfigList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
     this.configList.forEach((config) => {
-      let div = document.createElement('div');
+      let fileSystemDiv = document.createElement('div');
       if (config.hidden) {
-        div.className = 'config-div hidden';
+        fileSystemDiv.className = 'file-system-config-div hidden';
       } else {
-        div.className = 'config-div';
+        fileSystemDiv.className = 'file-system-config-div';
       }
-      let headDiv = document.createElement('div');
-      div.appendChild(headDiv);
-      let title = document.createElement('span');
-      title.className = 'title';
-      title.textContent = config.title;
-      headDiv.appendChild(title);
-      let des = document.createElement('span');
-      des.textContent = config.des;
-      des.className = 'des';
-      headDiv.appendChild(des);
+      let fileSystemHeadDiv = document.createElement('div');
+      fileSystemDiv.appendChild(fileSystemHeadDiv);
+      let fileSystemTitle = document.createElement('span');
+      fileSystemTitle.className = 'file-system-title';
+      fileSystemTitle.textContent = config.title;
+      fileSystemHeadDiv.appendChild(fileSystemTitle);
+      let fileSystemDes = document.createElement('span');
+      fileSystemDes.textContent = config.des;
+      fileSystemDes.className = 'file-system-des';
+      fileSystemHeadDiv.appendChild(fileSystemDes);
       switch (config.type) {
         case 'select-multiple':
-          let html = '';
+          let multipleSelect = '';
           let placeholder = config.selectArray[0];
           if (config.title == 'Process') {
           } else if (config.title == 'SystemCall Event') {
             placeholder = 'ALL-Event';
           }
-          html += `<lit-select-v default-value="" rounded="" class="select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
+          multipleSelect += `<lit-select-v default-value="" rounded="" class="file-system-select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
           config.selectArray.forEach((value: string) => {
-            html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
+            multipleSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
           });
-          html += `</lit-select-v>`;
-          div.innerHTML = div.innerHTML + html;
+          multipleSelect += `</lit-select-v>`;
+          fileSystemDiv.innerHTML = fileSystemDiv.innerHTML + multipleSelect;
           break;
         case 'input':
-          let input = document.createElement('input');
-          input.className = 'input config';
-          input.textContent = config.value;
-          input.value = config.value;
-          input.title = config.title;
+          let fileSystemInput = document.createElement('input');
+          fileSystemInput.className = 'fileSystem-input config';
+          fileSystemInput.textContent = config.value;
+          fileSystemInput.value = config.value;
+          fileSystemInput.title = config.title;
           if (config.title == 'Record Time') {
-            input.oninput = (ev) => {
-              input.value = input.value.replace(/\D/g, '');
+            fileSystemInput.oninput = (ev) => {
+              fileSystemInput.value = fileSystemInput.value.replace(/\D/g, '');
             };
           }
-          div.appendChild(input);
+          fileSystemDiv.appendChild(fileSystemInput);
           break;
         case 'select':
-          let html1 = '';
-          html1 += `<lit-select rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+          let fileSystemSelect = '';
+          fileSystemSelect += `<lit-select rounded="" default-value="" class="file-system-select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
           config.selectArray.forEach((value: string) => {
-            html1 += `<lit-select-option value="${value}">${value}</lit-select-option>`;
+            fileSystemSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
           });
-          html1 += `</lit-select>`;
-          div.innerHTML = div.innerHTML + html1;
+          fileSystemSelect += `</lit-select>`;
+          fileSystemDiv.innerHTML = fileSystemDiv.innerHTML + fileSystemSelect;
           break;
         case 'switch':
-          let switch1 = document.createElement('lit-switch') as LitSwitch;
-          switch1.className = 'config';
-          switch1.title = config.title;
+          let fileSystemSwitch = document.createElement('lit-switch') as LitSwitch;
+          fileSystemSwitch.className = 'config';
+          fileSystemSwitch.title = config.title;
           if (config.value) {
-            switch1.checked = true;
+            fileSystemSwitch.checked = true;
           } else {
-            switch1.checked = false;
+            fileSystemSwitch.checked = false;
           }
           if (config.title == 'Start FileSystem Record') {
-            switch1.addEventListener('change', (event: any) => {
+            fileSystemSwitch.addEventListener('change', (event: any) => {
               let detail = event.detail;
               if (detail.checked) {
                 this.startFileSystem = true;
@@ -204,7 +204,7 @@ export class SpFileSystem extends BaseElement {
             });
           }
           if (config.title == 'Start Page Fault Record') {
-            switch1.addEventListener('change', (event: any) => {
+            fileSystemSwitch.addEventListener('change', (event: any) => {
               let detail = event.detail;
               if (detail.checked) {
                 this.startVirtualMemory = true;
@@ -214,7 +214,7 @@ export class SpFileSystem extends BaseElement {
             });
           }
           if (config.title == 'Start BIO Latency Record') {
-            switch1.addEventListener('change', (event: any) => {
+            fileSystemSwitch.addEventListener('change', (event: any) => {
               let detail = event.detail;
               if (detail.checked) {
                 this.startIo = true;
@@ -223,12 +223,12 @@ export class SpFileSystem extends BaseElement {
               }
             });
           }
-          headDiv.appendChild(switch1);
+          fileSystemHeadDiv.appendChild(fileSystemSwitch);
           break;
         default:
           break;
       }
-      configList!.appendChild(div);
+      fileSystemConfigList!.appendChild(fileSystemDiv);
     });
     this.processInput = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
     this.maximum = this.shadowRoot?.querySelector<HTMLInputElement>("input[title='Max Unwind Level']");
@@ -242,7 +242,7 @@ export class SpFileSystem extends BaseElement {
       }
     });
     this.selectProcess = this.processInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    let processData: Array<string> = [];
+    let fileSystemProcessData: Array<string> = [];
     this.selectProcess!.addEventListener('mousedown', (ev) => {
       if (SpRecordTrace.serialNumber == '') {
         this.processInput!.dataSource([], '');
@@ -256,47 +256,47 @@ export class SpFileSystem extends BaseElement {
         if (SpRecordTrace.isVscode) {
           let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
           Cmd.execHdcCmd(cmd, (res: string) => {
-            processData = [];
-            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-            for (let lineVal of lineValues) {
+            fileSystemProcessData = [];
+            let fileSystemValuesVs: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of fileSystemValuesVs) {
               if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                 continue;
               }
-              let process: string[] = lineVal.trim().split(' ');
-              if (process.length == 2) {
-                let processId = process[0];
-                let processName = process[1];
-                processData.push(processName + '(' + processId + ')');
+              let fileSystemProcessVs: string[] = lineVal.trim().split(' ');
+              if (fileSystemProcessVs.length == 2) {
+                let processId = fileSystemProcessVs[0];
+                let processName = fileSystemProcessVs[1];
+                fileSystemProcessData.push(processName + '(' + processId + ')');
               }
             }
-            if (processData.length > 0 && this.startRecord) {
+            if (fileSystemProcessData.length > 0 && this.startRecord) {
               this.processInput!.setAttribute('readonly', 'readonly');
             }
-            this.processInput?.dataSource(processData, 'ALL-Process');
+            this.processInput?.dataSource(fileSystemProcessData, 'ALL-Process');
           });
         } else {
           HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
             if (conn) {
               HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
-                processData = [];
+                fileSystemProcessData = [];
                 if (res) {
-                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                  for (let lineVal of lineValues) {
+                    let fileSystemValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of fileSystemValues) {
                     if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                       continue;
                     }
-                    let process: string[] = lineVal.trim().split(' ');
-                    if (process.length == 2) {
-                      let processId = process[0];
-                      let processName = process[1];
-                      processData.push(processName + '(' + processId + ')');
+                    let fileSystemProcess: string[] = lineVal.trim().split(' ');
+                    if (fileSystemProcess.length == 2) {
+                      let processId = fileSystemProcess[0];
+                      let processName = fileSystemProcess[1];
+                      fileSystemProcessData.push(processName + '(' + processId + ')');
                     }
                   }
                 }
-                if (processData.length > 0 && this.startRecord) {
+                if (fileSystemProcessData.length > 0 && this.startRecord) {
                   this.selectProcess!.setAttribute('readonly', 'readonly');
                 }
-                this.processInput?.dataSource(processData, 'ALL-Process');
+                this.processInput?.dataSource(fileSystemProcessData, 'ALL-Process');
               });
             }
           });
@@ -307,22 +307,22 @@ export class SpFileSystem extends BaseElement {
   }
 
   private unDisable() {
-    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-    configVal!.forEach((configVal1) => {
-      configVal1.removeAttribute('disabled');
+    let fileSystemConfigVals = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    fileSystemConfigVals!.forEach((fileSystemConfigVal) => {
+      fileSystemConfigVal.removeAttribute('disabled');
     });
   }
 
   private disable() {
-    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-    configVal!.forEach((configVal1) => {
+    let fileSystemConfigVals = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    fileSystemConfigVals!.forEach((fileSystemConfigVal) => {
       if (
-        configVal1.title == 'Start FileSystem Record' ||
-        configVal1.title == 'Start Page Fault Record' ||
-        configVal1.title == 'Start BIO Latency Record'
+        fileSystemConfigVal.title == 'Start FileSystem Record' ||
+        fileSystemConfigVal.title == 'Start Page Fault Record' ||
+        fileSystemConfigVal.title == 'Start BIO Latency Record'
       ) {
       } else {
-        configVal1.setAttribute('disabled', '');
+        fileSystemConfigVal.setAttribute('disabled', '');
       }
     });
   }
@@ -370,90 +370,90 @@ export class SpFileSystem extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: inline-block;
-            width: 100%;
-            height: 100%;
-            background: var(--dark-background3,#FFFFFF);
-            border-radius: 0px 16px 16px 0px;
-        }
-
         .root {
+            font-size:16px;
+            margin-bottom: 30px;
             padding-top: 30px;
             padding-left: 54px;
             margin-right: 30px;
-            font-size:16px;
-            margin-bottom: 30px;
         }
-
-        .config-div {
-           width: 80%;
+        :host{
+            display: inline-block;
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
+             width: 100%;
+            height: 100%;
+        }
+        .file-system-config-div {
            display: flex;
            flex-direction: column;
+           width: 80%;
            margin-top: 5vh;
            margin-bottom: 5vh;
            gap: 25px;
         }
         
-        .title {
+        .file-system-title {
+          line-height: 40px;
+          font-weight: 700;
+          margin-right: 10px;
           opacity: 0.9;
           font-family: Helvetica-Bold;
           font-size: 18px;
           text-align: center;
-          line-height: 40px;
-          font-weight: 700;
-          margin-right: 10px;
         }
 
-        .des {
+        input {
+           border-radius: 16px;
+           text-indent:2%;
+           height: 25px;
+           outline:none;
+        }
+        
+        .file-system-select {
+          border-radius: 15px;
+        }
+
+        .file-system-des {
+          line-height: 35px;
+          font-weight: 400;
           opacity: 0.6;
           font-family: Helvetica;
           font-size: 14px;
           text-align: center;
-          line-height: 35px;
-          font-weight: 400;
-        }
-
-        .select {
-          border-radius: 15px;
         }
 
         lit-switch {
-          display:inline;
-          float: right;
           height: 38px;
           margin-top: 10px;
+          display:inline;
+          float: right;
         }
-        input {
-           height: 25px;
-           outline:none;
-           border-radius: 16px;
-           text-indent:2%
-        }
-        input::-webkit-input-placeholder{
-            color:var(--bark-prompt,#999999);
-        }
-
-        .input {
-            border: 1px solid var(--dark-background5,#ccc);
-            font-family: Helvetica;
-            font-size: 14px;
+        
+        .fileSystem-input {
             color: var(--dark-color1,#212121);
             text-align: left;
             line-height: 20px;
             font-weight: 400;
+            border: 1px solid var(--dark-background5,#ccc);
+            font-family: Helvetica;
+            font-size: 14px;
+        }
+
+        :host(:not([startSamp])) .fileSystem-input {
+            color: #999999;
         }
         
-        :host([startSamp]) .input {
+         :host([startSamp]) .fileSystem-input {
             background: var(--dark-background5,#FFFFFF);
         }
         
-        :host(:not([startSamp])) .input {
-            color: #999999;
+        input::-webkit-input-placeholder{
+            color:var(--bark-prompt,#999999);
         }
         </style>
         <div class="root">
-            <div class="configList">
+            <div class="configList file-system-config">
             </div>
         </div>
         `;

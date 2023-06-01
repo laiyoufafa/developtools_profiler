@@ -26,23 +26,23 @@ import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
 
 @element('sp-hisys-event')
 export class SpHisysEvent extends BaseElement {
-  private processInput: LitAllocationSelect | undefined | null;
+  private eventProcessInput: LitAllocationSelect | undefined | null;
   private selectProcess: HTMLInputElement | undefined | null;
-  private configList: Array<any> = [];
+  private eventConfigList: Array<any> = [];
 
   set startSamp(start: boolean) {
     if (start) {
       this.setAttribute('startSamp', '');
     } else {
       this.removeAttribute('startSamp');
-      let input = this.processInput?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
-      input!.value = '';
+      let eventInput = this.eventProcessInput?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
+      eventInput!.value = '';
     }
   }
 
   get process(): string {
-    if (this.processInput!.value.length > 0) {
-      return this.processInput!.value;
+    if (this.eventProcessInput!.value.length > 0) {
+      return this.eventProcessInput!.value;
     }
     return '';
   }
@@ -53,42 +53,42 @@ export class SpHisysEvent extends BaseElement {
 
   initElements(): void {
     this.initConfigList();
-    let configList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
-    this.configList.forEach((config) => {
-      let div = document.createElement('div');
+    let hisysEventConfigList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
+    this.eventConfigList.forEach((config) => {
+      let hisysEventDiv = document.createElement('div');
       if (config.hidden) {
-        div.className = 'config-div hidden';
+        hisysEventDiv.className = 'hisys-event-config-div hidden';
       } else {
-        div.className = 'config-div';
+        hisysEventDiv.className = 'hisys-event-config-div';
       }
-      let headDiv = document.createElement('div');
-      div.appendChild(headDiv);
-      let title = document.createElement('span');
-      title.className = 'title';
-      title.textContent = config.title;
-      headDiv.appendChild(title);
-      let des = document.createElement('span');
-      des.textContent = config.des;
-      des.className = 'des';
-      headDiv.appendChild(des);
+      let hisysEventHeadDiv = document.createElement('div');
+      hisysEventDiv.appendChild(hisysEventHeadDiv);
+      let hisysEventTitle = document.createElement('span');
+      hisysEventTitle.className = 'event-title';
+      hisysEventTitle.textContent = config.title;
+      hisysEventHeadDiv.appendChild(hisysEventTitle);
+      let hisysEventDes = document.createElement('span');
+      hisysEventDes.textContent = config.des;
+      hisysEventDes.className = 'event-des';
+      hisysEventHeadDiv.appendChild(hisysEventDes);
       switch (config.type) {
         case 'select':
-          let html1 = '';
-          html1 += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
-          html1 += `</lit-allocation-select>`;
-          div.innerHTML = div.innerHTML + html1;
+          let hisysEventSelect = '';
+          hisysEventSelect += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="event-select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+          hisysEventSelect += `</lit-allocation-select>`;
+          hisysEventDiv.innerHTML = hisysEventDiv.innerHTML + hisysEventSelect;
           break;
         case 'switch':
-          let switch1 = document.createElement('lit-switch') as LitSwitch;
-          switch1.className = 'config';
-          switch1.title = config.title;
+          let hisysEventSwitch = document.createElement('lit-switch') as LitSwitch;
+          hisysEventSwitch.className = 'config';
+          hisysEventSwitch.title = config.title;
           if (config.value) {
-            switch1.checked = true;
+            hisysEventSwitch.checked = true;
           } else {
-            switch1.checked = false;
+            hisysEventSwitch.checked = false;
           }
           if (config.title == 'Start Hisystem Event Tracker Record') {
-            switch1.addEventListener('change', (event: any) => {
+            hisysEventSwitch.addEventListener('change', (event: any) => {
               let detail = event.detail;
               if (detail.checked) {
                 this.startSamp = true;
@@ -99,64 +99,64 @@ export class SpHisysEvent extends BaseElement {
               }
             });
           }
-          headDiv.appendChild(switch1);
+          hisysEventHeadDiv.appendChild(hisysEventSwitch);
           break;
         default:
           break;
       }
-      configList!.appendChild(div);
+      hisysEventConfigList!.appendChild(hisysEventDiv);
     });
-    this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>("lit-allocation-select[title='AppName']");
-    let inputDiv = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
-    this.selectProcess = this.processInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    let processData: Array<string> = [];
-    inputDiv!.addEventListener('mousedown', (ev) => {
+    this.eventProcessInput = this.shadowRoot?.querySelector<LitAllocationSelect>("lit-allocation-select[title='AppName']");
+    let hisyEventProcessInput = this.eventProcessInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    this.selectProcess = this.eventProcessInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let hisysEventProcessData: Array<string> = [];
+    hisyEventProcessInput!.addEventListener('mousedown', (ev) => {
       if (SpRecordTrace.serialNumber == '') {
-        this.processInput!.processData = [];
-        this.processInput!.initData();
+        this.eventProcessInput!.processData = [];
+        this.eventProcessInput!.initData();
       }
     });
-    inputDiv!.addEventListener('mouseup', () => {
+    hisyEventProcessInput!.addEventListener('mouseup', () => {
       if (SpRecordTrace.serialNumber == '') {
-        this.processInput!.processData = [];
-        this.processInput!.initData();
+        this.eventProcessInput!.processData = [];
+        this.eventProcessInput!.initData();
       } else {
         if (SpRecordTrace.isVscode) {
           let cmd = Cmd.formatString(CmdConstant.CMD_GET_APP_NMAE_DEVICES, [SpRecordTrace.serialNumber]);
           Cmd.execHdcCmd(cmd, (res: string) => {
-            processData = [];
-            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-            for (let lineVal of lineValues) {
+            hisysEventProcessData = [];
+            let hisyEventValuesVs: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of hisyEventValuesVs) {
               if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('CMD') != -1) {
                 continue;
               }
               let process = lineVal.trim();
               if (process != '') {
-                processData.push(process);
+                hisysEventProcessData.push(process);
               }
             }
-            this.processInput!.processData = processData;
-            this.processInput!.initData();
+            this.eventProcessInput!.processData = hisysEventProcessData;
+            this.eventProcessInput!.initData();
           });
         } else {
           HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
             if (conn) {
               HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_APP_NMAE, false).then((res) => {
-                processData = [];
+                hisysEventProcessData = [];
                 if (res) {
-                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                  for (let lineVal of lineValues) {
+                  let hisyEventValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of hisyEventValues) {
                     if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('CMD') != -1) {
                       continue;
                     }
                     let process = lineVal.trim();
                     if (process != '') {
-                      processData.push(process);
+                      hisysEventProcessData.push(process);
                     }
                   }
                 }
-                this.processInput!.processData = processData;
-                this.processInput!.initData();
+                this.eventProcessInput!.processData = hisysEventProcessData;
+                this.eventProcessInput!.initData();
               });
             }
           });
@@ -167,23 +167,23 @@ export class SpHisysEvent extends BaseElement {
   }
 
   private unDisable() {
-    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-    configVal!.forEach((configVal1) => {
-      configVal1.removeAttribute('disabled');
+    let hisysEventConfigVals = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    hisysEventConfigVals!.forEach((hisysEventConfigVal) => {
+      hisysEventConfigVal.removeAttribute('disabled');
     });
   }
 
   private disable() {
-    let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-    configVal!.forEach((configVal1) => {
-      if (configVal1.title != 'Start Hisystem Event Tracker Record') {
-        configVal1.setAttribute('disabled', '');
+    let hisysEventConfigVals = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    hisysEventConfigVals!.forEach((hisysEventConfigVal) => {
+      if (hisysEventConfigVal.title != 'Start Hisystem Event Tracker Record') {
+        hisysEventConfigVal.setAttribute('disabled', '');
       }
     });
   }
 
   initConfigList(): void {
-    this.configList = [
+    this.eventConfigList = [
       {
         title: 'Start Hisystem Event Tracker Record',
         des: '',
@@ -204,63 +204,63 @@ export class SpHisysEvent extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: inline-block;
-            width: 100%;
-            height: 100%;
-            background: var(--dark-background3,#FFFFFF);
-            border-radius: 0px 16px 16px 0px;
-        }
-
         .root {
+            margin-bottom: 30px;
             padding-top: 30px;
             padding-left: 54px;
             margin-right: 30px;
             font-size:16px;
-            margin-bottom: 30px;
         }
 
-        .config-div {
+        :host{
+            background: var(--dark-background3,#FFFFFF);
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            border-radius: 0px 16px 16px 0px;
+        }
+        
+        .hisys-event-config-div {
            width: 80%;
            display: flex;
            flex-direction: column;
+           gap: 25px;
            margin-top: 5vh;
            margin-bottom: 5vh;
-           gap: 25px;
         }
         
-        .title {
+        .event-title {
+          font-weight: 700;
           opacity: 0.9;
           font-family: Helvetica-Bold;
           font-size: 18px;
           text-align: center;
           line-height: 40px;
-          font-weight: 700;
           margin-right: 10px;
         }
 
-        .des {
-          opacity: 0.6;
-          font-family: Helvetica;
+        .event-des {
           font-size: 14px;
-          text-align: center;
+          opacity: 0.6;
           line-height: 35px;
+          font-family: Helvetica;
+          text-align: center;
           font-weight: 400;
         }
 
-        .select {
+        .event-select {
           border-radius: 15px;
         }
 
         lit-switch {
-          display:inline;
-          float: right;
           height: 38px;
           margin-top: 10px;
+          display:inline;
+          float: right;
         }
         input {
-           height: 25px;
            outline:none;
+           height: 25px;
            border-radius: 16px;
            text-indent:2%
         }
@@ -268,7 +268,7 @@ export class SpHisysEvent extends BaseElement {
             color:var(--bark-prompt,#999999);
         }
 
-        .input {
+        .event-input {
             border: 1px solid var(--dark-background5,#ccc);
             font-family: Helvetica;
             font-size: 14px;
@@ -277,17 +277,9 @@ export class SpHisysEvent extends BaseElement {
             line-height: 20px;
             font-weight: 400;
         }
-
-        :host([startSamp]) .input {
-            background: var(--dark-background5,#FFFFFF);
-        }
-        
-        :host(:not([startSamp])) .input {
-            color: #999999;
-        }
         </style>
         <div class="root">
-            <div class="configList">
+            <div class="configList hisys-event-config">
             </div>
         </div>
         `;

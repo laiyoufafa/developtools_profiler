@@ -15,17 +15,11 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
-  BaseStruct,
   dataFilterHandler,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawSelection,
-  drawWakeUp,
   isFrameContainPoint,
-  ns2x,
   Render,
   RequestMessage,
+  BaseStruct,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 export class NetworkAbilityRender extends Render {
@@ -39,9 +33,9 @@ export class NetworkAbilityRender extends Render {
     },
     row: TraceRow<NetworkAbilityMonitorStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    let networkAbilityList = row.dataList;
+    let networkAbilityFilter = row.dataListCache;
+    dataFilterHandler(networkAbilityList, networkAbilityFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -53,7 +47,7 @@ export class NetworkAbilityRender extends Render {
     });
     req.context.beginPath();
     let find = false;
-    for (let re of filter) {
+    for (let re of networkAbilityFilter) {
       NetworkAbilityMonitorStruct.draw(req.context, re, req.maxNetworkRate, row.isHover);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = re;
@@ -84,7 +78,7 @@ export class NetworkAbilityMonitorStruct extends BaseStruct {
   startNS: number | undefined;
 
   static draw(
-    context2D: CanvasRenderingContext2D,
+    networkAbilityContext2D: CanvasRenderingContext2D,
     data: NetworkAbilityMonitorStruct,
     maxNetworkRate: number,
     isHover: boolean
@@ -92,31 +86,31 @@ export class NetworkAbilityMonitorStruct extends BaseStruct {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = 2;
-      context2D.fillStyle = ColorUtils.colorForTid(index);
-      context2D.strokeStyle = ColorUtils.colorForTid(index);
+      networkAbilityContext2D.fillStyle = ColorUtils.colorForTid(index);
+      networkAbilityContext2D.strokeStyle = ColorUtils.colorForTid(index);
       if (data.startNS === NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.startNS && isHover) {
-        context2D.lineWidth = 1;
-        context2D.globalAlpha = 0.6;
+        networkAbilityContext2D.lineWidth = 1;
+        networkAbilityContext2D.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxNetworkRate);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
-        context2D.beginPath();
-        context2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
-        context2D.fill();
-        context2D.globalAlpha = 1.0;
-        context2D.stroke();
-        context2D.beginPath();
-        context2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.lineWidth = 3;
-        context2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.stroke();
+        networkAbilityContext2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        networkAbilityContext2D.beginPath();
+        networkAbilityContext2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
+        networkAbilityContext2D.fill();
+        networkAbilityContext2D.globalAlpha = 1.0;
+        networkAbilityContext2D.stroke();
+        networkAbilityContext2D.beginPath();
+        networkAbilityContext2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
+        networkAbilityContext2D.lineWidth = 3;
+        networkAbilityContext2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
+        networkAbilityContext2D.stroke();
       } else {
-        context2D.globalAlpha = 0.6;
-        context2D.lineWidth = 1;
+        networkAbilityContext2D.globalAlpha = 0.6;
+        networkAbilityContext2D.lineWidth = 1;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxNetworkRate);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        networkAbilityContext2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
       }
     }
-    context2D.globalAlpha = 1.0;
-    context2D.lineWidth = 1;
+    networkAbilityContext2D.globalAlpha = 1.0;
+    networkAbilityContext2D.lineWidth = 1;
   }
 }

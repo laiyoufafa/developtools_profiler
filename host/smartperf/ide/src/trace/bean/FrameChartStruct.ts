@@ -17,6 +17,7 @@ import { SpApplication } from '../SpApplication.js';
 import { BaseStruct } from './BaseStruct.js';
 import { Rect } from '../component/trace/timer-shaft/Rect.js';
 import { info, warn } from '../../log/Log.js';
+import { drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
 
 const padding: number = 1;
 const lightBlue = {
@@ -88,53 +89,53 @@ export function setFuncFrame(node: ChartStruct, canvas_frame: Rect, total: numbe
 
 /**
  * draw rect
- * @param ctx CanvasRenderingContext2D
- * @param data rect which is need draw
+ * @param frameChartBeanCanvasCtx CanvasRenderingContext2D
+ * @param frameChartBeanData rect which is need draw
  * @param percent function size or count / total size or count
  */
-export function draw(ctx: CanvasRenderingContext2D, data: ChartStruct) {
+export function draw(frameChartBeanCanvasCtx: CanvasRenderingContext2D, frameChartBeanData: ChartStruct) {
   let spApplication = <SpApplication>document.getElementsByTagName('sp-application')[0];
-  if (data.frame) {
+  if (frameChartBeanData.frame) {
     // draw rect
-    let miniHeight = 20;
-    if (isSelected(data)) {
-      ctx.fillStyle = `rgba(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b}, ${lightBlue.a})`;
+    let frameChartMiniHeight = 20;
+    if (isSelected(frameChartBeanData)) {
+      frameChartBeanCanvasCtx.fillStyle = `rgba(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b}, ${lightBlue.a})`;
     } else {
-      let color = getHeatColor(data.percent);
-      ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
+      let color = getHeatColor(frameChartBeanData.percent);
+      frameChartBeanCanvasCtx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
     }
-    ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
+    frameChartBeanCanvasCtx.fillRect(frameChartBeanData.frame.x, frameChartBeanData.frame.y, frameChartBeanData.frame.width, frameChartMiniHeight - padding * 2);
     //draw border
-    ctx.lineWidth = 0.4;
-    if (isHover(data)) {
+    frameChartBeanCanvasCtx.lineWidth = 0.4;
+    if (isHover(frameChartBeanData)) {
       if (spApplication.dark) {
-        ctx.strokeStyle = '#fff';
+        frameChartBeanCanvasCtx.strokeStyle = '#fff';
       } else {
-        ctx.strokeStyle = '#000';
+        frameChartBeanCanvasCtx.strokeStyle = '#000';
       }
     } else {
       if (spApplication.dark) {
-        ctx.strokeStyle = '#000';
+        frameChartBeanCanvasCtx.strokeStyle = '#000';
       } else {
-        ctx.strokeStyle = '#fff';
+        frameChartBeanCanvasCtx.strokeStyle = '#fff';
       }
-      if (data.isSearch) {
-        ctx.strokeStyle = `rgb(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b})`;
-        ctx.lineWidth = 1;
+      if (frameChartBeanData.isSearch) {
+        frameChartBeanCanvasCtx.strokeStyle = `rgb(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b})`;
+        frameChartBeanCanvasCtx.lineWidth = 1;
       }
     }
-    ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
+    frameChartBeanCanvasCtx.strokeRect(frameChartBeanData.frame.x, frameChartBeanData.frame.y, frameChartBeanData.frame.width, frameChartMiniHeight - padding * 2);
 
     //draw symbol name
-    if (data.frame.width > 10) {
-      if (data.percent > 0.6 || isSelected(data)) {
-        ctx.fillStyle = '#fff';
+    if (frameChartBeanData.frame.width > 10) {
+      if (frameChartBeanData.percent > 0.6 || isSelected(frameChartBeanData)) {
+        frameChartBeanCanvasCtx.fillStyle = '#fff';
       } else {
-        ctx.fillStyle = '#000';
+        frameChartBeanCanvasCtx.fillStyle = '#000';
       }
-      drawString(ctx, data.symbol || '', 5, data.frame, data);
+      drawString(frameChartBeanCanvasCtx, frameChartBeanData.symbol || '', 5, frameChartBeanData.frame, frameChartBeanData);
     }
-    data.isDraw = true;
+    frameChartBeanData.isDraw = true;
   }
 }
 
@@ -149,51 +150,6 @@ function getHeatColor(widthPercentage: number) {
     g: Math.floor(110 + 105 * (1 - widthPercentage)),
     b: 100,
   };
-}
-
-/**
- * draw function string in rect
- * @param ctx CanvasRenderingContext2D
- * @param str function Name
- * @param textPadding textPadding
- * @param frame canvas area
- * @returns is draw
- */
-function drawString(
-  ctx: CanvasRenderingContext2D,
-  str: string,
-  textPadding: number,
-  frame: Rect,
-  struct: ChartStruct
-): boolean {
-  if (!struct.textMetricsWidth) {
-    struct.textMetricsWidth = ctx.measureText(str).width;
-  }
-
-  let charWidth = Math.round(struct.textMetricsWidth / str.length);
-  let fillTextWidth = frame.width - textPadding * 2;
-  if (struct.textMetricsWidth < frame.width - textPadding * 2) {
-    let x2 = Math.floor(frame.width / 2 - struct.textMetricsWidth / 2 + frame.x + textPadding);
-    ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2 + 2), fillTextWidth);
-    return true;
-  } else {
-    if (fillTextWidth >= charWidth) {
-      let chatNum = fillTextWidth / charWidth;
-      let x1 = frame.x + textPadding;
-      if (chatNum < 2) {
-        ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / 2 + 2), fillTextWidth);
-      } else {
-        ctx.fillText(
-          str.substring(0, chatNum - 1) + '...',
-          x1,
-          Math.floor(frame.y + frame.height / 2 + 2),
-          fillTextWidth
-        );
-      }
-      return true;
-    }
-  }
-  return false;
 }
 
 function isHover(data: ChartStruct): boolean {

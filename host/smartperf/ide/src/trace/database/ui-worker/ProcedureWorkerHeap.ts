@@ -21,13 +21,14 @@ import {
   drawLoading,
   drawSelection,
   drawWakeUp,
-  isFrameContainPoint,
-  ns2x,
   Rect,
   Render,
   RequestMessage,
+  isFrameContainPoint,
+  ns2x,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct.js';
 export class NativeMemoryRender extends Render {
   renderMainThread(req: any, row: TraceRow<any>) {}
 }
@@ -40,11 +41,11 @@ export class HeapRender {
     },
     row: TraceRow<HeapStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let heapList = row.dataList;
+    let heapFilter = row.dataListCache;
     heap(
-      list,
-      filter,
+      heapList,
+      heapFilter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
       TraceRow.range?.totalNS ?? 0,
@@ -53,87 +54,95 @@ export class HeapRender {
     );
     req.context.beginPath();
     let find = false;
-    for (let re of filter) {
+    for (let re of heapFilter) {
       if (row.isHover && re.frame && !find && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         HeapStruct.hoverHeapStruct = re;
         find = true;
       }
     }
-    for (let re of filter) {
-      HeapStruct.draw(req.context, re, row.drawType);
+    for (let re of heapFilter) {
+      HeapStruct.drawHeap(req.context, re, row.drawType);
     }
     if (!find && row.isHover) HeapStruct.hoverHeapStruct = undefined;
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      heap(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(heapRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (heapRequest.lazyRefresh) {
+      heap(
+        list,
+        filter,
+        heapRequest.startNS,
+        heapRequest.endNS,
+        heapRequest.totalNS,
+        heapRequest.frame,
+        heapRequest.useCache || !heapRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        heap(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
+      if (!heapRequest.useCache) {
+        heap(list, filter, heapRequest.startNS, heapRequest.endNS, heapRequest.totalNS, heapRequest.frame, false);
       }
     }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.canvas.width, req.canvas.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+    if (heapRequest.canvas) {
+      heapRequest.context.clearRect(0, 0, heapRequest.canvas.width, heapRequest.canvas.height);
+      let heapArr = filter;
+      if (heapArr.length > 0 && !heapRequest.range.refresh && !heapRequest.useCache && heapRequest.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startTime,
-          arr[arr.length - 1].startTime + arr[arr.length - 1].dur
+          heapRequest.context,
+          heapRequest.startNS,
+          heapRequest.endNS,
+          heapRequest.totalNS,
+          heapRequest.frame,
+          heapArr[0].startTime,
+          heapArr[heapArr.length - 1].startTime + heapArr[heapArr.length - 1].dur
         );
       }
-      req.context.beginPath();
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+      heapRequest.context.beginPath();
+      drawLines(heapRequest.context, heapRequest.xs, heapRequest.frame.height, heapRequest.lineColor);
       HeapStruct.hoverHeapStruct = undefined;
-      if (req.isHover) {
+      if (heapRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            heapRequest.hoverX >= re.frame.x &&
+            heapRequest.hoverX <= re.frame.x + re.frame.width &&
+            heapRequest.hoverY >= re.frame.y &&
+            heapRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             HeapStruct.hoverHeapStruct = re;
             break;
           }
         }
       } else {
-        HeapStruct.hoverHeapStruct = req.params.hoverHeapStruct;
+        HeapStruct.hoverHeapStruct = heapRequest.params.hoverHeapStruct;
       }
       for (let re of filter) {
-        HeapStruct.draw(req.context, re, req.params.drawType);
+        HeapStruct.drawHeap(heapRequest.context, re, heapRequest.params.drawType);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(heapRequest.context, heapRequest.params);
+      heapRequest.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        heapRequest.context,
+        heapRequest.flagMoveInfo,
+        heapRequest.flagSelectedInfo,
+        heapRequest.startNS,
+        heapRequest.endNS,
+        heapRequest.totalNS,
+        heapRequest.frame,
+        heapRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: heapRequest.id,
+      type: heapRequest.type,
+      results: heapRequest.canvas ? undefined : filter,
       hover: HeapStruct.hoverHeapStruct,
     });
   }
 }
 export function heap(
-  list: Array<any>,
+  heapList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -153,12 +162,12 @@ export function heap(
     return;
   }
   res.length = 0;
-  for (let i = 0, len = list.length; i < len; i++) {
-    let it = list[i];
+  for (let i = 0, len = heapList.length; i < len; i++) {
+    let it = heapList[i];
     if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
       HeapStruct.setFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
       if (i > 0) {
-        let last = list[i - 1];
+        let last = heapList[i - 1];
         if (last.frame?.x != it.frame.x || last.frame.width != it.frame.width) {
           res.push(it);
         }
@@ -169,16 +178,9 @@ export function heap(
   }
 }
 
-export class HeapStruct extends BaseStruct {
+export class HeapStruct extends BaseHeapStruct {
   static hoverHeapStruct: HeapStruct | undefined;
   static selectHeapStruct: HeapStruct | undefined;
-  startTime: number | undefined;
-  endTime: number | undefined;
-  dur: number | undefined;
-  heapsize: number | undefined;
-  density: number | undefined;
-  maxHeapSize: number = 0;
-  minHeapSize: number = 0;
   maxDensity: number = 0;
   minDensity: number = 0;
 
@@ -211,11 +213,11 @@ export class HeapStruct extends BaseStruct {
     node.frame = rectangle;
   }
 
-  static draw(ctx: CanvasRenderingContext2D, data: HeapStruct, drawType: number) {
+  static drawHeap(heapContext: CanvasRenderingContext2D, data: HeapStruct, drawType: number) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      ctx.fillStyle = '#2db3aa';
-      ctx.strokeStyle = '#2db3aa';
+      heapContext.fillStyle = '#2db3aa';
+      heapContext.strokeStyle = '#2db3aa';
       let drawHeight: number = 0;
       if (drawType == 0) {
         if (data.minHeapSize < 0) {
@@ -236,26 +238,26 @@ export class HeapStruct extends BaseStruct {
         }
       }
       if (data == HeapStruct.hoverHeapStruct || data == HeapStruct.selectHeapStruct) {
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.6;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
-        ctx.beginPath();
-        ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
-        ctx.lineWidth = 3;
-        ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
-        ctx.stroke();
+        heapContext.lineWidth = 1;
+        heapContext.globalAlpha = 0.6;
+        heapContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        heapContext.beginPath();
+        heapContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        heapContext.fill();
+        heapContext.globalAlpha = 1.0;
+        heapContext.stroke();
+        heapContext.beginPath();
+        heapContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+        heapContext.lineWidth = 3;
+        heapContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
+        heapContext.stroke();
       } else {
-        ctx.globalAlpha = 0.6;
-        ctx.lineWidth = 1;
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        heapContext.globalAlpha = 0.6;
+        heapContext.lineWidth = 1;
+        heapContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
       }
     }
-    ctx.globalAlpha = 1.0;
-    ctx.lineWidth = 1;
+    heapContext.globalAlpha = 1.0;
+    heapContext.lineWidth = 1;
   }
 }

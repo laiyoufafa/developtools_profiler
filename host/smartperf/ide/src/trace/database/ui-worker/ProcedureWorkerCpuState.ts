@@ -76,87 +76,91 @@ export class CpuStateRender extends PerfRender {
     req.context.fill(path);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
-    if (req.lazyRefresh) {
+  render(cpuStateReq: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    if (cpuStateReq.lazyRefresh) {
       this.cpuState(
         list,
         dataList2,
-        req.type!,
+        cpuStateReq.type!,
         filter,
-        req.params.cpu,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.useCache || !req.range.refresh
+        cpuStateReq.params.cpu,
+        cpuStateReq.startNS,
+        cpuStateReq.endNS,
+        cpuStateReq.totalNS,
+        cpuStateReq.frame,
+        cpuStateReq.useCache || !cpuStateReq.range.refresh
       );
     } else {
-      if (!req.useCache) {
+      if (!cpuStateReq.useCache) {
         this.cpuState(
           list,
           dataList2,
-          req.type!,
+          cpuStateReq.type!,
           filter,
-          req.params.cpu,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          cpuStateReq.params.cpu,
+          cpuStateReq.startNS,
+          cpuStateReq.endNS,
+          cpuStateReq.totalNS,
+          cpuStateReq.frame,
           false
         );
       }
     }
     CpuStateStruct.hoverStateStruct = undefined;
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-      if (filter.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+    if (cpuStateReq.canvas) {
+      cpuStateReq.context.clearRect(0, 0, cpuStateReq.frame.width, cpuStateReq.frame.height);
+      if (filter.length > 0 && !cpuStateReq.range.refresh && !cpuStateReq.useCache && cpuStateReq.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          cpuStateReq.context,
+          cpuStateReq.startNS,
+          cpuStateReq.endNS,
+          cpuStateReq.totalNS,
+          cpuStateReq.frame,
           filter[0].startTs,
           filter[filter.length - 1].startTs + filter[filter.length - 1].dur
         );
       }
-      req.context.beginPath();
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-      if (req.isHover) {
+      cpuStateReq.context.beginPath();
+      drawLines(cpuStateReq.context, cpuStateReq.xs, cpuStateReq.frame.height, cpuStateReq.lineColor);
+      if (cpuStateReq.isHover) {
         let offset = 3;
         for (let re of filter) {
-          if (re.frame && req.hoverX >= re.frame.x - offset && req.hoverX <= re.frame.x + re.frame.width + offset) {
+          if (
+            re.frame &&
+            cpuStateReq.hoverX >= re.frame.x - offset &&
+            cpuStateReq.hoverX <= re.frame.x + re.frame.width + offset
+          ) {
             CpuStateStruct.hoverStateStruct = re;
             break;
           }
         }
       }
-      CpuStateStruct.selectStateStruct = req.params.selectStateStruct;
-      req.context.font = '11px sans-serif';
-      req.context.fillStyle = req.chartColor;
-      req.context.strokeStyle = req.chartColor;
-      req.context.globalAlpha = 0.6;
+      CpuStateStruct.selectStateStruct = cpuStateReq.params.selectStateStruct;
+      cpuStateReq.context.font = '11px sans-serif';
+      cpuStateReq.context.fillStyle = cpuStateReq.chartColor;
+      cpuStateReq.context.strokeStyle = cpuStateReq.chartColor;
+      cpuStateReq.context.globalAlpha = 0.6;
       let path = new Path2D();
       for (let re of filter) {
-        CpuStateStruct.draw(req.context, path, re);
+        CpuStateStruct.draw(cpuStateReq.context, path, re);
       }
-      req.context.fill(path);
-      drawSelection(req.context, req.params);
+      cpuStateReq.context.fill(path);
+      drawSelection(cpuStateReq.context, cpuStateReq.params);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        cpuStateReq.context,
+        cpuStateReq.flagMoveInfo,
+        cpuStateReq.flagSelectedInfo,
+        cpuStateReq.startNS,
+        cpuStateReq.endNS,
+        cpuStateReq.totalNS,
+        cpuStateReq.frame,
+        cpuStateReq.slicesTime
       );
     }
     let msg = {
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: cpuStateReq.id,
+      type: cpuStateReq.type,
+      results: cpuStateReq.canvas ? undefined : filter,
       hover: CpuStateStruct.hoverStateStruct,
     };
     self.postMessage(msg);
@@ -166,7 +170,7 @@ export class CpuStateRender extends PerfRender {
     arr: Array<any>,
     arr2: Array<any>,
     type: string,
-    res: Array<any>,
+    cpuStateRes: Array<any>,
     cpu: number,
     startNS: number,
     endNS: number,
@@ -174,25 +178,24 @@ export class CpuStateRender extends PerfRender {
     frame: any,
     use: boolean
   ) {
-    if (use && res.length > 0) {
-      for (let i = 0, len = res.length; i < len; i++) {
-        if ((res[i].startTs || 0) + (res[i].dur || 0) >= startNS && (res[i].startTs || 0) <= endNS) {
-          CpuStateStruct.setFrame(res[i], 5, startNS, endNS, totalNS, frame);
+    if (use && cpuStateRes.length > 0) {
+      for (let i = 0, len = cpuStateRes.length; i < len; i++) {
+        if ((cpuStateRes[i].startTs || 0) + (cpuStateRes[i].dur || 0) >= startNS && (cpuStateRes[i].startTs || 0) <= endNS) {
+          CpuStateStruct.setFrame(cpuStateRes[i], 5, startNS, endNS, totalNS, frame);
         } else {
-          res[i].frame = null;
+          cpuStateRes[i].frame = null;
         }
       }
       return;
     }
-    res.length = 0;
+    cpuStateRes.length = 0;
     if (arr) {
       let list: Array<any> = arr2;
-      res.length = 0;
+      cpuStateRes.length = 0;
       let pns = (endNS - startNS) / frame.width; //每个像素多少ns
       let y = frame.y + 5;
-      let height = frame.height - 10;
-      let left = 0,
-        right = 0;
+      let frameHeight = frame.height - 10;
+      let left = 0, right = 0;
       for (let i = 0, j = list.length - 1, ib = true, jb = true; i < list.length, j >= 0; i++, j--) {
         if (list[j].startTs <= endNS && jb) {
           right = j;
@@ -212,7 +215,7 @@ export class CpuStateRender extends PerfRender {
         if (!slice[i].frame) {
           slice[i].frame = {};
           slice[i].frame.y = y;
-          slice[i].frame.height = height;
+          slice[i].frame.height = frameHeight;
         }
         if (slice[i].dur >= pns) {
           slice[i].v = true;
@@ -231,7 +234,7 @@ export class CpuStateRender extends PerfRender {
           }
         }
       }
-      res.push(...slice.filter((it) => it.v));
+      cpuStateRes.push(...slice.filter((it) => it.v));
     }
   }
 }
@@ -269,40 +272,42 @@ export class CpuStateStruct extends BaseStruct {
     }
   }
 
-  static setCpuFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
-    if ((node.startTime || 0) < startNS) {
-      node.frame.x = 0;
+  static setCpuFrame(cpuStateNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+    if ((cpuStateNode.startTime || 0) < startNS) {
+      cpuStateNode.frame.x = 0;
     } else {
-      node.frame.x = Math.floor(((node.startTs || 0) - startNS) / pns);
+      cpuStateNode.frame.x = Math.floor(((cpuStateNode.startTs || 0) - startNS) / pns);
     }
-    if ((node.startTime || 0) + (node.dur || 0) > endNS) {
-      node.frame.width = frame.width - node.frame.x;
+    if ((cpuStateNode.startTime || 0) + (cpuStateNode.dur || 0) > endNS) {
+      cpuStateNode.frame.width = frame.width - cpuStateNode.frame.x;
     } else {
-      node.frame.width = Math.ceil(((node.startTs || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+      cpuStateNode.frame.width = Math.ceil(
+        ((cpuStateNode.startTs || 0) + (cpuStateNode.dur || 0) - startNS) / pns - cpuStateNode.frame.x
+      );
     }
-    if (node.frame.width < 1) {
-      node.frame.width = 1;
+    if (cpuStateNode.frame.width < 1) {
+      cpuStateNode.frame.width = 1;
     }
   }
-  static setFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setFrame(cpuStateNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
-    if ((node.startTs || 0) < startNS) {
+    if ((cpuStateNode.startTs || 0) < startNS) {
       x1 = 0;
     } else {
-      x1 = ns2x(node.startTs || 0, startNS, endNS, totalNS, frame);
+      x1 = ns2x(cpuStateNode.startTs || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startTs || 0) + (node.dur || 0) > endNS) {
+    if ((cpuStateNode.startTs || 0) + (cpuStateNode.dur || 0) > endNS) {
       x2 = frame.width;
     } else {
-      x2 = ns2x((node.startTs || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      x2 = ns2x((cpuStateNode.startTs || 0) + (cpuStateNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-    if (!node.frame) {
-      node.frame = {};
+    let cpuStateGetV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+    if (!cpuStateNode.frame) {
+      cpuStateNode.frame = {};
     }
-    node.frame.x = Math.ceil(x1);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.floor(getV);
-    node.frame.height = node.height;
+    cpuStateNode.frame.x = Math.ceil(x1);
+    cpuStateNode.frame.y = frame.y + padding;
+    cpuStateNode.frame.width = Math.floor(cpuStateGetV);
+    cpuStateNode.frame.height = cpuStateNode.height;
   }
 }

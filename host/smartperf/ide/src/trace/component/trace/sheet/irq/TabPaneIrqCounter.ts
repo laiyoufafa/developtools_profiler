@@ -15,66 +15,66 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabCounters, getTabVirtualCounters } from '../../../../database/SqlLite.js';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import { Utils } from '../../base/Utils.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-irq-counter')
 export class TabPaneIrqCounter extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private source: Array<SelectionData> = [];
+  private irqCounterTbl: LitTable | null | undefined;
+  private irqRange: HTMLLabelElement | null | undefined;
+  private irqCounterSource: Array<SelectionData> = [];
 
-  set data(val: SelectionParam | any) {
+  set data(irqParam: SelectionParam | any) {
     //@ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
-    this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    this.irqCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
+        this.parentElement!.clientHeight - 45 + 'px';
+    this.irqRange!.textContent =
+        'Selected range: ' +
+        parseFloat(((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)) +
+        ' ms';
     let dataSource: Array<SelectionData> = [];
-    let collect = val.irqMapData;
+    let collect = irqParam.irqMapData;
     let sumCount = 0;
     for (let key of collect.keys()) {
       let counters = collect.get(key);
-      let sd = this.createSelectCounterData(key, counters);
-      sumCount += Number.parseInt(sd.count || '0');
-      sd.avgDuration = Utils.getProbablyTime(sd.wallDuration / parseInt(sd.count));
-      dataSource.push(sd);
+      let selectCounterData = this.createSelectCounterData(key, counters);
+      sumCount += Number.parseInt(selectCounterData.count || '0');
+      selectCounterData.avgDuration = Utils.getProbablyTime(selectCounterData.wallDuration / parseInt(selectCounterData.count));
+      dataSource.push(selectCounterData);
     }
-    this.source = dataSource;
-    this.tbl!.recycleDataSource = dataSource;
+    this.irqCounterSource = dataSource;
+    this.irqCounterTbl!.recycleDataSource = dataSource;
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.irqCounterTbl = this.shadowRoot?.querySelector<LitTable>('#tb-irq-counter');
+    this.irqRange = this.shadowRoot?.querySelector('#time-range');
+    this.irqCounterTbl!.addEventListener('column-click', (event) => {
       // @ts-ignore
-      this.sortByColumn(evt.detail);
+      this.sortByColumn(event.detail);
     });
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.irqCounterTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .irq-counter-label{
+            font-size: 10pt;
+        }
         :host{
             display: flex;
             flex-direction: column;
             padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-        <lit-table id="tb-counter" style="height: auto">
+        <label id="time-range" class="irq-counter-label" style="width: 100%;height: 20px;text-align: end;margin-bottom: 5px;">Selected range:0.0 ms</label>
+        <lit-table id="tb-irq-counter" style="height: auto">
             <lit-table-column width="30%" title="Name" data-index="name" key="name"  align="flex-start" order>
             </lit-table-column>
             <lit-table-column width="1fr" title="Duration" data-index="wallDurationFormat" key="wallDurationFormat"  align="flex-start" order >
@@ -92,8 +92,8 @@ export class TabPaneIrqCounter extends BaseElement {
     if (list.length > 0) {
       selectData.name = name;
       selectData.count = list.length + '';
-      for (let i = 0; i < list.length; i++) {
-        selectData.wallDuration += list[i].dur;
+      for (let index = 0; index < list.length; index++) {
+        selectData.wallDuration += list[index].dur;
       }
       selectData.wallDurationFormat = Utils.getProbablyTime(selectData.wallDuration);
     }
@@ -104,32 +104,38 @@ export class TabPaneIrqCounter extends BaseElement {
     let type = detail.sort;
     let key = detail.key;
     if (type == 0) {
-      this.tbl!.recycleDataSource = this.source;
+      this.irqCounterTbl!.recycleDataSource = this.irqCounterSource;
     } else {
-      let arr = Array.from(this.source);
-      arr.sort((a, b): number => {
+      let arr = Array.from(this.irqCounterSource);
+      arr.sort((irqCounterLeftData, irqCounterRightData): number => {
         if (key == 'wallDurationFormat') {
           if (type == 1) {
-            return a.wallDuration - b.wallDuration;
+            return irqCounterLeftData.wallDuration - irqCounterRightData.wallDuration;
           } else {
-            return b.wallDuration - a.wallDuration;
+            return irqCounterRightData.wallDuration - irqCounterLeftData.wallDuration;
           }
         } else if (key == 'count') {
           if (type == 1) {
-            return parseInt(a.count) >= parseInt(b.count) ? 1 : -1;
+            return parseInt(irqCounterLeftData.count) >= parseInt(irqCounterRightData.count) ? 1 : -1;
           } else {
-            return parseInt(b.count) >= parseInt(a.count) ? 1 : -1;
+            return parseInt(irqCounterRightData.count) >= parseInt(irqCounterLeftData.count) ? 1 : -1;
           }
         } else if (key == 'avgDuration') {
           if (type == 1) {
-            return a.wallDuration / parseInt(a.count) - b.wallDuration / parseInt(b.count);
+            return (
+                irqCounterLeftData.wallDuration / parseInt(irqCounterLeftData.count) -
+                irqCounterRightData.wallDuration / parseInt(irqCounterRightData.count)
+            );
           } else {
-            return b.wallDuration / parseInt(b.count) - a.wallDuration / parseInt(a.count);
+            return (
+                irqCounterRightData.wallDuration / parseInt(irqCounterRightData.count) -
+                irqCounterLeftData.wallDuration / parseInt(irqCounterLeftData.count)
+            );
           }
         } else if (key == 'name') {
-          if (a.name > b.name) {
+          if (irqCounterLeftData.name > irqCounterRightData.name) {
             return type === 2 ? 1 : -1;
-          } else if (a.name == b.name) {
+          } else if (irqCounterLeftData.name == irqCounterRightData.name) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
@@ -138,7 +144,7 @@ export class TabPaneIrqCounter extends BaseElement {
           return 0;
         }
       });
-      this.tbl!.recycleDataSource = arr;
+      this.irqCounterTbl!.recycleDataSource = arr;
     }
   }
 }

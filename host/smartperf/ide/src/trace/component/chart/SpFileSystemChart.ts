@@ -69,21 +69,21 @@ export class SpFileSystemChart {
   }
 
   async initFolder(): Promise<TraceRow<any>> {
-    let folder = TraceRow.skeleton();
-    folder.rowId = `FileSystem`;
-    folder.index = 0;
-    folder.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_GROUP;
-    folder.rowParentId = '';
-    folder.style.height = '40px';
-    folder.folder = true;
-    folder.name = `EBPF`; /* & I/O Latency */
-    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    folder.selectChangeHandler = this.trace.selectChangeHandler;
-    folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    folder.onThreadHandler = (useCache) => {
-      folder.canvasSave(this.trace.canvasPanelCtx!);
-      if (folder.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+    let fsFolder = TraceRow.skeleton();
+    fsFolder.rowId = `FileSystem`;
+    fsFolder.index = 0;
+    fsFolder.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_GROUP;
+    fsFolder.rowParentId = '';
+    fsFolder.style.height = '40px';
+    fsFolder.folder = true;
+    fsFolder.name = `EBPF`; /* & I/O Latency */
+    fsFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    fsFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    fsFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    fsFolder.onThreadHandler = (useCache) => {
+      fsFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (fsFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, fsFolder.frame.width, fsFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -91,32 +91,32 @@ export class SpFileSystemChart {
             useCache: useCache,
             type: ``,
           },
-          folder
+          fsFolder
         );
       }
-      folder.canvasRestore(this.trace.canvasPanelCtx!);
+      fsFolder.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    this.trace.rowsEL?.appendChild(folder);
-    return folder;
+    this.trace.rowsEL?.appendChild(fsFolder);
+    return fsFolder;
   }
 
   async initLogicalRead(folder: TraceRow<any>) {
-    let row = TraceRow.skeleton<FileSysChartStruct>();
-    row.rowId = `FileSystemLogicalRead`;
-    row.index = 1;
-    row.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
-    row.rowParentId = folder.rowId;
-    row.rowHidden = !folder.expansion;
-    row.style.height = '40px';
-    row.setAttribute('children', '');
-    row.name = `FileSystem Logical Read`;
-    row.supplier = () => getFileSysChartDataByType(2);
-    row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    row.selectChangeHandler = this.trace.selectChangeHandler;
-    row.focusHandler = () => this.focusHandler(row);
-    row.onThreadHandler = (useCache) => {
-      let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      row.canvasSave(context);
+    let logicalReadRow = TraceRow.skeleton<FileSysChartStruct>();
+    logicalReadRow.rowId = `FileSystemLogicalRead`;
+    logicalReadRow.index = 1;
+    logicalReadRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
+    logicalReadRow.rowParentId = folder.rowId;
+    logicalReadRow.rowHidden = !folder.expansion;
+    logicalReadRow.style.height = '40px';
+    logicalReadRow.setAttribute('children', '');
+    logicalReadRow.name = `FileSystem Logical Read`;
+    logicalReadRow.supplier = () => getFileSysChartDataByType(2);
+    logicalReadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    logicalReadRow.selectChangeHandler = this.trace.selectChangeHandler;
+    logicalReadRow.focusHandler = () => this.focusHandler(logicalReadRow);
+    logicalReadRow.onThreadHandler = (useCache) => {
+      let context = logicalReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      logicalReadRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
           context: context,
@@ -124,30 +124,30 @@ export class SpFileSystemChart {
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-logical-read`,
           chartColor: ColorUtils.MD_PALETTE[0],
         },
-        row
+        logicalReadRow
       );
-      row.canvasRestore(context);
+      logicalReadRow.canvasRestore(context);
     };
-    folder.addChildTraceRow(row);
+    folder.addChildTraceRow(logicalReadRow);
   }
 
   async initLogicalWrite(folder: TraceRow<any>) {
-    let row = TraceRow.skeleton<FileSysChartStruct>();
-    row.rowId = `FileSystemLogicalWrite`;
-    row.index = 2;
-    row.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
-    row.rowParentId = folder.rowId;
-    row.rowHidden = !folder.expansion;
-    row.style.height = '40px';
-    row.setAttribute('children', '');
-    row.name = `FileSystem Logical Write`;
-    row.supplier = () => getFileSysChartDataByType(3);
-    row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    row.selectChangeHandler = this.trace.selectChangeHandler;
-    row.focusHandler = () => this.focusHandler(row);
-    row.onThreadHandler = (useCache) => {
-      let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      row.canvasSave(context);
+    let logicalWriteRow = TraceRow.skeleton<FileSysChartStruct>();
+    logicalWriteRow.rowId = `FileSystemLogicalWrite`;
+    logicalWriteRow.index = 2;
+    logicalWriteRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
+    logicalWriteRow.rowParentId = folder.rowId;
+    logicalWriteRow.rowHidden = !folder.expansion;
+    logicalWriteRow.style.height = '40px';
+    logicalWriteRow.setAttribute('children', '');
+    logicalWriteRow.name = `FileSystem Logical Write`;
+    logicalWriteRow.supplier = () => getFileSysChartDataByType(3);
+    logicalWriteRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    logicalWriteRow.selectChangeHandler = this.trace.selectChangeHandler;
+    logicalWriteRow.focusHandler = () => this.focusHandler(logicalWriteRow);
+    logicalWriteRow.onThreadHandler = (useCache) => {
+      let context = logicalWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      logicalWriteRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
           context: context,
@@ -155,31 +155,31 @@ export class SpFileSystemChart {
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-logical-write`,
           chartColor: ColorUtils.MD_PALETTE[8],
         },
-        row
+        logicalWriteRow
       );
-      row.canvasRestore(context);
+      logicalWriteRow.canvasRestore(context);
     };
-      folder.addChildTraceRow(row);
+      folder.addChildTraceRow(logicalWriteRow);
   }
 
   async initDiskIOLatency(folder: TraceRow<any>) {
-    let row = TraceRow.skeleton<FileSysChartStruct>();
-    row.rowId = `FileSystemDiskIOLatency`;
-    row.index = 4;
-    row.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
-    row.rowParentId = folder.rowId;
-    row.rowHidden = !folder.expansion;
-    row.style.height = '40px';
-    row.style.width = `100%`;
-    row.setAttribute('children', '');
-    row.name = `Disk I/O Latency`;
-    row.supplier = () => getDiskIOLatencyChartDataByProcess(true, 0, [1, 2, 3, 4]);
-    row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    row.selectChangeHandler = this.trace.selectChangeHandler;
-    row.focusHandler = () => this.focusHandler(row);
-    row.onThreadHandler = (useCache) => {
-      let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      row.canvasSave(context);
+    let diskIoRow = TraceRow.skeleton<FileSysChartStruct>();
+    diskIoRow.rowId = `FileSystemDiskIOLatency`;
+    diskIoRow.index = 4;
+    diskIoRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
+    diskIoRow.rowParentId = folder.rowId;
+    diskIoRow.rowHidden = !folder.expansion;
+    diskIoRow.style.height = '40px';
+    diskIoRow.style.width = `100%`;
+    diskIoRow.setAttribute('children', '');
+    diskIoRow.name = `Disk I/O Latency`;
+    diskIoRow.supplier = () => getDiskIOLatencyChartDataByProcess(true, 0, [1, 2, 3, 4]);
+    diskIoRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    diskIoRow.selectChangeHandler = this.trace.selectChangeHandler;
+    diskIoRow.focusHandler = () => this.focusHandler(diskIoRow);
+    diskIoRow.onThreadHandler = (useCache) => {
+      let context = diskIoRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      diskIoRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
           context: context,
@@ -187,11 +187,11 @@ export class SpFileSystemChart {
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io`,
           chartColor: ColorUtils.MD_PALETTE[0],
         },
-        row
+        diskIoRow
       );
-      row.canvasRestore(context);
+      diskIoRow.canvasRestore(context);
     };
-    folder.addChildTraceRow(row);
+    folder.addChildTraceRow(diskIoRow);
   }
 
   async initProcessDiskIOLatency(folder: TraceRow<any>) {
@@ -260,24 +260,24 @@ export class SpFileSystemChart {
   }
 
   async initVirtualMemoryTrace(folder: TraceRow<any>) {
-    let row = TraceRow.skeleton<FileSysChartStruct>();
-    row.rowId = `FileSystemVirtualMemory`;
-    row.index = 3;
-    row.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
-    row.rowParentId = folder.rowId;
-    row.rowHidden = !folder.expansion;
-    row.rangeSelect = true;
-    row.style.height = '40px';
-    row.style.width = `100%`;
-    row.setAttribute('children', '');
-    row.name = `Page Fault Trace`;
-    row.supplier = () => getFileSysVirtualMemoryChartData();
-    row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    row.selectChangeHandler = this.trace.selectChangeHandler;
-    row.focusHandler = () => this.focusHandler(row);
-    row.onThreadHandler = (useCache) => {
-      let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      row.canvasSave(context);
+    let vmTraceRow = TraceRow.skeleton<FileSysChartStruct>();
+    vmTraceRow.rowId = `FileSystemVirtualMemory`;
+    vmTraceRow.index = 3;
+    vmTraceRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
+    vmTraceRow.rowParentId = folder.rowId;
+    vmTraceRow.rowHidden = !folder.expansion;
+    vmTraceRow.rangeSelect = true;
+    vmTraceRow.style.height = '40px';
+    vmTraceRow.style.width = `100%`;
+    vmTraceRow.setAttribute('children', '');
+    vmTraceRow.name = `Page Fault Trace`;
+    vmTraceRow.supplier = () => getFileSysVirtualMemoryChartData();
+    vmTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    vmTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
+    vmTraceRow.focusHandler = () => this.focusHandler(vmTraceRow);
+    vmTraceRow.onThreadHandler = (useCache) => {
+      let context = vmTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      vmTraceRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
           context: context,
@@ -285,11 +285,11 @@ export class SpFileSystemChart {
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-virtual-memory`,
           chartColor: ColorUtils.MD_PALETTE[0],
         },
-        row
+        vmTraceRow
       );
-      row.canvasRestore(context);
+      vmTraceRow.canvasRestore(context);
     };
-    folder.addChildTraceRow(row);
+    folder.addChildTraceRow(vmTraceRow);
   }
 
   focusHandler(row: TraceRow<FileSysChartStruct>) {

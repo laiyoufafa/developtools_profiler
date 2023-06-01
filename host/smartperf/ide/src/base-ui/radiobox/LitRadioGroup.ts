@@ -41,23 +41,22 @@ export class LitRadioGroup extends BaseElement {
   initHtml(): string {
     return `
         <style>   
+        :host([direction]) {
+            flex-direction: ${this.direction};
+        }
         :host {
             display: -webkit-flex; 
             display: flex;
             flex-direction: column;
         }
-        :host([direction]) {
-            flex-direction: ${this.direction};
-        }
-        :host(:not([direction])) {
-            flex-direction: column;
-        }
-        
         :host([layout="compact"]) {
             gap:5px;
         }
         :host([layout="dispersion"]) {
            gap:10px;
+        }
+        :host(:not([direction])) {
+            flex-direction: column;
         }
         </style>
         <slot class="radio-group"></slot>`;

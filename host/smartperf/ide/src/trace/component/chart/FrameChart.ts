@@ -203,15 +203,15 @@ export class FrameChart extends BaseElement {
         for (let node of this.currentData!) {
           let nodeSize = node.drawSize || node.size;
           let width = Math.round((nodeSize / this.currentSize) * this.rect!.width);
-          let height = depthHeight; // 20px / depth
+          let nmHeight = depthHeight; // 20px / depth
           // ensure the data for first depth frame
           if (!node.frame) {
-            node.frame = new Rect(x, scaleHeight, width, height);
+            node.frame = new Rect(x, scaleHeight, width, nmHeight);
           } else {
             node.frame!.x = x;
             node.frame!.y = scaleHeight;
             node.frame!.width = width;
-            node.frame!.height = height;
+            node.frame!.height = nmHeight;
           }
           // not draw when rect not in canvas
           if (x + width >= 0 && x < this.canvas!.width) {
@@ -227,15 +227,15 @@ export class FrameChart extends BaseElement {
         for (let node of this.currentData!) {
           let nodeCount = node.drawCount || node.count;
           let width = Math.round((nodeCount / this.currentCount) * this.rect!.width);
-          let height = depthHeight; // 20px / depth
+          let perfHeight = depthHeight; // 20px / depth
           // ensure the data for first depth frame
           if (!node.frame) {
-            node.frame = new Rect(x, scaleHeight, width, height);
+            node.frame = new Rect(x, scaleHeight, width, perfHeight);
           } else {
             node.frame!.x = x;
             node.frame!.y = scaleHeight;
             node.frame!.width = width;
-            node.frame!.height = height;
+            node.frame!.height = perfHeight;
           }
           // not draw when rect not in canvas
           if (x + width >= 0 && x < this.canvas!.width) {
@@ -251,15 +251,15 @@ export class FrameChart extends BaseElement {
         for (let node of this.currentData!) {
           let nodeDur = node.drawDur || node.dur;
           let width = Math.round((nodeDur / this.currentDuration) * this.rect!.width);
-          let height = depthHeight; // 20px / depth
+          let ebpfHeight = depthHeight; // 20px / depth
           // ensure the data for first depth frame
           if (!node.frame) {
-            node.frame = new Rect(x, scaleHeight, width, height);
+            node.frame = new Rect(x, scaleHeight, width, ebpfHeight);
           } else {
             node.frame!.x = x;
             node.frame!.y = scaleHeight;
             node.frame!.width = width;
-            node.frame!.height = height;
+            node.frame!.height = ebpfHeight;
           }
           // not draw when rect not in canvas
           if (x + width >= 0 && x < this.canvas!.width) {
@@ -799,9 +799,9 @@ export class FrameChart extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.canvas!.getBoundingClientRect()) {
         let box = this.canvas!.getBoundingClientRect();
-        let D = document.documentElement;
-        this.startX = box.left + Math.max(D.scrollLeft, document.body.scrollLeft) - D.clientLeft;
-        this.startY = box.top + Math.max(D.scrollTop, document.body.scrollTop) - D.clientTop + this.canvasScrollTop;
+        let element = document.documentElement;
+        this.startX = box.left + Math.max(element.scrollLeft, document.body.scrollLeft) - element.clientLeft;
+        this.startY = box.top + Math.max(element.scrollTop, document.body.scrollTop) - element.clientTop + this.canvasScrollTop;
       }
     }).observe(document.documentElement);
   }
@@ -809,11 +809,7 @@ export class FrameChart extends BaseElement {
   initHtml(): string {
     return `
             <style>
-            :host{
-                display: flex;
-                padding: 10px 10px;
-            }
-            .tip{
+            .frame-tip{
                 position:absolute;
                 left: 0;
                 background-color: white;
@@ -832,8 +828,12 @@ export class FrameChart extends BaseElement {
                 max-width:350px;
                 word-break: break-all;
             }
+            :host{
+                display: flex;
+                padding: 10px 10px;
+            }
             </style>
             <canvas id="canvas"></canvas>
-            <div id ="float_hint" class="tip"></div>`;
+            <div id ="float_hint" class="frame-tip"></div>`;
   }
 }

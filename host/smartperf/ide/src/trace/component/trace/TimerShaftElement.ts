@@ -33,23 +33,23 @@ export function randomRgbColor() {
 }
 
 export function ns2s(ns: number): string {
-  let second1 = 1_000_000_000; // 1 second
-  let millisecond1 = 1_000_000; // 1 millisecond
-  let microsecond1 = 1_000; // 1 microsecond
+  let one_second = 1_000_000_000; // 1 second
+  let one_millisecond = 1_000_000; // 1 millisecond
+  let one_microsecond = 1_000; // 1 microsecond
   let nanosecond1 = 1000.0;
-  let res;
-  if (ns >= second1) {
-    res = (ns / 1000 / 1000 / 1000).toFixed(1) + ' s';
-  } else if (ns >= millisecond1) {
-    res = (ns / 1000 / 1000).toFixed(1) + ' ms';
-  } else if (ns >= microsecond1) {
-    res = (ns / 1000).toFixed(1) + ' μs';
+  let result;
+  if (ns >= one_second) {
+    result = (ns / 1000 / 1000 / 1000).toFixed(1) + ' s';
+  } else if (ns >= one_millisecond) {
+    result = (ns / 1000 / 1000).toFixed(1) + ' ms';
+  } else if (ns >= one_microsecond) {
+    result = (ns / 1000).toFixed(1) + ' μs';
   } else if (ns > 0) {
-    res = ns.toFixed(1) + ' ns';
+    result = ns.toFixed(1) + ' ns';
   } else {
-    res = ns.toFixed(1) + ' s';
+    result = ns.toFixed(1) + ' s';
   }
-  return res;
+  return result;
 }
 
 export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: Rect) {
@@ -149,8 +149,8 @@ export class TimerShaftElement extends BaseElement {
   reset(): void {
     this.loadComplete = false;
     if (this.rangeRuler) {
-      this.rangeRuler.markA.frame.x = 0;
-      this.rangeRuler.markB.frame.x = this.rangeRuler.frame.width;
+      this.rangeRuler.markAObj.frame.x = 0;
+      this.rangeRuler.markBObj.frame.x = this.rangeRuler.frame.width;
       this.rangeRuler.cpuUsage = [];
       this.sportRuler!.flagList.length = 0;
       this.sportRuler!.isRangeSelect = false;

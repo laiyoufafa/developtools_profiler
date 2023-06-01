@@ -13,68 +13,6 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
-
-export class EnergyAnomalyStruct extends BaseStruct {
-  static hoverEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
-  static selectEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
-  type: number | undefined;
-  startNS: number | undefined;
-  height: number | undefined;
-  eventName: string | undefined;
-}
-
-export class EnergySystemStruct extends BaseStruct {
-  static hoverEnergySystemStruct: EnergySystemStruct | undefined;
-  static selectEnergySystemStruct: EnergySystemStruct | undefined;
-  type: number | undefined;
-  startNs: number | undefined;
-  dur: number | undefined;
-  count: number | undefined;
-  workScheduler: string | undefined;
-  power: string | undefined;
-  location: string | undefined;
-}
-
-export class EnergyPowerStruct extends BaseStruct {
-  static maxPower: number = 0;
-  static maxPowerName: string = '0 %';
-  static powerItemNumber: number = 9;
-  static colorIndex: number = 2;
-  static currentTextWidth: number = 0;
-  static rowHeight: number = 200;
-  static appName: string | undefined;
-  static hoverEnergyPowerStruct: EnergyPowerStruct | undefined;
-  static selectEnergyPowerStruct: EnergyPowerStruct | undefined;
-  name: string | undefined; // appName
-  ts: number = 0;
-  cpu: number = 0;
-  location: number = 0;
-  gpu: number = 0;
-  display: number = 0;
-  camera: number = 0;
-  bluetooth: number = 0;
-  flashlight: number = 0;
-  audio: number = 0;
-  wifiscan: number = 0;
-}
-
-export class EnergyStateStruct extends BaseStruct {
-  static maxState: number = 0;
-  static maxStateName: string = '0';
-  static hoverEnergyStateStruct: EnergyStateStruct | undefined;
-  static selectEnergyStateStruct: EnergyStateStruct | undefined;
-  type: string | undefined;
-  value: number | undefined;
-  startNs: number | undefined;
-  dur: number | undefined;
-
-  sensorType: number | undefined;
-  pkg_name: string | undefined;
-  deviceState: number | undefined;
-  deviceType: number | undefined;
-}
-
 export class PowerDetailsEnergy {
   constructor(eventName: string) {
     this.event = eventName;
@@ -113,17 +51,6 @@ export class PowerDetailsEnergy {
     }
     return this.foreground_energy + this.background_energy + this.screen_on_energy + this.screen_off_energy;
   }
-}
-
-export class PowerBatteryEnergy {
-  gasGauge: number = -1;
-  charge: number = -1;
-  screen: number = -1;
-  level: number = -1;
-  current: number = -1;
-  capacity: number = -1;
-  appName: string = '';
-  uid: number = -1;
 }
 
 export class SystemDetailsEnergy {

@@ -20,41 +20,42 @@ import { getTabPaneFrequencySampleData } from '../../../../database/SqlLite.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { Utils } from '../../base/Utils.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-frequency-sample')
 export class TabPaneFrequencySample extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private frequencySampleTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private loadDataInCache: boolean = true;
   private selectionParam: SelectionParam | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
-  private loadingPage: any;
-  private loadingList: number[] = [];
-  private source: any[] = [];
-  private sortKey: string = 'counter';
-  private sortType: number = 0;
+  private frequencyProgressEL: LitProgressBar | null | undefined;
+  private frequencyLoadingPage: any;
+  private frequencyLoadingList: number[] = [];
+  private frequencySampleSource: any[] = [];
+  private frequencySampleSortKey: string = 'counter';
+  private frequencySampleSortType: number = 0;
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(frequencySampleValue: SelectionParam | any) {
+    if (frequencySampleValue == this.selectionParam) {
       return;
     }
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
-    this.selectionParam = val;
+    this.frequencyProgressEL!.loading = true;
+    this.frequencyLoadingPage.style.visibility = 'visible';
+    this.selectionParam = frequencySampleValue;
     // @ts-ignore
-    this.tbl!.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-    this.queryDataByDB(val);
+    this.frequencySampleTbl!.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
+    this.queryDataByDB(frequencySampleValue);
   }
 
   initElements(): void {
-    this.progressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progress');
-    this.loadingPage = this.shadowRoot!.querySelector('.loading');
-    this.tbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.frequencyProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progressFre');
+    this.frequencyLoadingPage = this.shadowRoot!.querySelector('.loadingFre');
+    this.frequencySampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
+    this.frequencySampleTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.frequencySampleSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.frequencySampleSortType = evt.detail.sort;
       // @ts-ignore
       this.sortTable(evt.detail.key, evt.detail.sort);
     });
@@ -62,64 +63,57 @@ export class TabPaneFrequencySample extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement!.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
-        this.tbl!.reMeauseHeight();
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.frequencySampleTbl!,25,this.frequencyLoadingPage, 24)
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    this.loadingList.push(1);
-    this.progressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
+  queryDataByDB(frqSampleParam: SelectionParam | any) {
+    this.frequencyLoadingList.push(1);
+    this.frequencyProgressEL!.loading = true;
+    this.frequencyLoadingPage.style.visibility = 'visible';
 
     getTabPaneFrequencySampleData(
-      val.leftNs + val.recordStartNs,
-      val.rightNs + val.recordStartNs,
-      val.cpuFreqFilterIds
+      frqSampleParam.leftNs + frqSampleParam.recordStartNs,
+      frqSampleParam.rightNs + frqSampleParam.recordStartNs,
+      frqSampleParam.cpuFreqFilterIds
     ).then((result) => {
-      this.loadingList.splice(0, 1);
-      if (this.loadingList.length == 0) {
-        this.progressEL!.loading = false;
-        this.loadingPage.style.visibility = 'hidden';
+      this.frequencyLoadingList.splice(0, 1);
+      if (this.frequencyLoadingList.length == 0) {
+        this.frequencyProgressEL!.loading = false;
+        this.frequencyLoadingPage.style.visibility = 'hidden';
       }
       let sampleMap = new Map<any, any>();
-      val.cpuFreqFilterIds.forEach((a: number) => {
+      frqSampleParam.cpuFreqFilterIds.forEach((a: number) => {
         this.getInitTime(
           result.filter((f) => f.filterId == a),
           sampleMap,
-          val
+          frqSampleParam
         );
       });
 
-      let dataList: Array<any> = [];
+      let frqSampleList: Array<any> = [];
       sampleMap.forEach((a) => {
         a.timeStr = Utils.getProbablyTime(a.time);
-        dataList.push(a);
+        frqSampleList.push(a);
       });
-      this.source = dataList;
-      this.sortTable(this.sortKey, this.sortType);
+      this.frequencySampleSource = frqSampleList;
+      this.sortTable(this.frequencySampleSortKey, this.frequencySampleSortType);
     });
   }
 
-  getInitTime(result: Array<any>, sampleMap: Map<any, any>, val: SelectionParam) {
-    let leftNs = val.leftNs + val.recordStartNs;
-    let rightNs = val.rightNs + val.recordStartNs;
-    if (result.length == 0) return;
-    let idx = result.findIndex((a) => a.ts >= leftNs);
-    if (idx !== 0) {
-      result = result.slice(idx == -1 ? result.length - 1 : idx - 1, result.length);
+  getInitTime(initFreqResult: Array<any>, sampleMap: Map<any, any>, selectionParam: SelectionParam) {
+    let leftStartNs = selectionParam.leftNs + selectionParam.recordStartNs;
+    let rightEndNs = selectionParam.rightNs + selectionParam.recordStartNs;
+    if (initFreqResult.length == 0) return;
+    let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
+    if (includeData !== 0) {
+      initFreqResult = initFreqResult.slice(includeData == -1 ? initFreqResult.length - 1 : includeData - 1, initFreqResult.length);
     }
-    if (result[0].ts < leftNs && idx !== 0) result[0].ts = leftNs;
-    result.forEach((item, idx) => {
-      if (idx + 1 == result.length) {
-        item.time = rightNs - item.ts;
+    if (initFreqResult[0].ts < leftStartNs && includeData !== 0) initFreqResult[0].ts = leftStartNs;
+    initFreqResult.forEach((item, idx) => {
+      if (idx + 1 == initFreqResult.length) {
+        item.time = rightEndNs - item.ts;
       } else {
-        item.time = result[idx + 1].ts - item.ts;
+        item.time = initFreqResult[idx + 1].ts - item.ts;
       }
       if (sampleMap.has(item.filterId + '-' + item.value)) {
         let obj = sampleMap.get(item.filterId + '-' + item.value);
@@ -136,54 +130,54 @@ export class TabPaneFrequencySample extends BaseElement {
 
   sortTable(key: string, type: number) {
     if (type == 0) {
-      this.tbl!.recycleDataSource = this.source;
+      this.frequencySampleTbl!.recycleDataSource = this.frequencySampleSource;
     } else {
-      let arr = Array.from(this.source);
-      arr.sort((a, b): number => {
+      let arr = Array.from(this.frequencySampleSource);
+      arr.sort((frequencySampleLeftData, frequencySampleRightData): number => {
         if (key == 'timeStr') {
           if (type == 1) {
-            return a.time - b.time;
+            return frequencySampleLeftData.time - frequencySampleRightData.time;
           } else {
-            return b.time - a.time;
+            return frequencySampleRightData.time - frequencySampleLeftData.time;
           }
         } else if (key == 'counter') {
-          if (a.counter > b.counter) {
+          if (frequencySampleLeftData.counter > frequencySampleRightData.counter) {
             return type === 2 ? -1 : 1;
-          } else if (a.counter == b.counter) {
+          } else if (frequencySampleLeftData.counter == frequencySampleRightData.counter) {
             return 0;
           } else {
             return type === 2 ? 1 : -1;
           }
         } else if (key == 'valueStr') {
           if (type == 1) {
-            return a.value - b.value;
+            return frequencySampleLeftData.value - frequencySampleRightData.value;
           } else {
-            return b.value - a.value;
+            return frequencySampleRightData.value - frequencySampleLeftData.value;
           }
         } else {
           return 0;
         }
       });
-      this.tbl!.recycleDataSource = arr;
+      this.frequencySampleTbl!.recycleDataSource = arr;
     }
   }
 
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px;
-        }
-        .progress{
+        .progressFre{
             bottom: 5px;
             position: absolute;
             height: 1px;
             left: 0;
             right: 0;
         }
-        .loading{
+        :host{
+            padding: 10px 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .loadingFre{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -194,15 +188,15 @@ export class TabPaneFrequencySample extends BaseElement {
         }
         </style>
         <lit-table id="tb-states" style="height: auto" >
-            <lit-table-column width="20%" title="Cpu" data-index="counter" key="counter" align="flex-start" order>
+            <lit-table-column class="freq-sample-column" width="20%" title="Cpu" data-index="counter" key="counter" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start" order>
+            <lit-table-column class="freq-sample-column" width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Value" data-index="valueStr" key="valueStr" align="flex-start" order>
+            <lit-table-column class="freq-sample-column" width="1fr" title="Value" data-index="valueStr" key="valueStr" align="flex-start" order>
             </lit-table-column>
         </lit-table>
-        <lit-progress-bar class="progress"></lit-progress-bar>
-        <div class="loading"></div>
+        <lit-progress-bar class="progressFre"></lit-progress-bar>
+        <div class="loadingFre"></div>
         `;
   }
 }

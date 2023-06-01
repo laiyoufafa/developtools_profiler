@@ -33,6 +33,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   isActualQuery: boolean = false;
   static cmdLineResult: any = undefined;
   currentEventId: string = '';
+  isAnalysis: boolean = false;
 
   handle(data: any): void {
     this.currentEventId = data.id;
@@ -69,7 +70,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           break;
         case 'perf-queryPerfCallchains':
           let arr = convertJSON(data.params.list) || [];
-          this.initCallChainTopDown(arr);
+          this.initPerfCallChainTopDown(arr);
           // @ts-ignore
           self.postMessage({
             id: data.id,
@@ -79,15 +80,27 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           break;
         case 'perf-queryCallchainsGroupSample':
           this.samplesData = convertJSON(data.params.list) || [];
-          self.postMessage({
-            id: data.id,
-            action: data.action,
-            results: this.resolvingAction([
+
+          let result;
+          if (this.isAnalysis) {
+            result = this.resolvingAction([
+              {
+                funcName: 'combineAnalysisCallChain',
+                funcArgs: [true],
+              },
+            ]);
+          } else {
+            result = this.resolvingAction([
               {
                 funcName: 'getCallChainsBySampleIds',
                 funcArgs: [true],
               },
-            ]),
+            ]);
+          }
+          self.postMessage({
+            id: data.id,
+            action: data.action,
+            results: result,
           });
           break;
         case 'perf-action':
@@ -105,35 +118,23 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             }
           }
           break;
-        case 'perf-queryPerfAnalysisCallChain':
-          // @ts-ignore
-          self.postMessage({
-            id: data.id,
-            action: data.action,
-            results: this.perfAnalysisCallChain(),
-          });
-          break;
       }
     }
   }
 
-  queryData(queryName: string, sql: string, args: any) {
-    self.postMessage({
-      id: this.currentEventId,
-      type: queryName,
-      isQuery: true,
-      args: args,
-      sql: sql,
-    });
-  }
-
   initPerfFiles() {
     this.clearAll();
-    this.queryData('perf-queryPerfFiles', `select file_id as fileId,symbol,path from perf_files`, {});
+    this.queryData(
+      this.currentEventId,
+      'perf-queryPerfFiles',
+      `select file_id as fileId,symbol,path from perf_files`,
+      {}
+    );
   }
 
   initPerfThreads() {
     this.queryData(
+      this.currentEventId,
       'perf-queryPerfThread',
       `select a.thread_id as tid,a.thread_name as threadName,a.process_id as pid,b.thread_name as processName from perf_thread a left join (select * from perf_thread where thread_id = process_id) b on a.process_id = b.thread_id`,
       {}
@@ -142,6 +143,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
 
   initPerfCalls() {
     this.queryData(
+      this.currentEventId,
       'perf-queryPerfCalls',
       `select count(callchain_id) as depth,callchain_id as sampleId,name 
 from perf_callchain 
@@ -153,6 +155,7 @@ group by callchain_id`,
 
   initPerfCallchains() {
     this.queryData(
+      this.currentEventId,
       'perf-queryPerfCallchains',
       `select c.name,c.callchain_id as sampleId,c.vaddr_in_file as vaddrInFile,c.file_id as fileId,c.symbol_id as symbolId  
 from perf_callchain c
@@ -174,10 +177,11 @@ where callchain_id != -1;`,
       sql = ` and (${arg})`;
     }
     this.queryData(
+      this.currentEventId,
       'perf-queryCallchainsGroupSample',
       `
-select p.callchain_id as sampleId, p.thread_state as threadState, p.thread_id as tid, p.count, p.process_id as pid
-from (select callchain_id, s.thread_id, thread_state, process_id, count(callchain_id) as count
+select p.callchain_id as sampleId, p.thread_state as threadState, p.thread_id as tid, p.count, p.process_id as pid,p.event_count as eventCount
+from (select callchain_id, s.thread_id, thread_state, process_id, count(callchain_id) as count,event_count
       from perf_sample s,
            trace_range t
                left join perf_thread thread on s.thread_id = thread.thread_id
@@ -208,13 +212,13 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     this.callChainMap = new Map<number, PerfCall>();
   }
 
-  initCallChainBottomUp(callChains: PerfCallChain[]) {
+  initPerfCallChainBottomUp(callChains: PerfCallChain[]) {
     callChains.forEach((callChain, index) => {
       if (this.threadData[callChain.tid] == undefined) {
         return;
       }
-      this.setCallChainName(callChain);
-      this.addGroupData(callChain);
+      this.setPerfCallChainFrameName(callChain);
+      this.addPerfGroupData(callChain);
       if (index + 1 < callChains.length && callChains[index + 1].sampleId == callChain.sampleId) {
         PerfCallChain.setPreviousNode(callChain, callChains[index + 1]);
       }
@@ -224,11 +228,11 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     });
   }
 
-  initCallChainTopDown(callChains: PerfCallChain[]) {
+  initPerfCallChainTopDown(callChains: PerfCallChain[]) {
     this.callChainData = {};
     callChains.forEach((callChain, index) => {
-      this.setCallChainName(callChain);
-      this.addGroupData(callChain);
+      this.setPerfCallChainFrameName(callChain);
+      this.addPerfGroupData(callChain);
       let callChainDatum = this.callChainData[callChain.sampleId];
       if (callChainDatum.length > 1) {
         PerfCallChain.setNextNode(callChainDatum[callChainDatum.length - 2], callChainDatum[callChainDatum.length - 1]);
@@ -236,7 +240,7 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     });
   }
 
-  setCallChainName(callChain: PerfCallChain) {
+  setPerfCallChainFrameName(callChain: PerfCallChain) {
     //设置调用栈的名称
     callChain.canCharge = true;
     if (callChain.symbolId == -1) {
@@ -269,8 +273,8 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     threadStateCallChain.name = callChain.threadState || 'Unkown State';
     threadStateCallChain.fileName = threadStateCallChain.name == '-' ? 'Unkown Thead State' : '';
     threadStateCallChain.canCharge = false;
-    this.addGroupData(threadCallChain);
-    this.addGroupData(threadStateCallChain);
+    this.addPerfGroupData(threadCallChain);
+    this.addPerfGroupData(threadStateCallChain);
     PerfCallChain.setNextNode(threadCallChain, threadStateCallChain);
     PerfCallChain.setNextNode(threadStateCallChain, callChain);
   }
@@ -283,17 +287,17 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     this.callChainMap.set(callChain.sampleId, perfCall);
   }
 
-  addGroupData(callChain: PerfCallChain) {
+  addPerfGroupData(callChain: PerfCallChain) {
     this.callChainData[callChain.sampleId] = this.callChainData[callChain.sampleId] || [];
     this.callChainData[callChain.sampleId].push(callChain);
   }
 
-  getCallChainsBySampleIds(sampleIds: string[], isTopDown: boolean) {
+  getPerfCallChainsBySampleIds(sampleIds: string[], isTopDown: boolean) {
     this.allProcess = this.groupNewTreeNoId(sampleIds, isTopDown);
     return this.allProcess;
   }
 
-  addOtherCallchainData(countSample: PerfCountSample, list: any[]) {
+  addOtherCallchainsData(countSample: PerfCountSample, list: any[]) {
     let threadCallChain = new PerfCallChain(); //新增的线程数据
     threadCallChain.tid = countSample.tid;
     threadCallChain.canCharge = false;
@@ -306,24 +310,26 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     list.unshift(threadCallChain, threadStateCallChain);
   }
 
-  freshCurrentCallchains(samples: PerfCountSample[], isTopDown: boolean) {
+  freshPerfCallchains(samples: PerfCountSample[], isTopDown: boolean) {
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     let totalCount = 0;
     samples.forEach((sample) => {
       totalCount += sample.count;
-      let callChains = [...this.callChainData[sample.sampleId]];
-      this.addOtherCallchainData(sample, callChains);
-      let topIndex = isTopDown ? 0 : callChains.length - 1;
-      if (callChains.length > 0) {
-        let root = this.currentTreeMapData[callChains[topIndex].name + sample.pid];
-        if (root == undefined) {
-          root = new PerfCallChainMerageData();
-          this.currentTreeMapData[callChains[topIndex].name + sample.pid] = root;
-          this.currentTreeList.push(root);
+      if (this.callChainData[sample.sampleId] && this.callChainData[sample.sampleId].length > 0) {
+        let callChains = [...this.callChainData[sample.sampleId]];
+        this.addOtherCallchainsData(sample, callChains);
+        let topIndex = isTopDown ? 0 : callChains.length - 1;
+        if (callChains.length > 0) {
+          let root = this.currentTreeMapData[callChains[topIndex].name + sample.pid];
+          if (root == undefined) {
+            root = new PerfCallChainMerageData();
+            this.currentTreeMapData[callChains[topIndex].name + sample.pid] = root;
+            this.currentTreeList.push(root);
+          }
+          PerfCallChainMerageData.merageCallChainSample(root, callChains[topIndex], sample, false);
+          this.mergeChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
         }
-        PerfCallChainMerageData.merageCallChainSample(root, callChains[topIndex], sample, false);
-        this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
       }
     });
     let rootMerageMap: any = {};
@@ -369,7 +375,7 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     this.allProcess = Object.values(rootMerageMap);
   }
 
-  merageChildrenByIndex(
+  mergeChildrenByIndex(
     currentNode: PerfCallChainMerageData,
     callChainDataList: any[],
     index: number,
@@ -396,7 +402,7 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    if (node && !isEnd) this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
 
   groupNewTreeNoId(sampleIds: string[], isTopDown: boolean): any[] {
@@ -485,81 +491,61 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
   }
 
   //所有的操作都是针对整个树结构的 不区分特定的数据
-  splitTree(data: PerfCallChainMerageData[], name: string, isCharge: boolean, isSymbol: boolean) {
-    data.forEach((process) => {
+  splitPerfTree(samples: PerfCallChainMerageData[], name: string, isCharge: boolean, isSymbol: boolean) {
+    samples.forEach((process) => {
       process.children = [];
       if (isCharge) {
-        this.recursionChargeInitTree(process, name, isSymbol);
+        this.recursionPerfChargeInitTree(process, name, isSymbol);
       } else {
-        this.recursionPruneInitTree(process, name, isSymbol);
+        this.recursionPerfPruneInitTree(process, name, isSymbol);
       }
     });
-    this.resetAllNode(data);
+    this.resetAllNode(samples);
   }
 
-  recursionChargeInitTree(node: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
-      (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(node);
-      node.isStore++;
+  recursionPerfChargeInitTree(sample: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
+    if ((isSymbol && sample.symbolName == symbolName) || (!isSymbol && sample.libName == symbolName)) {
+      (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(sample);
+      sample.isStore++;
     }
-    if (node.initChildren.length > 0) {
-      node.initChildren.forEach((child) => {
-        this.recursionChargeInitTree(child, symbolName, isSymbol);
+    if (sample.initChildren.length > 0) {
+      sample.initChildren.forEach((child) => {
+        this.recursionPerfChargeInitTree(child, symbolName, isSymbol);
       });
     }
   }
 
-  //symbol lib charge
-  recursionChargeTree(node: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
-      node.currentTreeParentNode &&
-        node.currentTreeParentNode.children.splice(
-          node.currentTreeParentNode.children.indexOf(node),
-          1,
-          ...node.children
-        );
-      node.children.forEach((child) => {
-        child.currentTreeParentNode = node.currentTreeParentNode;
-      });
-    }
-    if (node.children.length > 0) {
-      node.children.forEach((child) => {
-        this.recursionChargeTree(child, symbolName, isSymbol);
-      });
-    }
-  }
-
-  recursionPruneInitTree(node: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
+  recursionPerfPruneInitTree(node: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
     if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
       (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(node);
       node.isStore++;
       this.pruneChildren(node, symbolName);
     } else if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
-        this.recursionPruneInitTree(child, symbolName, isSymbol);
+        this.recursionPerfPruneInitTree(child, symbolName, isSymbol);
       });
     }
   }
 
   //symbol lib prune
-  recursionPruneTree(node: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
-      node.currentTreeParentNode &&
-        node.currentTreeParentNode.children.splice(node.currentTreeParentNode.children.indexOf(node), 1);
+  recursionPruneTree(sample: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
+    if ((isSymbol && sample.symbolName == symbolName) || (!isSymbol && sample.libName == symbolName)) {
+      sample.currentTreeParentNode &&
+        sample.currentTreeParentNode.children.splice(sample.currentTreeParentNode.children.indexOf(sample), 1);
     } else {
-      node.children.forEach((child) => {
+      sample.children.forEach((child) => {
         this.recursionPruneTree(child, symbolName, isSymbol);
       });
     }
   }
 
   recursionChargeByRule(
-    node: PerfCallChainMerageData,
+    sample: PerfCallChainMerageData,
     ruleName: string,
     rule: (node: PerfCallChainMerageData) => boolean
   ) {
-    if (node.initChildren.length > 0) {
-      node.initChildren.forEach((child) => {
+    if (sample.initChildren.length > 0) {
+      sample.initChildren.forEach((child) => {
         if (rule(child)) {
           (this.splitMapData[ruleName] = this.splitMapData[ruleName] || []).push(child);
           child.isStore++;
@@ -569,9 +555,9 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     }
   }
 
-  pruneChildren(node: PerfCallChainMerageData, symbolName: string) {
-    if (node.initChildren.length > 0) {
-      node.initChildren.forEach((child) => {
+  pruneChildren(sample: PerfCallChainMerageData, symbolName: string) {
+    if (sample.initChildren.length > 0) {
+      sample.initChildren.forEach((child) => {
         child.isStore++;
         (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(child);
         this.pruneChildren(child, symbolName);
@@ -602,7 +588,7 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     delete this.splitMapData[symbolName];
   }
 
-  resotreAllNode(symbols: string[]) {
+  resetAllSymbol(symbols: string[]) {
     symbols.forEach((symbol) => {
       let list = this.splitMapData[symbol];
       if (list != undefined) {
@@ -613,92 +599,92 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     });
   }
 
-  resetAllNode(data: PerfCallChainMerageData[]) {
+  resetAllNode(sample: PerfCallChainMerageData[]) {
     this.clearSearchNode();
-    data.forEach((process) => {
+    sample.forEach((process) => {
       process.searchShow = true;
       process.isSearch = false;
     });
-    this.resetNewAllNode(data);
+    this.resetNewAllNode(sample);
     if (this.searchValue != '') {
-      this.findSearchNode(data, this.searchValue, false);
-      this.resetNewAllNode(data);
+      this.findSearchNode(sample, this.searchValue, false);
+      this.resetNewAllNode(sample);
     }
   }
 
-  resetNewAllNode(data: PerfCallChainMerageData[]) {
-    data.forEach((process) => {
+  resetNewAllNode(sampleArray: PerfCallChainMerageData[]) {
+    sampleArray.forEach((process) => {
       process.children = [];
     });
     let values = this.currentTreeList.map((item: any) => {
       item.children = [];
       return item;
     });
-    values.forEach((item: any) => {
-      if (item.parentNode != undefined) {
-        if (item.isStore == 0 && item.searchShow) {
-          let parentNode = item.parentNode;
+    values.forEach((sample: any) => {
+      if (sample.parentNode != undefined) {
+        if (sample.isStore == 0 && sample.searchShow) {
+          let parentNode = sample.parentNode;
           while (parentNode != undefined && !(parentNode.isStore == 0 && parentNode.searchShow)) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
-            item.currentTreeParentNode = parentNode;
-            parentNode.children.push(item);
+            sample.currentTreeParentNode = parentNode;
+            parentNode.children.push(sample);
           }
         }
       }
     });
   }
 
-  findSearchNode(data: PerfCallChainMerageData[], search: string, parentSearch: boolean) {
-    data.forEach((node) => {
-      if ((node.symbol && node.symbol.includes(search)) || parentSearch) {
-        node.searchShow = true;
-        let parentNode = node.currentTreeParentNode;
-        node.isSearch = node.symbol != undefined && node.symbol.includes(search);
+  findSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean) {
+    sampleArray.forEach((sample) => {
+      if ((sample.symbol && sample.symbol.includes(search)) || parentSearch) {
+        sample.searchShow = true;
+        let parentNode = sample.currentTreeParentNode;
+        sample.isSearch = sample.symbol != undefined && sample.symbol.includes(search);
         while (parentNode != undefined && !parentNode.searchShow) {
           parentNode.searchShow = true;
           parentNode = parentNode.currentTreeParentNode;
         }
       } else {
-        node.searchShow = false;
-        node.isSearch = false;
+        sample.searchShow = false;
+        sample.isSearch = false;
       }
-      if (node.children.length > 0) {
-        this.findSearchNode(node.children, search, node.searchShow);
+      if (sample.children.length > 0) {
+        this.findSearchNode(sample.children, search, sample.searchShow);
       }
     });
   }
 
   clearSearchNode() {
-    this.currentTreeList.forEach((node) => {
-      node.searchShow = true;
-      node.isSearch = false;
+    this.currentTreeList.forEach((sample) => {
+      sample.searchShow = true;
+      sample.isSearch = false;
     });
   }
 
-  splitAllProcess(list: any[]) {
-    list.forEach((item: any) => {
+  splitAllProcess(processArray: any[]) {
+    processArray.forEach((item: any) => {
       this.allProcess.forEach((process) => {
         if (item.select == '0') {
-          this.recursionChargeInitTree(process, item.name, item.type == 'symbol');
+          this.recursionPerfChargeInitTree(process, item.name, item.type == 'symbol');
         } else {
-          this.recursionPruneInitTree(process, item.name, item.type == 'symbol');
+          this.recursionPerfPruneInitTree(process, item.name, item.type == 'symbol');
         }
       });
       if (!item.checked) {
-        this.resotreAllNode([item.name]);
+        this.resetAllSymbol([item.name]);
       }
     });
   }
 
   resolvingAction(params: any[]) {
     if (params.length > 0) {
-      params.forEach((item) => {
+      for (let item of params) {
         if (item.funcName && item.funcArgs) {
           switch (item.funcName) {
             case 'getCallChainsBySampleIds':
-              this.freshCurrentCallchains(this.samplesData, item.funcArgs[0]);
+              this.freshPerfCallchains(this.samplesData, item.funcArgs[0]);
               break;
             case 'getCurrentDataFromDb':
               this.getCurrentDataFromDb(item.funcArgs[0]);
@@ -716,20 +702,25 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
               this.resetAllNode(this.allProcess);
               break;
             case 'resotreAllNode':
-              this.resotreAllNode(item.funcArgs[0]);
+              this.resetAllSymbol(item.funcArgs[0]);
               break;
             case 'clearSplitMapData':
               this.clearSplitMapData(item.funcArgs[0]);
               break;
             case 'splitTree':
-              this.splitTree(this.allProcess, item.funcArgs[0], item.funcArgs[1], item.funcArgs[2]);
+              this.splitPerfTree(this.allProcess, item.funcArgs[0], item.funcArgs[1], item.funcArgs[2]);
               break;
             case 'setSearchValue':
               this.searchValue = item.funcArgs[0];
               break;
+            case 'setCombineCallChain':
+              this.isAnalysis = true;
+              break;
+            case 'combineAnalysisCallChain':
+              return this.combineCallChainForAnalysis();
           }
         }
-      });
+      }
       this.dataSource = this.allProcess.filter((process) => {
         return process.children && process.children.length > 0;
       });
@@ -737,16 +728,32 @@ from (select callchain_id, s.thread_id, thread_state, process_id, count(callchai
     return this.dataSource;
   }
 
-  perfAnalysisCallChain() {
-    let sampleCallChainMap = new Map<number, any>();
-	// @ts-ignore
-    for (const [sampleIdStr, callChains] of Object.entries(this.callChainData)) {
-      const sampleId = parseInt(sampleIdStr);
-      // @ts-ignore
+  combineCallChainForAnalysis() {
+    let sampleCallChainList = new Array<PerfAnalysisSample>();
+    for (let sample of this.samplesData) {
+      let callChains = [...this.callChainData[sample.sampleId]];
       const lastCallChain = callChains[callChains.length - 1];
-      sampleCallChainMap.set(sampleId, lastCallChain);
+      const threadName = this.threadData[sample.tid].threadName || 'Thead' + '(' + sample.tid + ')';
+      const processName = this.threadData[sample.pid].threadName || 'Process' + '(' + sample.pid + ')';
+      let analysisSample = new PerfAnalysisSample(
+        threadName,
+        processName,
+        lastCallChain.fileId,
+        lastCallChain.fileName,
+        lastCallChain.symbolId,
+        lastCallChain.name
+      );
+      analysisSample.tid = sample.tid;
+      analysisSample.pid = sample.pid;
+      analysisSample.count = sample.count;
+      analysisSample.threadState = sample.threadState;
+      analysisSample.eventCount = sample.eventCount;
+      sampleCallChainList.push(analysisSample);
     }
-    return sampleCallChainMap;
+    if (this.isAnalysis) {
+      this.isAnalysis = false;
+    }
+    return sampleCallChainList;
   }
 }
 
@@ -931,6 +938,7 @@ export class PerfCountSample {
   count: number = 0;
   threadState: string = '';
   pid: number = 0;
+  eventCount: number = 0;
 }
 
 export class PerfStack {
@@ -949,6 +957,32 @@ export class PerfCall {
   sampleId: number = 0;
   depth: number = 0;
   name: string = '';
+}
+
+class PerfAnalysisSample extends PerfCountSample {
+  threadName: string;
+  processName: string;
+  libId: number;
+  libName: string;
+  symbolId: number;
+  symbolName: string;
+
+  constructor(
+    threadName: string,
+    processName: string,
+    libId: number,
+    libName: string,
+    symbolId: number,
+    symbolName: string
+  ) {
+    super();
+    this.threadName = threadName;
+    this.processName = processName;
+    this.libId = libId;
+    this.libName = libName;
+    this.symbolId = symbolId;
+    this.symbolName = symbolName;
+  }
 }
 
 export function timeMsFormat2p(ns: number) {

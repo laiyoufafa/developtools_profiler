@@ -413,30 +413,30 @@ export class TraceRowConfig extends BaseElement {
                     -moz-user-select:none;
                     user-select:none;
                     display: inline-flex;
-                    color: var(--dark-color2,rgba(0,0,0,0.6));
                     width:100%;
+                    color: var(--dark-color2,rgba(0,0,0,0.6));
                 }
                 .multipleSelect{
+                    outline: none;
+                    font-size: 1rem;
+                    -webkit-user-select:none ;
+                    -moz-user-select:none;
                     position: relative;
                     padding: 3px 6px;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     transition: all .3s;
-                    outline: none;
-                    font-size: 1rem;
-                    -webkit-user-select:none ;
-                    -moz-user-select:none;
                     user-select:none;
                     width: 250px;
-                    border:1px solid var(--bark-prompt,#dcdcdc);
-                    border-radius:16px;
-                    background-color: #FFFFFF;
-                    height: 50%;
                     color: #ffffff;
                     cursor: pointer;
                     line-height: 40px;
                     text-align: center;
+                    border:1px solid var(--bark-prompt,#dcdcdc);
+                    border-radius:16px;
+                    background-color: #FFFFFF;
+                    height: 50%;
                     margin: auto 4.2em auto auto;
                 }
                 .processBar {

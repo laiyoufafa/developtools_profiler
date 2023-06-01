@@ -91,31 +91,31 @@ export class SpProcessChart {
       this.trace.rowsEL?.appendChild(row);
     }
     Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
-      let asyncFunctions: Array<any> = asyncFuncGroup[key];
-      if (asyncFunctions.length > 0) {
-        let isIntersect = (a: any, b: any) =>
-          Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
-        let depthArray: any = [];
+      let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
+      if (asyncFuncGroups.length > 0) {
+        let isIntersect = (left: any, right: any) =>
+          Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) < left.dur + right.dur;
+        let depths: any = [];
         let createDepth = (currentDepth: number, index: number) => {
-          if (depthArray[currentDepth] == undefined || !isIntersect(depthArray[currentDepth], asyncFunctions[index])) {
-            asyncFunctions[index].depth = currentDepth;
-            depthArray[currentDepth] = asyncFunctions[index];
+          if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], asyncFuncGroups[index])) {
+            asyncFuncGroups[index].depth = currentDepth;
+            depths[currentDepth] = asyncFuncGroups[index];
           } else {
             createDepth(++currentDepth, index);
           }
         };
-        asyncFunctions.forEach((it, i) => {
+        asyncFuncGroups.forEach((it, i) => {
           if (it.dur == -1) {
             it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
             it.flag = 'Did not end';
           }
           createDepth(0, i);
         });
-        let max = Math.max(...asyncFunctions.map((it) => it.depth || 0)) + 1;
+        let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
         let maxHeight = max * 20;
         let funcRow = TraceRow.skeleton<FuncStruct>();
-        funcRow.rowId = `${asyncFunctions[0].funName}-${key}`;
-        funcRow.asyncFuncName = asyncFunctions[0].funName;
+        funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
+        funcRow.asyncFuncName = asyncFuncGroups[0].funName;
         funcRow.asyncFuncNamePID = key;
         funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
         funcRow.rowParentId = `${row.rowId}`;
@@ -123,9 +123,9 @@ export class SpProcessChart {
         funcRow.style.width = `100%`;
         funcRow.style.height = `${maxHeight}px`;
         funcRow.setAttribute('height', `${maxHeight}`);
-        funcRow.name = `${asyncFunctions[0].funName} ${key}`;
+        funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
         funcRow.setAttribute('children', '');
-        funcRow.supplier = () => new Promise((resolve) => resolve(asyncFunctions));
+        funcRow.supplier = () => new Promise((resolve) => resolve(asyncFuncGroups));
         funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         funcRow.selectChangeHandler = this.trace.selectChangeHandler;
         funcRow.onThreadHandler = (useCache) => {
@@ -135,7 +135,7 @@ export class SpProcessChart {
             {
               context: context,
               useCache: useCache,
-              type: `func-${asyncFunctions[0].funName}-${key}`,
+              type: `func-${asyncFuncGroups[0].funName}-${key}`,
             },
             funcRow
           );
@@ -250,27 +250,27 @@ export class SpProcessChart {
             Math.max(a.ts + a.dur, b.ts + b.dur) - Math.min(a.ts, b.ts) < a.dur + b.dur;
           let depthArray: any = [];
           for (let j = 0; j < expectedData.length; j++) {
-            let it = expectedData[j];
-            if (it.cmdline != 'render_service') {
-              it.frame_type = 'app';
+            let expectedItem = expectedData[j];
+            if (expectedItem.cmdline != 'render_service') {
+              expectedItem.frame_type = 'app';
             } else {
-              it.frame_type = it.cmdline;
+              expectedItem.frame_type = expectedItem.cmdline;
             }
-            if (!it.dur || it.dur < 0) {
+            if (!expectedItem.dur || expectedItem.dur < 0) {
               continue;
             }
             if (depthArray.length === 0) {
-              it.depth = 0;
-              depthArray.push(it);
+              expectedItem.depth = 0;
+              depthArray.push(expectedItem);
             } else {
-              if (isIntersect(depthArray[0], it)) {
-                if (isIntersect(depthArray[depthArray.length - 1], it)) {
-                  it.depth = depthArray.length;
-                  depthArray.push(it);
+              if (isIntersect(depthArray[0], expectedItem)) {
+                if (isIntersect(depthArray[depthArray.length - 1], expectedItem)) {
+                  expectedItem.depth = depthArray.length;
+                  depthArray.push(expectedItem);
                 }
               } else {
-                it.depth = 0;
-                depthArray = [it];
+                expectedItem.depth = 0;
+                depthArray = [expectedItem];
               }
             }
           }
@@ -316,27 +316,27 @@ export class SpProcessChart {
               Math.max(a.ts + a.dur, b.ts + b.dur) - Math.min(a.ts, b.ts) < a.dur + b.dur;
             let depthArray: any = [];
             for (let j = 0; j < actualData.length; j++) {
-              let it = actualData[j];
-              if (it.cmdline != 'render_service') {
-                it.frame_type = 'app';
+              let actualItem = actualData[j];
+              if (actualItem.cmdline != 'render_service') {
+                actualItem.frame_type = 'app';
               } else {
-                it.frame_type = it.cmdline;
+                actualItem.frame_type = actualItem.cmdline;
               }
-              if (!it.dur || it.dur < 0) {
+              if (!actualItem.dur || actualItem.dur < 0) {
                 continue;
               }
               if (depthArray.length === 0) {
-                it.depth = 0;
-                depthArray.push(it);
+                actualItem.depth = 0;
+                depthArray.push(actualItem);
               } else {
-                if (isIntersect(depthArray[0], it)) {
-                  if (isIntersect(depthArray[depthArray.length - 1], it)) {
-                    it.depth = depthArray.length;
-                    depthArray.push(it);
+                if (isIntersect(depthArray[0], actualItem)) {
+                  if (isIntersect(depthArray[depthArray.length - 1], actualItem)) {
+                    actualItem.depth = depthArray.length;
+                    depthArray.push(actualItem);
                   }
                 } else {
-                  it.depth = 0;
-                  depthArray = [it];
+                  actualItem.depth = 0;
+                  depthArray = [actualItem];
                 }
               }
             }
@@ -377,77 +377,72 @@ export class SpProcessChart {
       }
       let offsetYTimeOut: any = undefined;
       processRow.addEventListener('expansion-change', (e: any) => {
+        JankStruct.delJankLineFlag = false;
         if (offsetYTimeOut) {
           clearTimeout(offsetYTimeOut);
         }
         if (e.detail.expansion) {
-          if (JankStruct!.selectJankStruct) {
-            JankStruct.delJankLineFlag = true;
-          } else {
-            JankStruct.delJankLineFlag = false;
-          }
           offsetYTimeOut = setTimeout(() => {
-            this.trace.linkNodes.forEach((linkNode) => {
-              JankStruct.selectJankStructList?.forEach((dat: any) => {
-                if (e.detail.rowId == dat.pid) {
-                  JankStruct.selectJankStruct = dat;
-                  JankStruct.hoverJankStruct = dat;
+            this.trace.linkNodes.forEach((linkNodeItem) => {
+              JankStruct.selectJankStructList?.forEach((selectProcessStruct: any) => {
+                if (e.detail.rowId == selectProcessStruct.pid) {
+                  JankStruct.selectJankStruct = selectProcessStruct;
+                  JankStruct.hoverJankStruct = selectProcessStruct;
                 }
               });
-              if (linkNode[0].rowEL.collect) {
-                linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+              if (linkNodeItem[0].rowEL.collect) {
+                linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
               } else {
-                linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+                linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
               }
-              linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
-              if (linkNode[1].rowEL.collect) {
-                linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+              linkNodeItem[0].y = linkNodeItem[0].rowEL!.translateY! + linkNodeItem[0].offsetY;
+              if (linkNodeItem[1].rowEL.collect) {
+                linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
               } else {
-                linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+                linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
               }
-              linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
-              if (linkNode[0].rowEL.rowId == e.detail.rowId) {
-                linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
-                linkNode[0].y = actualRow!.translateY! + linkNode[0].offsetY * 2;
-                linkNode[0].offsetY = linkNode[0].offsetY * 2;
-                linkNode[0].rowEL = actualRow!;
-              } else if (linkNode[1].rowEL.rowId == e.detail.rowId) {
-                linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
-                linkNode[1].y = actualRow!.translateY! + linkNode[1].offsetY * 2;
-                linkNode[1].offsetY = linkNode[1].offsetY * 2;
-                linkNode[1].rowEL = actualRow!;
+              linkNodeItem[1].y = linkNodeItem[1].rowEL!.translateY! + linkNodeItem[1].offsetY;
+              if (linkNodeItem[0].rowEL.rowId == e.detail.rowId) {
+                linkNodeItem[0].x = ns2xByTimeShaft(linkNodeItem[0].ns, this.trace.timerShaftEL!);
+                linkNodeItem[0].y = actualRow!.translateY! + linkNodeItem[0].offsetY * 2;
+                linkNodeItem[0].offsetY = linkNodeItem[0].offsetY * 2;
+                linkNodeItem[0].rowEL = actualRow!;
+              } else if (linkNodeItem[1].rowEL.rowId == e.detail.rowId) {
+                linkNodeItem[1].x = ns2xByTimeShaft(linkNodeItem[1].ns, this.trace.timerShaftEL!);
+                linkNodeItem[1].y = actualRow!.translateY! + linkNodeItem[1].offsetY * 2;
+                linkNodeItem[1].offsetY = linkNodeItem[1].offsetY * 2;
+                linkNodeItem[1].rowEL = actualRow!;
               }
             });
           }, 300);
         } else {
-          JankStruct.delJankLineFlag = false;
           if (JankStruct!.selectJankStruct) {
             JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
           }
           offsetYTimeOut = setTimeout(() => {
-            this.trace.linkNodes?.forEach((linkNode) => {
-              if (linkNode[0].rowEL.collect) {
-                linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+            this.trace.linkNodes?.forEach((linkProcessItem) => {
+              if (linkProcessItem[0].rowEL.collect) {
+                linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.getBoundingClientRect().top - 195;
               } else {
-                linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+                linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
               }
-              linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
-              if (linkNode[1].rowEL.collect) {
-                linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+              linkProcessItem[0].y = linkProcessItem[0].rowEL!.translateY! + linkProcessItem[0].offsetY;
+              if (linkProcessItem[1].rowEL.collect) {
+                linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
               } else {
-                linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+                linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
               }
-              linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
-              if (linkNode[0].rowEL.rowParentId == e.detail.rowId) {
-                linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
-                linkNode[0].y = processRow!.translateY! + linkNode[0].offsetY / 2;
-                linkNode[0].offsetY = linkNode[0].offsetY / 2;
-                linkNode[0].rowEL = processRow!;
-              } else if (linkNode[1].rowEL.rowParentId == e.detail.rowId) {
-                linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
-                linkNode[1].y = processRow!.translateY! + linkNode[1].offsetY / 2;
-                linkNode[1].offsetY = linkNode[1].offsetY / 2;
-                linkNode[1].rowEL = processRow!;
+              linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY! + linkProcessItem[1].offsetY;
+              if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
+                linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
+                linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
+                linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
+                linkProcessItem[0].rowEL = processRow!;
+              } else if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
+                linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
+                linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
+                linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
+                linkProcessItem[1].rowEL = processRow!;
               }
             });
           }, 300);
@@ -503,13 +498,13 @@ export class SpProcessChart {
           funcRow.supplier = () => new Promise((resolve) => resolve(asyncFunctions));
           funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
           funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-          funcRow.onThreadHandler = (useCache) => {
+          funcRow.onThreadHandler = (cacheFlag) => {
             let context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
             funcRow.canvasSave(context);
             (renders['func'] as FuncRender).renderMainThread(
               {
                 context: context,
-                useCache: useCache,
+                useCache: cacheFlag,
                 type: `func-${asyncFunctions[0].funName}-${it.pid}`,
               },
               funcRow
@@ -544,22 +539,22 @@ export class SpProcessChart {
           );
         };
         row.supplier = () =>
-          queryProcessMemData(mem.trackId).then((res) => {
-            let maxValue = Math.max(...res.map((it) => it.value || 0));
-            for (let j = 0; j < res.length; j++) {
-              res[j].maxValue = maxValue;
-              if (j == res.length - 1) {
-                res[j].duration = (TraceRow.range?.totalNS || 0) - (res[j].startTime || 0);
+          queryProcessMemData(mem.trackId).then((resultProcess) => {
+            let maxValue = Math.max(...resultProcess.map((it) => it.value || 0));
+            for (let j = 0; j < resultProcess.length; j++) {
+              resultProcess[j].maxValue = maxValue;
+              if (j == resultProcess.length - 1) {
+                resultProcess[j].duration = (TraceRow.range?.totalNS || 0) - (resultProcess[j].startTime || 0);
               } else {
-                res[j].duration = (res[j + 1].startTime || 0) - (res[j].startTime || 0);
+                resultProcess[j].duration = (resultProcess[j + 1].startTime || 0) - (resultProcess[j].startTime || 0);
               }
               if (j > 0) {
-                res[j].delta = (res[j].value || 0) - (res[j - 1].value || 0);
+                resultProcess[j].delta = (resultProcess[j].value || 0) - (resultProcess[j - 1].value || 0);
               } else {
-                res[j].delta = 0;
+                resultProcess[j].delta = 0;
               }
             }
-            return res;
+            return resultProcess;
           });
         row.onThreadHandler = (useCache) => {
           let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;

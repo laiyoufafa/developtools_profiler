@@ -39,18 +39,9 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
     }
   }
 
-  queryData(queryName: string, sql: string, args: any) {
-    self.postMessage({
-      id: this.currentEventId,
-      type: queryName,
-      isQuery: true,
-      args: args,
-      sql: sql,
-    });
-  }
-
   getCpuState(cpu: number) {
     this.queryData(
+      this.currentEventId,
       'CpuState-getCpuState',
       `
             select (A.ts - B.start_ts) as startTs,

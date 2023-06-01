@@ -27,8 +27,6 @@ export class SpInfoAndStats extends BaseElement {
   private metaTableEl: LitTable | undefined;
   private infoTableEl: LitTable | undefined;
   private th: HTMLElement | undefined;
-  private backgroundMetaTable: HTMLDivElement | undefined;
-  private backgroundInfoTable: HTMLDivElement | undefined;
   private progressLoad: LitProgressBar | undefined;
 
   static get observedAttributes() {
@@ -152,7 +150,6 @@ export class SpInfoAndStats extends BaseElement {
                 margin: 0;
                 padding: 0;
             }
-        
             .info-stats{
                 display: flex;
                 flex-direction: column;
@@ -164,7 +161,6 @@ export class SpInfoAndStats extends BaseElement {
                 right: 0;
                 grid-row-gap: 30px;
             }
-        
             .metadata{
                 width: 90%;
                 color: #121212;
@@ -174,7 +170,6 @@ export class SpInfoAndStats extends BaseElement {
                 background-color: var(--dark-background3,#FFFFFF);
                 position: relative;
             }
-       
             #metaData-table{
                 background-color: var(--dark-background5,#F6F6F6);
                 margin-left: 10px;
@@ -182,13 +177,11 @@ export class SpInfoAndStats extends BaseElement {
                 max-height: inherit;
                 padding: 10px;
             }
-            
             #stats-table{
                 margin-bottom: 2%;
                 margin-left: 10px;
                 padding: 10px;
             }
-            
             #dataValueResult{
                 overflow-y: auto;
                 background-color: var(--dark-background5,#F6F6F6);
@@ -206,7 +199,6 @@ export class SpInfoAndStats extends BaseElement {
                 max-height: inherit;
                 margin-bottom: 2%;
             }
-            
             p{
                  display: table-cell;
                  padding: 7px 10px 20px 10px;
@@ -216,7 +208,6 @@ export class SpInfoAndStats extends BaseElement {
                  font-weight: 400;
                  text-align: left;
             }
-            
             .stats{
                flex-grow: 1;
                height: min-content;
@@ -226,16 +217,13 @@ export class SpInfoAndStats extends BaseElement {
                display: flex;
                flex-direction: column;
             }
-            
             .info{
                max-height: inherit;
                min-height: inherit;
             }
-            
             .tr{
                background-color: var(--dark-background5,#F6F6F6); 
             }
-            
             .load-metric{
                 width: 95%;
                 bottom: 0;

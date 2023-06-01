@@ -174,32 +174,32 @@ export class Serialize {
     return (tag << 3) | wireType;
   }
 
-  static writeVarIntU64(value: number): Uint8Array {
-    let buffer: number[] = [];
+  static writeVarIntU64(u64value: number): Uint8Array {
+    let uint64buffer: number[] = [];
     for (let index = 0; index < 10; index++) {
-      buffer[index] = value & 0b01111111;
-      value = value >> 7;
-      if (value) {
-        buffer[index] = buffer[index] | 0b10000000;
+      uint64buffer[index] = u64value & 0b01111111;
+      u64value = u64value >> 7;
+      if (u64value) {
+        uint64buffer[index] = uint64buffer[index] | 0b10000000;
       } else {
         break;
       }
     }
-    return new Uint8Array(buffer);
+    return new Uint8Array(uint64buffer);
   }
 
-  static writeVarIntU32(value: number): Uint8Array {
-    let buffer: number[] = [];
+  static writeVarIntU32(u32value: number): Uint8Array {
+    let u32buffer: number[] = [];
     for (let index = 0; index < 5; index++) {
-      buffer[index] = value & 0b01111111;
-      value = value >> 7;
-      if (value) {
-        buffer[index] = buffer[index] | 0b10000000;
+      u32buffer[index] = u32value & 0b01111111;
+      u32value = u32value >> 7;
+      if (u32value) {
+        u32buffer[index] = u32buffer[index] | 0b10000000;
       } else {
         break;
       }
     }
-    return new Uint8Array(buffer);
+    return new Uint8Array(u32buffer);
   }
 
   static parseHandshake(data: Uint8Array): SessionHandShake {
@@ -310,32 +310,32 @@ export class Serialize {
   }
 
   static readVarIntU32(dataView: DataView): number {
-    let value: number = 0;
-    for (let index = 0; index < 5; index++) {
-      if (dataView.byteLength < index + 1) {
+    let u32IntValue: number = 0;
+    for (let u32IntIndex = 0; u32IntIndex < 5; u32IntIndex++) {
+      if (dataView.byteLength < u32IntIndex + 1) {
         return -1;
       }
-      let int8 = dataView.getUint8(index);
+      let int8 = dataView.getUint8(u32IntIndex);
       let readValue = int8 & 0b01111111;
-      value |= readValue << (7 * index);
+      u32IntValue |= readValue << (7 * u32IntIndex);
       if (!(int8 & 0b10000000)) {
-        return value;
+        return u32IntValue;
       }
     }
     return -1;
   }
 
   static readVarIntU64(dataView: DataView): number {
-    let value: number = 0;
-    for (let index = 0; index < 10; index++) {
-      if (dataView.byteLength < index + 1) {
+    let u62IntValue: number = 0;
+    for (let u62IntIndex = 0; u62IntIndex < 10; u62IntIndex++) {
+      if (dataView.byteLength < u62IntIndex + 1) {
         return -1;
       }
-      let int8 = dataView.getUint8(index);
+      let int8 = dataView.getUint8(u62IntIndex);
       let readValue = int8 & 0b01111111;
-      value |= readValue << (7 * index);
+      u62IntValue |= readValue << (7 * u62IntIndex);
       if (!(int8 & 0b10000000)) {
-        return value;
+        return u62IntValue;
       }
     }
     return -1;

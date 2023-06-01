@@ -31,7 +31,7 @@ import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWork
 
 @element('tabpane-summary')
 export class TabPaneSummary extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private tblSummary: LitTable | null | undefined;
   private tbs: LitTable | null | undefined;
   private stackTable: LitTable | null | undefined;
   private summary: Array<ConstructorItem> = [];
@@ -53,10 +53,10 @@ export class TabPaneSummary extends BaseElement {
   private stack: HTMLLIElement | null | undefined;
   private retainers: HTMLLIElement | null | undefined;
 
-  set data(val: SelectionParam | any) {}
+  set data(valSummary: SelectionParam | any) {}
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#left');
+    this.tblSummary = this.shadowRoot?.querySelector<LitTable>('#left');
     this.tbs = this.shadowRoot?.querySelector<LitTable>('#right');
     this.stackTable = this.shadowRoot?.querySelector<LitTable>('#stackTable');
     this.stackText = this.shadowRoot?.querySelector('.stackText') as HTMLElement;
@@ -65,10 +65,10 @@ export class TabPaneSummary extends BaseElement {
     this.search = this.tabFilter?.shadowRoot?.querySelector('#filter-input') as HTMLInputElement;
     this.stack = this.shadowRoot?.querySelector('#stack') as HTMLLIElement;
     this.retainers = this.shadowRoot?.querySelector('#retainers') as HTMLLIElement;
-    this.tblTable = this.tbl!.shadowRoot?.querySelector('.table') as HTMLDivElement;
+    this.tblTable = this.tblSummary!.shadowRoot?.querySelector('.table') as HTMLDivElement;
     this.rightTheadTable = this.tbs!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
-    this.leftTheadTable = this.tbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
-    this.tbl!.addEventListener('row-click', (evt: any) => {
+    this.leftTheadTable = this.tblSummary!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.tblSummary!.addEventListener('row-click', (evt: any) => {
       this.rightTheadTable!.removeAttribute('sort');
       this.tbsTable = this.tbs!.shadowRoot?.querySelector('.table') as HTMLDivElement;
       this.tbsTable!.scrollTop = 0;
@@ -90,6 +90,7 @@ export class TabPaneSummary extends BaseElement {
       if (this.retainsData.length > 0) {
         if (this.retainsData[0].distance > 1) {
           this.retainsData[0].getChildren();
+          this.retainsData[0].expanded = false;
         }
         let i = 0;
         let that = this;
@@ -108,6 +109,7 @@ export class TabPaneSummary extends BaseElement {
               i++;
               if (i < that.retainsData[0].distance - 1 && list[0].distance != '-') {
                 list[0].getChildren();
+                list[0].expanded = false;
                 if (row.hasNext) {
                   getList(row.children);
                 }
@@ -169,24 +171,24 @@ export class TabPaneSummary extends BaseElement {
       }
     });
 
-    this.tbl!.addEventListener('icon-click', (evt: any) => {
+    this.tblSummary!.addEventListener('icon-click', (evt: any) => {
       if (evt.detail.data.status) {
         evt.detail.data.getChildren();
         evt.detail.data.children.sort(function (a: ConstructorItem, b: ConstructorItem) {
           return b.retainedSize - a.retainedSize;
         });
-        evt.detail.data.children.forEach((element: any) => {
-          let shallow = Math.round((element.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
-          let retained = Math.round((element.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
-          element.shallowPercent = shallow;
-          element.retainedPercent = retained;
-          if (element.distance >= 100000000 || element.distance === -5) {
-            element.distance = '-';
+        evt.detail.data.children.forEach((summaryDataEl: any) => {
+          let shallow = Math.round((summaryDataEl.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
+          let retained = Math.round((summaryDataEl.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
+          summaryDataEl.shallowPercent = shallow;
+          summaryDataEl.retainedPercent = retained;
+          if (summaryDataEl.distance >= 100000000 || summaryDataEl.distance === -5) {
+            summaryDataEl.distance = '-';
           }
-          let nodeId = element.nodeName.concat(` @${element.id}`);
-          element.objectName = nodeId;
-          if (element.edgeName != '') {
-            element.objectName = element.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
+          let nodeId = summaryDataEl.nodeName.concat(` @${summaryDataEl.id}`);
+          summaryDataEl.objectName = nodeId;
+          if (summaryDataEl.edgeName != '') {
+            summaryDataEl.objectName = summaryDataEl.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
           }
         });
       } else {
@@ -194,21 +196,21 @@ export class TabPaneSummary extends BaseElement {
       }
       if (this.search!.value != '') {
         if (this.leftTheadTable!.hasAttribute('sort')) {
-          this.tbl!.snapshotDataSource = this.leftArray;
+          this.tblSummary!.snapshotDataSource = this.leftArray;
         } else {
-          this.tbl!.snapshotDataSource = this.summaryFilter;
+          this.tblSummary!.snapshotDataSource = this.summaryFilter;
         }
       } else {
         if (this.leftTheadTable!.hasAttribute('sort')) {
-          this.tbl!.snapshotDataSource = this.leftArray;
+          this.tblSummary!.snapshotDataSource = this.leftArray;
         } else {
-          this.tbl!.snapshotDataSource = this.summary;
+          this.tblSummary!.snapshotDataSource = this.summary;
         }
       }
       new ResizeObserver(() => {
         if (this.parentElement?.clientHeight !== 0) {
-          this.tbl!.style.height = '100%';
-          this.tbl!.reMeauseHeight();
+          this.tblSummary!.style.height = '100%';
+          this.tblSummary!.reMeauseHeight();
         }
       }).observe(this.parentElement!);
     });
@@ -219,21 +221,22 @@ export class TabPaneSummary extends BaseElement {
         let i = 0;
         let retainsTable = function () {
           const getList = function (list: any) {
-            list.forEach(function (row: any) {
-              let shallow = Math.round((row.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
-              let retained = Math.round((row.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
-              row.shallowPercent = shallow;
-              row.retainedPercent = retained;
-              let nodeId = row.nodeName.concat(` @${row.id}`);
-              row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-              if (row.distance >= 100000000 || row.distance === -5) {
-                row.distance = '-';
+            list.forEach(function (currentRow: any) {
+              let shallow = Math.round((currentRow.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
+              let retained = Math.round((currentRow.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
+              currentRow.shallowPercent = shallow;
+              currentRow.retainedPercent = retained;
+              let nodeId = currentRow.nodeName.concat(` @${currentRow.id}`);
+              currentRow.objectName = currentRow.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
+              if (currentRow.distance >= 100000000 || currentRow.distance === -5) {
+                currentRow.distance = '-';
               }
               i++;
               if (i < evt.detail.data.distance - 1 && list[0].distance != '-') {
                 list[0].getChildren();
-                if (row.hasNext) {
-                  getList(row.children);
+                list[0].expanded = false;
+                if (currentRow.hasNext) {
+                  getList(currentRow.children);
                 }
               } else {
                 return;
@@ -259,7 +262,7 @@ export class TabPaneSummary extends BaseElement {
       }).observe(this.parentElement!);
     });
 
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.tblSummary!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByLeftTable(evt.detail.key, evt.detail.sort);
     });
@@ -282,40 +285,40 @@ export class TabPaneSummary extends BaseElement {
     this.initSummaryData(data.id);
   }
 
-  initSummaryData(fileId: number, maxNodeId?: number, minNodeId?: number) {
+  initSummaryData(fileId: number, minNodeId?: number, maxNodeId?: number) {
     this.clear();
     this.summary = [];
     this.progressEL!.loading = true;
     this.summary = HeapDataInterface.getInstance().getClassesListForSummary(fileId, minNodeId, maxNodeId);
     let dataList = HeapDataInterface.getInstance().getClassesListForSummary(SpJsMemoryChart.file.id);
     TabPaneSummary.fileSize = dataList.reduce((sum, e) => sum + e.shallowSize, 0);
-    this.summary.forEach((element: any) => {
-      if (element.childCount > 1) {
-        let count = element.nodeName + ` ×${element.childCount}`;
-        element.objectName = count;
+    this.summary.forEach((summaryEl: any) => {
+      if (summaryEl.childCount > 1) {
+        let count = summaryEl.nodeName + ` ×${summaryEl.childCount}`;
+        summaryEl.objectName = count;
       } else {
-        element.objectName = element.nodeName;
+        summaryEl.objectName = summaryEl.nodeName;
       }
-      let shallow = Math.round((element.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
-      let retained = Math.round((element.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
-      element.shallowPercent = shallow;
-      element.retainedPercent = retained;
-      if (element.distance >= 100000000 || element.distance === -5) {
-        element.distance = '-';
+      let shallow = Math.round((summaryEl.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
+      let retained = Math.round((summaryEl.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
+      summaryEl.shallowPercent = shallow;
+      summaryEl.retainedPercent = retained;
+      if (summaryEl.distance >= 100000000 || summaryEl.distance === -5) {
+        summaryEl.distance = '-';
       }
     });
     if (this.summary.length > 0) {
       this.summaryData = this.summary;
-      this.tbl!.snapshotDataSource = this.summary;
+      this.tblSummary!.snapshotDataSource = this.summary;
       this.progressEL!.loading = false;
     } else {
-      this.tbl!.snapshotDataSource = [];
+      this.tblSummary!.snapshotDataSource = [];
       this.progressEL!.loading = false;
     }
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight !== 0) {
-        this.tbl!.style.height = '100%';
-        this.tbl!.reMeauseHeight();
+        this.tblSummary!.style.height = '100%';
+        this.tblSummary!.reMeauseHeight();
       }
     }).observe(this.parentElement!);
     if (SpJsMemoryChart.file.file_name.includes('Timeline')) {
@@ -334,9 +337,9 @@ export class TabPaneSummary extends BaseElement {
     switch (sort) {
       case 0:
         if (this.search!.value === '') {
-          this.tbl!.snapshotDataSource = this.summary;
+          this.tblSummary!.snapshotDataSource = this.summary;
         } else {
-          this.tbl!.snapshotDataSource = this.summaryFilter;
+          this.tblSummary!.snapshotDataSource = this.summaryFilter;
         }
         break;
       default:
@@ -347,14 +350,14 @@ export class TabPaneSummary extends BaseElement {
         }
         switch (column) {
           case 'distance':
-            this.tbl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
+            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+              return sort === 1 ? leftData.distance - rightData.distance : rightData.distance - leftData.distance;
             });
-            this.leftArray.forEach((list) => {
+            this.leftArray.forEach((currentLeftItem) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
-                  list.sort((a: any, b: any) => {
-                    return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
+                  list.sort((leftA: any, rightB: any) => {
+                    return sort === 1 ? leftA.distance - rightB.distance : rightB.distance - leftA.distance;
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -362,21 +365,21 @@ export class TabPaneSummary extends BaseElement {
                     }
                   });
                 };
-                getList(list.children);
+                getList(currentLeftItem.children);
               };
               retainsTable();
             });
-            this.tbl!.snapshotDataSource = this.leftArray;
+            this.tblSummary!.snapshotDataSource = this.leftArray;
             break;
           case 'shallowSize':
-            this.tbl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.shallowSize - b.shallowSize : b.shallowSize - a.shallowSize;
+            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+              return sort === 1 ? leftData.shallowSize - rightData.shallowSize : rightData.shallowSize - leftData.shallowSize;
             });
-            this.leftArray.forEach((list) => {
+            this.leftArray.forEach((currentLeftItem) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
-                  list.sort((a: any, b: any) => {
-                    return sort === 1 ? a.shallowSize - b.shallowSize : b.shallowSize - a.shallowSize;
+                  list.sort((leftA: any, rightB: any) => {
+                    return sort === 1 ? leftA.shallowSize - rightB.shallowSize : rightB.shallowSize - leftA.shallowSize;
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -384,21 +387,21 @@ export class TabPaneSummary extends BaseElement {
                     }
                   });
                 };
-                getList(list.children);
+                getList(currentLeftItem.children);
               };
               retainsTable();
             });
-            this.tbl!.snapshotDataSource = this.leftArray;
+            this.tblSummary!.snapshotDataSource = this.leftArray;
             break;
           case 'retainedSize':
-            this.tbl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.retainedSize - b.retainedSize : b.retainedSize - a.retainedSize;
+            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+              return sort === 1 ? leftData.retainedSize - rightData.retainedSize : rightData.retainedSize - leftData.retainedSize;
             });
-            this.leftArray.forEach((list) => {
+            this.leftArray.forEach((currentLeftItem) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
-                  list.sort((a: any, b: any) => {
-                    return sort === 1 ? a.retainedSize - b.retainedSize : b.retainedSize - a.retainedSize;
+                  list.sort((leftA: any, rightB: any) => {
+                    return sort === 1 ? leftA.retainedSize - rightB.retainedSize : rightB.retainedSize - leftA.retainedSize;
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -406,25 +409,25 @@ export class TabPaneSummary extends BaseElement {
                     }
                   });
                 };
-                getList(list.children);
+                getList(currentLeftItem.children);
               };
               retainsTable();
             });
-            this.tbl!.snapshotDataSource = this.leftArray;
+            this.tblSummary!.snapshotDataSource = this.leftArray;
             break;
           case 'objectName':
-            this.tbl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
               return sort === 1
-                ? (a.objectName + '').localeCompare(b.objectName + '')
-                : (b.objectName + '').localeCompare(a.objectName + '');
+                ? (leftData.objectName + '').localeCompare(rightData.objectName + '')
+                : (rightData.objectName + '').localeCompare(leftData.objectName + '');
             });
-            this.leftArray.forEach((list) => {
+            this.leftArray.forEach((currentLeftItem) => {
               let retainsTable = function () {
                 const getList = function (list: any) {
-                  list.sort((a: any, b: any) => {
+                  list.sort((leftA: any, rightB: any) => {
                     return sort === 1
-                      ? (a.objectName + '').localeCompare(b.objectName + '')
-                      : (b.objectName + '').localeCompare(a.objectName + '');
+                      ? (leftA.objectName + '').localeCompare(rightB.objectName + '')
+                      : (rightB.objectName + '').localeCompare(leftA.objectName + '');
                   });
                   list.forEach(function (row: any) {
                     if (row.children.length > 0) {
@@ -432,11 +435,11 @@ export class TabPaneSummary extends BaseElement {
                     }
                   });
                 };
-                getList(list.children);
+                getList(currentLeftItem.children);
               };
               retainsTable();
             });
-            this.tbl!.snapshotDataSource = this.leftArray;
+            this.tblSummary!.snapshotDataSource = this.leftArray;
             break;
         }
         break;
@@ -594,8 +597,8 @@ export class TabPaneSummary extends BaseElement {
         } else {
         }
       });
-      this.tbl!.snapshotDataSource = this.summaryFilter;
-      let summaryTable = this.tbl!.shadowRoot?.querySelector('.table') as HTMLDivElement;
+      this.tblSummary!.snapshotDataSource = this.summaryFilter;
+      let summaryTable = this.tblSummary!.shadowRoot?.querySelector('.table') as HTMLDivElement;
       summaryTable.scrollTop = 0;
     });
   }
@@ -619,12 +622,12 @@ export class TabPaneSummary extends BaseElement {
     super.connectedCallback();
     let filterHeight = 0;
     new ResizeObserver((entries) => {
-      let tabPaneFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (tabPaneFilter.clientHeight > 0) filterHeight = tabPaneFilter.clientHeight;
+      let summaryPaneFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
+      if (summaryPaneFilter.clientHeight > 0) filterHeight = summaryPaneFilter.clientHeight;
       if (this.parentElement!.clientHeight > filterHeight) {
-        tabPaneFilter.style.display = 'flex';
+        summaryPaneFilter.style.display = 'flex';
       } else {
-        tabPaneFilter.style.display = 'none';
+        summaryPaneFilter.style.display = 'none';
       }
     }).observe(this.parentElement!);
   }

@@ -80,37 +80,37 @@ export class FileSystemRender extends PerfRender {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
-    let groupBy10MS = req.scale > 20_000_000;
-    let isDiskIO: boolean = req.type!.includes('disk-io');
+  render(fileSysRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    let groupBy10MS = fileSysRequest.scale > 20_000_000;
+    let isDiskIO: boolean = fileSysRequest.type!.includes('disk-io');
     if (isDiskIO) {
       groupBy10MS = true;
     }
-    if (req.lazyRefresh) {
+    if (fileSysRequest.lazyRefresh) {
       fileSysChart(
         list,
         dataList2,
-        req.type!,
+        fileSysRequest.type!,
         filter,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
+        fileSysRequest.startNS,
+        fileSysRequest.endNS,
+        fileSysRequest.totalNS,
+        fileSysRequest.frame,
         groupBy10MS,
         isDiskIO,
-        req.useCache || !req.range.refresh
+        fileSysRequest.useCache || !fileSysRequest.range.refresh
       );
     } else {
-      if (!req.useCache) {
+      if (!fileSysRequest.useCache) {
         fileSysChart(
           list,
           dataList2,
-          req.type!,
+          fileSysRequest.type!,
           filter,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          fileSysRequest.startNS,
+          fileSysRequest.endNS,
+          fileSysRequest.totalNS,
+          fileSysRequest.frame,
           groupBy10MS,
           isDiskIO,
           false
@@ -118,52 +118,56 @@ export class FileSystemRender extends PerfRender {
       }
     }
     let hoverStruct: FileSysChartStruct | undefined;
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
+    if (fileSysRequest.canvas) {
+      fileSysRequest.context.clearRect(0, 0, fileSysRequest.frame.width, fileSysRequest.frame.height);
       let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
+      if (arr.length > 0 && !fileSysRequest.range.refresh && !fileSysRequest.useCache && fileSysRequest.lazyRefresh) {
         drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
+          fileSysRequest.context,
+          fileSysRequest.startNS,
+          fileSysRequest.endNS,
+          fileSysRequest.totalNS,
+          fileSysRequest.frame,
           arr[0].startNS,
           arr[arr.length - 1].startNS + arr[arr.length - 1].dur
         );
       }
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-      req.context.stroke();
-      req.context.beginPath();
-      if (req.isHover) {
+      drawLines(fileSysRequest.context, fileSysRequest.xs, fileSysRequest.frame.height, fileSysRequest.lineColor);
+      fileSysRequest.context.stroke();
+      fileSysRequest.context.beginPath();
+      if (fileSysRequest.isHover) {
         let offset = groupBy10MS ? 0 : 3;
         for (let re of filter) {
-          if (re.frame && req.hoverX >= re.frame.x - offset && req.hoverX <= re.frame.x + re.frame.width + offset) {
+          if (
+            re.frame &&
+            fileSysRequest.hoverX >= re.frame.x - offset &&
+            fileSysRequest.hoverX <= re.frame.x + re.frame.width + offset
+          ) {
             hoverStruct = re;
             break;
           }
         }
       }
       for (let re of filter) {
-        FileSysChartStruct.draw(req.context, re, req.chartColor);
+        FileSysChartStruct.draw(fileSysRequest.context, re, fileSysRequest.chartColor);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawSelection(fileSysRequest.context, fileSysRequest.params);
+      fileSysRequest.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        fileSysRequest.context,
+        fileSysRequest.flagMoveInfo,
+        fileSysRequest.flagSelectedInfo,
+        fileSysRequest.startNS,
+        fileSysRequest.endNS,
+        fileSysRequest.totalNS,
+        fileSysRequest.frame,
+        fileSysRequest.slicesTime
       );
     }
     let msg = {
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: fileSysRequest.id,
+      type: fileSysRequest.type,
+      results: fileSysRequest.canvas ? undefined : filter,
       hover: hoverStruct,
     };
     self.postMessage(msg);
@@ -261,19 +265,19 @@ export class FileSysChartStruct extends BaseStruct {
     }
   }
 
-  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
-    if ((node.startNS || 0) < startNS) {
-      node.frame.x = 0;
+  static setFrame(fileSystemNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+    if ((fileSystemNode.startNS || 0) < startNS) {
+      fileSystemNode.frame.x = 0;
     } else {
-      node.frame.x = Math.floor(((node.startNS || 0) - startNS) / pns);
+      fileSystemNode.frame.x = Math.floor(((fileSystemNode.startNS || 0) - startNS) / pns);
     }
-    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
-      node.frame.width = frame.width - node.frame.x;
+    if ((fileSystemNode.startNS || 0) + (fileSystemNode.dur || 0) > endNS) {
+      fileSystemNode.frame.width = frame.width - fileSystemNode.frame.x;
     } else {
-      node.frame.width = Math.ceil(((node.startNS || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+      fileSystemNode.frame.width = Math.ceil(((fileSystemNode.startNS || 0) + (fileSystemNode.dur || 0) - startNS) / pns - fileSystemNode.frame.x);
     }
-    if (node.frame.width < 1) {
-      node.frame.width = 1;
+    if (fileSystemNode.frame.width < 1) {
+      fileSystemNode.frame.width = 1;
     }
   }
 

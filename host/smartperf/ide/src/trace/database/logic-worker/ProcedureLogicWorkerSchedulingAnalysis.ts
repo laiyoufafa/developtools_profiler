@@ -256,18 +256,9 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
     }
   }
 
-  queryData(queryName: string, sql: string, args: any) {
-    self.postMessage({
-      id: this.currentEventId,
-      type: queryName,
-      isQuery: true,
-      args: args,
-      sql: sql,
-    });
-  }
-
   getProcessAndThread() {
     this.queryData(
+      this.currentEventId,
       'scheduling-getProcessAndThread',
       `
 select tid id,ifnull(name,'null') name,'t' type from thread
@@ -280,6 +271,7 @@ select pid id,ifnull(name,'null') name,'p' type from process;
 
   getCpuUsage() {
     this.queryData(
+      this.currentEventId,
       'scheduling-getCpuUsage',
       `
 select cpu,
@@ -307,6 +299,7 @@ order by cpu;
 
   getCpuFrequency(name: string) {
     this.queryData(
+      this.currentEventId,
       name,
       `
 select cpu,value,ts,dur
@@ -331,11 +324,12 @@ where cpu not null
   and ts + st.dur < tr.end_ts
   and cpu = ${cpu}
 order by ts;`;
-    this.queryData('scheduling-CPU Frequency Thread', sql, {});
+    this.queryData(this.currentEventId, 'scheduling-CPU Frequency Thread', sql, {});
   }
 
   getCpuIdle0() {
     this.queryData(
+      this.currentEventId,
       'scheduling-getCpuIdle0',
       `
 select cpu,value,ts,dur
@@ -348,6 +342,7 @@ where cmf.name = 'cpu_idle' and value = 0
 
   getCpuIdle() {
     this.queryData(
+      this.currentEventId,
       'scheduling-CPU Idle',
       `
 select cpu,value,ts,dur
@@ -360,6 +355,7 @@ where cmf.name = 'cpu_idle' and value != 0
 
   getCpuIrq() {
     this.queryData(
+      this.currentEventId,
       'scheduling-CPU Irq',
       `
         SELECT callid AS cpu,
@@ -390,7 +386,7 @@ where cmf.name = 'cpu_idle' and value != 0
 from thread_state A
 where cpu not null
 group by A.pid, A.tid,A.cpu`;
-    this.queryData('scheduling-Thread CpuUsage', sql, {});
+    this.queryData(this.currentEventId, 'scheduling-Thread CpuUsage', sql, {});
   }
 
   queryThreadRunTime(cpuMax: number) {
@@ -401,11 +397,12 @@ group by A.pid, A.tid,A.cpu`;
     group by A.tid, A.pid
     order by maxDuration desc
     limit 20`;
-    this.queryData('scheduling-Thread RunTime', sql, {});
+    this.queryData(this.currentEventId, 'scheduling-Thread RunTime', sql, {});
   }
 
   queryProcessThreadCount() {
     this.queryData(
+      this.currentEventId,
       'scheduling-Process ThreadCount',
       `
 select row_number() over (order by count(tid) desc) NO,count(tid) threadNumber,p.pid,ifnull(p.name,'null') pName
@@ -419,6 +416,7 @@ order by threadNumber desc limit 20;`,
 
   queryProcessSwitchCount() {
     this.queryData(
+      this.currentEventId,
       'scheduling-Process SwitchCount',
       `
 select row_number() over (order by count(a.tid) desc) NO,
@@ -442,7 +440,7 @@ where cpu not null
   and ts > tr.start_ts
   and ts + st.dur < tr.end_ts
   order by cpu,ts;`;
-    this.queryData('scheduling-Thread Freq', sql, {});
+    this.queryData(this.currentEventId, 'scheduling-Thread Freq', sql, {});
   }
 
   groupIrgDataByCpu(arr: Irq[]) {

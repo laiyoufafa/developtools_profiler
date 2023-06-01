@@ -243,17 +243,17 @@ export class PageNation {
       return;
     }
     // 当前页面 大于5页 小于倒数第5页
-    for (let i = 0; i < 2; i++) {
-      const li = origin.cloneNode(true);
+    for (let index = 0; index < 2; index++) {
+      const cloneLi = origin.cloneNode(true);
       // @ts-ignore
-      li.innerText = i + 1;
-      if (i + 1 === current) {
-        this.setElementStyles(li, {
+      cloneLi.innerText = index + 1;
+      if (index + 1 === current) {
+        this.setElementStyles(cloneLi, {
           backgroundColor: PageNation.BtnBackColor,
           color: PageNation.BtnColor,
         });
       }
-      this.list.appendChild(li);
+      this.list.appendChild(cloneLi);
     }
     var span = document.createElement('span');
     span.innerText = '...';
@@ -290,11 +290,11 @@ export class PageNation {
   bindLeftList(current: number, totalpage: number, origin: HTMLElement): boolean {
     if (current < 5) {
       // 左边5个 中间 ... 右边2个
-      for (let i = 0; i < 5; i++) {
+      for (let index = 0; index < 5; index++) {
         const li = origin.cloneNode(true);
         // @ts-ignore
-        li.innerText = i + 1;
-        if (i + 1 === current) {
+        li.innerText = index + 1;
+        if (index + 1 === current) {
           this.setElementStyles(li, {
             backgroundColor: PageNation.BtnBackColor,
             color: PageNation.BtnColor,
@@ -305,11 +305,11 @@ export class PageNation {
       var span = document.createElement('span');
       span.innerText = '...';
       this.list.appendChild(span);
-      for (let i = totalpage - 2; i < totalpage; i++) {
+      for (let index = totalpage - 2; index < totalpage; index++) {
         const li = origin.cloneNode(true);
         // @ts-ignore
-        li.innerText = i + 1;
-        if (i + 1 === current) {
+        li.innerText = index + 1;
+        if (index + 1 === current) {
           this.setElementStyles(li, {
             backgroundColor: PageNation.BtnBackColor,
             color: PageNation.BtnColor,
@@ -337,28 +337,28 @@ export class PageNation {
       span.innerText = '...';
       this.list.appendChild(span);
 
-      for (let i = totalpage - 2; i < totalpage; i++) {
-        const li = origin.cloneNode(true);
+      for (let index = totalpage - 2; index < totalpage; index++) {
+        const liElement = origin.cloneNode(true);
         // @ts-ignore
-        li.innerText = i + 1;
-        if (i + 1 === current) {
-          this.setElementStyles(li, {
+        liElement.innerText = index + 1;
+        if (index + 1 === current) {
+          this.setElementStyles(liElement, {
             backgroundColor: PageNation.BtnBackColor,
             color: PageNation.BtnColor,
           });
         }
-        this.list.appendChild(li);
+        this.list.appendChild(liElement);
       }
       return true;
     }
     // 当前页面 大于倒数第5页
     if (current > totalpage - 4) {
       // 左边5个 中间 ... 右边2个
-      for (let i = 0; i < 2; i++) {
+      for (let index = 0; index < 2; index++) {
         const li = origin.cloneNode(true);
         // @ts-ignore
-        li.innerText = i + 1;
-        if (i + 1 === current) {
+        li.innerText = index + 1;
+        if (index + 1 === current) {
           this.setElementStyles(li, {
             backgroundColor: PageNation.BtnBackColor,
             color: PageNation.BtnColor,
@@ -370,37 +370,6 @@ export class PageNation {
       span.innerText = '...';
       this.list.appendChild(span);
       for (let i = totalpage - 5; i < totalpage; i++) {
-        const li = origin.cloneNode(true);
-        // @ts-ignore
-        li.innerText = i + 1;
-        if (i + 1 === current) {
-          this.setElementStyles(li, {
-            backgroundColor: PageNation.BtnBackColor,
-            color: PageNation.BtnColor,
-          });
-        }
-        this.list.appendChild(li);
-      }
-      return true;
-    }
-    if (current == totalpage - 4) {
-      // 左边5个 中间 ... 右边2个
-      for (let i = 0; i < 2; i++) {
-        const li = origin.cloneNode(true);
-        // @ts-ignore
-        li.innerText = i + 1;
-        if (i + 1 === current) {
-          this.setElementStyles(li, {
-            backgroundColor: PageNation.BtnBackColor,
-            color: PageNation.BtnColor,
-          });
-        }
-        this.list.appendChild(li);
-      }
-      var span = document.createElement('span');
-      span.innerText = '...';
-      this.list.appendChild(span);
-      for (let i = totalpage - 7; i < totalpage; i++) {
         const li = origin.cloneNode(true);
         // @ts-ignore
         li.innerText = i + 1;

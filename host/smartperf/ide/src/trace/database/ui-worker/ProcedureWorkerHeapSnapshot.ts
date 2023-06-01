@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseStruct, Rect, Render, isFrameContainPoint } from './ProcedureWorkerCommon.js';
+import { BaseStruct, Rect, Render, isFrameContainPoint, drawString} from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 export class HeapSnapshotRender extends Render {
   renderMainThread(
@@ -106,7 +106,9 @@ export class HeapSnapshotStruct extends BaseStruct {
         ctx.globalAlpha = 1.0;
         ctx.lineWidth = 1;
         ctx.fillStyle = '#fff';
-        HeapSnapshotStruct.drawString(ctx, data.file_name || '', 2, data.frame!, data);
+      ctx.textBaseline = 'middle';
+      ctx.font = '12px sans-serif'
+        drawString(ctx, data.file_name || '', 2, data.frame!,data);
       }
       if (
         HeapSnapshotStruct.selectSnapshotStruct &&
@@ -115,43 +117,6 @@ export class HeapSnapshotStruct extends BaseStruct {
         ctx.strokeStyle = '#232c5d';
         ctx.lineWidth = 2;
         ctx.strokeRect(data.frame!.x, data.frame!.y + padding, data.frame!.width - 2, data.frame!.height - padding * 2);
-      }
-    }
-  }
-
-  static drawString(
-    ctx: CanvasRenderingContext2D,
-    str: string,
-    textPadding: number,
-    frame: Rect,
-    data: HeapSnapshotStruct
-  ) {
-    if (data.textMetricsWidth === undefined) {
-      data.textMetricsWidth = ctx.measureText(str).width;
-    }
-    let charWidth = Math.round(data.textMetricsWidth / str.length);
-    let fillTextWidth = frame.width - textPadding * 2;
-    if (data.textMetricsWidth < fillTextWidth) {
-      let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
-      ctx.textBaseline = 'middle';
-      ctx.font = '12px sans-serif';
-      ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2), fillTextWidth);
-    } else {
-      if (fillTextWidth >= charWidth) {
-        let chatNum = fillTextWidth / charWidth;
-        let x1 = frame.x + textPadding;
-        ctx.textBaseline = 'middle';
-        ctx.font = '12px sans-serif';
-        if (chatNum < 2) {
-          ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / 2), fillTextWidth);
-        } else {
-          ctx.fillText(
-            str.substring(0, chatNum - 1) + '...',
-            x1,
-            Math.floor(frame.y + frame.height / 2),
-            fillTextWidth
-          );
-        }
       }
     }
   }

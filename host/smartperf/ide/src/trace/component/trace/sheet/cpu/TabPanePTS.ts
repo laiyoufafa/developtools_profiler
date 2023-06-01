@@ -20,157 +20,152 @@ import { getStatesProcessThreadDataByRange } from '../../../../database/SqlLite.
 import { SPT, StateProcessThread } from '../../../../bean/StateProcessThread.js';
 import { Utils } from '../../base/Utils.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-pts')
 export class TabPanePTS extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
+  private ptsTbl: LitTable | null | undefined;
+  private ptsRange: HTMLLabelElement | null | undefined;
   private loadDataInCache: boolean = true;
   private selectionParam: SelectionParam | null | undefined;
 
-  set data(val: SelectionParam | any) {
-    if (val == this.selectionParam) {
+  set data(ptsValue: SelectionParam | any) {
+    if (ptsValue == this.selectionParam) {
       return;
     }
-    this.selectionParam = val;
-    this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    this.selectionParam = ptsValue;
+    this.ptsRange!.textContent =
+      'Selected range: ' + parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     if (this.loadDataInCache) {
-      this.getDataBySPT(val.leftNs, val.rightNs, SpSystemTrace.SPT_DATA);
+      this.getDataBySPT(ptsValue.leftNs, ptsValue.rightNs, SpSystemTrace.SPT_DATA);
     } else {
-      this.queryDataByDB(val);
+      this.queryDataByDB(ptsValue);
     }
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-states');
-    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.ptsTbl = this.shadowRoot?.querySelector<LitTable>('#pts-tbl');
+    this.ptsRange = this.shadowRoot?.querySelector('#pts-time-range');
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.ptsTbl!)
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getStatesProcessThreadDataByRange(val.leftNs, val.rightNs).then((result) => {
-      this.getDataBySPT(val.leftNs, val.rightNs, result);
+  queryDataByDB(ptsVal: SelectionParam | any) {
+    getStatesProcessThreadDataByRange(ptsVal.leftNs, ptsVal.rightNs).then((result) => {
+      this.getDataBySPT(ptsVal.leftNs, ptsVal.rightNs, result);
     });
   }
 
-  getDataBySPT(leftNs: number, rightNs: number, source: Array<SPT>) {
+  getDataBySPT(ptsLeftNs: number, ptsRightNs: number, ptsSource: Array<SPT>) {
     let pMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
     let ptMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
     let ptsMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
-    source.map((d) => {
-      if (!(d.end_ts < leftNs || d.start_ts > rightNs)) {
+    ptsSource.map((d) => {
+      if (!(d.end_ts < ptsLeftNs || d.start_ts > ptsRightNs)) {
         if (pMap.has(d.processId + '')) {
-          let obj1 = pMap.get(d.processId + '');
-          obj1!.count++;
-          obj1!.wallDuration += d.dur;
-          obj1!.avgDuration = (obj1!.wallDuration / obj1!.count).toFixed(2);
-          if (d.dur > obj1!.maxDuration) {
-            obj1!.maxDuration = d.dur;
+          let ptsPMapObj = pMap.get(d.processId + '');
+          ptsPMapObj!.count++;
+          ptsPMapObj!.wallDuration += d.dur;
+          ptsPMapObj!.avgDuration = (ptsPMapObj!.wallDuration / ptsPMapObj!.count).toFixed(2);
+          if (d.dur > ptsPMapObj!.maxDuration) {
+            ptsPMapObj!.maxDuration = d.dur;
           }
-          if (d.dur < obj1!.minDuration) {
-            obj1!.minDuration = d.dur;
+          if (d.dur < ptsPMapObj!.minDuration) {
+            ptsPMapObj!.minDuration = d.dur;
           }
         } else {
-          let obj1 = new StateProcessThread();
-          obj1.id = 'p' + d.processId;
-          obj1.title = (d.process == null || d.process == '' ? 'Process' : d.process) + '(' + d.processId + ')';
-          obj1.process = d.process;
-          obj1.processId = d.processId;
-          obj1.minDuration = d.dur;
-          obj1.maxDuration = d.dur;
-          obj1.count = 1;
-          obj1.avgDuration = d.dur + '';
-          obj1.wallDuration = d.dur;
-          pMap.set(d.processId + '', obj1);
+          let ptsPMapObj = new StateProcessThread();
+          ptsPMapObj.id = 'p' + d.processId;
+          ptsPMapObj.title = (d.process == null || d.process == '' ? 'Process' : d.process) + '(' + d.processId + ')';
+          ptsPMapObj.process = d.process;
+          ptsPMapObj.processId = d.processId;
+          ptsPMapObj.minDuration = d.dur;
+          ptsPMapObj.maxDuration = d.dur;
+          ptsPMapObj.count = 1;
+          ptsPMapObj.avgDuration = d.dur + '';
+          ptsPMapObj.wallDuration = d.dur;
+          pMap.set(d.processId + '', ptsPMapObj);
         }
         if (ptMap.has(d.processId + '_' + d.threadId)) {
-          let obj2 = ptMap.get(d.processId + '_' + d.threadId);
-          obj2!.count++;
-          obj2!.wallDuration += d.dur;
-          obj2!.avgDuration = (obj2!.wallDuration / obj2!.count).toFixed(2);
-          if (d.dur > obj2!.maxDuration) {
-            obj2!.maxDuration = d.dur;
+          let ptsPtMapObj = ptMap.get(d.processId + '_' + d.threadId);
+          ptsPtMapObj!.count++;
+          ptsPtMapObj!.wallDuration += d.dur;
+          ptsPtMapObj!.avgDuration = (ptsPtMapObj!.wallDuration / ptsPtMapObj!.count).toFixed(2);
+          if (d.dur > ptsPtMapObj!.maxDuration) {
+            ptsPtMapObj!.maxDuration = d.dur;
           }
-          if (d.dur < obj2!.minDuration) {
-            obj2!.minDuration = d.dur;
+          if (d.dur < ptsPtMapObj!.minDuration) {
+            ptsPtMapObj!.minDuration = d.dur;
           }
         } else {
-          let obj2 = new StateProcessThread();
-          obj2.id = 'p' + d.processId + '_' + 't' + d.threadId;
-          obj2.pid = 'p' + d.processId;
-          obj2.title = (d.thread == null || d.thread == '' ? 'Thread' : d.thread) + '(' + d.threadId + ')';
-          obj2.processId = d.processId;
-          obj2.process = d.process;
-          obj2.thread = d.thread;
-          obj2.threadId = d.threadId;
-          obj2.minDuration = d.dur;
-          obj2.maxDuration = d.dur;
-          obj2.count = 1;
-          obj2.avgDuration = d.dur + '';
-          obj2.wallDuration = d.dur;
-          ptMap.set(d.processId + '_' + d.threadId, obj2);
+          let ptsPtMapObj = new StateProcessThread();
+          ptsPtMapObj.id = 'p' + d.processId + '_' + 't' + d.threadId;
+          ptsPtMapObj.pid = 'p' + d.processId;
+          ptsPtMapObj.title = (d.thread == null || d.thread == '' ? 'Thread' : d.thread) + '(' + d.threadId + ')';
+          ptsPtMapObj.processId = d.processId;
+          ptsPtMapObj.process = d.process;
+          ptsPtMapObj.thread = d.thread;
+          ptsPtMapObj.threadId = d.threadId;
+          ptsPtMapObj.minDuration = d.dur;
+          ptsPtMapObj.maxDuration = d.dur;
+          ptsPtMapObj.count = 1;
+          ptsPtMapObj.avgDuration = d.dur + '';
+          ptsPtMapObj.wallDuration = d.dur;
+          ptMap.set(d.processId + '_' + d.threadId, ptsPtMapObj);
         }
         if (ptsMap.has(d.processId + '_' + d.threadId + '_' + d.state)) {
-          let obj3 = ptsMap.get(d.processId + '_' + d.threadId + '_' + d.state);
-          obj3!.count++;
-          obj3!.wallDuration += d.dur;
-          obj3!.avgDuration = (obj3!.wallDuration / obj3!.count).toFixed(2);
-          if (d.dur > obj3!.maxDuration) {
-            obj3!.maxDuration = d.dur;
+          let ptsPtsMapObj = ptsMap.get(d.processId + '_' + d.threadId + '_' + d.state);
+          ptsPtsMapObj!.count++;
+          ptsPtsMapObj!.wallDuration += d.dur;
+          ptsPtsMapObj!.avgDuration = (ptsPtsMapObj!.wallDuration / ptsPtsMapObj!.count).toFixed(2);
+          if (d.dur > ptsPtsMapObj!.maxDuration) {
+            ptsPtsMapObj!.maxDuration = d.dur;
           }
-          if (d.dur < obj3!.minDuration) {
-            obj3!.minDuration = d.dur;
+          if (d.dur < ptsPtsMapObj!.minDuration) {
+            ptsPtsMapObj!.minDuration = d.dur;
           }
         } else {
-          let obj3 = new StateProcessThread();
-          obj3.id = 'p' + d.processId + '_' + 't' + d.threadId + '_' + (d.state == 'R+' ? 'RP' : d.state);
-          obj3.pid = 'p' + d.processId + '_' + 't' + d.threadId;
-          obj3.title = Utils.getEndState(d.state);
-          obj3.processId = d.processId;
-          obj3.process = d.process;
-          obj3.thread = d.thread;
-          obj3.threadId = d.threadId;
-          obj3.state = d.state;
-          obj3.minDuration = d.dur;
-          obj3.maxDuration = d.dur;
-          obj3.count = 1;
-          obj3.avgDuration = d.dur + '';
-          obj3.wallDuration = d.dur;
-          ptsMap.set(d.processId + '_' + d.threadId + '_' + d.state, obj3);
+          let ptsPtsMapObj = new StateProcessThread();
+          ptsPtsMapObj.id = 'p' + d.processId + '_' + 't' + d.threadId + '_' + (d.state == 'R+' ? 'RP' : d.state);
+          ptsPtsMapObj.pid = 'p' + d.processId + '_' + 't' + d.threadId;
+          ptsPtsMapObj.title = Utils.getEndState(d.state);
+          ptsPtsMapObj.processId = d.processId;
+          ptsPtsMapObj.process = d.process;
+          ptsPtsMapObj.thread = d.thread;
+          ptsPtsMapObj.threadId = d.threadId;
+          ptsPtsMapObj.state = d.state;
+          ptsPtsMapObj.minDuration = d.dur;
+          ptsPtsMapObj.maxDuration = d.dur;
+          ptsPtsMapObj.count = 1;
+          ptsPtsMapObj.avgDuration = d.dur + '';
+          ptsPtsMapObj.wallDuration = d.dur;
+          ptsMap.set(d.processId + '_' + d.threadId + '_' + d.state, ptsPtsMapObj);
         }
       }
     });
-    let arr: Array<StateProcessThread> = [];
+    let ptsArr: Array<StateProcessThread> = [];
     for (let key of pMap.keys()) {
-      let s = pMap.get(key);
-      s!.children = [];
-      for (let ks of ptMap.keys()) {
-        if (ks.startsWith(key + '_')) {
-          let sp = ptMap.get(ks);
+      let ptsValues = pMap.get(key);
+      ptsValues!.children = [];
+      for (let itemKey of ptMap.keys()) {
+        if (itemKey.startsWith(key + '_')) {
+          let sp = ptMap.get(itemKey);
           sp!.children = [];
-          for (let kst of ptsMap.keys()) {
-            if (kst.startsWith(ks + '_')) {
-              let spt = ptsMap.get(kst);
+          for (let keySt of ptsMap.keys()) {
+            if (keySt.startsWith(itemKey + '_')) {
+              let spt = ptsMap.get(keySt);
               sp!.children.push(spt!);
             }
           }
-          s!.children.push(sp!);
+          ptsValues!.children.push(sp!);
         }
       }
-      arr.push(s!);
+      ptsArr.push(ptsValues!);
     }
-    this.tbl!.recycleDataSource = arr;
+    this.ptsTbl!.recycleDataSource = ptsArr;
   }
 
   initHtml(): string {
@@ -182,19 +177,19 @@ export class TabPanePTS extends BaseElement {
             padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-        <lit-table id="tb-states" style="height: auto" tree>
-            <lit-table-column width="27%" title="Process/Thread/State" data-index="title" key="title" align="flex-start">
+        <label id="pts-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="pts-tbl" style="height: auto" tree>
+            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Count" data-index="count" key="count" align="flex-start" >
+            <lit-table-column class="pts-column" title="Count" data-index="count" key="count" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration(ns)" data-index="wallDuration" key="wallDuration" align="flex-start" >
+            <lit-table-column class="pts-column" title="Duration(ns)" data-index="wallDuration" key="wallDuration" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Min Duration(ns)" data-index="minDuration" key="minDuration" align="flex-start" >
+            <lit-table-column class="pts-column" title="Min Duration(ns)" data-index="minDuration" key="minDuration" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Avg Duration(ns)" data-index="avgDuration" key="avgDuration" align="flex-start" >
+            <lit-table-column class="pts-column" title="Avg Duration(ns)" data-index="avgDuration" key="avgDuration" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Duration(ns)" data-index="maxDuration" key="maxDuration" align="flex-start" >
+            <lit-table-column class="pts-column" title="Max Duration(ns)" data-index="maxDuration" key="maxDuration" align="flex-start" width="1fr">
             </lit-table-column>
         </lit-table>
         `;

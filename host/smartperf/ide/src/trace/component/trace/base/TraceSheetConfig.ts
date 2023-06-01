@@ -20,9 +20,7 @@ import { SelectionParam } from '../../../bean/BoxSelection.js';
 import { TabPaneCpuByProcess } from '../sheet/cpu/TabPaneCpuByProcess.js';
 import { TabPaneCpuUsage } from '../sheet/cpu/TabPaneCpuUsage.js';
 import { TabPaneSPT } from '../sheet/cpu/TabPaneSPT.js';
-import { TabPaneContextSwitch } from '../sheet/cpu/TabPaneContextSwitch.js';
 import { TabPanePTS } from '../sheet/cpu/TabPanePTS.js';
-import { TabPaneThreadSwitch } from '../sheet/cpu/TabPaneThreadSwitch.js';
 import { TabPaneSlices } from '../sheet/process/TabPaneSlices.js';
 import { TabPaneCounter } from '../sheet/process/TabPaneCounter.js';
 import { TabPaneFps } from '../sheet/fps/TabPaneFps.js';
@@ -113,13 +111,8 @@ export let tabConfig: any = {
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
   'box-spt': {
-    title: 'States List',
+    title: 'Thread Switches',
     type: TabPaneSPT,
-    require: (param: SelectionParam) => param.cpus.length > 0,
-  },
-  'box-cs': {
-    title: 'Switches List',
-    type: TabPaneContextSwitch,
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
   'box-pts': {
@@ -127,11 +120,6 @@ export let tabConfig: any = {
     type: TabPanePTS,
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
-  'box-ts': {
-    title: 'Thread Switches',
-    type: TabPaneThreadSwitch,
-    require: (param: SelectionParam) => param.cpus.length > 0,
-  }, //end range select
   'box-slices': {
     title: 'Slices',
     type: TabPaneSlices,

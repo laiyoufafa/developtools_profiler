@@ -20,22 +20,23 @@ import { getTabSmapsData } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { log } from '../../../../../log/Log.js';
 import { Smaps } from '../../../../bean/SmapsStruct.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<Smaps> = [];
-  private queryResult: Array<Smaps> = [];
+  private tblSmapsRecord: LitTable | null | undefined;
+  private sourceSmapsRecord: Array<Smaps> = [];
+  private querySmapsRecordResult: Array<Smaps> = [];
 
-  set data(val: SelectionParam | any) {
+  set data(valSmapsRecord: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    this.queryDataByDB(val);
+    this.tblSmapsRecord ?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(valSmapsRecord);
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-smaps-record');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.tblSmapsRecord  = this.shadowRoot?.querySelector<LitTable>('#tb-smaps-record');
+    this.tblSmapsRecord !.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -43,17 +44,11 @@ export class TabPaneSmapsRecord extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!,this.tblSmapsRecord!)
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getTabSmapsData(val.leftNs, val.rightNs).then((result) => {
+  queryDataByDB(srVal: SelectionParam | any) {
+    getTabSmapsData(srVal.leftNs, srVal.rightNs).then((result) => {
       log('getTabSmapsData size :' + result.length);
       if (result.length != null && result.length > 0) {
         for (const smaps of result) {
@@ -84,13 +79,13 @@ export class TabPaneSmapsRecord extends BaseElement {
             smaps.resideStr = resideS + '%';
           }
         }
-        this.source = result;
-        this.queryResult = result;
-        this.tbl!.recycleDataSource = this.source;
+        this.sourceSmapsRecord = result;
+        this.querySmapsRecordResult = result;
+        this.tblSmapsRecord !.recycleDataSource = this.sourceSmapsRecord;
       } else {
-        this.source = [];
-        this.queryResult = [];
-        this.tbl!.recycleDataSource = [];
+        this.sourceSmapsRecord = [];
+        this.querySmapsRecordResult = [];
+        this.tblSmapsRecord !.recycleDataSource = [];
       }
     });
   }
@@ -98,14 +93,16 @@ export class TabPaneSmapsRecord extends BaseElement {
   initHtml(): string {
     return `
         <style>
+        .smaps-record-label{
+            height: auto;
+        }
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
-
         </style>
-        <lit-table id="tb-smaps-record" style="height: auto">
+        <lit-table id="tb-smaps-record" class="smaps-record-label">
             <lit-table-column order width="80px" title="Type" data-index="type" key="type" align="flex-start" >
             </lit-table-column>
             <lit-table-column order width="250px" title="Address Range" data-index="address" key="address" align="flex-start" >
@@ -133,17 +130,17 @@ export class TabPaneSmapsRecord extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: Smaps, b: Smaps) {
+      return function (aSmapsRecord: Smaps, bSmapsRecord: Smaps) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(bSmapsRecord[property]) - parseFloat(aSmapsRecord[property]) : parseFloat(aSmapsRecord[property]) - parseFloat(bSmapsRecord[property]);
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (bSmapsRecord[property] > aSmapsRecord[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (bSmapsRecord[property] == aSmapsRecord[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -161,10 +158,10 @@ export class TabPaneSmapsRecord extends BaseElement {
       detail.key === 'resideStr'
     ) {
       let key = detail.key.substring(0, detail.key.indexOf('Str'));
-      this.source.sort(compare(key, detail.sort, 'number'));
+      this.sourceSmapsRecord.sort(compare(key, detail.sort, 'number'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.sourceSmapsRecord.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.tblSmapsRecord !.recycleDataSource = this.sourceSmapsRecord;
   }
 }

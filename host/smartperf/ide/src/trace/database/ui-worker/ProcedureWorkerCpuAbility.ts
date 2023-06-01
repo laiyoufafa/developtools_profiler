@@ -17,15 +17,10 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
   BaseStruct,
   dataFilterHandler,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawSelection,
-  drawWakeUp,
   isFrameContainPoint,
   ns2x,
-  Render,
   RequestMessage,
+  Render,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 import { DiskAbilityMonitorStruct } from './ProcedureWorkerDiskIoAbility.js';
@@ -41,9 +36,9 @@ export class CpuAbilityRender extends Render {
     },
     row: TraceRow<CpuAbilityMonitorStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    let cpuAbilityList = row.dataList;
+    let cpuAbilityFilter = row.dataListCache;
+    dataFilterHandler(cpuAbilityList, cpuAbilityFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -55,7 +50,7 @@ export class CpuAbilityRender extends Render {
     });
     req.context.beginPath();
     let find = false;
-    for (let re of filter) {
+    for (let re of cpuAbilityFilter) {
       CpuAbilityMonitorStruct.draw(req.context, re, req.maxCpuUtilization, row.isHover);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         CpuAbilityMonitorStruct.hoverCpuAbilityStruct = re;
@@ -78,7 +73,7 @@ export class CpuAbilityRender extends Render {
 }
 
 export function cpuAbility(
-  list: Array<any>,
+  cpuAbilityList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -98,20 +93,27 @@ export function cpuAbility(
     return;
   }
   res.length = 0;
-  if (list) {
-    for (let index = 0; index < list.length; index++) {
-      let item = list[index];
-      if (index === list.length - 1) {
+  if (cpuAbilityList) {
+    for (let cpuAbilityIndex = 0; cpuAbilityIndex < cpuAbilityList.length; cpuAbilityIndex++) {
+      let item = cpuAbilityList[cpuAbilityIndex];
+      if (cpuAbilityIndex === cpuAbilityList.length - 1) {
         item.dur = (endNS || 0) - (item.startNS || 0);
       } else {
-        item.dur = (list[index + 1].startNS || 0) - (item.startNS || 0);
+        item.dur = (cpuAbilityList[cpuAbilityIndex + 1].startNS || 0) - (item.startNS || 0);
       }
       if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        CpuAbilityMonitorStruct.setCpuAbilityFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        CpuAbilityMonitorStruct.setCpuAbilityFrame(
+          cpuAbilityList[cpuAbilityIndex],
+          5,
+          startNS || 0,
+          endNS || 0,
+          totalNS || 0,
+          frame
+        );
         if (
-          index > 0 &&
-          (list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) &&
-          (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0)
+          cpuAbilityIndex > 0 &&
+          (cpuAbilityList[cpuAbilityIndex - 1].frame?.x || 0) == (cpuAbilityList[cpuAbilityIndex].frame?.x || 0) &&
+          (cpuAbilityList[cpuAbilityIndex - 1].frame?.width || 0) == (cpuAbilityList[cpuAbilityIndex].frame?.width || 0)
         ) {
         } else {
           res.push(item);
@@ -133,7 +135,7 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
 
   static draw(
-    context2D: CanvasRenderingContext2D,
+    cpuAbilityContext2D: CanvasRenderingContext2D,
     data: CpuAbilityMonitorStruct,
     maxCpuUtilization: number,
     isHover: boolean
@@ -141,55 +143,56 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = 2;
-      context2D.fillStyle = ColorUtils.colorForTid(index);
-      context2D.strokeStyle = ColorUtils.colorForTid(index);
+      cpuAbilityContext2D.fillStyle = ColorUtils.colorForTid(index);
+      cpuAbilityContext2D.strokeStyle = ColorUtils.colorForTid(index);
       if (data.startNS === CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.startNS && isHover) {
-        context2D.lineWidth = 1;
-        context2D.globalAlpha = 0.6;
+        cpuAbilityContext2D.lineWidth = 1;
+        cpuAbilityContext2D.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxCpuUtilization);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
-        context2D.beginPath();
-        context2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
-        context2D.fill();
-        context2D.globalAlpha = 1.0;
-        context2D.stroke();
-        context2D.beginPath();
-        context2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.lineWidth = 3;
-        context2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.stroke();
+        cpuAbilityContext2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        cpuAbilityContext2D.beginPath();
+        cpuAbilityContext2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
+        cpuAbilityContext2D.fill();
+        cpuAbilityContext2D.globalAlpha = 1.0;
+        cpuAbilityContext2D.stroke();
+        cpuAbilityContext2D.beginPath();
+        cpuAbilityContext2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
+        cpuAbilityContext2D.lineWidth = 3;
+        cpuAbilityContext2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
+        cpuAbilityContext2D.stroke();
       } else {
-        context2D.globalAlpha = 0.6;
-        context2D.lineWidth = 1;
+        cpuAbilityContext2D.globalAlpha = 0.6;
+        cpuAbilityContext2D.lineWidth = 1;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxCpuUtilization);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        cpuAbilityContext2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
       }
     }
-    context2D.globalAlpha = 1.0;
-    context2D.lineWidth = 1;
+    cpuAbilityContext2D.globalAlpha = 1.0;
+    cpuAbilityContext2D.lineWidth = 1;
   }
 
-  static setCpuAbilityFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let startPointX: number, endPointX: number;
+  static setCpuAbilityFrame(cpuAbilityNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+    let cpuAbilityStartPointX: number, cpuAbilityEndPointX: number;
 
-    if ((node.startNS || 0) < startNS) {
-      startPointX = 0;
+    if ((cpuAbilityNode.startNS || 0) < startNS) {
+      cpuAbilityStartPointX = 0;
     } else {
-      startPointX = ns2x(node.startNS || 0, startNS, endNS, totalNS, frame);
+      cpuAbilityStartPointX = ns2x(cpuAbilityNode.startNS || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
-      endPointX = frame.width;
+    if ((cpuAbilityNode.startNS || 0) + (cpuAbilityNode.dur || 0) > endNS) {
+      cpuAbilityEndPointX = frame.width;
     } else {
-      endPointX = ns2x((node.startNS || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      cpuAbilityEndPointX = ns2x((cpuAbilityNode.startNS || 0) + (cpuAbilityNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    let frameWidth: number =
+      cpuAbilityEndPointX - cpuAbilityStartPointX <= 1 ? 1 : cpuAbilityEndPointX - cpuAbilityStartPointX;
+    if (!cpuAbilityNode.frame) {
+      cpuAbilityNode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    cpuAbilityNode.frame.x = Math.floor(cpuAbilityStartPointX);
+    cpuAbilityNode.frame.y = frame.y + padding;
+    cpuAbilityNode.frame.width = Math.ceil(frameWidth);
+    cpuAbilityNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }
 

@@ -17,19 +17,20 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabCounters, getTabVirtualCounters } from '../../../../database/SqlLite.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-counter')
 export class TabPaneCounter extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private source: Array<SelectionData> = [];
+  private counterTbl: LitTable | null | undefined;
+  private counterRange: HTMLLabelElement | null | undefined;
+  private counterSource: Array<SelectionData> = [];
 
-  set data(val: SelectionParam | any) {
+  set data(counterParam: SelectionParam | any) {
     //@ts-ignore
-    this.tbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
-    this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    getTabCounters(val.processTrackIds, val.virtualTrackIds, val.rightNs).then((result) => {
+    this.counterTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.counterRange!.textContent =
+      'Selected range: ' + parseFloat(((counterParam.rightNs - counterParam.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    getTabCounters(counterParam.processTrackIds, counterParam.virtualTrackIds, counterParam.rightNs).then((result) => {
       if (result != null && result.length > 0) {
         let dataSource: Array<SelectionData> = [];
         let collect = this.groupByTrackIdToMap(result);
@@ -37,13 +38,13 @@ export class TabPaneCounter extends BaseElement {
         for (let key of collect.keys()) {
           let counters = collect.get(key);
           let list: Array<Counter> = [];
-          let index = counters!.findIndex((item) => item.startTime >= val.leftNs);
+          let index = counters!.findIndex((item) => item.startTime >= counterParam.leftNs);
           if (index != -1) {
             list = counters!.splice(index > 0 ? index - 1 : index);
           } else {
             list.push(counters![counters!.length - 1]);
           }
-          let sd = this.createSelectCounterData(list, val.leftNs, val.rightNs);
+          let sd = this.createSelectCounterData(list, counterParam.leftNs, counterParam.rightNs);
           sumCount += Number.parseInt(sd.count);
           dataSource.push(sd);
         }
@@ -51,19 +52,19 @@ export class TabPaneCounter extends BaseElement {
         sumData.count = sumCount.toString();
         sumData.process = ' ';
         dataSource.splice(0, 0, sumData);
-        this.source = dataSource;
-        this.tbl!.recycleDataSource = dataSource;
+        this.counterSource = dataSource;
+        this.counterTbl!.recycleDataSource = dataSource;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = this.source;
+        this.counterSource = [];
+        this.counterTbl!.recycleDataSource = this.counterSource;
       }
     });
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.counterTbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
+    this.counterRange = this.shadowRoot?.querySelector('#time-range');
+    this.counterTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -71,25 +72,22 @@ export class TabPaneCounter extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!,this.counterTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .counter-label{
+            width: 100%;
+        }
         :host{
-            display: flex;
             flex-direction: column;
+            display: flex;
             padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="time-range" class="counter-label" style="height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-counter" style="height: auto">
             <lit-table-column width="25%" title="Name" data-index="name" key="name"  align="flex-start" order>
             </lit-table-column>
@@ -129,54 +127,54 @@ export class TabPaneCounter extends BaseElement {
   }
 
   createSelectCounterData(list: Array<Counter>, leftNs: number, rightNs: number): SelectionData {
-    let selectData = new SelectionData();
+    let counterData = new SelectionData();
     if (list.length > 0) {
       let range = rightNs - leftNs;
       let first = list[0];
-      selectData.trackId = first.trackId;
-      selectData.name = first.name;
-      selectData.first = first.value + '';
-      selectData.count = list.length + '';
-      selectData.last = list[list.length - 1].value + '';
-      selectData.delta = parseInt(selectData.last) - parseInt(selectData.first) + '';
-      selectData.rate = (parseInt(selectData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
-      selectData.min = first.value + '';
-      selectData.max = '0';
+      counterData.trackId = first.trackId;
+      counterData.name = first.name;
+      counterData.first = first.value + '';
+      counterData.count = list.length + '';
+      counterData.last = list[list.length - 1].value + '';
+      counterData.delta = parseInt(counterData.last) - parseInt(counterData.first) + '';
+      counterData.rate = (parseInt(counterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
+      counterData.min = first.value + '';
+      counterData.max = '0';
       let weightAvg = 0.0;
       for (let i = 0; i < list.length; i++) {
         let counter = list[i];
-        if (counter.value < parseInt(selectData.min)) {
-          selectData.min = counter.value.toString();
+        if (counter.value < parseInt(counterData.min)) {
+          counterData.min = counter.value.toString();
         }
-        if (counter.value > parseInt(selectData.max)) {
-          selectData.max = counter.value.toString();
+        if (counter.value > parseInt(counterData.max)) {
+          counterData.max = counter.value.toString();
         }
         let start = i == 0 ? leftNs : counter.startTime;
         let end = i == list.length - 1 ? rightNs : list[i + 1].startTime;
         weightAvg += counter.value * (((end - start) * 1.0) / range);
       }
-      selectData.avgWeight = weightAvg.toFixed(2);
+      counterData.avgWeight = weightAvg.toFixed(2);
     }
-    return selectData;
+    return counterData;
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SelectionData, b: SelectionData) {
-        if (a.process == ' ' || b.process == ' ') {
+      return function (counterLeftData: SelectionData, counterRightData: SelectionData) {
+        if (counterLeftData.process == ' ' || counterRightData.process == ' ') {
           return 0;
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(counterRightData[property]) - parseFloat(counterLeftData[property]) : parseFloat(counterLeftData[property]) - parseFloat(counterRightData[property]);
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (counterRightData[property] > counterLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (counterRightData[property] == counterLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -187,10 +185,10 @@ export class TabPaneCounter extends BaseElement {
     }
 
     if (detail.key === 'name') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.counterSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.counterSource.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.counterTbl!.recycleDataSource = this.counterSource;
   }
 }

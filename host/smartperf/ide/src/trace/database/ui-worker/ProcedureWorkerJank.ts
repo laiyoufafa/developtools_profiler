@@ -13,9 +13,18 @@
  * limitations under the License.
  */
 
+import { JanksStruct } from '../../bean/JanksStruct.js';
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { BaseStruct, isFrameContainPoint, ns2x, Rect, Render, RequestMessage } from './ProcedureWorkerCommon.js';
+import {
+  BaseStruct,
+  isFrameContainPoint,
+  ns2x,
+  Rect,
+  Render,
+  RequestMessage,
+  drawString,
+} from './ProcedureWorkerCommon.js';
 
 export class JankRender extends Render {
   renderMainThread(
@@ -26,11 +35,11 @@ export class JankRender extends Render {
     },
     row: TraceRow<JankStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let jankList = row.dataList;
+    let jankFilter = row.dataListCache;
     jank(
-      list,
-      filter,
+      jankList,
+      jankFilter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
@@ -40,7 +49,7 @@ export class JankRender extends Render {
     req.context.beginPath();
     let find = false;
     let nsScale = ((TraceRow.range!.endNS || 0) - (TraceRow.range!.startNS || 0)) / (TraceRow.range!.totalNS * 9);
-    for (let re of filter) {
+    for (let re of jankFilter) {
       JankStruct.draw(req.context, re, nsScale);
       if (row.isHover) {
         if (re.dur == 0 || re.dur == null || re.dur == undefined) {
@@ -70,27 +79,27 @@ export class JankRender extends Render {
 }
 
 export function jank(
-  list: Array<any>,
-  res: Array<any>,
+  jankList: Array<any>,
+  jankFilter: Array<any>,
   startNS: number,
   endNS: number,
   totalNS: number,
   frame: any,
   use: boolean
 ) {
-  if (use && res.length > 0) {
-    for (let i = 0, len = res.length; i < len; i++) {
-      if ((res[i].ts || 0) + (res[i].dur || 0) >= startNS && (res[i].ts || 0) <= endNS) {
-        JankStruct.setJankFrame(res[i], 0, startNS, endNS, totalNS, frame);
+  if (use && jankFilter.length > 0) {
+    for (let i = 0, len = jankFilter.length; i < len; i++) {
+      if ((jankFilter[i].ts || 0) + (jankFilter[i].dur || 0) >= startNS && (jankFilter[i].ts || 0) <= endNS) {
+        JankStruct.setJankFrame(jankFilter[i], 0, startNS, endNS, totalNS, frame);
       } else {
-        res[i].frame = null;
+        jankFilter[i].frame = null;
       }
     }
     return;
   }
-  res.length = 0;
-  if (list) {
-    let groups = list
+  jankFilter.length = 0;
+  if (jankList) {
+    let groups = jankList
       .filter((it) => (it.ts ?? 0) + (it.dur ?? 0) >= startNS && (it.ts ?? 0) <= endNS)
       .map((it) => {
         JankStruct.setJankFrame(it, 0, startNS, endNS, totalNS, frame);
@@ -102,57 +111,36 @@ export function jank(
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
       let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
-      res.push(arr[0]);
+      jankFilter.push(arr[0]);
     });
   }
 }
 
-export class JankStruct extends BaseStruct {
+export class JankStruct extends JanksStruct {
   static hoverJankStruct: JankStruct | undefined;
   static selectJankStruct: JankStruct | undefined;
   static selectJankStructList: Array<JankStruct> = new Array<JankStruct>();
-  static delJankLineFlag: boolean = true;
-  id: number | undefined; // sliceid
-  ts: number | undefined;
-  dur: number | undefined;
-  name: string | undefined;
-  depth: number | undefined;
-  jank_tag: boolean = false;
-  cmdline: string | undefined; // process
-  jank_type: string | undefined;
-  type: string | undefined;
-  pid: number | undefined;
-  frame_type: string | undefined; // app、renderService、frameTime
-  app_dur: number | undefined;
-  src_slice: string | undefined;
-  dst_slice: string | undefined;
-  rs_ts: number | undefined;
-  rs_vsync: string | undefined;
-  rs_dur: number | undefined;
-  rs_pid: number | undefined;
-  rs_name: string | undefined;
-  gpu_dur: number | undefined;
 
-  static setJankFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setJankFrame(jankNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
-    if ((node.ts || 0) > startNS && (node.ts || 0) < endNS) {
-      x1 = ns2x(node.ts || 0, startNS, endNS, totalNS, frame);
+    if ((jankNode.ts || 0) > startNS && (jankNode.ts || 0) < endNS) {
+      x1 = ns2x(jankNode.ts || 0, startNS, endNS, totalNS, frame);
     } else {
       x1 = 0;
     }
-    if ((node.ts || 0) + (node.dur || 0) > startNS && (node.ts || 0) + (node.dur || 0) < endNS) {
-      x2 = ns2x((node.ts || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+    if ((jankNode.ts || 0) + (jankNode.dur || 0) > startNS && (jankNode.ts || 0) + (jankNode.dur || 0) < endNS) {
+      x2 = ns2x((jankNode.ts || 0) + (jankNode.dur || 0), startNS, endNS, totalNS, frame);
     } else {
       x2 = frame.width;
     }
-    if (!node.frame) {
-      node.frame = {};
+    if (!jankNode.frame) {
+      jankNode.frame = {};
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
-    node.frame.x = Math.floor(x1);
-    node.frame.y = node.depth * 20;
-    node.frame.width = Math.ceil(getV);
-    node.frame.height = 20;
+    jankNode.frame.x = Math.floor(x1);
+    jankNode.frame.y = jankNode.depth * 20;
+    jankNode.frame.width = Math.ceil(getV);
+    jankNode.frame.height = 20;
   }
 
   static draw(ctx: CanvasRenderingContext2D, data: JankStruct, nsScale: number) {
@@ -212,7 +200,7 @@ export class JankStruct extends BaseStruct {
 
         if (data.frame.width > 10) {
           ctx.fillStyle = '#fff';
-          JankStruct.drawString(ctx, `${data.name || ''}`, 5, data.frame);
+          drawString(ctx, `${data.name || ''}`, 5, data.frame, data);
         }
         if (JankStruct.isSelected(data)) {
           ctx.strokeStyle = '#000';
@@ -221,28 +209,6 @@ export class JankStruct extends BaseStruct {
         }
       }
     }
-  }
-
-  static drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect): boolean {
-    let textMetrics = ctx.measureText(str);
-    let charWidth = Math.round(textMetrics.width / str.length);
-    if (textMetrics.width < frame.width - textPadding * 2) {
-      let x2 = Math.floor(frame.width / 2 - textMetrics.width / 2 + frame.x + textPadding);
-      ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2 + 2), frame.width - textPadding * 2);
-      return true;
-    }
-    if (frame.width - textPadding * 2 > charWidth * 4) {
-      let chatNum = (frame.width - textPadding * 2) / charWidth;
-      let x1 = frame.x + textPadding;
-      ctx.fillText(
-        str.substring(0, chatNum - 4) + '...',
-        x1,
-        Math.floor(frame.y + frame.height / 2 + 2),
-        frame.width - textPadding * 2
-      );
-      return true;
-    }
-    return false;
   }
 
   static isSelected(data: JankStruct): boolean {

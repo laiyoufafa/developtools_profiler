@@ -20,26 +20,25 @@ import { getTabCpuAbilityData } from '../../../../database/SqlLite.js';
 import { SystemCpuSummary } from '../../../../bean/AbilityMonitor.js';
 import { Utils } from '../../base/Utils.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
-import '../../../SpFilter.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-cpu-ability')
 export class TabPaneCpuAbility extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<SystemCpuSummary> = [];
-  private queryResult: Array<SystemCpuSummary> = [];
-  private float: HTMLDivElement | null | undefined;
+  private cpuAbilityTbl: LitTable | null | undefined;
+  private cpuAbilitySource: Array<SystemCpuSummary> = [];
+  private queryCpuResult: Array<SystemCpuSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(val: SelectionParam | any) {
+  set data(cpuAbilityValue: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    this.queryDataByDB(val);
+    this.cpuAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(cpuAbilityValue);
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-ability');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.cpuAbilityTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-ability');
+    this.cpuAbilityTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -47,28 +46,22 @@ export class TabPaneCpuAbility extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.cpuAbilityTbl!)
   }
 
   filterData() {
-    if (this.queryResult.length > 0) {
-      let filter = this.queryResult.filter((item) => {
+    if (this.queryCpuResult.length > 0) {
+      let filterCpu = this.queryCpuResult.filter((item) => {
         let array = this.toCpuAbilityArray(item);
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
-      if (filter.length > 0) {
-        this.source = filter;
-        this.tbl!.recycleDataSource = this.source;
+      if (filterCpu.length > 0) {
+        this.cpuAbilitySource = filterCpu;
+        this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.cpuAbilitySource = [];
+        this.cpuAbilityTbl!.recycleDataSource = [];
       }
     }
   }
@@ -100,13 +93,13 @@ export class TabPaneCpuAbility extends BaseElement {
           systemCpuSummary.systemLoadStr = systemCpuSummary.systemLoad.toFixed(2) + '%';
           systemCpuSummary.threadsStr = ColorUtils.formatNumberComma(systemCpuSummary.threads);
         }
-        this.source = result;
-        this.queryResult = result;
-        this.tbl!.recycleDataSource = this.source;
+        this.cpuAbilitySource = result;
+        this.queryCpuResult = result;
+        this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
       } else {
-        this.source = [];
-        this.queryResult = [];
-        this.tbl!.recycleDataSource = [];
+        this.cpuAbilitySource = [];
+        this.queryCpuResult = [];
+        this.cpuAbilityTbl!.recycleDataSource = [];
       }
     });
   }
@@ -114,14 +107,16 @@ export class TabPaneCpuAbility extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px;
+        .cpu-ability{
+            height: auto;
         }
-
+        :host{
+            padding: 10px 10px;
+            flex-direction: column;
+            display: flex;
+        }
         </style>
-        <lit-table id="tb-cpu-ability" style="height: auto">
+        <lit-table id="tb-cpu-ability" class="cpu-ability">
             <lit-table-column order width="1fr" title="Start Time" data-index="startTimeStr" key="startTimeStr" align="flex-start" >
             </lit-table-column>
             <lit-table-column order width="1fr" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
@@ -141,25 +136,25 @@ export class TabPaneCpuAbility extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: SystemCpuSummary, b: SystemCpuSummary) {
+      return function (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(cpuAbilityRightData[property]) - parseFloat(cpuAbilityLeftData[property]) : parseFloat(cpuAbilityLeftData[property]) - parseFloat(cpuAbilityRightData[property]);
         } else if (type === 'durationStr') {
-          return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+          return sort === 2 ? cpuAbilityRightData.duration - cpuAbilityLeftData.duration : cpuAbilityLeftData.duration - cpuAbilityRightData.duration;
         } else if (type === 'totalLoadStr') {
-          return sort === 2 ? b.totalLoad - a.totalLoad : a.totalLoad - b.totalLoad;
+          return sort === 2 ? cpuAbilityRightData.totalLoad - cpuAbilityLeftData.totalLoad : cpuAbilityLeftData.totalLoad - cpuAbilityRightData.totalLoad;
         } else if (type === 'userLoadStr') {
-          return sort === 2 ? b.userLoad - a.userLoad : a.userLoad - b.userLoad;
+          return sort === 2 ? cpuAbilityRightData.userLoad - cpuAbilityLeftData.userLoad : cpuAbilityLeftData.userLoad - cpuAbilityRightData.userLoad;
         } else if (type === 'systemLoadStr') {
-          return sort === 2 ? b.systemLoad - a.systemLoad : a.systemLoad - b.systemLoad;
+          return sort === 2 ? cpuAbilityRightData.systemLoad - cpuAbilityLeftData.systemLoad : cpuAbilityLeftData.systemLoad - cpuAbilityRightData.systemLoad;
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (cpuAbilityRightData[property] > cpuAbilityLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (cpuAbilityRightData[property] == cpuAbilityLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -170,18 +165,18 @@ export class TabPaneCpuAbility extends BaseElement {
     }
 
     if (detail.key === 'startTime') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'string'));
     } else if (detail.key === 'durationStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'durationStr'));
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'durationStr'));
     } else if (detail.key === 'totalLoadStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'totalLoadStr'));
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'totalLoadStr'));
     } else if (detail.key === 'userLoadStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'userLoadStr'));
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'userLoadStr'));
     } else if (detail.key === 'systemLoadStr') {
-      this.source.sort(compare(detail.key, detail.sort, 'systemLoadStr'));
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'systemLoadStr'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
   }
 }

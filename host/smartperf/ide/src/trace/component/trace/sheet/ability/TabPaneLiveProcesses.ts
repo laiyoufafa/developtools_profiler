@@ -18,27 +18,26 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabLiveProcessData } from '../../../../database/SqlLite.js';
 import { LiveProcess } from '../../../../bean/AbilityMonitor.js';
-import '../../../SpFilter.js';
 import { Utils } from '../../base/Utils.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-live-processes')
 export class TabPaneLiveProcesses extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<LiveProcess> = [];
-  private queryResult: Array<LiveProcess> = [];
-  private float: HTMLDivElement | null | undefined;
+  private liveProcessTbl: LitTable | null | undefined;
+  private liveProcessSource: Array<LiveProcess> = [];
+  private queryLiveResult: Array<LiveProcess> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(val: SelectionParam | any) {
+  set data(liveProcessValue: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    this.queryDataByDB(val);
+    this.liveProcessTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(liveProcessValue);
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-live-processes');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.liveProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-live-processes');
+    this.liveProcessTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -46,28 +45,22 @@ export class TabPaneLiveProcesses extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.liveProcessTbl!)
   }
 
   filterData() {
-    if (this.queryResult.length > 0) {
-      let filter = this.queryResult.filter((item) => {
+    if (this.queryLiveResult.length > 0) {
+      let filterLive = this.queryLiveResult.filter((item) => {
         let array = this.toLiveProcessArray(item);
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
-      if (filter.length > 0) {
-        this.source = filter;
-        this.tbl!.recycleDataSource = this.source;
+      if (filterLive.length > 0) {
+        this.liveProcessSource = filterLive;
+        this.liveProcessTbl!.recycleDataSource = this.liveProcessSource;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.liveProcessSource = [];
+        this.liveProcessTbl!.recycleDataSource = [];
       }
     }
   }
@@ -102,37 +95,37 @@ export class TabPaneLiveProcesses extends BaseElement {
           liveProcess.cpuTimeNumber = Number(liveProcess.cpuTime);
           liveProcess.cpuTime = this.timeFormat(Number(liveProcess.cpuTime));
         }
-        this.source = item;
-        this.queryResult = item;
-        this.tbl!.recycleDataSource = this.source;
+        this.liveProcessSource = item;
+        this.queryLiveResult = item;
+        this.liveProcessTbl!.recycleDataSource = this.liveProcessSource;
       } else {
-        this.source = [];
-        this.queryResult = [];
-        this.tbl!.recycleDataSource = [];
+        this.liveProcessSource = [];
+        this.queryLiveResult = [];
+        this.liveProcessTbl!.recycleDataSource = [];
       }
     });
   }
 
   timeFormat(ms: number): string {
-    let currentMs = ms;
+    let currentMsTime = ms;
     let hours = 3600000;
     let minute1 = 60000;
     let second1 = 1000;
     let res = '';
-    if (currentMs >= hours) {
-      res += Math.floor(currentMs / hours) + ' h ';
-      currentMs = currentMs - Math.floor(currentMs / hours) * hours;
+    if (currentMsTime >= hours) {
+      res += Math.floor(currentMsTime / hours) + ' h ';
+      currentMsTime = currentMsTime - Math.floor(currentMsTime / hours) * hours;
     }
-    if (currentMs >= minute1) {
-      res += Math.floor(currentMs / minute1) + ' min ';
-      currentMs = currentMs - Math.floor(currentMs / minute1) * minute1;
+    if (currentMsTime >= minute1) {
+      res += Math.floor(currentMsTime / minute1) + ' min ';
+      currentMsTime = currentMsTime - Math.floor(currentMsTime / minute1) * minute1;
     }
-    if (currentMs >= second1) {
-      res += Math.floor(currentMs / second1) + ' s ';
-      currentMs = currentMs - Math.floor(currentMs / second1) * second1;
+    if (currentMsTime >= second1) {
+      res += Math.floor(currentMsTime / second1) + ' s ';
+      currentMsTime = currentMsTime - Math.floor(currentMsTime / second1) * second1;
     }
-    if (currentMs > 0) {
-      res += currentMs + ' ms ';
+    if (currentMsTime > 0) {
+      res += currentMsTime + ' ms ';
     } else {
       res += '0 ms ';
     }
@@ -142,23 +135,26 @@ export class TabPaneLiveProcesses extends BaseElement {
   initHtml(): string {
     return `
 <style>
+.live-processes-table{
+    height: auto;
+}
 :host{
     display: flex;
     flex-direction: column;
     padding: 10px 10px;
 }
 </style>
-<lit-table id="tb-live-processes" style="height: auto">
-    <lit-table-column order width="1fr" title="Process ID" data-index="processId" key="processId" align="flex-start"></lit-table-column>
-    <lit-table-column order width="1fr" title="Process Name" data-index="processName" key="processName" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Responsible Process" data-index="responsibleProcess" key="responsibleProcess" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="User ID" data-index="userName" key="userName" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="%CPU" data-index="cpu" key="cpu" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="CPU Time" data-index="cpuTime" key="cpuTime" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="#Threads" data-index="threads" key="threads" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Memory" data-index="memory" key="memory" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Disk Writes(B)" data-index="diskWrite" key="diskWrite" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Disk Reads(B)" data-index="diskReads" key="diskReads" align="flex-start" ></lit-table-column>
+<lit-table id="tb-live-processes" class="live-processes-table">
+    <lit-table-column order title="Process ID" data-index="processId" key="processId" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="Process Name" data-index="processName" key="processName" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="Responsible Process" data-index="responsibleProcess" key="responsibleProcess" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="User ID" data-index="userName" key="userName" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="%CPU" data-index="cpu" key="cpu" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="CPU Time" data-index="cpuTime" key="cpuTime" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="#Threads" data-index="threads" key="threads" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="Memory" data-index="memory" key="memory" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="Disk Writes(B)" data-index="diskWrite" key="diskWrite" align="flex-start" width="1fr" ></lit-table-column>
+    <lit-table-column order title="Disk Reads(B)" data-index="diskReads" key="diskReads" align="flex-start" width="1fr" ></lit-table-column>
 </lit-table>
         `;
   }
@@ -166,21 +162,21 @@ export class TabPaneLiveProcesses extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: LiveProcess, b: LiveProcess) {
+      return function (liveProcessLeftData: LiveProcess, liveProcessRightData: LiveProcess) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(liveProcessRightData[property]) - parseFloat(liveProcessLeftData[property]) : parseFloat(liveProcessLeftData[property]) - parseFloat(liveProcessRightData[property]);
         } else if (type === 'cpuTime') {
-          return sort === 2 ? b.cpuTimeNumber - a.cpuTimeNumber : a.cpuTimeNumber - b.cpuTimeNumber;
+          return sort === 2 ? liveProcessRightData.cpuTimeNumber - liveProcessLeftData.cpuTimeNumber : liveProcessLeftData.cpuTimeNumber - liveProcessRightData.cpuTimeNumber;
         } else if (type === 'memory') {
-          return sort === 2 ? b.memoryNumber - a.memoryNumber : a.memoryNumber - b.memoryNumber;
+          return sort === 2 ? liveProcessRightData.memoryNumber - liveProcessLeftData.memoryNumber : liveProcessLeftData.memoryNumber - liveProcessRightData.memoryNumber;
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (liveProcessRightData[property] > liveProcessLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (liveProcessRightData[property] == liveProcessLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -191,14 +187,14 @@ export class TabPaneLiveProcesses extends BaseElement {
     }
 
     if (detail.key == 'startTime' || detail.key == 'processName') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string'));
     } else if (detail.key == 'cpuTime') {
-      this.source.sort(compare(detail.key, detail.sort, 'cpuTime'));
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));
     } else if (detail.key == 'memory') {
-      this.source.sort(compare(detail.key, detail.sort, 'memory'));
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.liveProcessTbl!.recycleDataSource = this.liveProcessSource;
   }
 }

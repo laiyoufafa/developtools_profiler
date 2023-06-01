@@ -35,11 +35,11 @@ export class EnergySystemRender extends Render {
     },
     row: TraceRow<EnergySystemStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let systemList = row.dataList;
+    let systemFilter = row.dataListCache;
     system(
-      list,
-      filter,
+      systemList,
+      systemFilter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
@@ -49,8 +49,8 @@ export class EnergySystemRender extends Render {
     req.context.beginPath();
     let find = false;
     let a: any = {};
-    for (let i = 0; i < filter.length; i++) {
-      let re = filter[i];
+    for (let i = 0; i < systemFilter.length; i++) {
+      let re = systemFilter[i];
 
       EnergySystemStruct.draw(req.context, re);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
@@ -92,35 +92,65 @@ export class EnergySystemRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      system(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(energySysRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (energySysRequest.lazyRefresh) {
+      system(
+        list,
+        filter,
+        energySysRequest.startNS,
+        energySysRequest.endNS,
+        energySysRequest.totalNS,
+        energySysRequest.frame,
+        energySysRequest.useCache || !energySysRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        system(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
-      }
-    }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.canvas.width, req.canvas.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-        drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
+      if (!energySysRequest.useCache) {
+        system(
+          list,
+          filter,
+          energySysRequest.startNS,
+          energySysRequest.endNS,
+          energySysRequest.totalNS,
+          energySysRequest.frame,
+          false
         );
       }
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
-      req.context.beginPath();
+    }
+    if (energySysRequest.canvas) {
+      energySysRequest.context.clearRect(0, 0, energySysRequest.canvas.width, energySysRequest.canvas.height);
+      let energySystemArr = filter;
+      if (
+        energySystemArr.length > 0 &&
+        !energySysRequest.range.refresh &&
+        !energySysRequest.useCache &&
+        energySysRequest.lazyRefresh
+      ) {
+        drawLoading(
+          energySysRequest.context,
+          energySysRequest.startNS,
+          energySysRequest.endNS,
+          energySysRequest.totalNS,
+          energySysRequest.frame,
+          energySystemArr[0].startNS,
+          energySystemArr[energySystemArr.length - 1].startNS + energySystemArr[energySystemArr.length - 1].dur
+        );
+      }
+      drawLines(
+        energySysRequest.context,
+        energySysRequest.xs,
+        energySysRequest.frame.height,
+        energySysRequest.lineColor
+      );
+      energySysRequest.context.beginPath();
       EnergySystemStruct.hoverEnergySystemStruct = undefined;
-      if (req.isHover) {
+      if (energySysRequest.isHover) {
         let a: any = {};
         for (let re of filter) {
-          if (re.frame && req.hoverX >= re.frame.x && req.hoverX <= re.frame.x + re.frame.width) {
+          if (
+            re.frame &&
+            energySysRequest.hoverX >= re.frame.x &&
+            energySysRequest.hoverX <= re.frame.x + re.frame.width
+          ) {
             EnergySystemStruct.hoverEnergySystemStruct = re;
             if (re.type == 0) {
               if (re.count != undefined) {
@@ -153,29 +183,29 @@ export class EnergySystemRender extends Render {
           EnergySystemStruct.hoverEnergySystemStruct!.location = a.location == undefined ? '0' : a.location;
         }
       }
-      EnergySystemStruct.selectEnergySystemStruct = req.params.selectEnergySystemStruct;
+      EnergySystemStruct.selectEnergySystemStruct = energySysRequest.params.selectEnergySystemStruct;
       for (let re of filter) {
-        EnergySystemStruct.draw(req.context, re);
+        EnergySystemStruct.draw(energySysRequest.context, re);
       }
-      drawLegend(req);
-      drawSelection(req.context, req.params);
-      req.context.closePath();
+      drawLegend(energySysRequest);
+      drawSelection(energySysRequest.context, energySysRequest.params);
+      energySysRequest.context.closePath();
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        energySysRequest.context,
+        energySysRequest.flagMoveInfo,
+        energySysRequest.flagSelectedInfo,
+        energySysRequest.startNS,
+        energySysRequest.endNS,
+        energySysRequest.totalNS,
+        energySysRequest.frame,
+        energySysRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: energySysRequest.id,
+      type: energySysRequest.type,
+      results: energySysRequest.canvas ? undefined : filter,
       hover: EnergySystemStruct.hoverEnergySystemStruct,
     });
   }
@@ -208,7 +238,7 @@ export function drawLegend(req: RequestMessage | any, isDark?: boolean) {
 }
 
 export function system(
-  list: Array<any>,
+  systemList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -218,19 +248,22 @@ export function system(
 ) {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
-      let item = res[i];
-      if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
-        EnergySystemStruct.setSystemFrame(item, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
+      let systemItem = res[i];
+      if (
+        (systemItem.startNs || 0) + (systemItem.dur || 0) > (startNS || 0) &&
+        (systemItem.startNs || 0) < (endNS || 0)
+      ) {
+        EnergySystemStruct.setSystemFrame(systemItem, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
       } else {
-        item.frame = null;
+        systemItem.frame = null;
       }
     }
     return;
   }
   res.length = 0;
-  if (list) {
+  if (systemList) {
     for (let i = 0; i < 3; i++) {
-      let arr = list[i];
+      let arr = systemList[i];
       if (arr) {
         for (let index = 0; index < arr.length; index++) {
           let item = arr[index];
@@ -266,46 +299,46 @@ export class EnergySystemStruct extends BaseStruct {
   power: string | undefined;
   location: string | undefined;
 
-  static draw(context2D: CanvasRenderingContext2D, data: EnergySystemStruct) {
+  static draw(energySystemContext: CanvasRenderingContext2D, data: EnergySystemStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      context2D.globalAlpha = 1.0;
-      context2D.lineWidth = 1;
-      context2D.fillStyle = this.getColor(data.type!);
-      context2D.strokeStyle = this.getColor(data.type!);
-      context2D.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height);
+      energySystemContext.globalAlpha = 1.0;
+      energySystemContext.lineWidth = 1;
+      energySystemContext.fillStyle = this.getColor(data.type!);
+      energySystemContext.strokeStyle = this.getColor(data.type!);
+      energySystemContext.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height);
     }
-    context2D.globalAlpha = 1.0;
-    context2D.lineWidth = 1;
+    energySystemContext.globalAlpha = 1.0;
+    energySystemContext.lineWidth = 1;
   }
 
-  static setSystemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let startPointX: number;
-    let endPointX: number;
-    if ((node.startNs || 0) < startNS) {
-      startPointX = 0;
+  static setSystemFrame(systemNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+    let systemStartPointX: number;
+    let systemEndPointX: number;
+    if ((systemNode.startNs || 0) < startNS) {
+      systemStartPointX = 0;
     } else {
-      startPointX = ns2x(node.startNs || 0, startNS, endNS, totalNS, frame);
+      systemStartPointX = ns2x(systemNode.startNs || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startNs || 0) + (node.dur || 0) > endNS) {
-      endPointX = frame.width;
+    if ((systemNode.startNs || 0) + (systemNode.dur || 0) > endNS) {
+      systemEndPointX = frame.width;
     } else {
-      endPointX = ns2x((node.startNs || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      systemEndPointX = ns2x((systemNode.startNs || 0) + (systemNode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    let frameWidth: number = systemEndPointX - systemStartPointX <= 1 ? 1 : systemEndPointX - systemStartPointX;
+    if (!systemNode.frame) {
+      systemNode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    if (node.type === 0) {
-      node.frame.y = frame.y + padding * 2.5;
-    } else if (node.type === 1) {
-      node.frame.y = frame.y + padding * 4.5;
-    } else if (node.type === 2) {
-      node.frame.y = frame.y + padding * 6.5;
+    systemNode.frame.x = Math.floor(systemStartPointX);
+    if (systemNode.type === 0) {
+      systemNode.frame.y = frame.y + padding * 2.5;
+    } else if (systemNode.type === 1) {
+      systemNode.frame.y = frame.y + padding * 4.5;
+    } else if (systemNode.type === 2) {
+      systemNode.frame.y = frame.y + padding * 6.5;
     }
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(padding);
+    systemNode.frame.width = Math.ceil(frameWidth);
+    systemNode.frame.height = Math.floor(padding);
   }
 
   static getColor(textItem: number): string {

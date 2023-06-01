@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../BaseElement.js';
 
 @element('pagination-box')
 export class PaginationBox extends BaseElement {
-  private page: any;
+  private paginationBoxPage: any;
 
   static get observedAttributes() {
     return ['text', 'height', 'width'];
@@ -43,9 +43,9 @@ export class PaginationBox extends BaseElement {
     return `
         <style>
         :host{ 
-            display: block;
             width: 100%;
             height: 100%;
+            display: block;
             position: relative;
             background: background: var(--dark-background3,#FFFFFF);
         }
@@ -55,7 +55,7 @@ export class PaginationBox extends BaseElement {
   }
 
   initElements(): void {
-    this.page = this.shadowRoot?.querySelector('#box');
+    this.paginationBoxPage = this.shadowRoot?.querySelector('#box');
   }
 
   attributeChangedCallback(name: string, oldValue: string, value: string) {

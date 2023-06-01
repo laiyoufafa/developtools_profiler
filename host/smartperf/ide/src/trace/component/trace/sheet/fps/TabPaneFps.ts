@@ -19,65 +19,63 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabFps } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-fps')
 export class TabPaneFps extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
+  private fpsTbl: LitTable | null | undefined;
+  private fpsRange: HTMLLabelElement | null | undefined;
 
-  set data(val: SelectionParam | any) {
-    this.range!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    getTabFps(val.leftNs, val.rightNs).then((result) => {
-      if (result != null && result.length > 0) {
-        log('getTabFps result size : ' + result.length);
+  set data(fpsSelection: SelectionParam | any) {
+    this.fpsRange!.textContent =
+      'Selected range: ' + parseFloat(((fpsSelection.rightNs - fpsSelection.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    getTabFps(fpsSelection.leftNs, fpsSelection.rightNs).then((fpsResult) => {
+      if (fpsResult != null && fpsResult.length > 0) {
+        log('getTabFps result size : ' + fpsResult.length);
 
-        let index = result.findIndex((d) => d.startNS >= val.leftNs);
+        let index = fpsResult.findIndex((d) => d.startNS >= fpsSelection.leftNs);
         if (index != -1) {
-          let arr = result.splice(index > 0 ? index - 1 : index);
+          let arr = fpsResult.splice(index > 0 ? index - 1 : index);
           arr.map((e) => (e.timeStr = Utils.getTimeString(e.startNS)));
-          this.tbl!.recycleDataSource = arr;
+          this.fpsTbl!.recycleDataSource = arr;
         } else {
-          let last = result[result.length - 1];
+          let last = fpsResult[fpsResult.length - 1];
           last.timeStr = Utils.getTimeString(last.startNS);
-          this.tbl!.recycleDataSource = [last];
+          this.fpsTbl!.recycleDataSource = [last];
         }
       } else {
-        this.tbl!.recycleDataSource = [];
+        this.fpsTbl!.recycleDataSource = [];
       }
     });
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-fps');
-    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.fpsTbl = this.shadowRoot?.querySelector<LitTable>('#tb-fps');
+    this.fpsRange = this.shadowRoot?.querySelector('#fps-time-range');
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.fpsTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .fps-label{
+            text-align: end;
+        }
         :host{
             display: flex;
             flex-direction: column;
             padding: 10px 10px;
         }
         </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="fps-time-range" class="fps-label" style="width: 100%;height: 20px;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-fps" style="height: auto">
-            <lit-table-column width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start">
+            <lit-table-column class="fps-column" width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="FPS" data-index="fps" key="fps" align="flex-start" >
+            <lit-table-column class="fps-column" width="1fr" title="FPS" data-index="fps" key="fps" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;

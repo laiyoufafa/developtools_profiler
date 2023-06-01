@@ -17,59 +17,57 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
 import { Utils } from '../../base/Utils.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-freq')
 export class TabPaneFreq extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private freqTbl: LitTable | null | undefined;
 
-  set data(freq: any) {
-    if (freq) {
-      this.tbl!.dataSource = [
+  set data(freqData: any) {
+    if (freqData) {
+      this.freqTbl!.dataSource = [
         {
-          startNS: Utils.getTimeString(freq.startNS >= 0 ? freq.startNS : 0),
-          absoluteTime: (freq.startNS + (window as any).recordStartNS) / 1000000000,
-          dur: Utils.getProbablyTime(freq.dur),
-          freq: `${ColorUtils.formatNumberComma(freq.value!)} kHz`,
-          cpu: `Cpu ${freq.cpu}`,
+          startNS: Utils.getTimeString(freqData.startNS >= 0 ? freqData.startNS : 0),
+          absoluteTime: (freqData.startNS + (window as any).recordStartNS) / 1000000000,
+          dur: Utils.getProbablyTime(freqData.dur),
+          freq: `${ColorUtils.formatNumberComma(freqData.value!)} kHz`,
+          cpu: `Cpu ${freqData.cpu}`,
         },
       ];
     }
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
+    this.freqTbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.freqTbl!)
   }
 
   initHtml(): string {
     return `
         <style>
+        .freq-table{
+            height: auto;
+        }
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
-        <lit-table id="tb-freq" style="height: auto">
-            <lit-table-column width="1fr" title="StartTime(Relative)" data-index="startNS" key="startNS" align="flex-start">
+        <lit-table id="tb-freq" class="freq-table">
+            <lit-table-column class="freq-column" width="1fr" title="StartTime(Relative)" data-index="startNS" key="startNS" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
+            <lit-table-column class="freq-column" width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
+            <lit-table-column class="freq-column" width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Cpu" data-index="cpu" key="cpu" align="flex-start" >
+            <lit-table-column class="freq-column" width="1fr" title="Cpu" data-index="cpu" key="cpu" align="flex-start" >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Freq" data-index="freq" key="freq" align="flex-start" >
+            <lit-table-column class="freq-column" width="1fr" title="Freq" data-index="freq" key="freq" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;

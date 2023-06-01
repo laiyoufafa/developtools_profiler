@@ -16,16 +16,15 @@
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
   BaseStruct,
-  dataFilterHandler,
-  drawFlagLine,
   drawLines,
   drawLoading,
   drawSelection,
-  drawWakeUp,
   isFrameContainPoint,
   ns2x,
   Render,
+  drawFlagLine,
   RequestMessage,
+  dataFilterHandler,
 } from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
@@ -40,9 +39,9 @@ export class DiskIoAbilityRender extends Render {
     },
     row: TraceRow<DiskAbilityMonitorStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    let diskIoAbilityList = row.dataList;
+    let diskIoFilter = row.dataListCache;
+    dataFilterHandler(diskIoAbilityList, diskIoFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -54,7 +53,7 @@ export class DiskIoAbilityRender extends Render {
     });
     req.context.beginPath();
     let find = false;
-    for (let re of filter) {
+    for (let re of diskIoFilter) {
       DiskAbilityMonitorStruct.draw(req.context, re, req.maxDiskRate, row.isHover);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct = re;
@@ -73,84 +72,110 @@ export class DiskIoAbilityRender extends Render {
     req.context.fillText(req.maxDiskRateName, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (req.lazyRefresh) {
-      diskIoAbility(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+  render(diskAbilityRequest: RequestMessage, diskIoAbilityList: Array<any>, filter: Array<any>) {
+    if (diskAbilityRequest.lazyRefresh) {
+      diskIoAbility(
+        diskIoAbilityList,
+        filter,
+        diskAbilityRequest.startNS,
+        diskAbilityRequest.endNS,
+        diskAbilityRequest.totalNS,
+        diskAbilityRequest.frame,
+        diskAbilityRequest.useCache || !diskAbilityRequest.range.refresh
+      );
     } else {
-      if (!req.useCache) {
-        diskIoAbility(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
-      }
-    }
-    if (req.canvas) {
-      req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-        drawLoading(
-          req.context,
-          req.startNS,
-          req.endNS,
-          req.totalNS,
-          req.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
+      if (!diskAbilityRequest.useCache) {
+        diskIoAbility(
+          diskIoAbilityList,
+          filter,
+          diskAbilityRequest.startNS,
+          diskAbilityRequest.endNS,
+          diskAbilityRequest.totalNS,
+          diskAbilityRequest.frame,
+          false
         );
       }
-      req.context.beginPath();
-      let maxDiskRate = req.params.maxDiskRate;
-      let maxDiskRateName = req.params.maxDiskRateName;
-      drawLines(req.context, req.xs, req.frame.height, req.lineColor);
+    }
+    if (diskAbilityRequest.canvas) {
+      diskAbilityRequest.context.clearRect(0, 0, diskAbilityRequest.frame.width, diskAbilityRequest.frame.height);
+      let diskIoArr = filter;
+      if (
+        diskIoArr.length > 0 &&
+        !diskAbilityRequest.range.refresh &&
+        !diskAbilityRequest.useCache &&
+        diskAbilityRequest.lazyRefresh
+      ) {
+        drawLoading(
+          diskAbilityRequest.context,
+          diskAbilityRequest.startNS,
+          diskAbilityRequest.endNS,
+          diskAbilityRequest.totalNS,
+          diskAbilityRequest.frame,
+          diskIoArr[0].startNS,
+          diskIoArr[diskIoArr.length - 1].startNS + diskIoArr[diskIoArr.length - 1].dur
+        );
+      }
+      diskAbilityRequest.context.beginPath();
+      let maxDiskRate = diskAbilityRequest.params.maxDiskRate;
+      let maxDiskRateName = diskAbilityRequest.params.maxDiskRateName;
+      drawLines(
+        diskAbilityRequest.context,
+        diskAbilityRequest.xs,
+        diskAbilityRequest.frame.height,
+        diskAbilityRequest.lineColor
+      );
       DiskAbilityMonitorStruct.hoverDiskAbilityStruct = undefined;
-      if (req.isHover) {
+      if (diskAbilityRequest.isHover) {
         for (let re of filter) {
           if (
             re.frame &&
-            req.hoverX >= re.frame.x &&
-            req.hoverX <= re.frame.x + re.frame.width &&
-            req.hoverY >= re.frame.y &&
-            req.hoverY <= re.frame.y + re.frame.height
+            diskAbilityRequest.hoverX >= re.frame.x &&
+            diskAbilityRequest.hoverX <= re.frame.x + re.frame.width &&
+            diskAbilityRequest.hoverY >= re.frame.y &&
+            diskAbilityRequest.hoverY <= re.frame.y + re.frame.height
           ) {
             DiskAbilityMonitorStruct.hoverDiskAbilityStruct = re;
             break;
           }
         }
       }
-      DiskAbilityMonitorStruct.selectDiskAbilityStruct = req.params.selectDiskAbilityStruct;
+      DiskAbilityMonitorStruct.selectDiskAbilityStruct = diskAbilityRequest.params.selectDiskAbilityStruct;
       for (let re of filter) {
-        DiskAbilityMonitorStruct.draw(req.context, re, maxDiskRate, true);
+        DiskAbilityMonitorStruct.draw(diskAbilityRequest.context, re, maxDiskRate, true);
       }
-      drawSelection(req.context, req.params);
-      req.context.closePath();
-      let textMetrics = req.context.measureText(maxDiskRateName);
-      req.context.globalAlpha = 0.8;
-      req.context.fillStyle = '#f0f0f0';
-      req.context.fillRect(0, 5, textMetrics.width + 8, 18);
-      req.context.globalAlpha = 1;
-      req.context.fillStyle = '#333';
-      req.context.textBaseline = 'middle';
-      req.context.fillText(maxDiskRateName, 4, 5 + 9);
+      drawSelection(diskAbilityRequest.context, diskAbilityRequest.params);
+      diskAbilityRequest.context.closePath();
+      let textMetrics = diskAbilityRequest.context.measureText(maxDiskRateName);
+      diskAbilityRequest.context.globalAlpha = 0.8;
+      diskAbilityRequest.context.fillStyle = '#f0f0f0';
+      diskAbilityRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
+      diskAbilityRequest.context.globalAlpha = 1;
+      diskAbilityRequest.context.fillStyle = '#333';
+      diskAbilityRequest.context.textBaseline = 'middle';
+      diskAbilityRequest.context.fillText(maxDiskRateName, 4, 5 + 9);
       drawFlagLine(
-        req.context,
-        req.flagMoveInfo,
-        req.flagSelectedInfo,
-        req.startNS,
-        req.endNS,
-        req.totalNS,
-        req.frame,
-        req.slicesTime
+        diskAbilityRequest.context,
+        diskAbilityRequest.flagMoveInfo,
+        diskAbilityRequest.flagSelectedInfo,
+        diskAbilityRequest.startNS,
+        diskAbilityRequest.endNS,
+        diskAbilityRequest.totalNS,
+        diskAbilityRequest.frame,
+        diskAbilityRequest.slicesTime
       );
     }
     // @ts-ignore
     self.postMessage({
-      id: req.id,
-      type: req.type,
-      results: req.canvas ? undefined : filter,
+      id: diskAbilityRequest.id,
+      type: diskAbilityRequest.type,
+      results: diskAbilityRequest.canvas ? undefined : filter,
       hover: DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
     });
   }
 }
 
 export function diskIoAbility(
-  list: Array<any>,
+  diskIoAbilityList: Array<any>,
   res: Array<any>,
   startNS: number,
   endNS: number,
@@ -160,30 +185,30 @@ export function diskIoAbility(
 ) {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
-      let item = res[i];
-      if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        DiskAbilityMonitorStruct.setDiskIOFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      let diskIoAbilityItem = res[i];
+      if ((diskIoAbilityItem.startNS || 0) + (diskIoAbilityItem.dur || 0) > (startNS || 0) && (diskIoAbilityItem.startNS || 0) < (endNS || 0)) {
+        DiskAbilityMonitorStruct.setDiskIOFrame(diskIoAbilityItem, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
       } else {
-        item.frame = null;
+        diskIoAbilityItem.frame = null;
       }
     }
     return;
   }
   res.length = 0;
-  if (list) {
-    for (let index = 0; index < list.length; index++) {
-      let item = list[index];
-      if (index === list.length - 1) {
+  if (diskIoAbilityList) {
+    for (let index = 0; index < diskIoAbilityList.length; index++) {
+      let item = diskIoAbilityList[index];
+      if (index === diskIoAbilityList.length - 1) {
         item.dur = (endNS || 0) - (item.startNS || 0);
       } else {
-        item.dur = (list[index + 1].startNS || 0) - (item.startNS || 0);
+        item.dur = (diskIoAbilityList[index + 1].startNS || 0) - (item.startNS || 0);
       }
       if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        DiskAbilityMonitorStruct.setDiskIOFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        DiskAbilityMonitorStruct.setDiskIOFrame(diskIoAbilityList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
         if (
           index > 0 &&
-          (list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) &&
-          (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0)
+          (diskIoAbilityList[index - 1].frame?.x || 0) == (diskIoAbilityList[index].frame?.x || 0) &&
+          (diskIoAbilityList[index - 1].frame?.width || 0) == (diskIoAbilityList[index].frame?.width || 0)
         ) {
         } else {
           res.push(item);
@@ -203,7 +228,7 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
 
   static draw(
-    context2D: CanvasRenderingContext2D,
+    diskIoAbilityContext: CanvasRenderingContext2D,
     data: DiskAbilityMonitorStruct,
     maxDiskRate: number,
     isHover: boolean
@@ -211,54 +236,54 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = 2;
-      context2D.fillStyle = ColorUtils.colorForTid(index);
-      context2D.strokeStyle = ColorUtils.colorForTid(index);
+      diskIoAbilityContext.fillStyle = ColorUtils.colorForTid(index);
+      diskIoAbilityContext.strokeStyle = ColorUtils.colorForTid(index);
       if (data.startNS === DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.startNS && isHover) {
-        context2D.lineWidth = 1;
-        context2D.globalAlpha = 0.6;
+        diskIoAbilityContext.lineWidth = 1;
+        diskIoAbilityContext.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxDiskRate);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
-        context2D.beginPath();
-        context2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
-        context2D.fill();
-        context2D.globalAlpha = 1.0;
-        context2D.stroke();
-        context2D.beginPath();
-        context2D.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.lineWidth = 3;
-        context2D.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
-        context2D.stroke();
+        diskIoAbilityContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        diskIoAbilityContext.beginPath();
+        diskIoAbilityContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true);
+        diskIoAbilityContext.fill();
+        diskIoAbilityContext.globalAlpha = 1.0;
+        diskIoAbilityContext.stroke();
+        diskIoAbilityContext.beginPath();
+        diskIoAbilityContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight + 4);
+        diskIoAbilityContext.lineWidth = 3;
+        diskIoAbilityContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight + 4);
+        diskIoAbilityContext.stroke();
       } else {
-        context2D.globalAlpha = 0.6;
-        context2D.lineWidth = 1;
+        diskIoAbilityContext.globalAlpha = 0.6;
+        diskIoAbilityContext.lineWidth = 1;
         let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxDiskRate);
-        context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
+        diskIoAbilityContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight);
       }
     }
-    context2D.globalAlpha = 1.0;
-    context2D.lineWidth = 1;
+    diskIoAbilityContext.globalAlpha = 1.0;
+    diskIoAbilityContext.lineWidth = 1;
   }
 
-  static setDiskIOFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let startPointX: number, endPointX: number;
+  static setDiskIOFrame(diskIONode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+    let diskIOStartPointX: number, diskIOEndPointX: number;
 
-    if ((node.startNS || 0) < startNS) {
-      startPointX = 0;
+    if ((diskIONode.startNS || 0) < startNS) {
+      diskIOStartPointX = 0;
     } else {
-      startPointX = ns2x(node.startNS || 0, startNS, endNS, totalNS, frame);
+      diskIOStartPointX = ns2x(diskIONode.startNS || 0, startNS, endNS, totalNS, frame);
     }
-    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
-      endPointX = frame.width;
+    if ((diskIONode.startNS || 0) + (diskIONode.dur || 0) > endNS) {
+      diskIOEndPointX = frame.width;
     } else {
-      endPointX = ns2x((node.startNS || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+      diskIOEndPointX = ns2x((diskIONode.startNS || 0) + (diskIONode.dur || 0), startNS, endNS, totalNS, frame);
     }
-    let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    if (!node.frame) {
-      node.frame = {};
+    let frameWidth: number = diskIOEndPointX - diskIOStartPointX <= 1 ? 1 : diskIOEndPointX - diskIOStartPointX;
+    if (!diskIONode.frame) {
+      diskIONode.frame = {};
     }
-    node.frame.x = Math.floor(startPointX);
-    node.frame.y = frame.y + padding;
-    node.frame.width = Math.ceil(frameWidth);
-    node.frame.height = Math.floor(frame.height - padding * 2);
+    diskIONode.frame.x = Math.floor(diskIOStartPointX);
+    diskIONode.frame.y = frame.y + padding;
+    diskIONode.frame.width = Math.ceil(frameWidth);
+    diskIONode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

@@ -30,9 +30,9 @@ import { procedurePool } from '../../database/Procedure.js';
 import { ColorUtils } from '../trace/base/ColorUtils.js';
 import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWorkerFreq.js';
 import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState.js';
+import {Utils} from "../trace/base/Utils.js";
 
 export class SpFreqChart {
   private trace: SpSystemTrace;
@@ -56,7 +56,7 @@ export class SpFreqChart {
     info('Cpu Freq data size is: ', freqList!.length);
     let freqMaxList = await queryCpuMaxFreq();
     CpuFreqStruct.maxFreq = freqMaxList[0].maxFreq;
-    let maxFreqObj = this.math(freqMaxList[0].maxFreq);
+    let maxFreqObj = Utils.getFrequencyWithUnit(freqMaxList[0].maxFreq);
     CpuFreqStruct.maxFreq = maxFreqObj.maxFreq;
     CpuFreqStruct.maxFreqName = maxFreqObj.maxFreqName;
     for (let i = 0; i < freqList.length; i++) {
@@ -137,7 +137,7 @@ export class SpFreqChart {
     let durTime = new Date().getTime() - cpuFreqStartTime;
     info('The time to load the CpuFreq data is: ', durTime);
     for (let limit of cpuFreqLimits) {
-      let findMax = this.math(
+      let findMax = Utils.getFrequencyWithUnit(
         cpuFreqLimitsMax.find((maxLimit) => {
           return maxLimit.filterId == limit.maxFilterId;
         })?.maxValue || 0
@@ -183,24 +183,6 @@ export class SpFreqChart {
     }
   }
 
-  math = (maxFreq: number) => {
-    let maxFreqObj = {
-      maxFreqName: ' ',
-      maxFreq: 0,
-    };
-    let units: Array<string> = ['', 'K', 'M', 'G', 'T', 'E'];
-    let sb = ' ';
-    if (maxFreq > 0) {
-      let log10: number = Math.ceil(Math.log10(maxFreq));
-      let pow10: number = Math.pow(10, log10);
-      let afterCeil: number = Math.ceil(maxFreq / (pow10 / 4)) * (pow10 / 4);
-      maxFreqObj.maxFreq = afterCeil;
-      let unitIndex: number = Math.floor(log10 / 3);
-      sb = `${afterCeil / Math.pow(10, unitIndex * 3)}${units[unitIndex + 1]}hz`;
-    }
-    maxFreqObj.maxFreqName = sb.toString();
-    return maxFreqObj;
-  };
 }
 
 export class CpuFreqRowLimit {

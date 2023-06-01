@@ -26,8 +26,8 @@ import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
 
 @element('sp-vm-tracker')
 export class SpVmTracker extends BaseElement {
-  private processInput: LitAllocationSelect | undefined | null;
-  private selectProcess: HTMLInputElement | undefined | null;
+  private vmTrackerProcessInput: LitAllocationSelect | undefined | null;
+  private vmTrackerSelectProcess: HTMLInputElement | undefined | null;
   private configList: Array<any> = [];
 
   set startSamp(start: boolean) {
@@ -35,18 +35,18 @@ export class SpVmTracker extends BaseElement {
       this.setAttribute('startSamp', '');
     } else {
       this.removeAttribute('startSamp');
-      let input = this.processInput?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
+      let input = this.vmTrackerProcessInput?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
       input!.value = '';
     }
   }
 
   get process(): string {
-    if (this.processInput!.value.length > 0) {
-      let result = this.processInput!.value.match(/\((.+?)\)/g);
+    if (this.vmTrackerProcessInput!.value.length > 0) {
+      let result = this.vmTrackerProcessInput!.value.match(/\((.+?)\)/g);
       if (result) {
         return result.toString().replace('(', '').replace(')', '');
       } else {
-        return this.processInput!.value;
+        return this.vmTrackerProcessInput!.value;
       }
     }
     return '';
@@ -60,18 +60,18 @@ export class SpVmTracker extends BaseElement {
     this.initConfigList();
     let configList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
     this.configList.forEach((config) => {
-      let div = document.createElement('div');
+      let vmTrackerDiv = document.createElement('div');
       if (config.hidden) {
-        div.className = 'config-div hidden';
+        vmTrackerDiv.className = 'vm-config-div hidden';
       } else {
-        div.className = 'config-div';
+        vmTrackerDiv.className = 'vm-config-div';
       }
       let headDiv = document.createElement('div');
-      div.appendChild(headDiv);
-      let title = document.createElement('span');
-      title.className = 'title';
-      title.textContent = config.title;
-      headDiv.appendChild(title);
+      vmTrackerDiv.appendChild(headDiv);
+      let vmTrackerTitle = document.createElement('span');
+      vmTrackerTitle.className = 'title';
+      vmTrackerTitle.textContent = config.title;
+      headDiv.appendChild(vmTrackerTitle);
       let des = document.createElement('span');
       des.textContent = config.des;
       des.className = 'des';
@@ -81,19 +81,19 @@ export class SpVmTracker extends BaseElement {
           let html1 = '';
           html1 += `<lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
           html1 += `</lit-allocation-select>`;
-          div.innerHTML = div.innerHTML + html1;
+          vmTrackerDiv.innerHTML = vmTrackerDiv.innerHTML + html1;
           break;
         case 'switch':
-          let switch1 = document.createElement('lit-switch') as LitSwitch;
-          switch1.className = 'config';
-          switch1.title = config.title;
+          let vmTrackerSwitch = document.createElement('lit-switch') as LitSwitch;
+          vmTrackerSwitch.className = 'config';
+          vmTrackerSwitch.title = config.title;
           if (config.value) {
-            switch1.checked = true;
+            vmTrackerSwitch.checked = true;
           } else {
-            switch1.checked = false;
+            vmTrackerSwitch.checked = false;
           }
           if (config.title == 'Start VM Tracker Record') {
-            switch1.addEventListener('change', (event: any) => {
+            vmTrackerSwitch.addEventListener('change', (event: any) => {
               let detail = event.detail;
               if (detail.checked) {
                 this.startSamp = true;
@@ -104,59 +104,59 @@ export class SpVmTracker extends BaseElement {
               }
             });
           }
-          headDiv.appendChild(switch1);
+          headDiv.appendChild(vmTrackerSwitch);
           break;
         default:
           break;
       }
-      configList!.appendChild(div);
+      configList!.appendChild(vmTrackerDiv);
     });
-    this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>("lit-allocation-select[title='Process']");
-    let inputDiv = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
-    this.selectProcess = this.processInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    this.vmTrackerProcessInput = this.shadowRoot?.querySelector<LitAllocationSelect>("lit-allocation-select[title='Process']");
+    let vmTrackerMul = this.vmTrackerProcessInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    this.vmTrackerSelectProcess = this.vmTrackerProcessInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
     let processData: Array<string> = [];
-    inputDiv!.addEventListener('mousedown', (ev) => {
+    vmTrackerMul!.addEventListener('mousedown', (ev) => {
       if (SpRecordTrace.serialNumber == '') {
-        this.processInput!.processData = [];
-        this.processInput!.initData();
+        this.vmTrackerProcessInput!.processData = [];
+        this.vmTrackerProcessInput!.initData();
       }
     });
-    inputDiv!.addEventListener('mouseup', () => {
+    vmTrackerMul!.addEventListener('mouseup', () => {
       if (SpRecordTrace.serialNumber == '') {
-        this.processInput!.processData = [];
-        this.processInput!.initData();
+        this.vmTrackerProcessInput!.processData = [];
+        this.vmTrackerProcessInput!.initData();
       } else {
         if (SpRecordTrace.isVscode) {
-          let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
-          Cmd.execHdcCmd(cmd, (res: string) => {
+          let vmTrackerCmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
+          Cmd.execHdcCmd(vmTrackerCmd, (res: string) => {
             processData = [];
-            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-            for (let lineVal of lineValues) {
+            let lineArray: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of lineArray) {
               if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                 continue;
               }
-              let process: string[] = lineVal.trim().split(' ');
-              if (process.length == 2) {
-                let processId = process[0];
-                let processName = process[1];
+              let processArray: string[] = lineVal.trim().split(' ');
+              if (processArray.length == 2) {
+                let processId = processArray[0];
+                let processName = processArray[1];
                 processData.push(processName + '(' + processId + ')');
               }
             }
-            this.processInput!.processData = processData;
-            this.processInput!.initData();
+            this.vmTrackerProcessInput!.processData = processData;
+            this.vmTrackerProcessInput!.initData();
           });
         } else {
           HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
             if (conn) {
-              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((result) => {
                 processData = [];
-                if (res) {
-                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                  for (let lineVal of lineValues) {
-                    if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
+                if (result) {
+                  let lineValues: string[] = result.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineItem of lineValues) {
+                    if (lineItem.indexOf('__progname') != -1 || lineItem.indexOf('PID CMD') != -1) {
                       continue;
                     }
-                    let process: string[] = lineVal.trim().split(' ');
+                    let process: string[] = lineItem.trim().split(' ');
                     if (process.length == 2) {
                       let processId = process[0];
                       let processName = process[1];
@@ -164,8 +164,8 @@ export class SpVmTracker extends BaseElement {
                     }
                   }
                 }
-                this.processInput!.processData = processData;
-                this.processInput!.initData();
+                this.vmTrackerProcessInput!.processData = processData;
+                this.vmTrackerProcessInput!.initData();
               });
             }
           });
@@ -214,22 +214,32 @@ export class SpVmTracker extends BaseElement {
     return `
         <style>
         :host{
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
             display: inline-block;
             width: 100%;
             height: 100%;
-            background: var(--dark-background3,#FFFFFF);
-            border-radius: 0px 16px 16px 0px;
         }
 
-        .root {
+        .vm-tracker {
+            font-size:16px;
+            margin-bottom: 30px;
             padding-top: 30px;
             padding-left: 54px;
             margin-right: 30px;
-            font-size:16px;
-            margin-bottom: 30px;
+        }
+        
+        .title {
+          text-align: center;
+          line-height: 40px;
+          font-weight: 700;
+          margin-right: 10px;
+          opacity: 0.9;
+          font-family: Helvetica-Bold;
+          font-size: 18px;
         }
 
-        .config-div {
+        .vm-config-div {
            width: 80%;
            display: flex;
            flex-direction: column;
@@ -237,24 +247,14 @@ export class SpVmTracker extends BaseElement {
            margin-bottom: 5vh;
            gap: 25px;
         }
-        
-        .title {
-          opacity: 0.9;
-          font-family: Helvetica-Bold;
-          font-size: 18px;
-          text-align: center;
-          line-height: 40px;
-          font-weight: 700;
-          margin-right: 10px;
-        }
 
         .des {
-          opacity: 0.6;
-          font-family: Helvetica;
-          font-size: 14px;
           text-align: center;
           line-height: 35px;
           font-weight: 400;
+          opacity: 0.6;
+          font-family: Helvetica;
+          font-size: 14px;
         }
 
         .select {
@@ -267,35 +267,37 @@ export class SpVmTracker extends BaseElement {
           height: 38px;
           margin-top: 10px;
         }
-        input {
-           height: 25px;
-           outline:none;
-           border-radius: 16px;
-           text-indent:2%
-        }
+        
         input::-webkit-input-placeholder{
             color:var(--bark-prompt,#999999);
         }
 
         .input {
+            text-align: left;
+            line-height: 20px;
+            font-weight: 400;
             border: 1px solid var(--dark-background5,#ccc);
             font-family: Helvetica;
             font-size: 14px;
             color: var(--dark-color1,#212121);
-            text-align: left;
-            line-height: 20px;
-            font-weight: 400;
         }
 
         :host([startSamp]) .input {
             background: var(--dark-background5,#FFFFFF);
         }
         
+        input {
+           outline:none;
+           border-radius: 16px;
+           height: 25px;
+           text-indent:2%
+        }
+        
         :host(:not([startSamp])) .input {
             color: #999999;
         }
         </style>
-        <div class="root">
+        <div class="root vm-tracker">
             <div class="configList">
             </div>
         </div>

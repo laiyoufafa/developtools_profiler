@@ -82,9 +82,9 @@ export class TraceRowRecyclerView extends BaseElement {
     this.container!.onscroll = (ev) => {
       let top = this.container!.scrollTop;
       let skip = 0;
-      for (let i = 0; i < this.visibleObjects.length; i++) {
-        if (this.visibleObjects[i].top >= top) {
-          skip = this.visibleObjects[i].rowIndex - 1;
+      for (let index = 0; index < this.visibleObjects.length; index++) {
+        if (this.visibleObjects[index].top >= top) {
+          skip = this.visibleObjects[index].rowIndex - 1;
           break;
         }
       }

@@ -23,45 +23,35 @@ import {
   querySystemWorkData,
 } from '../../../../database/SqlLite.js';
 import { SpHiSysEventChart } from '../../../chart/SpHiSysEventChart.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-system-details')
 export class TabPaneSystemDetails extends BaseElement {
-  private tbl: LitTable | null | undefined;
+  private tblSystemDetails: LitTable | null | undefined;
   private detailsTbl: LitTable | null | undefined;
   private eventSource: Array<any> = [];
   private detailsSource: Array<any> = [];
   private boxDetails: HTMLDivElement | null | undefined;
 
-  set data(val: SelectionParam | any) {
-    this.queryDataByDB(val);
+  set data(valSystemDetails: SelectionParam | any) {
+    this.queryDataByDB(valSystemDetails);
   }
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl!.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl!.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.tblSystemDetails!)
   }
 
   initElements(): void {
     this.boxDetails = this.shadowRoot?.querySelector<HTMLDivElement>('.box-details');
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-system-data');
+    this.tblSystemDetails = this.shadowRoot?.querySelector<LitTable>('#tb-system-data');
     this.detailsTbl = this.shadowRoot?.querySelector<LitTable>('#tb-system-details-data');
 
-    this.tbl!.addEventListener('row-click', (e) => {
+    this.tblSystemDetails!.addEventListener('row-click', (e) => {
       this.detailsSource = [];
       // @ts-ignore
       let data = e.detail.data as SystemDetailsEnergy;
       this.convertData(data);
-    });
-
-    this.tbl!.addEventListener('column-click', (evt) => {
-      // @ts-ignore
-      this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
   }
 
@@ -165,10 +155,10 @@ export class TabPaneSystemDetails extends BaseElement {
         eventName: 'Event Name',
       });
 
-      this.tbl!.recycleDataSource = this.eventSource.concat(itemList);
+      this.tblSystemDetails!.recycleDataSource = this.eventSource.concat(itemList);
       this.detailsTbl!.recycleDataSource = [];
       this.boxDetails!.style.width = '100%';
-      this.tbl?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+      this.tblSystemDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
         td.style.fontSize = '14px';
         if (td.getAttribute('title') === 'Event Name' || td.getAttribute('title') === 'Time') {
           td.style.fontWeight = '700';
@@ -326,19 +316,19 @@ export class TabPaneSystemDetails extends BaseElement {
   }
 
   private getConvertData(data: Array<any>) {
-    let it: any = {};
+    let convertItem: any = {};
     data.forEach((item: any) => {
-      if (it[item.ts + item.eventName] == undefined) {
-        it[item.ts + item.eventName] = {};
-        it[item.ts + item.eventName]['ts'] = item.ts;
-        it[item.ts + item.eventName]['eventName'] = item.eventName;
-        it[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue;
+      if (convertItem[item.ts + item.eventName] == undefined) {
+        convertItem[item.ts + item.eventName] = {};
+        convertItem[item.ts + item.eventName]['ts'] = item.ts;
+        convertItem[item.ts + item.eventName]['eventName'] = item.eventName;
+        convertItem[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue;
       } else {
-        it[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue;
+        convertItem[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue;
       }
     });
     // @ts-ignore
-    return Object.values(it);
+    return Object.values(convertItem);
   }
 
   initHtml(): string {
@@ -349,7 +339,7 @@ export class TabPaneSystemDetails extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .progress{
+        .sys-detail-progress{
             bottom: 33px;
             position: absolute;
             height: 1px;
@@ -357,27 +347,27 @@ export class TabPaneSystemDetails extends BaseElement {
             right: 0;
         }
         </style>
-        <div style="display: flex;flex-direction: column">
+        <div class="sys-detail-content" style="display: flex;flex-direction: column">
             <div style="display: flex;flex-direction: row">
                 <lit-slicer style="width:100%">
                     <div class="box-details" style="width: 100%">
                         <lit-table id="tb-system-data" style="height: auto">
-                            <lit-table-column width="300px" title="" data-index="eventName" key="eventName"  align="flex-start" order>
+                            <lit-table-column class="sys-detail-column" width="300px" title="" data-index="eventName" key="eventName"  align="flex-start" order>
                             </lit-table-column>
-                            <lit-table-column width="300px" title="" data-index="ts" key="ts"  align="flex-start" order>
+                            <lit-table-column class="sys-detail-column" width="300px" title="" data-index="ts" key="ts"  align="flex-start" order>
                             </lit-table-column>
                         </lit-table>
                     </div>
                     <lit-slicer-track ></lit-slicer-track>
                     <lit-table id="tb-system-details-data" no-head hideDownload style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
-                        <lit-table-column width="100px" title="" data-index="key" key="key"  align="flex-start" >
+                        <lit-table-column class="sys-detail-column" width="100px" title="" data-index="key" key="key"  align="flex-start" >
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="" data-index="value" key="value"  align="flex-start">
+                        <lit-table-column class="sys-detail-column" width="1fr" title="" data-index="value" key="value"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>
             </div>
-            <lit-progress-bar class="progress"></lit-progress-bar>
+            <lit-progress-bar class="progress sys-detail-progress"></lit-progress-bar>
         </div>
         `;
   }

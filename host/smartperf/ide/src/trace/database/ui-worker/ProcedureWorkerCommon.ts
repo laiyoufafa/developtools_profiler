@@ -72,15 +72,14 @@ export class RequestMessage {
 
 export function ns2s(ns: number): string {
   let second1 = 1_000_000_000; // 1 second
-  let millisecond1 = 1_000_000; // 1 millisecond
-  let microsecond1 = 1_000; // 1 microsecond
-  let nanosecond1 = 1000.0;
+  let millisecond = 1_000_000; // 1 millisecond
+  let microsecond = 1_000; // 1 microsecond
   let res;
   if (ns >= second1) {
     res = (ns / 1000 / 1000 / 1000).toFixed(1) + ' s';
-  } else if (ns >= millisecond1) {
+  } else if (ns >= millisecond) {
     res = (ns / 1000 / 1000).toFixed(1) + ' ms';
-  } else if (ns >= microsecond1) {
+  } else if (ns >= microsecond) {
     res = (ns / 1000).toFixed(1) + ' μs';
   } else if (ns > 0) {
     res = ns.toFixed(1) + ' ns';
@@ -280,7 +279,6 @@ export class Rect {
   y: number = 0;
   width: number = 0;
   height: number = 0;
-
   constructor(x: number, y: number, width: number, height: number) {
     this.x = x;
     this.y = y;
@@ -288,8 +286,24 @@ export class Rect {
     this.height = height;
   }
 
+  static intersect(r1: Rect, rect: Rect): boolean {
+    let minX = r1.x <= rect.x ? r1.x : rect.x;
+    let minY = r1.y <= rect.y ? r1.y : rect.y;
+    let maxX = r1.x + r1.width >= rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
+    let maxY = r1.y + r1.height >= rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
+    if (maxX - minX <= rect.width + r1.width && maxY - minY <= r1.height + rect.height) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   static contains(rect: Rect, x: number, y: number): boolean {
     return rect.x <= x && x <= rect.x + rect.width && rect.y <= y && y <= rect.y + rect.height;
+  }
+
+  static containsWithMargin(rect: Rect, x: number, y: number, t: number, r: number, b: number, l: number): boolean {
+    return rect.x - l <= x && x <= rect.x + rect.width + r && rect.y - t <= y && y <= rect.y + rect.height + b;
   }
 
   static containsWithPadding(
@@ -301,22 +315,22 @@ export class Rect {
   ): boolean {
     return (
       rect.x + paddingLeftRight <= x &&
-      x <= rect.x + rect.width - paddingLeftRight &&
       rect.y + paddingTopBottom <= y &&
+      x <= rect.x + rect.width - paddingLeftRight &&
       y <= rect.y + rect.height - paddingTopBottom
     );
   }
 
-  static containsWithMargin(rect: Rect, x: number, y: number, t: number, r: number, b: number, l: number): boolean {
-    return rect.x - l <= x && x <= rect.x + rect.width + r && rect.y - t <= y && y <= rect.y + rect.height + b;
-  }
-
-  static intersect(r1: Rect, rect: Rect): boolean {
-    let maxX = r1.x + r1.width >= rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
-    let maxY = r1.y + r1.height >= rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
-    let minX = r1.x <= rect.x ? r1.x : rect.x;
-    let minY = r1.y <= rect.y ? r1.y : rect.y;
-    if (maxX - minX <= rect.width + r1.width && maxY - minY <= r1.height + rect.height) {
+  /**
+   * 判断是否相交
+   * @param rect
+   */
+  intersect(rect: Rect): boolean {
+    let minX = this.x <= rect.x ? this.x : rect.x;
+    let minY = this.y <= rect.y ? this.y : rect.y;
+    let maxX = this.x + this.width >= rect.x + rect.width ? this.x + this.width : rect.x + rect.width;
+    let maxY = this.y + this.height >= rect.y + rect.height ? this.y + this.height : rect.y + rect.height;
+    if (maxX - minX <= rect.width + this.width && maxY - minY <= this.height + rect.height) {
       return true;
     } else {
       return false;
@@ -327,6 +341,10 @@ export class Rect {
     return this.x <= x && x <= this.x + this.width && this.y <= y && y <= this.y + this.height;
   }
 
+  containsWithMargin(x: number, y: number, t: number, r: number, b: number, l: number): boolean {
+    return this.x - l <= x && x <= this.x + this.width + r && this.y - t <= y && y <= this.y + this.height + b;
+  }
+
   containsWithPadding(x: number, y: number, paddingLeftRight: number, paddingTopBottom: number): boolean {
     return (
       this.x + paddingLeftRight <= x &&
@@ -334,26 +352,6 @@ export class Rect {
       this.y + paddingTopBottom <= y &&
       y <= this.y + this.height - paddingTopBottom
     );
-  }
-
-  containsWithMargin(x: number, y: number, t: number, r: number, b: number, l: number): boolean {
-    return this.x - l <= x && x <= this.x + this.width + r && this.y - t <= y && y <= this.y + this.height + b;
-  }
-
-  /**
-   * 判断是否相交
-   * @param rect
-   */
-  intersect(rect: Rect): boolean {
-    let maxX = this.x + this.width >= rect.x + rect.width ? this.x + this.width : rect.x + rect.width;
-    let maxY = this.y + this.height >= rect.y + rect.height ? this.y + this.height : rect.y + rect.height;
-    let minX = this.x <= rect.x ? this.x : rect.x;
-    let minY = this.y <= rect.y ? this.y : rect.y;
-    if (maxX - minX <= rect.width + this.width && maxY - minY <= this.height + rect.height) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }
 
@@ -408,7 +406,7 @@ export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height:
 }
 
 export function drawFlagLine(
-  ctx: any,
+  commonCtx: any,
   hoverFlag: any,
   selectFlag: any,
   startNS: number,
@@ -423,38 +421,38 @@ export function drawFlagLine(
       }
     | undefined
 ) {
-  if (ctx) {
+  if (commonCtx) {
     if (hoverFlag) {
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = hoverFlag?.color || '#dadada';
-      ctx.moveTo(Math.floor(hoverFlag.x), 0);
-      ctx.lineTo(Math.floor(hoverFlag.x), frame.height);
-      ctx.stroke();
-      ctx.closePath();
+      commonCtx.beginPath();
+      commonCtx.lineWidth = 2;
+      commonCtx.strokeStyle = hoverFlag?.color || '#dadada';
+      commonCtx.moveTo(Math.floor(hoverFlag.x), 0);
+      commonCtx.lineTo(Math.floor(hoverFlag.x), frame.height);
+      commonCtx.stroke();
+      commonCtx.closePath();
     }
     if (selectFlag) {
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = selectFlag?.color || '#dadada';
+      commonCtx.beginPath();
+      commonCtx.lineWidth = 2;
+      commonCtx.strokeStyle = selectFlag?.color || '#dadada';
       selectFlag.x = ns2x(selectFlag.time, startNS, endNS, totalNS, frame);
-      ctx.moveTo(Math.floor(selectFlag.x), 0);
-      ctx.lineTo(Math.floor(selectFlag.x), frame.height);
-      ctx.stroke();
-      ctx.closePath();
+      commonCtx.moveTo(Math.floor(selectFlag.x), 0);
+      commonCtx.lineTo(Math.floor(selectFlag.x), frame.height);
+      commonCtx.stroke();
+      commonCtx.closePath();
     }
     if (slicesTime && slicesTime.startTime && slicesTime.endTime) {
-      ctx.beginPath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = slicesTime.color || '#dadada';
+      commonCtx.beginPath();
+      commonCtx.lineWidth = 1;
+      commonCtx.strokeStyle = slicesTime.color || '#dadada';
       let x1 = ns2x(slicesTime.startTime, startNS, endNS, totalNS, frame);
       let x2 = ns2x(slicesTime.endTime, startNS, endNS, totalNS, frame);
-      ctx.moveTo(Math.floor(x1), 0);
-      ctx.lineTo(Math.floor(x1), frame.height);
-      ctx.moveTo(Math.floor(x2), 0);
-      ctx.lineTo(Math.floor(x2), frame.height);
-      ctx.stroke();
-      ctx.closePath();
+      commonCtx.moveTo(Math.floor(x1), 0);
+      commonCtx.lineTo(Math.floor(x1), frame.height);
+      commonCtx.moveTo(Math.floor(x2), 0);
+      commonCtx.lineTo(Math.floor(x2), frame.height);
+      commonCtx.stroke();
+      commonCtx.closePath();
     }
   }
 }
@@ -579,7 +577,8 @@ export function drawWakeUp(
   totalNS: number,
   frame: Rect,
   selectCpuStruct: CpuStruct | undefined = undefined,
-  currentCpu: number | undefined = undefined
+  currentCpu: number | undefined = undefined,
+  noVerticalLine = false
 ) {
   if (wake) {
     let x1 = Math.floor(ns2x(wake.wakeupTime || 0, startNS, endNS, totalNS, frame));
@@ -587,8 +586,10 @@ export function drawWakeUp(
     context.lineWidth = 2;
     context.fillStyle = '#000000';
     if (x1 > 0 && x1 < frame.x + frame.width) {
-      context.moveTo(x1, frame.y);
-      context.lineTo(x1, frame.y + frame.height);
+      if (!noVerticalLine) {
+        context.moveTo(x1, frame.y);
+        context.lineTo(x1, frame.y + frame.height);
+      }
       if (currentCpu == wake.cpu) {
         let centerY = Math.floor(frame.y + frame.height / 2);
         context.moveTo(x1, centerY - 6);
@@ -735,3 +736,249 @@ export function drawLoading(
   left: number,
   right: number
 ) {}
+
+export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
+  if (data.textMetricsWidth === undefined) {
+    data.textMetricsWidth = ctx.measureText(str).width;
+  }
+  let charWidth = Math.round(data.textMetricsWidth / str.length);
+  let fillTextWidth = frame.width - textPadding * 2;
+  if (data.textMetricsWidth < fillTextWidth) {
+    let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
+    ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2), fillTextWidth);
+  } else {
+    if (fillTextWidth >= charWidth) {
+      let chatNum = fillTextWidth / charWidth;
+      let x1 = frame.x + textPadding;
+      if (chatNum < 2) {
+        ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / 2), fillTextWidth);
+      } else {
+        ctx.fillText(str.substring(0, chatNum - 1) + '...', x1, Math.floor(frame.y + frame.height / 2), fillTextWidth);
+      }
+    }
+  }
+}
+
+export function hiPerf(
+  arr: Array<any>,
+  arr2: Array<any>,
+  res: Array<any>,
+  startNS: number,
+  endNS: number,
+  frame: any,
+  groupBy10MS: boolean,
+  use: boolean
+) {
+  if (use && res.length > 0) {
+    let pns = (endNS - startNS) / frame.width;
+    let y = frame.y;
+    for (let i = 0; i < res.length; i++) {
+      let it = res[i];
+      if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
+        if (!it.frame) {
+          it.frame = {};
+          it.frame.y = y;
+        }
+        it.frame.height = it.height;
+        HiPerfStruct.setFrame(it, pns, startNS, endNS, frame);
+      } else {
+        it.frame = null;
+      }
+    }
+    return;
+  }
+  res.length = 0;
+  if (arr) {
+    let list = groupBy10MS ? arr2 : arr;
+    let pns = (endNS - startNS) / frame.width;
+    let y = frame.y;
+    for (let i = 0, len = list.length; i < len; i++) {
+      let it = list[i];
+      if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
+        if (!list[i].frame) {
+          list[i].frame = {};
+          list[i].frame.y = y;
+        }
+        list[i].frame.height = it.height;
+        HiPerfStruct.setFrame(list[i], pns, startNS, endNS, frame);
+        if (groupBy10MS) {
+          if (
+            i > 0 &&
+            (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
+            (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0) &&
+            (list[i - 1].frame?.height || 0) == (list[i].frame?.height || 0)
+          ) {
+          } else {
+            res.push(list[i]);
+          }
+        } else {
+          if (i > 0 && Math.abs((list[i - 1].frame?.x || 0) - (list[i].frame?.x || 0)) < 4) {
+          } else {
+            res.push(list[i]);
+          }
+        }
+      }
+    }
+  }
+}
+
+export class HiPerfStruct extends BaseStruct {
+  static hoverStruct: HiPerfStruct | undefined;
+  static selectStruct: HiPerfStruct | undefined;
+  id: number | undefined;
+  callchain_id: number | undefined;
+  timestamp: number | undefined;
+  thread_id: number | undefined;
+  event_count: number | undefined;
+  event_type_id: number | undefined;
+  cpu_id: number | undefined;
+  thread_state: string | undefined;
+  startNS: number | undefined;
+  endNS: number | undefined;
+  dur: number | undefined;
+  height: number | undefined;
+
+  static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number) {
+    cxt.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
+    cxt.lineTo(x + radius, y + height);
+    cxt.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI);
+    cxt.lineTo(x + 0, y + radius);
+    cxt.arc(x + radius, y + radius, radius, Math.PI, (Math.PI * 3) / 2);
+    cxt.lineTo(x + width - radius, y + 0);
+    cxt.arc(x + width - radius, y + radius, radius, (Math.PI * 3) / 2, Math.PI * 2);
+    cxt.lineTo(x + width, y + height - radius);
+    cxt.moveTo(x + width / 3, y + height / 5);
+    cxt.lineTo(x + width / 3, y + (height / 5) * 4);
+    cxt.moveTo(x + width / 3, y + height / 5);
+    cxt.bezierCurveTo(
+      x + width / 3 + 7,
+      y + height / 5 - 2,
+      x + width / 3 + 7,
+      y + height / 5 + 6,
+      x + width / 3,
+      y + height / 5 + 4
+    );
+  }
+
+  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: any, groupBy10MS: boolean) {
+    if (data.frame) {
+      if (groupBy10MS) {
+        let width = data.frame.width;
+        path.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0);
+      } else {
+        path.moveTo(data.frame.x + 7, 20);
+        HiPerfStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3);
+        path.moveTo(data.frame.x, 27);
+        path.lineTo(data.frame.x, 33);
+      }
+    }
+  }
+
+  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+    if ((node.startNS || 0) < startNS) {
+      node.frame.x = 0;
+    } else {
+      node.frame.x = Math.floor(((node.startNS || 0) - startNS) / pns);
+    }
+    if ((node.startNS || 0) + (node.dur || 0) > endNS) {
+      node.frame.width = frame.width - node.frame.x;
+    } else {
+      node.frame.width = Math.ceil(((node.startNS || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+    }
+    if (node.frame.width < 1) {
+      node.frame.width = 1;
+    }
+  }
+
+  static groupBy10MS(array: Array<any>, intervalPerf: number, maxCpu?: number | undefined): Array<any> {
+    let obj = array
+      .map((it) => {
+        it.timestamp_group = Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
+        return it;
+      })
+      .reduce((pre, current) => {
+        (pre[current['timestamp_group']] = pre[current['timestamp_group']] || []).push(current);
+        return pre;
+      }, {});
+    let arr = [];
+    for (let aKey in obj) {
+      let ns = parseInt(aKey);
+      let height: number = 0;
+      if (maxCpu != undefined) {
+        height = Math.floor((obj[aKey].length / (10 / intervalPerf) / maxCpu) * 40);
+      } else {
+        height = Math.floor((obj[aKey].length / (10 / intervalPerf)) * 40);
+      }
+      arr.push({
+        startNS: ns,
+        dur: 1_000_000_0,
+        height: height,
+      });
+    }
+    return arr;
+  }
+}
+
+function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  let x1: number;
+  let x2: number;
+  if ((node.startTime || 0) <= startNS) {
+    x1 = 0;
+  } else {
+    x1 = ns2x(node.startTime || 0, startNS, endNS, totalNS, frame);
+  }
+  if ((node.startTime || 0) + (node.duration || 0) >= endNS) {
+    x2 = frame.width;
+  } else {
+    x2 = ns2x((node.startTime || 0) + (node.duration || 0), startNS, endNS, totalNS, frame);
+  }
+  let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+  if (!node.frame) {
+    node.frame = {};
+  }
+  node.frame.x = Math.floor(x1);
+  node.frame.y = Math.floor(frame.y + padding);
+  node.frame.width = Math.ceil(getV);
+  node.frame.height = Math.floor(frame.height - padding * 2);
+}
+
+export function mem(
+  list: Array<any>,
+  memFilter: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any,
+  use: boolean
+) {
+  if (use && memFilter.length > 0) {
+    for (let i = 0, len = memFilter.length; i < len; i++) {
+      if (
+        (memFilter[i].startTime || 0) + (memFilter[i].duration || 0) > startNS &&
+        (memFilter[i].startTime || 0) < endNS
+      ) {
+        setMemFrame(memFilter[i], 5, startNS, endNS, totalNS, frame);
+      } else {
+        memFilter[i].frame = null;
+      }
+    }
+    return;
+  }
+  memFilter.length = 0;
+  if (list) {
+    for (let i = 0, len = list.length; i < len; i++) {
+      let it = list[i];
+      if ((it.startTime || 0) + (it.duration || 0) > startNS && (it.startTime || 0) < endNS) {
+        setMemFrame(list[i], 5, startNS, endNS, totalNS, frame);
+        if (
+          i > 0 &&
+          (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
+          (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)
+        ) {
+        } else {
+          memFilter.push(list[i]);
+        }
+      }
+    }
+  }
+}

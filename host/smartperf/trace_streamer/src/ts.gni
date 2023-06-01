@@ -12,6 +12,7 @@
 # limitations under the License.
 OHOS_PROTO_DIR = ""
 THIRD_PARTY = "//third_party"
+ROOT_DIR = "//"
 SRC = "//src"
 PREBUILTS = "//prebuilts"
 if (target_os == "linux" || target_os == "macx" || target_os == "windows") {

@@ -28,6 +28,7 @@ import { CounterStruct, SdkCounterRender } from '../../database/ui-worker/Produc
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { SdkSliceRender, SdkSliceStruct } from '../../database/ui-worker/ProduceWorkerSdkSlice.js';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import {TabUtil} from "../trace/sheet/sdk/TabUtil.js";
 
 export class SpSdkChart {
   private trace: SpSystemTrace;
@@ -51,7 +52,7 @@ export class SpSdkChart {
           let showTypes = tableConfig.showType;
           for (let i = 0; i < showTypes.length; i++) {
             let showType = showTypes[i];
-            let type = this.getTableType(showType);
+            let type = TabUtil.getTableType(showType);
             if (type == 'counter') {
               let chartSql = this.createSql(
                 startTime,
@@ -114,23 +115,6 @@ export class SpSdkChart {
       }
     }
     return tablesMap;
-  }
-
-  private getTableType(showType: any) {
-    let columns = showType.columns;
-    for (let i = 0; i < columns.length; i++) {
-      let column = columns[i];
-      let showType = column.showType;
-      if (showType != null) {
-        if (showType.indexOf(1) != -1) {
-          return 'counter';
-        }
-        if (showType.indexOf(2) != -1) {
-          return 'slice';
-        }
-      }
-    }
-    return '';
   }
 
   private createSliceSql(startTime: number, tableName: string, columns: Array<any>, where?: string): string {
@@ -279,21 +263,21 @@ export class SpSdkChart {
   };
 
   private initNodeRow = (index: number, name: string) => {
-    let folder = TraceRow.skeleton();
-    folder.rowId = `Sdk-${index}`;
-    folder.index = index;
-    folder.rowType = TraceRow.ROW_TYPE_SDK;
-    folder.rowParentId = '';
-    folder.style.height = '40px';
-    folder.folder = true;
-    folder.name = `${name}`;
-    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    folder.selectChangeHandler = this.trace.selectChangeHandler;
-    folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    folder.onThreadHandler = (useCache) => {
-      folder.canvasSave(this.trace.canvasPanelCtx!);
-      if (folder.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+    let sdkFolder = TraceRow.skeleton();
+    sdkFolder.rowId = `Sdk-${index}`;
+    sdkFolder.index = index;
+    sdkFolder.rowType = TraceRow.ROW_TYPE_SDK;
+    sdkFolder.rowParentId = '';
+    sdkFolder.style.height = '40px';
+    sdkFolder.folder = true;
+    sdkFolder.name = `${name}`;
+    sdkFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    sdkFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    sdkFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    sdkFolder.onThreadHandler = (useCache) => {
+      sdkFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (sdkFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, sdkFolder.frame.width, sdkFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -301,33 +285,33 @@ export class SpSdkChart {
             useCache: useCache,
             type: ``,
           },
-          folder
+          sdkFolder
         );
       }
-      folder.canvasRestore(this.trace.canvasPanelCtx!);
+      sdkFolder.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    this.trace.rowsEL?.appendChild(folder);
-    return folder;
+    this.trace.rowsEL?.appendChild(sdkFolder);
+    return sdkFolder;
   };
 
   private initSecondaryRow = async (nodeRow: TraceRow<BaseStruct>, index: number, name: string) => {
-    let folder = TraceRow.skeleton();
-    folder.rowId = `Sdk-${name}-${index}`;
-    folder.index = index;
-    folder.rowType = TraceRow.ROW_TYPE_SDK;
-    folder.rowParentId = nodeRow.rowId;
-    folder.rowHidden = !nodeRow.expansion;
-    folder.style.height = '40px';
-    folder.folder = true;
-    folder.folderPaddingLeft = 30;
-    folder.name = `${name}`;
-    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    folder.selectChangeHandler = this.trace.selectChangeHandler;
-    folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    folder.onThreadHandler = (useCache) => {
-      folder.canvasSave(this.trace.canvasPanelCtx!);
-      if (folder.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+    let sdkSecondFolder = TraceRow.skeleton();
+    sdkSecondFolder.rowId = `Sdk-${name}-${index}`;
+    sdkSecondFolder.index = index;
+    sdkSecondFolder.rowType = TraceRow.ROW_TYPE_SDK;
+    sdkSecondFolder.rowParentId = nodeRow.rowId;
+    sdkSecondFolder.rowHidden = !nodeRow.expansion;
+    sdkSecondFolder.style.height = '40px';
+    sdkSecondFolder.folder = true;
+    sdkSecondFolder.folderPaddingLeft = 30;
+    sdkSecondFolder.name = `${name}`;
+    sdkSecondFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    sdkSecondFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    sdkSecondFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    sdkSecondFolder.onThreadHandler = (useCache) => {
+      sdkSecondFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (sdkSecondFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, sdkSecondFolder.frame.width, sdkSecondFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
           {
@@ -335,13 +319,13 @@ export class SpSdkChart {
             useCache: useCache,
             type: ``,
           },
-          folder
+          sdkSecondFolder
         );
       }
-      folder.canvasRestore(this.trace.canvasPanelCtx!);
+      sdkSecondFolder.canvasRestore(this.trace.canvasPanelCtx!);
     };
-    this.trace.rowsEL?.appendChild(folder);
-    return folder;
+    this.trace.rowsEL?.appendChild(sdkSecondFolder);
+    return sdkSecondFolder;
   };
 
   private initSlice = async (

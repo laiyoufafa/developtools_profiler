@@ -33,15 +33,15 @@ export class ProcessStruct extends BaseStruct {
   type: string | undefined;
   utid: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: ProcessStruct) {
-    if (data.frame) {
-      let width = data.frame.width || 0;
-      ctx.fillStyle = ColorUtils.colorForTid(data.pid || 0);
-      let miniHeight = Math.round(data.frame.height / CpuStruct.cpuCount);
-      ctx.fillRect(
-        data.frame.x,
-        data.frame.y + (data.cpu || 0) * miniHeight + padding,
-        data.frame.width,
+  static draw(processBeanCanvasCtx: CanvasRenderingContext2D, processBeanStruct: ProcessStruct) {
+    if (processBeanStruct.frame) {
+      let width = processBeanStruct.frame.width || 0;
+      processBeanCanvasCtx.fillStyle = ColorUtils.colorForTid(processBeanStruct.pid || 0);
+      let miniHeight = Math.round(processBeanStruct.frame.height / CpuStruct.cpuCount);
+      processBeanCanvasCtx.fillRect(
+        processBeanStruct.frame.x,
+        processBeanStruct.frame.y + (processBeanStruct.cpu || 0) * miniHeight + padding,
+        processBeanStruct.frame.width,
         miniHeight - padding * 2
       );
     }

@@ -27,19 +27,19 @@ import { TableNoData } from './TableNoData.js';
 @element('top20-process-thread-count')
 export class Top20ProcessThreadCount extends BaseElement {
   traceChange: boolean = false;
-  private table: LitTable | null | undefined;
-  private pie: LitChartPie | null | undefined;
-  private progress: LitProgressBar | null | undefined;
+  private processThreadCountTbl: LitTable | null | undefined;
+  private processThreadCountPie: LitChartPie | null | undefined;
+  private processThreadCountProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
-  private data: Array<any> = [];
+  private processThreadCountData: Array<any> = [];
 
   initElements(): void {
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
-    this.progress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
-    this.table = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
-    this.pie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
+    this.processThreadCountProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
+    this.processThreadCountTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
+    this.processThreadCountPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.table!.addEventListener('row-click', (evt: any) => {
+    this.processThreadCountTbl!.addEventListener('row-click', (evt: any) => {
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -49,11 +49,11 @@ export class Top20ProcessThreadCount extends BaseElement {
       }
     });
 
-    this.table!.addEventListener('column-click', (evt) => {
+    this.processThreadCountTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.table!.addEventListener('row-hover', (evt: any) => {
+    this.processThreadCountTbl!.addEventListener('row-hover', (evt: any) => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -61,25 +61,25 @@ export class Top20ProcessThreadCount extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       }
-      this.pie?.showHover();
+      this.processThreadCountPie?.showHover();
     });
   }
 
   init() {
     if (!this.traceChange) {
-      if (this.table!.recycleDataSource.length > 0) {
-        this.table?.reMeauseHeight();
+      if (this.processThreadCountTbl!.recycleDataSource.length > 0) {
+        this.processThreadCountTbl?.reMeauseHeight();
       }
       return;
     }
     this.traceChange = false;
-    this.progress!.loading = true;
+    this.processThreadCountProgress!.loading = true;
     this.queryLogicWorker('scheduling-Process ThreadCount', 'query Process Thread Count Analysis Time:', (res) => {
       this.nodata!.noData = res === undefined || res.length === 0;
-      this.table!.recycleDataSource = res;
-      this.data = res;
-      this.table?.reMeauseHeight();
-      this.pie!.config = {
+      this.processThreadCountTbl!.recycleDataSource = res;
+      this.processThreadCountData = res;
+      this.processThreadCountTbl?.reMeauseHeight();
+      this.processThreadCountPie!.config = {
         appendPadding: 10,
         data: res,
         angleField: 'threadNumber',
@@ -90,9 +90,9 @@ export class Top20ProcessThreadCount extends BaseElement {
         },
         hoverHandler: (data) => {
           if (data) {
-            this.table!.setCurrentHover(data);
+            this.processThreadCountTbl!.setCurrentHover(data);
           } else {
-            this.table!.mouseOut();
+            this.processThreadCountTbl!.mouseOut();
           }
         },
         tip: (obj) => {
@@ -109,48 +109,48 @@ export class Top20ProcessThreadCount extends BaseElement {
           },
         ],
       };
-      this.progress!.loading = false;
+      this.processThreadCountProgress!.loading = false;
     });
   }
 
   clearData() {
     this.traceChange = true;
-    this.pie!.dataSource = [];
-    this.table!.recycleDataSource = [];
+    this.processThreadCountPie!.dataSource = [];
+    this.processThreadCountTbl!.recycleDataSource = [];
   }
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
-    let time = new Date().getTime();
+    let processThreadCountTime = new Date().getTime();
     procedurePool.submitWithName('logic1', option, {}, undefined, handler);
-    let durTime = new Date().getTime() - time;
+    let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }
 
   sortByColumn(detail: any) {
     // @ts-ignore
-    function compare(property, sort, type) {
+    function compare(processThreadCountProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            ? parseFloat(b[property]) - parseFloat(a[property])
-            : parseFloat(a[property]) - parseFloat(b[property]);
+            ? parseFloat(b[processThreadCountProperty]) - parseFloat(a[processThreadCountProperty])
+            : parseFloat(a[processThreadCountProperty]) - parseFloat(b[processThreadCountProperty]);
         } else {
           if (sort === 2) {
-            return b[property].toString().localeCompare(a[property].toString());
+            return b[processThreadCountProperty].toString().localeCompare(a[processThreadCountProperty].toString());
           } else {
-            return a[property].toString().localeCompare(b[property].toString());
+            return a[processThreadCountProperty].toString().localeCompare(b[processThreadCountProperty].toString());
           }
         }
       };
     }
 
     if (detail.key === 'NO' || detail.key === 'pid' || detail.key === 'threadNumber') {
-      this.data.sort(compare(detail.key, detail.sort, 'number'));
+      this.processThreadCountData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      this.data.sort(compare(detail.key, detail.sort, 'string'));
+      this.processThreadCountData.sort(compare(detail.key, detail.sort, 'string'));
     }
-    this.table!.recycleDataSource = this.data;
+    this.processThreadCountTbl!.recycleDataSource = this.processThreadCountData;
   }
 
   initHtml(): string {
@@ -161,6 +161,12 @@ export class Top20ProcessThreadCount extends BaseElement {
             height: 100%;
             background-color: var(--dark-background5,#F6F6F6);
         }
+        .pie-chart{
+            display: flex;
+            box-sizing: border-box;
+            width: 500px;
+            height: 500px;
+        }
         .tb_thread_count{
             flex: 1;
             overflow: auto ;
@@ -168,12 +174,6 @@ export class Top20ProcessThreadCount extends BaseElement {
             border: solid 1px var(--dark-border1,#e0e0e0);
             margin: 15px;
             padding: 5px 15px
-        }
-        .pie-chart{
-            display: flex;
-            box-sizing: border-box;
-            width: 500px;
-            height: 500px;
         }
         .root{
             width: 100%;

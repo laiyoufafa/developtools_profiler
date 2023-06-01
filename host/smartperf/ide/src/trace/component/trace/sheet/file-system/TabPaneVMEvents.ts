@@ -32,43 +32,43 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
   // @ts-ignore
   private defaultNativeTypes = ['All', ...Object.values(VM_TYPE_MAP)];
   private native_type: Array<string> = [...this.defaultNativeTypes];
-  private tbl: LitTable | null | undefined;
-  private tblData: LitTable | null | undefined;
-  private progressEL: LitProgressBar | null | undefined;
+  private vmEventTbl: LitTable | null | undefined;
+  private vmEventTblData: LitTable | null | undefined;
+  private vmEventProgressEL: LitProgressBar | null | undefined;
   private loadingList: number[] = [];
   private loadingPage: any;
-  private source: Array<VirtualMemoryEvent> = [];
-  private queryDataSource: Array<VirtualMemoryEvent> = [];
-  private sortKey: string = 'startTs';
-  private sortType: number = 0;
+  private vmEventSource: Array<VirtualMemoryEvent> = [];
+  private queryVmEventDataSource: Array<VirtualMemoryEvent> = [];
+  private vmEventSortKey: string = 'startTs';
+  private vmEventSortType: number = 0;
   private currentSelection: SelectionParam | undefined | null;
   private statsticsSelection: Array<any> = [];
 
-  set data(val: SelectionParam | null | undefined) {
-    if (val == this.currentSelection) {
+  set data(vmEventSelection: SelectionParam | null | undefined) {
+    if (vmEventSelection == this.currentSelection) {
       return;
     }
-    this.currentSelection = val;
-    this.initFilterTypes(val!).then(() => {
-      this.queryData(val!);
+    this.currentSelection = vmEventSelection;
+    this.initFilterTypes(vmEventSelection!).then(() => {
+      this.queryData(vmEventSelection!);
     });
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.vmEventTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
     // @ts-ignore
-    this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
-    this.tbl!.recycleDataSource = [];
-    this.tblData!.recycleDataSource = [];
+    this.vmEventTblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    this.vmEventTbl!.recycleDataSource = [];
+    this.vmEventTblData!.recycleDataSource = [];
   }
 
   connectedCallback() {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
-        this.tbl?.reMeauseHeight();
+        this.vmEventTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
+        this.vmEventTbl?.reMeauseHeight();
         // @ts-ignore
-        this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
-        this.tblData?.reMeauseHeight();
+        this.vmEventTblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 33 + 'px';
+        this.vmEventTblData?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -76,17 +76,17 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
 
   initElements(): void {
     this.loadingPage = this.shadowRoot?.querySelector('.loading');
-    this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tbl');
-    this.tblData = this.shadowRoot?.querySelector<LitTable>('#tbr');
-    this.tbl!.addEventListener('row-click', (e) => {
+    this.vmEventProgressEL = this.shadowRoot?.querySelector('.vm-event-progress') as LitProgressBar;
+    this.vmEventTbl = this.shadowRoot?.querySelector<LitTable>('#vm-event-tbl');
+    this.vmEventTblData = this.shadowRoot?.querySelector<LitTable>('#vm-event-tbr');
+    this.vmEventTbl!.addEventListener('row-click', (vmEventRowClick) => {
       // @ts-ignore
-      let data = e.detail.data;
+      let data = vmEventRowClick.detail.data;
       (data as any).isSelected = true;
       // @ts-ignore
-      if ((e.detail as any).callBack) {
+      if ((vmEventRowClick.detail as any).callBack) {
         // @ts-ignore
-        (e.detail as any).callBack(true);
+        (vmEventRowClick.detail as any).callBack(true);
       }
       procedurePool.submitWithName(
         'logic0',
@@ -94,32 +94,32 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
         { callchainId: data.callchainId },
         undefined,
         (res: any) => {
-          this.tblData!.recycleDataSource = res;
+          this.vmEventTblData!.recycleDataSource = res;
         }
       );
     });
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.vmEventTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
-      this.sortKey = evt.detail.key;
+      this.vmEventSortKey = evt.detail.key;
       // @ts-ignore
-      this.sortType = evt.detail.sort;
+      this.vmEventSortType = evt.detail.sort;
       // @ts-ignore
-      this.sortTable(evt.detail.key, evt.detail.sort);
+      this.sortVmEventTable(evt.detail.key, evt.detail.sort);
     });
-    this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
+    this.shadowRoot?.querySelector<TabPaneFilter>('#vm-event-filter')!.getFilterData((data: FilterData) => {
       let index = parseInt(data.firstSelect || '0');
       if (index > this.defaultNativeTypes.length - 1) {
         this.filterTypeData(this.statsticsSelection[index - this.defaultNativeTypes.length]);
       } else {
         this.filterTypeData(undefined);
       }
-      this.tbl!.recycleDataSource = this.source;
+      this.vmEventTbl!.recycleDataSource = this.vmEventSource;
     });
   }
 
-  async initFilterTypes(val: SelectionParam) {
-    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-    let typeKeys = await getTabVirtualMemoryType(val.leftNs, val.rightNs);
+  async initFilterTypes(vmEventParam: SelectionParam) {
+    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#vm-event-filter');
+    let typeKeys = await getTabVirtualMemoryType(vmEventParam.leftNs, vmEventParam.rightNs);
     this.defaultNativeTypes = ['All'];
     this.statsticsSelection = [];
     typeKeys.forEach((item) => {
@@ -131,65 +131,65 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     filter!.firstSelect = '0';
   }
 
-  async fromStastics(val: SelectionParam | any) {
-    if (val.fileSystemVMData == undefined) {
+  async fromStastics(vmEventParam: SelectionParam | any) {
+    if (vmEventParam.fileSystemVMData == undefined) {
       return;
     }
-    this.tblData!.recycleDataSource = [];
-    this.tblData?.clearAllSelection(undefined);
-    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-    if (this.currentSelection != val) {
-      await this.initFilterTypes(val);
+    this.vmEventTblData!.recycleDataSource = [];
+    this.vmEventTblData?.clearAllSelection(undefined);
+    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#vm-event-filter');
+    if (this.currentSelection != vmEventParam) {
+      await this.initFilterTypes(vmEventParam);
     }
-    let typeIndexOf = this.native_type.indexOf(val.fileSystemVMData.path.value);
+    let typeIndexOf = this.native_type.indexOf(vmEventParam.fileSystemVMData.path.value);
     if (typeIndexOf == -1) {
-      this.statsticsSelection.push(val.fileSystemVMData.path);
-      this.native_type.push(val.fileSystemVMData.path.value);
+      this.statsticsSelection.push(vmEventParam.fileSystemVMData.path);
+      this.native_type.push(vmEventParam.fileSystemVMData.path.value);
       typeIndexOf = this.native_type.length - 1;
     }
-    if (this.currentSelection != val) {
-      this.currentSelection = val;
+    if (this.currentSelection != vmEventParam) {
+      this.currentSelection = vmEventParam;
       filter!.setSelectList(this.native_type, null, 'Operation Type');
       filter!.firstSelect = typeIndexOf + '';
-      this.queryData(val);
+      this.queryData(vmEventParam);
     } else {
       if (typeIndexOf == parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Operation Type');
       filter!.firstSelect = typeIndexOf + '';
-      this.filterTypeData(val?.fileSystemVMData?.path || undefined);
-      val.fileSystemVMData = undefined;
-      this.tbl!.recycleDataSource = this.source;
+      this.filterTypeData(vmEventParam?.fileSystemVMData?.path || undefined);
+      vmEventParam.fileSystemVMData = undefined;
+      this.vmEventTbl!.recycleDataSource = this.vmEventSource;
     }
   }
 
-  queryData(val: SelectionParam) {
+  queryData(vmEventParam: SelectionParam) {
     this.loadingList.push(1);
-    this.progressEL!.loading = true;
+    this.vmEventProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    this.source = [];
-    this.queryDataSource = [];
+    this.vmEventSource = [];
+    this.queryVmEventDataSource = [];
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-queryVMEvents',
       {
-        leftNs: val.leftNs,
-        rightNs: val.rightNs,
-        typeArr: val.fileSystemType,
+        leftNs: vmEventParam.leftNs,
+        rightNs: vmEventParam.rightNs,
+        typeArr: vmEventParam.fileSystemType,
       },
       undefined,
       (res: any) => {
-        this.source = this.source.concat(res.data);
-        this.queryDataSource = this.queryDataSource.concat(res.data);
-        this.filterTypeData(val?.fileSystemVMData?.path || undefined);
-        val.fileSystemVMData = undefined;
+        this.vmEventSource = this.vmEventSource.concat(res.data);
+        this.queryVmEventDataSource = this.queryVmEventDataSource.concat(res.data);
+        this.filterTypeData(vmEventParam?.fileSystemVMData?.path || undefined);
+        vmEventParam.fileSystemVMData = undefined;
         res.data = null;
         if (!res.isSending) {
-          this.tbl!.recycleDataSource = this.source;
+          this.vmEventTbl!.recycleDataSource = this.vmEventSource;
           this.loadingList.splice(0, 1);
           if (this.loadingList.length == 0) {
-            this.progressEL!.loading = false;
+            this.vmEventProgressEL!.loading = false;
             this.loadingPage.style.visibility = 'hidden';
           }
         }
@@ -198,7 +198,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
   }
 
   filterTypeData(pathData: any) {
-    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
+    let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#vm-event-filter');
     let firstSelect = filter!.firstSelect;
     let type = -1;
     let tid = -1;
@@ -219,7 +219,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     let isTidFilter = false;
     let isPidFilter = false;
     let isTypeFilter = false;
-    this.source = this.queryDataSource.filter((item) => {
+    this.vmEventSource = this.queryVmEventDataSource.filter((item) => {
       if (tid == -1) {
         isTidFilter = true;
       } else {
@@ -235,43 +235,43 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     });
   }
 
-  sortTable(key: string, type: number) {
+  sortVmEventTable(key: string, type: number) {
     if (type == 0) {
-      this.tbl!.recycleDataSource = this.source;
+      this.vmEventTbl!.recycleDataSource = this.vmEventSource;
     } else {
-      let arr = Array.from(this.source);
-      arr.sort((a, b): number => {
+      let arr = Array.from(this.vmEventSource);
+      arr.sort((vmEventA, vmEventB): number => {
         if (key == 'startTsStr') {
           if (type == 1) {
-            return a.startTs - b.startTs;
+            return vmEventA.startTs - vmEventB.startTs;
           } else {
-            return b.startTs - a.startTs;
+            return vmEventB.startTs - vmEventA.startTs;
           }
         } else if (key == 'durStr') {
           if (type == 1) {
-            return a.dur - b.dur;
+            return vmEventA.dur - vmEventB.dur;
           } else {
-            return b.dur - a.dur;
+            return vmEventB.dur - vmEventA.dur;
           }
         } else if (key == 'thread') {
-          if (a.thread > b.thread) {
+          if (vmEventA.thread > vmEventB.thread) {
             return type === 2 ? 1 : -1;
-          } else if (a.thread == b.thread) {
+          } else if (vmEventA.thread == vmEventB.thread) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
         } else if (key == 'sizeStr') {
           if (type == 1) {
-            return a.size - b.size;
+            return vmEventA.size - vmEventB.size;
           } else {
-            return b.size - a.size;
+            return vmEventB.size - vmEventA.size;
           }
         } else {
           return 0;
         }
       });
-      this.tbl!.recycleDataSource = arr;
+      this.vmEventTbl!.recycleDataSource = arr;
     }
   }
 
@@ -283,7 +283,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
             flex-direction: column;
             padding: 10px 10px 0 10px;
         }
-        .loading{
+        .vm-event-loading{
             bottom: 0;
             position: absolute;
             left: 0;
@@ -292,7 +292,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
             background:transparent;
             z-index: 999999;
         }
-        .progress{
+        .vm-event-progress{
             bottom: 33px;
             position: absolute;
             height: 1px;
@@ -300,7 +300,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
             left: 0;
             right: 0;
         }
-        tab-pane-filter {
+        #vm-event-filter {
             border: solid rgb(216,216,216) 1px;
             float: left;
             position: fixed;
@@ -308,36 +308,36 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
             width: 100%;
         }
         </style>
-        <div style="display: flex;flex-direction: column">
+        <div class="vm-event-content" style="display: flex;flex-direction: column">
             <div style="display: flex;flex-direction: row;">
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
-                        <lit-table id="tbl" style="height: auto">
-                            <lit-table-column width="1fr" title="Start Time" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="1fr" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="1fr" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="1fr" title="Operation" data-index="operation" key="operation" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="1fr" title="Adress" data-index="address" key="address" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="1fr" title="Size" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
+                        <lit-table id="vm-event-tbl" style="height: auto">
+                            <lit-table-column class="vm-event-column" width="1fr" title="Start Time" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Operation" data-index="operation" key="operation" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Adress" data-index="address" key="address" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Size" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
                         </lit-table>
                     </div>
                     <lit-slicer-track ></lit-slicer-track>
-                    <lit-table id="tbr" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-                        <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                    <lit-table id="vm-event-tbr" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                        <lit-table-column class="vm-event-column" width="60px" title="" data-index="type" key="type"  align="flex-start" >
                             <template>
                                 <div v-if=" type == -1 ">Thread:</div>
                                 <img src="img/library.png" size="20" v-if=" type == 1 ">
                                 <img src="img/function.png" size="20" v-if=" type == 0 ">
                             </template>
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
+                        <lit-table-column class="vm-event-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>
             </div>
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-filter id="filter" first></tab-pane-filter>
-            <div class="loading"></div>
+            <lit-progress-bar class="progress vm-event-progress"></lit-progress-bar>
+            <tab-pane-filter id="vm-event-filter" first></tab-pane-filter>
+            <div class="loading vm-event-loading"></div>
         </div>
 `;
   }

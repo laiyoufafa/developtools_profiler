@@ -13,13 +13,20 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, isFrameContainPoint, Rect, Render } from './ProcedureWorkerCommon.js';
+import {
+  BaseStruct,
+  dataFilterHandler,
+  isFrameContainPoint,
+  Rect,
+  Render,
+  drawString,
+} from './ProcedureWorkerCommon.js';
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 
 export class IrqRender extends Render {
   renderMainThread(
-    req: {
+    irqReq: {
       context: CanvasRenderingContext2D;
       useCache: boolean;
       type: string;
@@ -27,10 +34,10 @@ export class IrqRender extends Render {
     },
     row: TraceRow<IrqStruct>
   ) {
-    IrqStruct.index = req.index;
-    let list = row.dataList;
-    let filter = row.dataListCache;
-    dataFilterHandler(list, filter, {
+    IrqStruct.index = irqReq.index;
+    let irqList = row.dataList;
+    let irqFilter = row.dataListCache;
+    dataFilterHandler(irqList, irqFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -38,24 +45,24 @@ export class IrqRender extends Render {
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
       paddingTop: 5,
-      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+      useCache: irqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.context.beginPath();
+    irqReq.context.beginPath();
     let find = false;
-    for (let re of filter) {
-      IrqStruct.draw(req.context, re, row.isHover);
+    for (let re of irqFilter) {
+      IrqStruct.draw(irqReq.context, re, row.isHover);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         IrqStruct.hoverIrqStruct = re;
         find = true;
       }
     }
     if (!find && row.isHover) IrqStruct.hoverIrqStruct = undefined;
-    req.context.closePath();
-    req.context.globalAlpha = 0.8;
-    req.context.fillStyle = '#f0f0f0';
-    req.context.globalAlpha = 1;
-    req.context.fillStyle = '#333';
-    req.context.textBaseline = 'middle';
+    irqReq.context.closePath();
+    irqReq.context.globalAlpha = 0.8;
+    irqReq.context.fillStyle = '#f0f0f0';
+    irqReq.context.globalAlpha = 1;
+    irqReq.context.fillStyle = '#333';
+    irqReq.context.textBaseline = 'middle';
   }
 }
 
@@ -91,38 +98,9 @@ export class IrqStruct extends BaseStruct {
       ctx.globalAlpha = 1.0;
       ctx.lineWidth = 1;
       ctx.fillStyle = '#fff';
-      data.frame.width > 7 && IrqStruct.drawString(ctx, data.name || '', 2, data.frame, data);
-    }
-  }
-
-  static drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: IrqStruct) {
-    if (data.textMetricsWidth === undefined) {
-      data.textMetricsWidth = ctx.measureText(str).width;
-    }
-    let charWidth = Math.round(data.textMetricsWidth / str.length);
-    let fillTextWidth = frame.width - textPadding * 2;
-    if (data.textMetricsWidth < fillTextWidth) {
-      let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
       ctx.textBaseline = 'middle';
       ctx.font = '8px sans-serif';
-      ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2), fillTextWidth);
-    } else {
-      if (fillTextWidth >= charWidth) {
-        let chatNum = fillTextWidth / charWidth;
-        let x1 = frame.x + textPadding;
-        ctx.textBaseline = 'middle';
-        ctx.font = '8px sans-serif';
-        if (chatNum < 2) {
-          ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / 2), fillTextWidth);
-        } else {
-          ctx.fillText(
-            str.substring(0, chatNum - 1) + '...',
-            x1,
-            Math.floor(frame.y + frame.height / 2),
-            fillTextWidth
-          );
-        }
-      }
+      data.frame.width > 7 && drawString(ctx, data.name || '', 2, data.frame, data);
     }
   }
 }

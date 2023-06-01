@@ -112,7 +112,7 @@ export class SpAllocations extends BaseElement {
     let input = this.processId.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
     let sp = document.querySelector('sp-application') as SpApplication;
     let litSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
-    let processData: Array<string> = [];
+    let allocationProcessData: Array<string> = [];
     input.addEventListener('mousedown', (ev) => {
       if (SpRecordTrace.serialNumber == '') {
         this.processId!.processData = [];
@@ -122,24 +122,24 @@ export class SpAllocations extends BaseElement {
       this.dispatchEvent(new CustomEvent('addProbe', {}));
     });
     input.addEventListener('inputClick', () => {
-      processData = [];
+      allocationProcessData = [];
       if (SpRecordTrace.serialNumber != '') {
         if (SpRecordTrace.isVscode) {
           let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
           Cmd.execHdcCmd(cmd, (res: string) => {
-            let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-            for (let lineVal of lineValues) {
+            let allocationsValuesVs: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+            for (let lineVal of allocationsValuesVs) {
               if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                 continue;
               }
-              let process: string[] = lineVal.trim().split(' ');
-              if (process.length == 2) {
-                let processId = process[0];
-                let processName = process[1];
-                processData.push(processName + '(' + processId + ')');
+              let allocationsVsProcess: string[] = lineVal.trim().split(' ');
+              if (allocationsVsProcess.length == 2) {
+                let processId = allocationsVsProcess[0];
+                let processName = allocationsVsProcess[1];
+                allocationProcessData.push(processName + '(' + processId + ')');
               }
             }
-            this.processId!.processData = processData;
+            this.processId!.processData = allocationProcessData;
             this.processId!.initData();
           });
         } else {
@@ -151,20 +151,20 @@ export class SpAllocations extends BaseElement {
             if (rr) {
               HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
                 if (res) {
-                  let lineValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
-                  for (let lineVal of lineValues) {
+                  let allocationsConfigValues: string[] = res.replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
+                  for (let lineVal of allocationsConfigValues) {
                     if (lineVal.indexOf('__progname') != -1 || lineVal.indexOf('PID CMD') != -1) {
                       continue;
                     }
-                    let process: string[] = lineVal.trim().split(' ');
-                    if (process.length == 2) {
-                      let processId = process[0];
-                      let processName = process[1];
-                      processData.push(processName + '(' + processId + ')');
+                    let allocationsConfigProcess: string[] = lineVal.trim().split(' ');
+                    if (allocationsConfigProcess.length == 2) {
+                      let processId = allocationsConfigProcess[0];
+                      let processName = allocationsConfigProcess[1];
+                      allocationProcessData.push(processName + '(' + processId + ')');
                     }
                   }
                 }
-                this.processId!.processData = processData;
+                this.processId!.processData = allocationProcessData;
                 this.processId!.initData();
               });
             } else {
@@ -284,20 +284,20 @@ export class SpAllocations extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host{
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 0px 16px 16px 0px;
-        }
         .root {
+            padding-top: 45px;
+            margin-left: 40px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: min-content 1fr min-content;
-            padding-top: 45px;
-            margin-left: 40px;
             width: 90%;
             border-radius: 0px 16px 16px 0px;
+        }
+        :host{
+            display: block;
+            width: 100%;
+            border-radius: 0px 16px 16px 0px;
+            height: 100%;
         }
         .title {
             grid-column: span 2 / auto;
@@ -406,18 +406,18 @@ export class SpAllocations extends BaseElement {
             grid-column: span 2;
         }
         .resultSize{
-            margin: 0 30px 0 0;
-            height: 40px;
-            background-color: var(--dark-background5,#F2F2F2);
-            -webkit-appearance:none;
-            outline:0;
-            border:1px solid var(--dark-border,#c8cccf);
-            color:var(--dark-color,#6a6f77);
-            border-radius:20px;
             display: grid;
             grid-template-rows: 1fr;
             grid-template-columns:  min-content min-content;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            color:var(--dark-color,#6a6f77);
             width: 150px;
+            margin: 0 30px 0 0;
+            height: 40px;
+            border-radius:20px;
+            outline:0;
+            border:1px solid var(--dark-border,#c8cccf);
         }
         .record-mode{
             font-family: Helvetica-Bold;
@@ -437,15 +437,15 @@ export class SpAllocations extends BaseElement {
               font-weight: 400;
         }
         .interval-result{
-            margin: 5px 0 5px 5px;
             background-color: var(--dark-background5,#F2F2F2);
             -webkit-appearance:none;
-            outline:0;
-            font-size:14px;
             color:var(--dark-color,#6a6f77);
             border: none;
             text-align: center;
             width: 90px;
+            font-size:14px;
+            outline:0;
+            margin: 5px 0 5px 5px;
         }
         
         </style>

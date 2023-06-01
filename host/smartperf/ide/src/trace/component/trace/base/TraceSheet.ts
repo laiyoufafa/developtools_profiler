@@ -35,7 +35,6 @@ import { ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock.js
 import { IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq.js';
 import { JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank.js';
 import { HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap.js';
-import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { LitTable } from '../../../../base-ui/table/lit-table.js';
 import { threadPool } from '../../../database/SqlLite.js';
 import { HeapSnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
@@ -46,6 +45,7 @@ import { TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStat
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
   private litTabs: LitTabs | undefined | null;
+  private importDiv: HTMLDivElement | undefined | null;
   private nav: HTMLDivElement | undefined | null;
   private selection: SelectionParam | undefined | null;
   private currentPaneID: string = 'current-selection';
@@ -74,6 +74,7 @@ export class TraceSheet extends BaseElement {
 
   displayTab<T>(...names: string[]): T {
     this.setAttribute('mode', 'max');
+    this.showUploadSoBt(null);
     this.shadowRoot
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
@@ -92,6 +93,7 @@ export class TraceSheet extends BaseElement {
 
   initElements(): void {
     this.litTabs = this.shadowRoot?.querySelector('#tabs');
+    this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.buildTabs(this.litTabs);
     let minBtn = this.shadowRoot?.querySelector('#min-btn');
     minBtn?.addEventListener('click', () => {});
@@ -112,8 +114,6 @@ export class TraceSheet extends BaseElement {
     });
     this.getComponentByID<any>('box-spt')!.addEventListener('row-click', this.rowClickHandler.bind(this));
     this.getComponentByID<any>('box-pts')!.addEventListener('row-click', this.rowClickHandler.bind(this));
-    this.getComponentByID<any>('box-cs')!.addEventListener('row-click', this.rowClickHandler.bind(this));
-    this.getComponentByID<any>('box-ts')!.addEventListener('row-click', this.rowClickHandler.bind(this));
     this.getComponentByID<any>('box-native-statstics')!.addEventListener('row-click', (e: any) => {
       this.selection!.statisticsSelectData = e.detail;
       let pane = this.getPaneByID('box-native-memory');
@@ -322,18 +322,18 @@ export class TraceSheet extends BaseElement {
             <div id="container" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
-                        <div style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
+                        <div title="SO导入" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="import-file" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="import-file">
-                                <lit-icon id="import-btn" name="import-so" style="pointer-events: none" size="20">
+                                <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
                                 </lit-icon>
                             </label>
                         </div>
-                        <lit-icon id="export-btn" name="copy-csv" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
+                        <lit-icon title="下载数据" id="export-btn" name="import-so" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
                         </lit-icon>
-                        <lit-icon id="max-btn" name="vertical-align-top" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
+                        <lit-icon title="最大化" id="max-btn" name="vertical-align-top" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
                         </lit-icon>
-                        <lit-icon id="min-btn" name="down" style="font-weight: bold;cursor: pointer;" size="20">
+                        <lit-icon title="最小化" id="min-btn" name="down" style="font-weight: bold;cursor: pointer;" size="20">
                         </lit-icon>
                     </div>
                 </lit-tabs>
@@ -359,6 +359,7 @@ export class TraceSheet extends BaseElement {
     val.rightNs = data.startTime! + data.dur! -1;
     this.selection = val;
     this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
+    this.showUploadSoBt(val);
   };
 
   displayFuncData = (data: FuncStruct, scrollCallback: Function) =>
@@ -405,8 +406,9 @@ export class TraceSheet extends BaseElement {
   displayFreqLimitData = () =>
     (this.displayTab<TabPaneCurrentSelection>('box-freq-limit').data = CpuFreqLimitsStruct.selectCpuFreqLimitsStruct);
 
-  rangeSelect(selection: SelectionParam): boolean {
+  rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
+    this.showUploadSoBt(selection);
     Reflect.ownKeys(tabConfig)
       .reverse()
       .forEach((id) => {
@@ -422,15 +424,48 @@ export class TraceSheet extends BaseElement {
           this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`)!.hidden = true;
         }
       });
-    let firstPane = this.shadowRoot!.querySelector<LitTabpane>(`lit-tabpane[hidden='false']`);
-    if (firstPane) {
-      this.litTabs?.activeByKey(firstPane.key);
-      this.loadTabPaneData(firstPane.key);
-      this.setAttribute('mode', 'max');
-      return true;
+    if (restore) {
+      if (this.litTabs?.activekey) {
+        this.loadTabPaneData(this.litTabs?.activekey)
+        this.setAttribute('mode', 'max');
+        return true;
+      } else {
+        this.setAttribute('mode', 'hidden');
+        return false;
+      }
     } else {
-      this.setAttribute('mode', 'hidden');
-      return false;
+      let firstPane = this.shadowRoot!.querySelector<LitTabpane>(`lit-tabpane[hidden='false']`);
+      if (firstPane) {
+        this.litTabs?.activeByKey(firstPane.key);
+        this.loadTabPaneData(firstPane.key);
+        this.setAttribute('mode', 'max');
+        return true;
+      } else {
+        this.setAttribute('mode', 'hidden');
+        return false;
+      }
+    }
+
+  }
+
+  showUploadSoBt(selection: SelectionParam | null | undefined) {
+    if (
+        selection &&
+        (
+            selection.nativeMemory.length > 0 ||
+            selection.nativeMemoryStatistic.length > 0 ||
+            selection.perfSampleIds.length > 0 ||
+            selection.fileSystemType.length > 0 ||
+            selection.fsCount > 0 ||
+            selection.fileSysVirtualMemory ||
+            selection.vmCount > 0 ||
+            selection.diskIOLatency ||
+            selection.diskIOipids.length > 0
+        )
+    ) {
+      this.importDiv!.style.display = 'flex';
+    } else {
+      this.importDiv!.style.display = 'none';
     }
   }
 

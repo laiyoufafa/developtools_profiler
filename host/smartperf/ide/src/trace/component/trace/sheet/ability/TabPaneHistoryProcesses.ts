@@ -19,26 +19,25 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabProcessHistoryData } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { ProcessHistory } from '../../../../bean/AbilityMonitor.js';
-import '../../../SpFilter.js';
 import { log } from '../../../../../log/Log.js';
+import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-history-processes')
 export class TabPaneHistoryProcesses extends BaseElement {
-  private tbl: LitTable | null | undefined;
-  private source: Array<ProcessHistory> = [];
-  private queryResult: Array<ProcessHistory> = [];
-  private float: HTMLDivElement | null | undefined;
+  private historyProcessTbl: LitTable | null | undefined;
+  private historyProcessSource: Array<ProcessHistory> = [];
+  private queryHistoryResult: Array<ProcessHistory> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(val: SelectionParam | any) {
+  set data(historyProcessValue: SelectionParam | any) {
     // @ts-ignore
-    this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    this.queryDataByDB(val);
+    this.historyProcessTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    this.queryDataByDB(historyProcessValue);
   }
 
   initElements(): void {
-    this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-history-processes');
-    this.tbl!.addEventListener('column-click', (evt) => {
+    this.historyProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-history-processes');
+    this.historyProcessTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -46,28 +45,22 @@ export class TabPaneHistoryProcesses extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-        this.tbl?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
+    resizeObserver(this.parentElement!, this.historyProcessTbl!)
   }
 
   filterData() {
-    if (this.queryResult.length > 0) {
-      let filter = this.queryResult.filter((item) => {
+    if (this.queryHistoryResult.length > 0) {
+      let filterHistory = this.queryHistoryResult.filter((item) => {
         let array = this.toProcessHistoryArray(item);
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
-      if (filter.length > 0) {
-        this.source = filter;
-        this.tbl!.recycleDataSource = this.source;
+      if (filterHistory.length > 0) {
+        this.historyProcessSource = filterHistory;
+        this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
       } else {
-        this.source = [];
-        this.tbl!.recycleDataSource = [];
+        this.historyProcessSource = [];
+        this.historyProcessTbl!.recycleDataSource = [];
       }
     }
   }
@@ -104,37 +97,37 @@ export class TabPaneHistoryProcesses extends BaseElement {
           processHistory.cpuTimeNumber = Number(processHistory.cpuTime);
           processHistory.cpuTime = this.timeFormat(processHistory.cpuTimeNumber);
         }
-        this.source = item;
-        this.queryResult = item;
-        this.tbl!.recycleDataSource = this.source;
+        this.historyProcessSource = item;
+        this.queryHistoryResult = item;
+        this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
       } else {
-        this.source = [];
-        this.queryResult = [];
-        this.tbl!.recycleDataSource = [];
+        this.historyProcessSource = [];
+        this.queryHistoryResult = [];
+        this.historyProcessTbl!.recycleDataSource = [];
       }
     });
   }
 
   timeFormat(ms: number): string {
-    let currentMs = ms;
+    let currentTimeMs = ms;
     let hours = 3600000;
     let minute1 = 60000;
     let second1 = 1000;
     let res = '';
-    if (currentMs >= hours) {
-      res += Math.floor(currentMs / hours) + ' h ';
-      currentMs = currentMs - Math.floor(currentMs / hours) * hours;
+    if (currentTimeMs >= hours) {
+      res += Math.floor(currentTimeMs / hours) + ' h ';
+      currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / hours) * hours;
     }
-    if (currentMs >= minute1) {
-      res += Math.floor(currentMs / minute1) + ' min ';
-      currentMs = currentMs - Math.floor(currentMs / minute1) * minute1;
+    if (currentTimeMs >= minute1) {
+      res += Math.floor(currentTimeMs / minute1) + ' min ';
+      currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / minute1) * minute1;
     }
-    if (currentMs >= second1) {
-      res += Math.floor(currentMs / second1) + ' s ';
-      currentMs = currentMs - Math.floor(currentMs / second1) * second1;
+    if (currentTimeMs >= second1) {
+      res += Math.floor(currentTimeMs / second1) + ' s ';
+      currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / second1) * second1;
     }
-    if (currentMs > 0) {
-      res += currentMs + ' ms ';
+    if (currentTimeMs > 0) {
+      res += currentTimeMs + ' ms ';
     } else {
       res += '0 ms ';
     }
@@ -144,21 +137,24 @@ export class TabPaneHistoryProcesses extends BaseElement {
   initHtml(): string {
     return `
 <style>
+.history-process-table{
+    height: auto;
+}
 :host{
-    display: flex;
     flex-direction: column;
+    display: flex;
     padding: 10px 10px;
 }
 </style>
-<lit-table id="tb-history-processes" style="height: auto">
-    <lit-table-column order width="1fr" title="Process ID" data-index="processId" key="processId" align="flex-start"></lit-table-column>
-    <lit-table-column order width="1fr" title="Alive" data-index="alive" key="alive" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="First Seen" data-index="firstSeen" key="firstSeen" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Last Seen" data-index="lastSeen" key="lastSeen" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Process Name" data-index="processName" key="processName" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="Responsible Process" data-index="responsibleProcess" key="responsibleProcess" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="User ID" data-index="userName" key="userName" align="flex-start" ></lit-table-column>
-    <lit-table-column order width="1fr" title="CPU Time" data-index="cpuTime" key="cpuTime" align="flex-start" ></lit-table-column>
+<lit-table id="tb-history-processes" class="history-process-table">
+    <lit-table-column order width="1fr" align="flex-start" title="Process ID" data-index="processId" key="processId"></lit-table-column>
+    <lit-table-column order width="1fr" data-index="alive" key="alive" align="flex-start" title="Alive"></lit-table-column>
+    <lit-table-column order width="1fr" title="First Seen" key="firstSeen" data-index="firstSeen" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="1fr" data-index="lastSeen" key="lastSeen" align="flex-start" title="Last Seen"></lit-table-column>
+    <lit-table-column width="1fr" order title="Process Name" data-index="processName" key="processName" align="flex-start" ></lit-table-column>
+    <lit-table-column order title="Responsible Process" width="1fr" data-index="responsibleProcess" key="responsibleProcess" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="1fr" data-index="userName" title="User ID" key="userName" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="1fr" data-index="cpuTime" key="cpuTime" align="flex-start" title="CPU Time"></lit-table-column>
 </lit-table>
         `;
   }
@@ -166,25 +162,25 @@ export class TabPaneHistoryProcesses extends BaseElement {
   sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (a: ProcessHistory, b: ProcessHistory) {
+      return function (historyProcessLeftData: ProcessHistory, historyProcessRightData: ProcessHistory) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+          return sort === 2 ? parseFloat(historyProcessRightData[property]) - parseFloat(historyProcessLeftData[property]) : parseFloat(historyProcessLeftData[property]) - parseFloat(historyProcessRightData[property]);
         } else if (type === 'cpuTime') {
-          return sort === 2 ? b.cpuTimeNumber - a.cpuTimeNumber : a.cpuTimeNumber - b.cpuTimeNumber;
+          return sort === 2 ? historyProcessRightData.cpuTimeNumber - historyProcessLeftData.cpuTimeNumber : historyProcessLeftData.cpuTimeNumber - historyProcessRightData.cpuTimeNumber;
         } else if (type === 'lastSeen') {
-          return sort === 2 ? b.lastSeenNumber - a.lastSeenNumber : a.lastSeenNumber - b.lastSeenNumber;
+          return sort === 2 ? historyProcessRightData.lastSeenNumber - historyProcessLeftData.lastSeenNumber : historyProcessLeftData.lastSeenNumber - historyProcessRightData.lastSeenNumber;
         } else if (type === 'firstSeen') {
-          return sort === 2 ? b.firstSeenNumber - a.firstSeenNumber : a.firstSeenNumber - b.firstSeenNumber;
+          return sort === 2 ? historyProcessRightData.firstSeenNumber - historyProcessLeftData.firstSeenNumber : historyProcessLeftData.firstSeenNumber - historyProcessRightData.firstSeenNumber;
         } else if (type === 'alive') {
           let aaaa = 0;
           let bbbb = 0;
           // @ts-ignore
-          if (b[property] == 'Yes') {
+          if (historyProcessRightData[property] == 'Yes') {
             bbbb = 1;
           }
           // @ts-ignore
-          if (a[property] == 'Yes') {
+          if (historyProcessLeftData[property] == 'Yes') {
             aaaa = 1;
           }
           if (aaaa - bbbb == 0) {
@@ -193,11 +189,11 @@ export class TabPaneHistoryProcesses extends BaseElement {
           return aaaa - bbbb ? -1 : 1;
         } else {
           // @ts-ignore
-          if (b[property] > a[property]) {
+          if (historyProcessRightData[property] > historyProcessLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (b[property] == a[property]) {
+            if (historyProcessRightData[property] == historyProcessLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -208,14 +204,14 @@ export class TabPaneHistoryProcesses extends BaseElement {
     }
 
     if (detail.key === 'startTime' || detail.key === 'processName') {
-      this.source.sort(compare(detail.key, detail.sort, 'string'));
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'string'));
     } else if (detail.key == 'cpuTime') {
-      this.source.sort(compare(detail.key, detail.sort, 'cpuTime'));
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));
     } else if (detail.key === 'alive') {
-      this.source.sort(compare(detail.key, detail.sort, 'alive'));
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'alive'));
     } else {
-      this.source.sort(compare(detail.key, detail.sort, 'number'));
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'number'));
     }
-    this.tbl!.recycleDataSource = this.source;
+    this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
   }
 }
