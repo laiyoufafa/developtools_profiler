@@ -133,7 +133,8 @@ void* ThreadFuncCpp(void* param)
     return nullptr;
 }
 
-long ThreadTimeCost(int threadNum, int writeReadTime) {
+long ThreadTimeCost(int threadNum, int writeReadTime)
+{
     Timer timer = {};
     int idx;
     int args[threadNum][2];
@@ -187,7 +188,6 @@ int main(int argc, char *argv[])
     printf("First isn't bpf hook.");
 
     auto timeCost = ThreadTimeCost(threadNum, writeReadTime);
-
     if (timeCost > 0) {
         printf("Time cost %ld us.\n", timeCost);
     } else {

@@ -127,7 +127,7 @@ bool inline __attribute__((always_inline)) UpdateThreadName(std::shared_ptr<Hook
     bool ret = true;
     if (updateCount == 0) {
         StackRawData tnameData = {{{{0}}}};
-        tnameData.tid = GetCurThreadId();
+        tnameData.tid = static_cast<uint32_t>(GetCurThreadId());
         tnameData.type = THREAD_NAME_MSG;
         prctl(PR_GET_NAME, tnameData.name);
         ret = client->SendStackWithPayload(&tnameData,
@@ -986,7 +986,7 @@ int  ohos_malloc_hook_prctl(int option, unsigned long arg2, unsigned long arg3,
 
 bool ohos_set_filter_size(size_t size, void* ret)
 {
-    if (g_ClientConfig.filterSize < 0 || size < g_ClientConfig.filterSize || size > g_maxSize) {
+    if (g_ClientConfig.filterSize < 0 || size < static_cast<size_t>(g_ClientConfig.filterSize) || size > g_maxSize) {
         return false;
     }
     return true;

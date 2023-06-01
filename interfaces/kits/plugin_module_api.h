@@ -159,22 +159,22 @@ struct WriterStruct {
     /**
      * write : function pointer,point to the actual write function.
      */
-    WriteFuncPtr write;
+    WriteFuncPtr write = nullptr;
 
     /**
      * flush function pointer,point to the actual flush function.
      */
-    FlushFuncPtr flush;
+    FlushFuncPtr flush = nullptr;
 
     /**
      * startMessage function pointer, point to the actual startMessage function.
      */
-    StartReportFuncPtr startReport;
+    StartReportFuncPtr startReport = nullptr;
 
     /**
      * finishMessage function pointer, point to the actual finishMessage function.
      */
-    FinishReportFuncPtr finishReport;
+    FinishReportFuncPtr finishReport = nullptr;
 
     /**
      * data encoding method, true is protobuf, false is protoencoder, default is true for UT.

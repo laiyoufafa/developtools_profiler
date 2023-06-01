@@ -409,7 +409,7 @@ bool PluginManager::PullResult(uint32_t pluginId)
     pluginModules_[pluginId]->GetBufferSizeHint(size);
     pluginModules_[pluginId]->GetPluginName(name);
     pluginModules_[pluginId]->GetPluginVersion(version);
-    std::unique_ptr<uint8_t[]> buffer(new (std::nothrow) uint8_t[size]);
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
     if (buffer == nullptr) {
         HILOG_DEBUG(LOG_CORE, "%s:buffer new failed!", __func__);
         return false;

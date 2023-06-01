@@ -240,7 +240,7 @@ static std::string GetTimeStr()
     CHECK_TRUE(localtime_s(&tmStruct, &ts.tv_sec) == 0, "", "localtime_s FAILED!");
 #endif
     size_t used = strftime(timeStr, sizeof(timeStr), "%m-%d %H:%M:%S", &tmStruct);
-    snprintf_s(&timeStr[used], sizeof(timeStr) - used, sizeof(timeStr) - used - 1, ".%03ld",
+    (void)snprintf_s(&timeStr[used], sizeof(timeStr) - used, sizeof(timeStr) - used - 1, ".%03ld",
         ts.tv_nsec / NS_PER_MS_LOG);
     return timeStr;
 }
