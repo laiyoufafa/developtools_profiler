@@ -227,8 +227,10 @@ ohos_executable("statisticstest_cpp") {
     "-Wno-error=inline-asm",
     "-O3",
   ]
-  ldflags = [ "-rdynamic" ]
 
+  deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+  include_dirs = [ "//third_party/bounds_checking_function/include" ]
+  ldflags = [ "-rdynamic" ]
   install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"

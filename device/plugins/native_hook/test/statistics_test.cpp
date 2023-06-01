@@ -29,6 +29,7 @@
 #include <sys/types.h>
 
 #include "memory_trace.h"
+#include "securec.h"
 
 #pragma clang optimize off
 
