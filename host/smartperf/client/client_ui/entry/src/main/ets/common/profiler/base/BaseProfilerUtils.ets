@@ -103,8 +103,6 @@ export function travelFile(path: string, regexp: string): Array<String> {
   } catch (err) {
     SPLogger.ERROR(TAG, "travelFile get err:" + err);
     SPLogger.ERROR(TAG, "travelFile err path:" + path);
-  } finally {
-    dir.closeSync();
   }
   return fileNames
 }
