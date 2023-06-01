@@ -29,6 +29,7 @@
 
 extern int LINUX_KERNEL_VERSION __kconfig;
 const volatile unsigned int g_stack_limit = 0;
+static const int SHIFT_32 = 32;
 
 // global configuration data
 // const volatile int tracer_pid = -1;
@@ -139,9 +140,9 @@ int emit_fstrace_event(void* ctx, int64_t retval)
     cmplt_event->ctime = ctime;
     cmplt_event->tracer = FSTRACE;
     cmplt_event->pid = (u32) pid_tgid;
-    cmplt_event->tgid = (u32) (pid_tgid >> 32);
+    cmplt_event->tgid = (u32) (pid_tgid >> SHIFT_32);
     cmplt_event->uid = bpf_get_current_uid_gid();
-    cmplt_event->gid = (bpf_get_current_uid_gid() >> 32);
+    cmplt_event->gid = (bpf_get_current_uid_gid() >> SHIFT_32);
     cmplt_event->retval = retval;
     err = bpf_get_current_comm(cmplt_event->comm, MAX_COMM_LEN);
     if (err) {
@@ -301,9 +302,9 @@ int emit_pftrace_event(void* ctx, int64_t retval)
     cmplt_event->tracer = PFTRACE;
     cmplt_event->ctime = ctime;
     cmplt_event->pid = (u32) pid_tgid;
-    cmplt_event->tgid = (pid_tgid >> 32);
+    cmplt_event->tgid = (pid_tgid >> SHIFT_32);
     cmplt_event->uid = bpf_get_current_uid_gid();
-    cmplt_event->gid = (bpf_get_current_uid_gid() >> 32);
+    cmplt_event->gid = (bpf_get_current_uid_gid() >> SHIFT_32);
     err = bpf_get_current_comm(cmplt_event->comm, MAX_COMM_LEN);
     if (err < 0) {
         BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to get process command");
@@ -381,7 +382,7 @@ int check_current_pid(const int32_t pid, const int32_t tgid)
     }
     int32_t curr_tgid = tgid;
     if (curr_tgid < 0) {
-        curr_tgid = (int32_t)(bpf_get_current_pid_tgid() >> 32);
+        curr_tgid = (int32_t)(bpf_get_current_pid_tgid() >> SHIFT_32);
     }
     if (curr_pid == tracer_pid || curr_tgid == tracer_pid) {
         // currrent process is not a target process
@@ -579,7 +580,7 @@ int emit_strtrace_event(u64 stime, u32 type, const void *addr, u32 stracer)
     cmplt_event->start_event.stime = stime;
     cmplt_event->start_event.addr = addr;
     cmplt_event->pid = bpf_get_current_pid_tgid();
-    cmplt_event->tgid = (bpf_get_current_pid_tgid() >> 32);
+    cmplt_event->tgid = (bpf_get_current_pid_tgid() >> SHIFT_32);
     int err = 0;
     switch (stracer) {
         case BIOTRACE: {
@@ -732,7 +733,7 @@ int handle_blk_issue(struct request *rq)
     emit_strtrace_event(bio_se->stime, bio_se->type, BPF_CORE_READ(rq, bio), BIOTRACE);
     u64 tgid_pid = bpf_get_current_pid_tgid();
     bio_se->pid = (u32) tgid_pid;
-    bio_se->tgid = (u32) (tgid_pid >> 32);
+    bio_se->tgid = (u32) (tgid_pid >> SHIFT_32);
     bpf_get_current_comm(bio_se->comm, MAX_COMM_LEN);
     bio_se->size = BPF_CORE_READ(rq, bio, bi_iter.bi_size);
     bpf_map_update_elem(&start_event_map, &start_event_map_key, &start_event, BPF_ANY);
@@ -809,7 +810,7 @@ int BPF_KRETPROBE(uretprobe_dlopen, void *ret)
     }
     start_event->type = DLOPEN_TRACE;
     u64 tgid_pid = bpf_get_current_pid_tgid();
-    start_event->tgid = (u32)(tgid_pid >> 32);
+    start_event->tgid = (u32)(tgid_pid >> SHIFT_32);
     bpf_ringbuf_submit(start_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }

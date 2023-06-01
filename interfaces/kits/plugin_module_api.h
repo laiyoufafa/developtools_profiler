@@ -16,7 +16,6 @@
 #ifndef PLUGIN_MODULE_API_H
 #define PLUGIN_MODULE_API_H
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <climits>

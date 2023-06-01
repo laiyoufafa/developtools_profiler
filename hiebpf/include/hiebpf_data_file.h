@@ -15,14 +15,14 @@
 
 #ifndef HIEBPF_DATA_FILE_H
 #define HIEBPF_DATA_FILE_H
+#include <sys/mman.h>
+#include <cerrno>
 #include <memory>
 #include <string>
 #include <mutex>
 
-#include <unistd.h>
 #include <fcntl.h>
-#include <sys/mman.h>
-#include <errno.h>
+#include <unistd.h>
 
 #include "type_headers.h"
 #include "ringbuffer.h"

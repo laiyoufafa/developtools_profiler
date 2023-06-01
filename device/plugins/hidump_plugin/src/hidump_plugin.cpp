@@ -205,7 +205,7 @@ FILE* HidumpPlugin::CustomPopen(const char* command, const char* type)
         }
 
         setpgid(pid, pid);
-        execl(BIN_COMMAND.c_str(), BIN_COMMAND.c_str(), "-c", command, NULL);
+        execl(BIN_COMMAND.c_str(), BIN_COMMAND.c_str(), "-c", command, nullptr);
         exit(0);
     } else {
         if (!strncmp(type, "r", strlen(type))) {

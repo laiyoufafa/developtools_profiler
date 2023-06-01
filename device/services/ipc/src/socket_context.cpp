@@ -198,7 +198,7 @@ bool SocketContext::SendHookConfig(const uint8_t* config, size_t len)
     phead.protoType = PROTOCOL_TYPE_PROTOBUF;
     phead.protoSize = len + sizeof(struct ProtocolHead);
     send(socketHandle_, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0);
-    send(socketHandle_, config , len, 0);
+    send(socketHandle_, config, len, 0);
     return true;
 }
 

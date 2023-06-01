@@ -15,6 +15,9 @@
 
 /* This line is generated to truncate the original file */
 /************************** fstrace BPF progs BEGIN *****************************/
+#ifndef FSTRACE_PROGS_H
+#define FSTRACE_PROGS_H
+
 SEC("kprobe/do_sys_openat2")
 int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user* filename, struct open_how* how)
 {
@@ -484,3 +487,4 @@ int BPF_KRETPROBE(__close_fd_exit, int64_t retval)
     return emit_event(ctx, retval, FSTRACE);
 }
 /*************************** fstrace BPF progs END ******************************/
+#endif // FSTRACE_PROGS_H

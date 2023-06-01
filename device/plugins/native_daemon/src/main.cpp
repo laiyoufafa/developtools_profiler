@@ -138,7 +138,8 @@ void GetHookedProceInfo(HookData& hookData)
         printf("Please send signal 36 to target process %d\n", hookData.pid);
     } else if (!hookData.processName.empty()) {
         int pidValue = -1;
-        bool isExist = COMMON::IsProcessExist(hookData.processName, pidValue);
+        const std::string processName = hookData.processName;
+        bool isExist = COMMON::IsProcessExist(processName, pidValue);
         if (!isExist) {
             printf("Please start process %s\n", hookData.processName.c_str());
         } else {

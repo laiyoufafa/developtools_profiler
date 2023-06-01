@@ -114,12 +114,12 @@ HWTEST_F(VirtualRuntimeTest, GetSymbolsFiles, TestSize.Level1)
 }
 
 namespace {
-constexpr const pid_t testTid = 1;
-constexpr const uint64_t testUserVaddr = 0x1000;
-constexpr const uint64_t testKernelVaddr = testUserVaddr / 4;
-constexpr const uint64_t testKernelLen = testUserVaddr / 2;
-constexpr const uint64_t testUserMapBegin = 0x2000;
-constexpr const uint64_t testUserMapLen = 0x4000;
+constexpr const pid_t TEST_TID = 1;
+constexpr const uint64_t TEST_USET_VADDR = 0x1000;
+constexpr const uint64_t TEST_KERNEL_VADDR = TEST_USET_VADDR / 4;
+constexpr const uint64_t TEST_KERNEL_LEN = TEST_USET_VADDR / 2;
+constexpr const uint64_t TEST_USET_MAP_BEGIN = 0x2000;
+constexpr const uint64_t TEST_USET_MAP_LEN = 0x4000;
 } // namespace
 
 void VirtualRuntimeTest::PrepareKernelSymbol()
@@ -127,15 +127,15 @@ void VirtualRuntimeTest::PrepareKernelSymbol()
     std::string kernelSymbol = "kernel_symbol";
     auto kernel = SymbolsFile::CreateSymbolsFile(SYMBOL_KERNEL_FILE);
     kernel->filePath_ = kernelSymbol;
-    kernel->symbols_.emplace_back(testKernelVaddr, 1u, "first_kernel_func", kernel->filePath_);
-    kernel->symbols_.emplace_back(testKernelVaddr + 1u, 1u, "second_kernel_func",
+    kernel->symbols_.emplace_back(TEST_KERNEL_VADDR, 1u, "first_kernel_func", kernel->filePath_);
+    kernel->symbols_.emplace_back(TEST_KERNEL_VADDR + 1u, 1u, "second_kernel_func",
                                   kernel->filePath_);
     runtime_->symbolsFiles_[kernel->filePath_] = std::move(kernel);
 
     auto &kernelMap = runtime_->kernelSpaceMemMaps_.emplace_back();
     kernelMap.name_ = kernelSymbol;
     kernelMap.begin_ = 0;
-    kernelMap.end_ = 0 + testKernelLen;
+    kernelMap.end_ = 0 + TEST_KERNEL_LEN;
     kernelMap.pageoffset_ = 0;
 }
 
@@ -144,14 +144,14 @@ void VirtualRuntimeTest::PrepareUserSymbol()
     std::string userSymbol = "user_symbol";
     auto user = SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE);
     user->filePath_ = userSymbol;
-    user->symbols_.emplace_back(testUserVaddr, 1u, "first_user_func", user->filePath_);
-    user->symbols_.emplace_back(testUserVaddr + 1u, 1u, "second_user_func", user->filePath_);
-    user->textExecVaddrFileOffset_ = testUserVaddr;
-    user->textExecVaddr_ = testUserVaddr;
+    user->symbols_.emplace_back(TEST_KERNEL_VADDR, 1u, "first_user_func", user->filePath_);
+    user->symbols_.emplace_back(TEST_KERNEL_VADDR + 1u, 1u, "second_user_func", user->filePath_);
+    user->textExecVaddrFileOffset_ = TEST_KERNEL_VADDR;
+    user->textExecVaddr_ = TEST_KERNEL_VADDR;
     runtime_->symbolsFiles_[user->filePath_] =  std::move(user);
 
-    VirtualThread &thread = runtime_->GetThread(testTid, testTid);
-    thread.CreateMapItem(userSymbol, testUserMapBegin, testUserMapLen, 0);
+    VirtualThread &thread = runtime_->GetThread(TEST_TID, TEST_TID);
+    thread.CreateMapItem(userSymbol, TEST_USET_MAP_BEGIN, TEST_USET_MAP_LEN, 0);
 }
 
 /**
@@ -168,14 +168,14 @@ HWTEST_F(VirtualRuntimeTest, GetSymbol, TestSize.Level1)
     ScopeDebugLevel tempLogLevel(LEVEL_MUCH);
     CallFrame callFrame(0);
 
-    symbol = runtime_->GetSymbol(callFrame, testTid, testTid);
+    symbol = runtime_->GetSymbol(callFrame, TEST_TID, TEST_TID);
     EXPECT_EQ(symbol.isValid(), false);
 
-    callFrame.ip_ = testUserVaddr + testUserMapBegin;
-    symbol = runtime_->GetSymbol(callFrame, testTid, testTid);
+    callFrame.ip_ = TEST_KERNEL_VADDR + TEST_USET_MAP_BEGIN;
+    symbol = runtime_->GetSymbol(callFrame, TEST_TID, TEST_TID);
     // in user
     EXPECT_EQ(symbol.isValid(), true);
-    EXPECT_EQ(symbol.funcVaddr_, testUserVaddr);
+    EXPECT_EQ(symbol.funcVaddr_, TEST_KERNEL_VADDR);
     EXPECT_STREQ(symbol.name_.data(), "first_user_func");
 }
 

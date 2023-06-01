@@ -606,13 +606,13 @@ HWTEST_F(MemoryDataPluginTest, TestProcessTreeRunTime, TestSize.Level1)
     std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
     EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
     clock_t clockstart = clock();
-    gettimeofday(&start, NULL);
+    gettimeofday(&start, nullptr);
     while (testCount--) {
         int ret = plugin->callbacks->onPluginReportResult(dataBuffer.data(), dataBuffer.size());
         ASSERT_GT(ret, 0);
         OutputData(dataBuffer.data(), (uint32_t)ret);
     }
-    gettimeofday(&end, NULL);
+    gettimeofday(&end, nullptr);
     clock_t clockend = clock();
     int timeuse = US_PER_S * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
     HILOG_INFO(LOG_CORE, "clock time=%.3fs, timeofday=%.3fs", (double)(clockend - clockstart) / CLOCKS_PER_SEC,
@@ -713,7 +713,7 @@ HWTEST_F(MemoryDataPluginTest, TestPid, TestSize.Level1)
     EXPECT_TRUE(PluginStub(plugin, config, memoryData));
     EXPECT_GT(memoryData.processesinfo(0).vm_size_kb(), memoryData.processesinfo(1).vm_size_kb());
 
-    while (waitpid(-1, NULL, WNOHANG) == 0) {
+    while (waitpid(-1, nullptr, WNOHANG) == 0) {
         kill(pid1, SIGKILL);
         kill(pid2, SIGKILL);
     }

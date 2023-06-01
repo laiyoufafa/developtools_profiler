@@ -360,7 +360,7 @@ protected:
     }
 
 private:
-    bool EhFrameHDRValid_ {false};
+    bool ehFrameHDRValid_ {false};
     uint64_t ehFrameHDRElfOffset_ {0};
     uint64_t ehFrameHDRFdeCount_ {0};
     uint64_t ehFrameHDRFdeTableItemSize_ {0};
@@ -439,13 +439,13 @@ private:
     bool GetHDRSectionInfo(uint64_t &ehFrameHdrElfOffset, uint64_t &fdeTableElfOffset,
                            uint64_t &fdeTableSize) const override
     {
-        if (EhFrameHDRValid_) {
+        if (ehFrameHDRValid_) {
             ehFrameHdrElfOffset = ehFrameHDRElfOffset_;
             fdeTableElfOffset = ehFrameHDRFdeTableElfOffset_;
             fdeTableSize = ehFrameHDRFdeCount_ * ehFrameHDRFdeTableItemSize_;
             return true;
         } else {
-            HLOGW("!EhFrameHDRValid_");
+            HLOGW("!ehFrameHDRValid_");
             return false;
         }
     }
@@ -484,7 +484,7 @@ private:
             HLOGD("eh_frame_hdr version is invalid");
             return false;
         }
-        EhFrameHDRValid_ = true;
+        ehFrameHDRValid_ = true;
         ehFrameHDRElfOffset_ = shdrOffset;
         ehFrameHDRFdeCount_ = dwFdeCount.GetAppliedValue();
         ehFrameHDRFdeTableElfOffset_ = dwTable.GetData() - buffer + shdrOffset;

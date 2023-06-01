@@ -661,122 +661,122 @@ int BPFController::HandleEvent(void *ctx, void *data, size_t dataSize)
     return ret;
 }
 
-static int DumpOpenat2Args(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpOpenat2Args(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    dfd = " << cmplt_event.start_event.openat2_args.dfd;
-    std::cout << "\n    filename = " << cmplt_event.start_event.openat2_args.filename;
-    std::cout << "\n    how = " << cmplt_event.start_event.openat2_args.how;
+    std::cout << "\n    dfd = " << cmpltEvent.start_event.openat2_args.dfd;
+    std::cout << "\n    filename = " << cmpltEvent.start_event.openat2_args.filename;
+    std::cout << "\n    how = " << cmpltEvent.start_event.openat2_args.how;
     return 0;
 }
 
-static int DumpReadvArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpReadvArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.readv_args.fd;
-    std::cout << "\n    vec = " << cmplt_event.start_event.readv_args.vec;
-    std::cout << "\n    vlen = " << cmplt_event.start_event.readv_args.vlen;
-    std::cout << "\n    flags = " << cmplt_event.start_event.readv_args.flags;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.readv_args.fd;
+    std::cout << "\n    vec = " << cmpltEvent.start_event.readv_args.vec;
+    std::cout << "\n    vlen = " << cmpltEvent.start_event.readv_args.vlen;
+    std::cout << "\n    flags = " << cmpltEvent.start_event.readv_args.flags;
     return 0;
 }
 
-static int DumpPreadvArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpPreadvArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.preadv_args.fd;
-    std::cout << "\n    vec = " << cmplt_event.start_event.preadv_args.vec;
-    std::cout << "\n    vlen = " << cmplt_event.start_event.preadv_args.vlen;
-    std::cout << "\n    pos = " << cmplt_event.start_event.preadv_args.pos;
-    std::cout << "\n    flags = " << cmplt_event.start_event.preadv_args.flags;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.preadv_args.fd;
+    std::cout << "\n    vec = " << cmpltEvent.start_event.preadv_args.vec;
+    std::cout << "\n    vlen = " << cmpltEvent.start_event.preadv_args.vlen;
+    std::cout << "\n    pos = " << cmpltEvent.start_event.preadv_args.pos;
+    std::cout << "\n    flags = " << cmpltEvent.start_event.preadv_args.flags;
     return 0;
 }
 
-static int DumpReadArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpReadArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.read_args.fd;
-    std::cout << "\n    buf = " << cmplt_event.start_event.read_args.buf;
-    std::cout << "\n    count = " << cmplt_event.start_event.read_args.count;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.read_args.fd;
+    std::cout << "\n    buf = " << cmpltEvent.start_event.read_args.buf;
+    std::cout << "\n    count = " << cmpltEvent.start_event.read_args.count;
     return 0;
 }
 
-static int DumpPread64Args(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpPread64Args(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.pread64_args.fd;
-    std::cout << "\n    buf = " << cmplt_event.start_event.pread64_args.buf;
-    std::cout << "\n    count = " << cmplt_event.start_event.pread64_args.count;
-    std::cout << "\n    pos = " << cmplt_event.start_event.pread64_args.pos;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.pread64_args.fd;
+    std::cout << "\n    buf = " << cmpltEvent.start_event.pread64_args.buf;
+    std::cout << "\n    count = " << cmpltEvent.start_event.pread64_args.count;
+    std::cout << "\n    pos = " << cmpltEvent.start_event.pread64_args.pos;
     return 0;
 }
 
-static int DumpWritevArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpWritevArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.writev_args.fd;
-    std::cout << "\n    vec = " << cmplt_event.start_event.writev_args.vec;
-    std::cout << "\n    vlen = " << cmplt_event.start_event.writev_args.vlen;
-    std::cout << "\n    flags = " << cmplt_event.start_event.writev_args.flags;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.writev_args.fd;
+    std::cout << "\n    vec = " << cmpltEvent.start_event.writev_args.vec;
+    std::cout << "\n    vlen = " << cmpltEvent.start_event.writev_args.vlen;
+    std::cout << "\n    flags = " << cmpltEvent.start_event.writev_args.flags;
     return 0;
 }
 
-static int DumpPwritevArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpPwritevArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.pwritev_args.fd;
-    std::cout << "\n    vec = " << cmplt_event.start_event.pwritev_args.vec;
-    std::cout << "\n    vlen = " << cmplt_event.start_event.pwritev_args.vlen;
-    std::cout << "\n    pos = " << cmplt_event.start_event.pwritev_args.pos;
-    std::cout << "\n    flags = " << cmplt_event.start_event.pwritev_args.flags;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.pwritev_args.fd;
+    std::cout << "\n    vec = " << cmpltEvent.start_event.pwritev_args.vec;
+    std::cout << "\n    vlen = " << cmpltEvent.start_event.pwritev_args.vlen;
+    std::cout << "\n    pos = " << cmpltEvent.start_event.pwritev_args.pos;
+    std::cout << "\n    flags = " << cmpltEvent.start_event.pwritev_args.flags;
     return 0;
 }
 
-static int DumpWriteArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpWriteArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.write_args.fd;
-    std::cout << "\n    buf = " << cmplt_event.start_event.write_args.buf;
-    std::cout << "\n    count = " << cmplt_event.start_event.write_args.count;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.write_args.fd;
+    std::cout << "\n    buf = " << cmpltEvent.start_event.write_args.buf;
+    std::cout << "\n    count = " << cmpltEvent.start_event.write_args.count;
     return 0;
 }
 
-static int DumpPwrite64Args(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpPwrite64Args(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    fd = " << cmplt_event.start_event.pwrite64_args.fd;
-    std::cout << "\n    buf = " << cmplt_event.start_event.pwrite64_args.buf;
-    std::cout << "\n    count = " << cmplt_event.start_event.pwrite64_args.count;
-    std::cout << "\n    pos = " << cmplt_event.start_event.pwrite64_args.pos;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.pwrite64_args.fd;
+    std::cout << "\n    buf = " << cmpltEvent.start_event.pwrite64_args.buf;
+    std::cout << "\n    count = " << cmpltEvent.start_event.pwrite64_args.count;
+    std::cout << "\n    pos = " << cmpltEvent.start_event.pwrite64_args.pos;
     return 0;
 }
 
-static int DumpCloseArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpCloseArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nArgs:";
-    std::cout << "\n    files = " << cmplt_event.start_event.close_args.files;
-    std::cout << "\n    fd = " << cmplt_event.start_event.close_args.fd;
+    std::cout << "\n    files = " << cmpltEvent.start_event.close_args.files;
+    std::cout << "\n    fd = " << cmpltEvent.start_event.close_args.fd;
     return 0;
 }
 
-static int DumpTypeAndArgs(const struct fstrace_cmplt_event_t &cmplt_event)
+static int DumpTypeAndArgs(const struct fstrace_cmplt_event_t &cmpltEvent)
 {
     std::cout << "\nevent type:     ";
-    switch (cmplt_event.start_event.type) {
-        case SYS_OPENAT2: std::cout << "openat2"; return DumpOpenat2Args(cmplt_event);
+    switch (cmpltEvent.start_event.type) {
+        case SYS_OPENAT2: std::cout << "openat2"; return DumpOpenat2Args(cmpltEvent);
 
-        case SYS_READV: std::cout << "readv"; return DumpReadvArgs(cmplt_event);
-        case SYS_PREADV: std::cout << "preadv"; return DumpPreadvArgs(cmplt_event);
-        case SYS_READ: std::cout << "read"; return DumpReadArgs(cmplt_event);
-        case SYS_PREAD64: std::cout << "pread64"; return DumpPread64Args(cmplt_event);
+        case SYS_READV: std::cout << "readv"; return DumpReadvArgs(cmpltEvent);
+        case SYS_PREADV: std::cout << "preadv"; return DumpPreadvArgs(cmpltEvent);
+        case SYS_READ: std::cout << "read"; return DumpReadArgs(cmpltEvent);
+        case SYS_PREAD64: std::cout << "pread64"; return DumpPread64Args(cmpltEvent);
 
-        case SYS_WRITEV: std::cout << "writev"; return DumpWritevArgs(cmplt_event);
-        case SYS_PWRITEV: std::cout << "pwritev"; return DumpPwritevArgs(cmplt_event);
-        case SYS_WRITE: std::cout << "write"; return DumpWriteArgs(cmplt_event);
-        case SYS_PWRITE64: std::cout << "pwrite64"; return DumpPwrite64Args(cmplt_event);
+        case SYS_WRITEV: std::cout << "writev"; return DumpWritevArgs(cmpltEvent);
+        case SYS_PWRITEV: std::cout << "pwritev"; return DumpPwritevArgs(cmpltEvent);
+        case SYS_WRITE: std::cout << "write"; return DumpWriteArgs(cmpltEvent);
+        case SYS_PWRITE64: std::cout << "pwrite64"; return DumpPwrite64Args(cmpltEvent);
 
-        case SYS_CLOSE: std::cout << "close"; return DumpCloseArgs(cmplt_event);
+        case SYS_CLOSE: std::cout << "close"; return DumpCloseArgs(cmpltEvent);
     }
-    HHLOGE(true, "unreognized fstrace event type = %d", cmplt_event.start_event.type);
+    HHLOGE(true, "unreognized fstrace event type = %d", cmpltEvent.start_event.type);
     return -1;
 }
 
@@ -789,25 +789,25 @@ int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t d
                   << std::endl;
         return -1;
     }
-    struct fstrace_cmplt_event_t cmplt_event {};
-    if (memcpy_s(&cmplt_event, sizeof(fstrace_cmplt_event_t), data, dataSize) != EOK) {
+    struct fstrace_cmplt_event_t cmpltEvent {};
+    if (memcpy_s(&cmpltEvent, sizeof(fstrace_cmplt_event_t), data, dataSize) != EOK) {
         std::cout << "failed to copy data to fstrace_cmplt_event_t" << std::endl;
         return -1;
     }
     std::cout << "\nFSTrace Event:"
               << "\ndata size:      " << dataSize;
-    DumpTypeAndArgs(cmplt_event);
-    std::cout << "\nretval:         " << cmplt_event.retval
-              << "\nstart time:     " << cmplt_event.start_event.stime
-              << "\nexit time:      " << cmplt_event.ctime
-              << "\npid:            " << cmplt_event.pid
-              << "\ntgid:           " << cmplt_event.tgid
-              << "\ncomm:           " << cmplt_event.comm
-              << "\nips:            " << cmplt_event.nips
+    DumpTypeAndArgs(cmpltEvent);
+    std::cout << "\nretval:         " << cmpltEvent.retval
+              << "\nstart time:     " << cmpltEvent.start_event.stime
+              << "\nexit time:      " << cmpltEvent.ctime
+              << "\npid:            " << cmpltEvent.pid
+              << "\ntgid:           " << cmpltEvent.tgid
+              << "\ncomm:           " << cmpltEvent.comm
+              << "\nips:            " << cmpltEvent.nips
               << "\nips:"
               << std::setw(WIDE_SIXTEEN) << std::hex;
-    for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
-        std::cout << "\n    " << cmplt_event.ips[i];
+    for (uint32_t i = 0; i < cmpltEvent.nips; ++i) {
+        std::cout << "\n    " << cmpltEvent.ips[i];
     }
     std::cout << std::dec << std::endl;
     return 0;
@@ -822,15 +822,15 @@ int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t d
                   << std::endl;
         return -1;
     }
-    struct pftrace_cmplt_event_t cmplt_event {};
-    if (memcpy_s(&cmplt_event, sizeof(pftrace_cmplt_event_t), data, dataSize) != EOK) {
+    struct pftrace_cmplt_event_t cmpltEvent {};
+    if (memcpy_s(&cmpltEvent, sizeof(pftrace_cmplt_event_t), data, dataSize) != EOK) {
         std::cout << "failed to copy data to pftrace_cmplt_event_t" << std::endl;
         return -1;
     }
     std::cout << "PFTrace Event:"
               << "\ndata size:      " << dataSize
               << "\nevent type:     ";
-    switch (cmplt_event.start_event.type) {
+    switch (cmpltEvent.start_event.type) {
         case PF_COPY_ON_WRITE:  std::cout << "Copy On  Write"; break;
         case PF_FAKE_ZERO_PAGE: std::cout << "Zero FAKE Page"; break;
         case PF_FILE_BACKED_IN: std::cout << "File Backed In"; break;
@@ -838,19 +838,19 @@ int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t d
         case PF_SWAP_FROM_DISK: std::cout << "Swap From Disk"; break;
         case PF_SWAP_FROM_ZRAM: std::cout << "Swap From Zram"; break;
         case PF_ZERO_FILL_PAGE: std::cout << "Zero Fill Page"; break;
-        default: std::cout << cmplt_event.start_event.type;
+        default: std::cout << cmpltEvent.start_event.type;
     }
-    std::cout << "\naddress:        " << cmplt_event.start_event.addr
-              << "\nsize:           " << cmplt_event.size
-              << "\nstart time:     " << cmplt_event.start_event.stime
-              << "\nexit time:      " << cmplt_event.ctime
-              << "\npid:            " << cmplt_event.pid
-              << "\ntgid:           " << cmplt_event.tgid
-              << "\ncomm:           " << cmplt_event.comm
-              << "\nips:            " << cmplt_event.nips
+    std::cout << "\naddress:        " << cmpltEvent.start_event.addr
+              << "\nsize:           " << cmpltEvent.size
+              << "\nstart time:     " << cmpltEvent.start_event.stime
+              << "\nexit time:      " << cmpltEvent.ctime
+              << "\npid:            " << cmpltEvent.pid
+              << "\ntgid:           " << cmpltEvent.tgid
+              << "\ncomm:           " << cmpltEvent.comm
+              << "\nips:            " << cmpltEvent.nips
               << std::setw(WIDE_SIXTEEN) << std::hex;
-    for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
-        std::cout << "\n    " << cmplt_event.ips[i];
+    for (uint32_t i = 0; i < cmpltEvent.nips; ++i) {
+        std::cout << "\n    " << cmpltEvent.ips[i];
     }
     std::cout << std::dec << std::endl;
     return 0;
@@ -865,36 +865,36 @@ int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t 
                   << std::endl;
         return -1;
     }
-    struct biotrace_cmplt_event_t cmplt_event {};
-    if (memcpy_s(&cmplt_event, sizeof(biotrace_cmplt_event_t), data, dataSize) != EOK) {
+    struct biotrace_cmplt_event_t cmpltEvent {};
+    if (memcpy_s(&cmpltEvent, sizeof(biotrace_cmplt_event_t), data, dataSize) != EOK) {
         std::cout << "failed to copy data to biotrace_cmplt_event_t" << std::endl;
         return -1;
     }
     std::cout << "BIOTrace Event:"
               << "\ndata size:      " << dataSize
               << "\nevent type:     ";
-    switch (cmplt_event.start_event.type) {
+    switch (cmpltEvent.start_event.type) {
         case BIO_DATA_READ: std::cout << "DATA_READ"; break;
         case BIO_DATA_WRITE: std::cout << "DATA_WRITE"; break;
         case BIO_METADATA_READ: std::cout << "METADATA_READ"; break;
         case BIO_METADATA_WRITE: std::cout << "METADATA_WRITE"; break;
         case BIO_PAGE_IN: std::cout << "PAGE_IN"; break;
         case BIO_PAGE_OUT: std::cout << "PAGE_OUT"; break;
-        default: std::cout << cmplt_event.start_event.type;
+        default: std::cout << cmpltEvent.start_event.type;
     }
 
-    std::cout << "\nstart time:     " << cmplt_event.start_event.stime
-              << "\nexit time:      " << cmplt_event.ctime
-              << "\npid:            " << cmplt_event.start_event.pid
-              << "\ntgid:           " << cmplt_event.start_event.tgid
-              << "\ncomm:           " << cmplt_event.start_event.comm
-              << "\nprio:           " << cmplt_event.prio
-              << "\nsize:           " << cmplt_event.start_event.size
-              << "\nblkcnt:         " << cmplt_event.blkcnt
-              << "\nips:            " << cmplt_event.nips
+    std::cout << "\nstart time:     " << cmpltEvent.start_event.stime
+              << "\nexit time:      " << cmpltEvent.ctime
+              << "\npid:            " << cmpltEvent.start_event.pid
+              << "\ntgid:           " << cmpltEvent.start_event.tgid
+              << "\ncomm:           " << cmpltEvent.start_event.comm
+              << "\nprio:           " << cmpltEvent.prio
+              << "\nsize:           " << cmpltEvent.start_event.size
+              << "\nblkcnt:         " << cmpltEvent.blkcnt
+              << "\nips:            " << cmpltEvent.nips
               << std::setw(WIDE_SIXTEEN) << std::hex;
-    for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
-        std::cout << "\n    " << cmplt_event.ips[i];
+    for (uint32_t i = 0; i < cmpltEvent.nips; ++i) {
+        std::cout << "\n    " << cmpltEvent.ips[i];
     }
     std::cout << std::dec << std::endl;
     return 0;
@@ -909,21 +909,21 @@ int BPFController::DumpSTRTraceEvent(void *data, size_t dataSize)
                   << std::endl;
         return -1;
     }
-    struct strtrace_cmplt_event_t cmplt_event {};
-    if (memcpy_s(&cmplt_event, sizeof(strtrace_cmplt_event_t), data, dataSize) != EOK) {
+    struct strtrace_cmplt_event_t cmpltEvent {};
+    if (memcpy_s(&cmpltEvent, sizeof(strtrace_cmplt_event_t), data, dataSize) != EOK) {
         std::cout << "failed to copy data to strtrace_cmplt_event_t" << std::endl;
         return -1;
     }
     std::cout << "STRTrace Event:"
               << "\ndata size:      " << dataSize
-              << "\ntracer:         " << cmplt_event.start_event.stracer
-              << "\ntype:           " << cmplt_event.start_event.type
-              << "\naddress:        " << cmplt_event.start_event.addr
-              << "\nstart time:     " << cmplt_event.start_event.stime
-              << "\npid:            " << cmplt_event.pid
-              << "\ntgid:           " << cmplt_event.tgid
-              << "\nfilename len:   " << cmplt_event.len
-              << "\nfilename:       " << cmplt_event.filename
+              << "\ntracer:         " << cmpltEvent.start_event.stracer
+              << "\ntype:           " << cmpltEvent.start_event.type
+              << "\naddress:        " << cmpltEvent.start_event.addr
+              << "\nstart time:     " << cmpltEvent.start_event.stime
+              << "\npid:            " << cmpltEvent.pid
+              << "\ntgid:           " << cmpltEvent.tgid
+              << "\nfilename len:   " << cmpltEvent.len
+              << "\nfilename:       " << cmpltEvent.filename
               << std::endl;
     return 0;
 }

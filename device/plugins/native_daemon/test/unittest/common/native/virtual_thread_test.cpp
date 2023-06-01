@@ -218,7 +218,7 @@ HWTEST_F(VirtualThreadTest, ParseMap, TestSize.Level1)
 
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(),
-        get_thread_id(), files, runtime.get());
+        GetThreadId(), files, runtime.get());
 
     dl_iterate_phdr(PhdrCallBack, static_cast<void *>(thread.get()));
 
@@ -238,7 +238,7 @@ HWTEST_F(VirtualThreadTest, CreateMapItem, TestSize.Level1)
 {
     std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
-    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
+    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), GetThreadId(),
         files, runtime.get(), false);
     const std::vector<MemMapItem> &maps = thread->GetMaps();
 
@@ -277,10 +277,10 @@ HWTEST_F(VirtualThreadTest, InheritMaps, TestSize.Level1)
 
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(),
-        get_thread_id(), files, runtime.get());
+        GetThreadId(), files, runtime.get());
 
     std::shared_ptr<VirtualThread> thread2 = std::make_shared<VirtualThread>(getpid(),
-        get_thread_id() + 1, files, runtime.get());
+        GetThreadId() + 1, files, runtime.get());
 
     const std::vector<MemMapItem> &maps = thread->GetMaps();
     const std::vector<MemMapItem> &maps2 = thread2->GetMaps();
@@ -309,7 +309,7 @@ HWTEST_F(VirtualThreadTest, FindMapByAddr, TestSize.Level1)
 {
     std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
-    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
+    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), GetThreadId(),
         files, runtime.get(), false);
 
     thread->CreateMapItem("0.so", 1000u, 2000u, 3000u);
@@ -350,7 +350,7 @@ HWTEST_F(VirtualThreadTest, FindMapByFileInfo, TestSize.Level1)
 {
     std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> files;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
-    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
+    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), GetThreadId(),
         files, runtime.get(), false);
 
     thread->CreateMapItem("0.so", 1000u, 2000u, 3000u);
@@ -397,7 +397,7 @@ HWTEST_F(VirtualThreadTest, FindSymbolsFileByMap, TestSize.Level1)
     files["3.elf"] = std::make_unique<SymbolsFile>(SYMBOL_UNKNOW_FILE, "3.elf");
 
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
-    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
+    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), GetThreadId(),
         files, runtime.get(), false);
 
     MemMapItem inMap;
@@ -430,7 +430,7 @@ HWTEST_F(VirtualThreadTest, ReadRoMemory, TestSize.Level1)
 {
     std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
-    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
+    std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), GetThreadId(),
         symbolsFiles, runtime.get(), false);
     std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(TEST_FILE_ELF_FULL_PATH.c_str(), "rb"),
                                                 fclose);

@@ -508,7 +508,7 @@ std::string GetLastErrorString()
     LPVOID lpMsgBuf;
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                   FORMAT_MESSAGE_IGNORE_INSERTS,
-                  NULL, GetLastError(), 0, (LPTSTR)&lpMsgBuf, 0, NULL);
+                  nullptr, GetLastError(), 0, (LPTSTR)&lpMsgBuf, 0, nullptr);
     std::string error((LPTSTR)lpMsgBuf);
     LocalFree(lpMsgBuf);
     return error;

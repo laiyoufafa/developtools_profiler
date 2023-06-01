@@ -16,14 +16,15 @@
 #ifndef HIEBPF_COMMAND_H
 #define HIEBPF_COMMAND_H
 
+#include <csignal>
+#include <fstream>
+#include <queue>
 #include <string>
 #include <vector>
-#include <signal.h>
-#include <queue>
-#include <fstream>
+
 #include "bpf_controller.h"
-#include "maps_info.h"
 #include "elf_symbol_info.h"
+#include "maps_info.h"
 #include "ring_buffer.h"
 #include "hiebpf_common.h"
 class Command {

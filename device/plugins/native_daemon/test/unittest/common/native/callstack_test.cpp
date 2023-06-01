@@ -109,7 +109,7 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
     // fix the name
     symbolsFile->filePath_ = TEST_DWARF_MMAP.front().fileName;
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
-    VirtualThread thread(getpid(), get_thread_id(), symbolsFiles, runtime.get(), false);
+    VirtualThread thread(getpid(), GetThreadId(), symbolsFiles, runtime.get(), false);
     MakeMaps(thread);
     std::vector<CallFrame> callFrames;
     CallStack callStack;

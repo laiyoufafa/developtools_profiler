@@ -73,7 +73,7 @@ bool HookManager::CheckProcess()
 void HookManager::CheckProcessName()
 {
     int pidValue = -1;
-    std::string processName = hookConfig_.process_name();
+    const std::string processName = hookConfig_.process_name();
     bool isExist = COMMON::IsProcessExist(processName, pidValue);
     if (hookConfig_.startup_mode() || !isExist) {
         HILOG_INFO(LOG_CORE, "Wait process %s start or restart, set param", hookConfig_.process_name().c_str());
