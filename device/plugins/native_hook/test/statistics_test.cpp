@@ -57,7 +57,7 @@ unsigned int g_stickDepth = 1;
 void CallocFun()
 {
     static int i = 0;
-    char* ptr = (char*)calloc(1,MALLOC_SIZE / 100);
+    char* ptr = (char*)calloc(1, MALLOC_SIZE / 100);
     fprintf(stderr, "calloc %p i=%d\n", ptr, i);
     free(ptr);
     i++;
@@ -90,7 +90,6 @@ bool DepthMallocFree(int depth = 0, int mallocSize = 100)
 
 void DlopenAndCloseSo(std::string filePath, int size)
 {
-    char *ptr = nullptr;
     void* handle = nullptr;
     DepthMallocSo mallocFunc = nullptr;
     DepthFreeSo freeFunc = nullptr;
@@ -104,11 +103,11 @@ void DlopenAndCloseSo(std::string filePath, int size)
     }
     mallocFunc = (DepthMallocSo)dlsym(handle, "DepthMallocSo");
     freeFunc = (DepthFreeSo)dlsym(handle, "DepthFreeSo");
-
     if (mallocFunc == nullptr || freeFunc == nullptr) {
         fprintf(stderr, "function not exist!\n");
         exit(0);
     }
+    char* ptr = nullptr;
     for (size_t i = 0; i < 20; i++) { // 20: loop count
         ptr = mallocFunc(g_stickDepth, size);
         *ptr = 'a';
@@ -266,7 +265,8 @@ int main(int argc, char *argv[])
     TestMemoryMap();
 
     fprintf(stderr, "forNum = %d, threadNum = %d\n", forNum, threadNum);
-    fprintf(stderr, "Notice: need copy libnativetest_so.z.so for %s, %s\n", VEC_SO_PATH[0].data(), VEC_SO_PATH[1].data());
+    fprintf(stderr, "Notice: need copy libnativetest_so.z.so for %s, %s\n",
+            VEC_SO_PATH[0].data(), VEC_SO_PATH[1].data());
     pthread_t* thrArray = new (std::nothrow) pthread_t[threadNum];
     if (!thrArray) {
         printf("new thread array failed.\n");
