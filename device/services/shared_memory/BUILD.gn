@@ -91,6 +91,6 @@ ohos_static_library("shared_memory_lite") {
     }
   }
 
-  subsystem_name = "developtools"
-  part_name = "profiler"
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }

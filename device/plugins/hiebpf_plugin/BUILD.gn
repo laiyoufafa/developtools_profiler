@@ -15,7 +15,6 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 ohos_source_set("hiebpfplugin_source") {
-  part_name = "profiler"
   sources = [ "src/hiebpf_module.cpp" ]
   include_dirs = [
     "include",

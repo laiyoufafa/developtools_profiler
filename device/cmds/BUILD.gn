@@ -16,7 +16,8 @@ import("../base/config.gni")
 import("../plugins/ftrace_plugin/ftrace.gni")
 
 ohos_source_set("command_line") {
-  part_name = "profiler"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   sources = [
     "src/command_line.cpp",
     "src/command_param.cpp",
