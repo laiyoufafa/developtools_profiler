@@ -183,18 +183,18 @@ describe("HidebugJsTest", function () {
         let context = featureAbility.getContext();
         context.getFilesDir().then((data) => {
             const path = data + "/serviceInfo1.txt";
-            console.info("output path: " + path)
-            let fd = fs.openSync(path, 0o102, 0o666)
+            console.info("output path: " + path);
+            let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
             const serviceId = 10;
             const args = new Array("allInfo");
             try {
-              hidebug.getServiceDump(serviceId, fd, args)
+              hidebug.getServiceDump(serviceId, file.fd, args);
               expect(true).assertTrue();
             } catch (error) {
-              console.info(error.code)
-              console.info(error.message)
+              console.info(error.code);
+              console.info(error.message);
             }
-            fs.closeSync(fd);
+            fs.closeSync(file);
         })
     })
     
@@ -209,18 +209,18 @@ describe("HidebugJsTest", function () {
         let context = featureAbility.getContext();
         context.getFilesDir().then((data) => {
             const path = data + "/serviceInfo2.txt";
-            console.info("output path: " + path)
-            let fd = fs.openSync(path, 0o102, 0o666)
+            console.info("output path: " + path);
+            let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
             const serviceId = 10;
             const args = new Array("allInfo");
             try {
-                hidebug.getServiceDump(serviceId)
+                hidebug.getServiceDump(serviceId);
             } catch (error) {
-              console.info(error.code)
-              console.info(error.message)
+              console.info(error.code);
+              console.info(error.message);
               expect(error.code === "401").assertTrue();
             }
-            fs.closeSync(fd);
+            fs.closeSync(file);
         })
     })
 
@@ -235,18 +235,18 @@ describe("HidebugJsTest", function () {
         let context = featureAbility.getContext();
         context.getFilesDir().then((data) => {
             const path = data + "/serviceInfo3.txt";
-            console.info("output path: " + path)
-            let fd = fs.openSync(path, 0o102, 0o666)
+            console.info("output path: " + path);
+            let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
             const serviceId = -10;
             const args = new Array("allInfo");
             try {
-                hidebug.getServiceDump(serviceId, fd, args)
+                hidebug.getServiceDump(serviceId, file.fd, args);
             } catch (error) {
-              console.info(error.code)
-              console.info(error.message)
+              console.info(error.code);
+              console.info(error.message);
               expect(error.code === "11400101").assertTrue();
             }
-            fs.closeSync(fd);
+            fs.closeSync(file);
         })
     })
 })
