@@ -40,5 +40,6 @@ bool ReadFile(const std::string& filePath, const std::vector<std::string>& valid
 std::string GetErrorMsg();
 std::string GetTimeStr();
 clockid_t GetClockId(const std::string& clockIdStr);
+void AdaptSandboxPath(std::string& filePath, int pid);
 } // COMMON
 #endif // COMMON_H

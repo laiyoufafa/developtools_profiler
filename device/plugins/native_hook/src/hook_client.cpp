@@ -603,6 +603,7 @@ inline void SendMmapFileRawData(int prot, int flags, off_t offset, const std::st
 {
     StackRawData curRawdata = {{{{0}}}};
     curRawdata.addr = rawdata.addr;
+    curRawdata.pid = static_cast<uint32_t>(g_hookPid);
     curRawdata.mallocSize = rawdata.mallocSize;
     curRawdata.mmapArgs.offset = offset;
     curRawdata.type = OHOS::Developtools::NativeDaemon::MMAP_FILE_TYPE;
