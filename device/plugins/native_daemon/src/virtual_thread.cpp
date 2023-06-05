@@ -23,6 +23,7 @@
 #include <sys/mman.h>
 #endif
 
+#include "common.h"
 #include "symbols_file.h"
 #include "utilities.h"
 #include "virtual_runtime.h"
@@ -390,9 +391,7 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
             // system/lib/libdl.so
             if (mapTokens.size() == MMAP_LINE_MAX_TOKEN) {
                 memMapItem.name_ = mapTokens[MMAP_LINE_TOKEN_INDEX_NAME];
-                if (memMapItem.name_.find("/data/storage") == 0 && access(memMapItem.name_.c_str(), F_OK) != 0) {
-                    memMapItem.name_ = "/proc/" + std::to_string(pid_) + "/root/" + memMapItem.name_;
-                }
+                COMMON::AdaptSandboxPath(memMapItem.name_, pid_);
             }
             if (!IsLegalFileName(memMapItem.name_)) {
                 continue;

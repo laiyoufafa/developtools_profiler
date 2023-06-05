@@ -16,6 +16,7 @@
 #include <functional>
 #include <linux/types.h>
 #include <sys/mman.h>
+#include "common.h"
 #include "utilities.h"
 #include "hook_common.h"
 #include "hook_service.h"
@@ -115,6 +116,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
             if (rawData->stackConext->type == MMAP_FILE_TYPE) {
                 BaseStackRawData* mmapRawData = rawData->stackConext;
                 std::string filePath(reinterpret_cast<char *>(rawData->data));
+                COMMON::AdaptSandboxPath(filePath, rawData->stackConext->pid);
                 HILOG_DEBUG(LOG_CORE, "MMAP_FILE_TYPE curMmapAddr=%p, MAP_FIXED=%d, "
                     "PROT_EXEC=%d, offset=%" PRIu64 ", filePath=%s",
                     mmapRawData->addr, mmapRawData->mmapArgs.flags & MAP_FIXED,
