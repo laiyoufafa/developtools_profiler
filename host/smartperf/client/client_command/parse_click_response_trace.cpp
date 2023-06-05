@@ -110,12 +110,13 @@ namespace OHOS {
         }
         std::string  ParseClickResponseTrace::GetStartTime(std::string line, const std::string &startTimeBefore)
         {
-            std::string::size_type mTouchEventDisPos;
-            std::string::size_type touchEventDisPos;
+
             std::string startTime;
-            touchEventDisPos = line.find("H:touchEventDispatch");
-            mTouchEventDisPos = line.find("H:TouchEventDispatch");
-            if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos) {
+            std::string::size_type te = line.find("H:touchEventDispatch");
+            std::string::size_type td = line.find("H:TouchEventDispatch");
+            std::string::size_type pd = line.find("H:PointerEventDispatch");
+            std::string::size_type kd = line.find("H:KeyEventDispatch");
+            if (te != std::string::npos || td != std::string::npos || pd != std::string::npos || kd != std::string::npos) {
                 int touchNum = 3;
                 if (flagTouch <= touchNum) {
                 size_t position1 = line.find("....");
