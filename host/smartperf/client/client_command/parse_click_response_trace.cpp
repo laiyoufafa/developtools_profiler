@@ -110,7 +110,6 @@ namespace OHOS {
         }
         std::string  ParseClickResponseTrace::GetStartTime(std::string line, const std::string &startTimeBefore)
         {
-
             std::string startTime;
             std::string::size_type te = line.find("H:touchEventDispatch");
             std::string::size_type td = line.find("H:TouchEventDispatch");
