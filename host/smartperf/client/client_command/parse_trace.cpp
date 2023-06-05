@@ -226,7 +226,8 @@ namespace OHOS {
             std::string::size_type td = line.find("H:TouchEventDispatch");
             std::string::size_type pd = line.find("H:PointerEventDispatch");
             std::string::size_type kd = line.find("H:KeyEventDispatch");
-            if (te != std::string::npos || td != std::string::npos || pd != std::string::npos || kd != std::string::npos) {
+            std::string::size_type nop = std::string::npos;
+            if (te != nop || td != nop || pd != nop || kd != nop) {
                 size_t touchNum = 3;
                 if (flagTouch <= touchNum) {
                 size_t position1 = line.find("....");
