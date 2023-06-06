@@ -289,7 +289,7 @@ void HookManager::ReadShareMemory()
             rawStack->stackConext = reinterpret_cast<BaseStackRawData*>(rawStack->baseStackData.get());
             rawStack->data = rawStack->baseStackData.get() + sizeof(BaseStackRawData);
             if (rawStack->stackConext->type == MEMORY_TAG || rawStack->stackConext->type == THREAD_NAME_MSG ||
-                rawStack->stackConext->type == MMAP_FILE_TYPE) {
+                rawStack->stackConext->type == MMAP_FILE_TYPE || rawStack->stackConext->type == PR_SET_VMA_MSG) {
                 return true;
             }
             rawStack->reportFlag = true;
