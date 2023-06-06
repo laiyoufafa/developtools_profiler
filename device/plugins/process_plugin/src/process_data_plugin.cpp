@@ -14,9 +14,10 @@
  */
 #include "process_data_plugin.h"
 
-#include <sstream>
+#include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include "buffer_splitter.h"
 #include "securec.h"
@@ -569,8 +570,9 @@ bool ProcessDataPlugin::GetValidValue(char* p, uint64_t& num)
 bool ProcessDataPlugin::WritePssData(int pid, PssInfo* protoc)
 {
     std::string path = path_ + std::to_string(pid) + "/smaps_rollup";
-    std::ifstream input(path, std::ios::in);
-    if (input.fail()) {
+    std::ifstream input(path, std::ios::in | O_NONBLOCK);
+    if (input.fail() && errno != ENOENT) {
+        // Not capturing ENOENT (file does not exist) errors, it is common for node smaps_rollup files to be unreadable.
         HILOG_ERROR(LOG_CORE, "%s open %s failed, errno = %d", __func__, path.c_str(), errno);
         return false;
     }
