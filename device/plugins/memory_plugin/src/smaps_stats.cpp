@@ -89,9 +89,13 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
                 smapsInfo->set_size(memusage.vss);
                 smapsInfo->set_rss(memusage.rss);
                 smapsInfo->set_pss(memusage.pss);
-                smapsInfo->set_dirty(memusage.privateDirty + memusage.sharedDirty);
-                smapsInfo->set_swapper(memusage.swap + memusage.swapPss);
                 smapsInfo->set_reside(static_cast<double>(memusage.rss) / memusage.vss * PERCENT);
+                smapsInfo->set_private_clean(memusage.privateClean);
+                smapsInfo->set_private_dirty(memusage.privateDirty);
+                smapsInfo->set_shared_clean(memusage.sharedClean);
+                smapsInfo->set_shared_dirty(memusage.sharedDirty);
+                smapsInfo->set_swap(memusage.swap);
+                smapsInfo->set_swap_pss(memusage.swapPss);
             }
         }
         if (isReportApp) {
