@@ -167,7 +167,7 @@ uint32_t inline __attribute__((always_inline)) GetTagId(std::shared_ptr<HookSock
             HILOG_ERROR(LOG_CORE, "Set tag name failed");
         }
         if (client != nullptr) {
-            client->SendStackWithPayload(&tagData, sizeof(BaseStackRawData) + strlen(tagName), nullptr, 0);
+            client->SendStackWithPayload(&tagData, sizeof(BaseStackRawData) + strlen(tagName) + 1, nullptr, 0);
         }
     }
     return tagId;
