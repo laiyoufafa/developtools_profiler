@@ -63,6 +63,10 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
     }
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(realPath, "r"), fclose);
     CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%d)", __func__, file.c_str(), errno);
+    if (errno == EINVAL) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, file.c_str(), errno);
+        return -1;
+    }
 
     if (protoConfig_.pid().size() > 0) {
         for (int i = 0; i < protoConfig_.pid().size(); i++) {
