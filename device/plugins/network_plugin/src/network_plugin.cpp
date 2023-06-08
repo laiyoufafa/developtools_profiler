@@ -17,6 +17,7 @@
 #include "securec.h"
 
 #include <string>
+#include <sys/stat.h>
 
 namespace {
 constexpr size_t READ_BUFFER_SIZE = 1024 * 16;
@@ -56,6 +57,13 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
         file = protoConfig_.test_file();
     }
 
+    struct stat s;
+    lstat(file.c_str(), &s);
+    if (S_ISDIR(s.st_mode)) {
+        HILOG_ERROR(LOG_CORE, "%s:path(%s) is directory, no data to report", __func__, file.c_str());
+        return -1;
+    }
+
     char realPath[PATH_MAX + 1] = {0};
     if ((file.length() >= PATH_MAX) || (realpath(file.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, file.c_str(), errno);
@@ -63,10 +71,6 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
     }
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(realPath, "r"), fclose);
     CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%d)", __func__, file.c_str(), errno);
-    if (errno == EINVAL) {
-        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, file.c_str(), errno);
-        return -1;
-    }
 
     if (protoConfig_.pid().size() > 0) {
         for (int i = 0; i < protoConfig_.pid().size(); i++) {
