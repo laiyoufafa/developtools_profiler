@@ -157,7 +157,7 @@ HWTEST_F(NetworkPluginTest, TestNetworkDataNull, TestSize.Level1)
     std::vector<int> pidList = {g_expectBegin.pid};
     NetworkConfig config;
     EXPECT_TRUE(SetConfig(pidList, config));
-    ASSERT_TRUE(PluginStub(plugin, networkData, config));
+    EXPECT_TRUE(PluginStub(plugin, networkData, config));
 
     for (uint32_t i = 0; i < pidList.size(); ++i) {
         EXPECT_EQ(g_expectBegin.uid, plugin.GetUid(pidList[i]));
@@ -185,7 +185,7 @@ HWTEST_F(NetworkPluginTest, TestGetNetworkData, TestSize.Level1)
     std::vector<int> pidList = {g_expectEnd.pid};
     NetworkConfig config;
     EXPECT_TRUE(SetConfig(pidList, config));
-    ASSERT_TRUE(PluginStub(plugin, networkData, config));
+    EXPECT_TRUE(PluginStub(plugin, networkData, config));
 
     for (uint32_t i = 0; i < pidList.size(); ++i) {
         EXPECT_EQ(g_expectEnd.uid, plugin.GetUid(pidList[i]));
