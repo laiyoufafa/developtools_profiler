@@ -59,6 +59,8 @@ std::string StartUpDelay::GetPidByPkg(const std::string &curPkgName)
 {
     std::string resultPid;
     SPUtils::LoadCmd("pidof " + curPkgName, resultPid);
+    size_t splitFlag = resultPid.find(" ");
+    resultPid = resultPid.substr(0, splitFlag);
     return resultPid;
 }
 std::string StartUpDelay::GetDeviceType()
