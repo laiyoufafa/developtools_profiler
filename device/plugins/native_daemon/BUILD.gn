@@ -64,8 +64,8 @@ ohos_executable("native_daemon") {
   ]
   include_dirs = [
     "./include",
-    "./src/",
-    "../../base/include/",
+    "./src",
+    "../../base/include",
     "../api/include",
     "../api/src",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
