@@ -22,6 +22,15 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Initialize environment variable parameters.
+ *
+ * When temporarily starting the debugging function,developers can set a set of variables,\
+ * including the target process and variable key value pairs,through the command line.\
+ * restarting the service or app allows variables to take effect in the specified process.
+ *
+ * @return When param is successfully settded,it returns true,else return false.
+ */
 bool InitEnvironmentParam(const char *serviceName);
 
 #ifdef __cplusplus
