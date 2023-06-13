@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (C) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,8 +22,10 @@ sources_base = [
   "unittest/common/native/callstack_test.cpp",
   "unittest/common/native/debug_logger_test.cpp",
   "unittest/common/native/elf_parser_test.cpp",
+  "unittest/common/native/hashlist_test.cpp",
   "unittest/common/native/hook_manager_test.cpp",
   "unittest/common/native/hook_service_test.cpp",
+  "unittest/common/native/register_test.cpp",
   "unittest/common/native/symbols_file_test.cpp",
   "unittest/common/native/utilities_test.cpp",
   "unittest/common/native/virtual_thread_test.cpp",
@@ -31,6 +33,7 @@ sources_base = [
   "../../api/src/buffer_writer.cpp",
   "../../api/src/command_poller.cpp",
   "../src/hook_manager.cpp",
+  "../src/call_stack.cpp",
   "../src/debug_logger.cpp",
   "../src/dwarf_encoding.cpp",
   "../src/elf_file.cpp",
@@ -39,6 +42,7 @@ sources_base = [
   "../src/get_thread_id.cpp",
   "../src/hook_service.cpp",
   "../src/program_header.cpp",
+  "../src/register.cpp",
   "../src/section_header.cpp",
   "../src/stack_data_repeater.cpp",
   "../src/stack_preprocess.cpp",
@@ -53,12 +57,12 @@ common_deps = [
   "${OHOS_PROFILER_DIR}/protos/services:plugin_service_proto",
   "${OHOS_PROFILER_DIR}/protos/services:profiler_service_all_type_source",
   "${OHOS_PROFILER_DIR}/protos/types/plugins/native_hook:native_hook_cpp",
-  "../../../../../../base/hiviewdfx/faultloggerd/interfaces/innerkits/callstack:callstack_nativedaemon",
   "../../../base:hiprofiler_base",
   "//base/startup/init/interfaces/innerkits:libbegetutil",
   "//third_party/bounds_checking_function:libsec_static",
   "//third_party/googletest:gmock_main",
   "//third_party/googletest:gtest_main",
+  "//third_party/libunwind:unwind_source_${target_cpu}",
   "//third_party/zlib:libz",
 ]
 
