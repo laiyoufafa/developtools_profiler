@@ -25,6 +25,10 @@ ohos_shared_library("libhidebug") {
   deps =
       [ "//developtools/profiler/hidebug/frameworks/native:libhidebug_source" ]
 
+  if (!is_asan && !is_debug) {
+    version_script = "libhidebug.map"
+  }
+
   external_deps = [
     "hilog_native:libhilog",
     "init:libbegetutil",
