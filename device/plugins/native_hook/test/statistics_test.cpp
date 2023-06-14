@@ -41,7 +41,7 @@ constexpr int DATA_SIZE = 200;
 constexpr int ARGC_NUM_MAX = 3;
 constexpr int DOUBLE = 2;
 
-const int USLEEP_TIME = 1000;
+constexpr int USLEEP_TIME = 1000;
 // liba.z.so and libb.z.so for same so.
 #ifdef __arm__
 const std::vector<std::string> VEC_SO_PATH { "/system/lib/liba.z.so", "/system/lib/libb.z.so" };
@@ -57,7 +57,11 @@ unsigned int g_stickDepth = 1;
 void CallocFun()
 {
     static int i = 0;
-    char* ptr = (char*)calloc(1, MALLOC_SIZE / 100);
+    char* ptr = static_cast<char*>(calloc(1, MALLOC_SIZE / 100));
+    if (ptr == nullptr) {
+        perror("calloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "calloc %p i=%d\n", ptr, i);
     free(ptr);
     i++;
@@ -66,8 +70,16 @@ void CallocFun()
 void ReallocFun()
 {
     static int i = 0;
-    char* ptr = (char*)calloc(1, MALLOC_SIZE / 10); // 10: multiple num
-    ptr = (char*)realloc(ptr, MALLOC_SIZE * 10); // 10: multiple num
+    char* ptr = static_cast<char*>(calloc(1, MALLOC_SIZE / 10)); // 10: multiple num
+    if (ptr == nullptr) {
+        perror("calloc err: %s", __func__);
+        return;
+    }
+    ptr = static_cast<char*>(realloc(ptr, MALLOC_SIZE * 10)); // 10: multiple num
+    if (ptr == nullptr) {
+        perror("realloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "realloc %p i=%d\n", ptr, i);
     free(ptr);
     i++;
@@ -79,7 +91,11 @@ bool DepthMallocFree(int depth = 0, int mallocSize = 100)
         return false;
     }
     if (depth == 0) {
-        char* ptr = (char*)malloc(mallocSize);
+        char* ptr = static_cast<char*>(malloc(mallocSize));
+        if (ptr == nullptr) {
+            perror("malloc err: %s", __func__);
+            return;
+        }
         fprintf(stderr, "%s:%p\n", __func__, ptr);
         *ptr = 'a';
         free(ptr);
@@ -139,6 +155,10 @@ void Fun1()
 {
     static int i = 0;
     char* ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    if (ptr == nullptr) {
+        perror("malloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
     free(ptr);
@@ -153,6 +173,10 @@ void Fun2()
     Fun1();
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    if (ptr == nullptr) {
+        perror("malloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
     if (i % DOUBLE == 0) {
@@ -166,6 +190,10 @@ void Fun3()
     Fun2();
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    if (ptr == nullptr) {
+        perror("malloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
     if (i % DOUBLE == 0) {
@@ -180,6 +208,10 @@ void Fun4()
     Fun3();
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    if (ptr == nullptr) {
+        perror("malloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
     if (i % DOUBLE == 0) {
@@ -193,6 +225,10 @@ void Fun5()
     Fun4();
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
+    if (ptr == nullptr) {
+        perror("malloc err: %s", __func__);
+        return;
+    }
     fprintf(stderr, "%p i=%d\n", ptr, i);
     *ptr = 'a';
     if (i % DOUBLE == 0) {
