@@ -76,7 +76,7 @@ public:
     static std::string Tolowercase(const std::string& s)
     {
         std::string str = s;
-        std::transform(str.begin(), str.end(), str.begin(), [](char& c) {
+        std::transform(str.begin(), str.end(), str.begin(), [](const char& c) {
             return std::tolower(c);
         });
         return str;

@@ -83,6 +83,7 @@ bool IsProcessRunning()
 
     std::string pidStr = std::to_string(getpid());
     auto nbytes = write(fd, pidStr.data(), pidStr.size());
+    close(fd);
     CHECK_TRUE(static_cast<size_t>(nbytes) == pidStr.size(), false, "write pid FAILED!");
     return false;
 }
@@ -519,7 +520,7 @@ clockid_t GetClockId(const std::string& clockIdStr)
 
 void AdaptSandboxPath(std::string& filePath, int pid)
 {
-    if (filePath.find("/data/storage") == 0 && access(filePath.c_str(), F_OK) != 0) {
+    if (filePath.find("/data/storage") != std::string::npos && access(filePath.c_str(), F_OK) != 0) {
         filePath = "/proc/" + std::to_string(pid) + "/root/" + filePath;
     }
 }
