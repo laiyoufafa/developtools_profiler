@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -34,6 +34,7 @@ ohos_source_set("native_hook_source") {
     "../../services/ipc/src/unix_socket_client.cpp",
     "../native_daemon/src/debug_logger.cpp",
     "../native_daemon/src/get_thread_id.cpp",
+    "../native_daemon/src/register.cpp",
     "../native_daemon/src/utilities.cpp",
     "src/hook_client.cpp",
     "src/hook_socket_client.cpp",
@@ -58,12 +59,13 @@ ohos_source_set("native_hook_source") {
   ]
   deps = [
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory_lite",
-    "../../../../../base/hiviewdfx/faultloggerd/interfaces/innerkits/callstack:callstack_nativedaemon",
     "../../base:hiprofiler_base",
     "//base/startup/init/interfaces/innerkits:libbegetutil",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/zlib:libz",
   ]
+
+  public_deps = [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]

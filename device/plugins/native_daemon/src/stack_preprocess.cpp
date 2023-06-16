@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,9 +79,9 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, const
         }
     }
 #if defined(__arm__)
-    u64regs_.resize(OHOS::HiviewDFX::PERF_REG_ARM_MAX);
+    u64regs_.resize(PERF_REG_ARM_MAX);
 #else
-    u64regs_.resize(OHOS::HiviewDFX::PERF_REG_ARM64_MAX);
+    u64regs_.resize(PERF_REG_ARM64_MAX);
 #endif
     callFrames_.reserve(hookConfig_.max_stack_depth());
 }
@@ -204,10 +204,10 @@ void StackPreprocess::TakeResults()
             } else {
 #if defined(__arm__)
                 uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->data);
-                u64regs_.assign(regAddrArm, regAddrArm + OHOS::HiviewDFX::PERF_REG_ARM_MAX);
+                u64regs_.assign(regAddrArm, regAddrArm + PERF_REG_ARM_MAX);
 #else
-                if (memcpy_s(u64regs_.data(), sizeof(uint64_t) * OHOS::HiviewDFX::PERF_REG_ARM64_MAX, rawData->data,
-                    sizeof(uint64_t) * OHOS::HiviewDFX::PERF_REG_ARM64_MAX) != EOK) {
+                if (memcpy_s(u64regs_.data(), sizeof(uint64_t) * PERF_REG_ARM64_MAX, rawData->data,
+                    sizeof(uint64_t) * PERF_REG_ARM64_MAX) != EOK) {
                     HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
                 }
 #endif

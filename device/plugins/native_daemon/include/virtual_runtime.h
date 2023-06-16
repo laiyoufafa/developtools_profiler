@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include <functional>
 #include <map>
-#include "callstack.h"
+#include "call_stack.h"
 #include "perf_event_record.h"
 #include "symbols_file.h"
 #include "virtual_thread.h"
@@ -40,8 +40,6 @@ DSO)
 Then find the corresponding symbol in the corresponding elf symbol file according to the offset
 recorded in the corresponding mmap.
 */
-constexpr static int32_t MIN_STACK_DEPTH = 6;
-constexpr static size_t FILTER_STACK_DEPTH = 2;
 
 class VirtualRuntime {
 public:
@@ -63,7 +61,7 @@ public:
         return symbolsFiles_;
     }
 
-    const Symbol GetSymbol(OHOS::HiviewDFX::CallFrame& callFrame, pid_t pid, pid_t tid,
+    const Symbol GetSymbol(CallFrame& callFrame, pid_t pid, pid_t tid,
                            const perf_callchain_context &context = PERF_CONTEXT_MAX);
 
     VirtualThread &GetThread(pid_t pid, pid_t tid);
@@ -77,10 +75,9 @@ public:
                      int stack_size,
                      pid_t pid,
                      pid_t tid,
-                     std::vector<OHOS::HiviewDFX::CallFrame>& callFrames,
+                     std::vector<CallFrame>& callFrames,
                      size_t maxStackLevel);
-    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<OHOS::HiviewDFX::CallFrame>& callFrames, int offset,
-        bool first);
+    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callFrames, int offset, bool first);
     void ClearMaps();
     void FillMapsCache(std::string& currentFileName, MemMapItem& memMapItem);
     void HandleMapInfo(uint64_t begin, uint64_t length, uint32_t flags, uint64_t offset, const std::string& filePath);
@@ -154,7 +151,9 @@ private:
             return seed;
         }
     };
-    OHOS::HiviewDFX::CallStack callstack_;
+    CallStack callstack_;
+    // pid map with user space thread
+    pthread_mutex_t threadMapsLock_;
     std::map<pid_t, VirtualThread> userSpaceThreadMap_;
     // not pid , just memmap
     std::vector<MemMapItem> kernelSpaceMemMaps_;
@@ -164,10 +163,10 @@ private:
     std::unordered_map<std::string, std::unique_ptr<SymbolsFile>> symbolsFiles_;
     std::unordered_map<SymbolCacheKey, Symbol, HashPair> userSymbolCache_;
     bool GetSymbolCache(uint64_t ip, Symbol &symbol, const VirtualThread &thread);
-    void UpdateSymbolCache(uint64_t ip, Symbol &symbol, OHOS::HiviewDFX::HashList<uint64_t, Symbol> &cache);
+    void UpdateSymbolCache(uint64_t ip, Symbol &symbol, HashList<uint64_t, Symbol> &cache);
 
     // find synbols function name
-    void MakeCallFrame(Symbol &symbol, OHOS::HiviewDFX::CallFrame &callFrame);
+    void MakeCallFrame(Symbol &symbol, CallFrame &callFrame);
 
     // threads
     VirtualThread &UpdateThread(pid_t pid, pid_t tid, const std::string name = "");
@@ -177,8 +176,8 @@ private:
     const Symbol GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps,
                                  const VirtualThread &thread);
     const Symbol GetUserSymbol(uint64_t ip, const VirtualThread &thread);
-    void FillSymbolNameId(OHOS::HiviewDFX::CallFrame& callFrame, Symbol& symbol);
-    void FillFileSet(OHOS::HiviewDFX::CallFrame& callFrame, const Symbol& symbol);
+    void FillSymbolNameId(CallFrame& callFrame, Symbol& symbol);
+    void FillFileSet(CallFrame& callFrame, const Symbol& symbol);
 
     std::vector<std::string> symbolsPaths_;
 

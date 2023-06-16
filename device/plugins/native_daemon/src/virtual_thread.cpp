@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -433,10 +433,10 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
     }
 
     if (mapsAdded) {
-        HLOGD("maps changed and need sort");
+        HILOG_DEBUG(LOG_CORE, "maps changed and need sort");
         SortMemMaps();
     } else {
-        HLOGD("maps no change");
+        HILOG_DEBUG(LOG_CORE, "maps no change");
         return false;
     }
     virtualruntime_->soBegin_ = 0;
