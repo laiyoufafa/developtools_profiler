@@ -410,10 +410,6 @@ bool PluginManager::PullResult(uint32_t pluginId)
     pluginModules_[pluginId]->GetPluginName(name);
     pluginModules_[pluginId]->GetPluginVersion(version);
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
-    if (buffer == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "%s:buffer new failed!", __func__);
-        return false;
-    }
 
     int length = it->second->ReportResult(buffer.get(), size);
     if (length < 0) {
