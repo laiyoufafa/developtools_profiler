@@ -664,11 +664,11 @@ export class SpSystemTrace extends BaseElement {
     };
     // @ts-ignore
     new ResizeObserver((entries) => {
-      let width = entries[0].contentRect.width - 1 - SpSystemTrace.scrollViewWidth;
+      TraceRow.FRAME_WIDTH = this.clientWidth - 249;
       requestAnimationFrame(() => {
-        this.timerShaftEL?.updateWidth(width);
+        this.timerShaftEL?.updateWidth(this.clientWidth);
         this.shadowRoot!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
-          it.updateWidth(width);
+          it.updateWidth(this.clientWidth);
         });
       });
     }).observe(this);
@@ -991,14 +991,14 @@ export class SpSystemTrace extends BaseElement {
     drawFlagLineSegment(this.canvasPanelCtx, this.hoverFlag, this.selectFlag, {
       x: 0,
       y: 0,
-      width: this.timerShaftEL?.canvas?.clientWidth,
+      width: TraceRow.FRAME_WIDTH,
       height: this.canvasPanel?.clientHeight,
     });
     //draw flag line segment for favorite canvas
     drawFlagLineSegment(this.canvasFavoritePanelCtx, this.hoverFlag, this.selectFlag, {
       x: 0,
       y: 0,
-      width: this.timerShaftEL?.canvas?.clientWidth,
+      width: TraceRow.FRAME_WIDTH,
       height: this.canvasFavoritePanel?.clientHeight,
     });
     //draw wakeup for main canvas
@@ -1011,7 +1011,7 @@ export class SpSystemTrace extends BaseElement {
       {
         x: 0,
         y: 0,
-        width: this.timerShaftEL!.canvas!.clientWidth,
+        width: TraceRow.FRAME_WIDTH,
         height: this.canvasPanel!.clientHeight!,
       } as Rect
     );
@@ -1025,7 +1025,7 @@ export class SpSystemTrace extends BaseElement {
       {
         x: 0,
         y: 0,
-        width: this.timerShaftEL!.canvas!.clientWidth,
+        width: TraceRow.FRAME_WIDTH,
         height: this.canvasFavoritePanel!.clientHeight!,
       } as Rect
     );

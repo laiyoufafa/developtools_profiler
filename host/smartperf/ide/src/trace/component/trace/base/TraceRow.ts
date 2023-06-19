@@ -87,6 +87,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_IRQ_GROUP = 'irq-group';
   static ROW_TYPE_IRQ = 'irq';
   static ROW_TYPE_JANK = 'janks';
+  static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
   public obj: TraceRowObject<any> | undefined | null;
@@ -385,14 +386,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   get frame(): Rect | any {
     if (this._frame) {
-      this._frame.width = (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth;
+      this._frame.width = TraceRow.FRAME_WIDTH;
       this._frame.height = this.clientHeight;
       return this._frame;
     } else {
       this._frame = new Rect(
         0,
         0,
-        (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth,
+        TraceRow.FRAME_WIDTH,
         this.clientHeight || 40
       );
       return this._frame;
@@ -426,6 +427,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.removeAttribute('check-type');
       return;
     }
+    if (this.getAttribute('check-type') === value) {
+      return;
+    }
+    if (this.folder) {
+      this.childrenList.forEach(it => it.checkType = value)
+    }
     this.setAttribute('check-type', value);
     if (this.hasAttribute('disabled-check')) {
       this.checkBoxEL!.style.display = 'none';
@@ -454,9 +461,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this.checkBoxEL!.checked = true;
         this.checkBoxEL!.indeterminate = false;
         break;
-    }
-    if (this.folder) {
-      this.childrenList.forEach(it => it.checkType = value)
     }
   }
 
