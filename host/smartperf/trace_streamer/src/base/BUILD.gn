@@ -55,6 +55,7 @@ ohos_source_set("ibase") {
     "log.h",
     "parting_string.h",
     "string_to_numerical.h",
+    "ts_common.cpp",
   ]
   include_dirs = []
   public_deps = []

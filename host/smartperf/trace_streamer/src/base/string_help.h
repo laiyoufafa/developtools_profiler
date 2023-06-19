@@ -31,5 +31,6 @@ int32_t snprintf_s(char* strDest, size_t destMax, size_t count, const char* form
 const char* GetDemangleSymbolIndex(const char* mangled);
 int GetProcessorNumFromString(char* str);
 std::vector<std::string> SplitStringToVec(const std::string& str, const std::string& pat);
+bool EndWith(const std::string& str, const std::string& res);
 
 #endif // SRC_TRACE_BASE_STRINGHELP_H

@@ -34,15 +34,13 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
 TraceStreamerSelector::TraceStreamerSelector()
 {
     InitFilter();
-    sdkDataParser_ = std::make_unique<SDKDataParser>(traceDataCache_.get(), streamFilters_.get());
 }
 TraceStreamerSelector::~TraceStreamerSelector() {}
 
 void TraceStreamerSelector::InitFilter()
 {
-    streamFilters_ = std::make_unique<TraceStreamerFilterBase>();
     traceDataCache_ = std::make_unique<TraceDataCache>();
-    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>().get();
+    sdkDataParser_ = std::make_unique<SDKDataParser>(traceDataCache_.get());
 }
 
 MetaData* TraceStreamerSelector::GetMetaData()

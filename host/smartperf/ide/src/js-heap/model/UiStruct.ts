@@ -38,6 +38,8 @@ export class ConstructorItem {
   distance = -1;
   shallowSize = -1;
   retainedSize = -1;
+  retainedPercent = ''; //retained percent
+  shallowPercent = ''; //shallow percent
   hasNext = true;
   status = true;
   isSelected: boolean = false;
@@ -212,7 +214,8 @@ export class FileInfo {
   id: number = -1;
   name: string = '';
   type!: FileType;
-  start_ts: number = 0;
-  end_ts: number = 0;
+  startTs: number = 0;
+  endTs: number = 0;
   pid: number = 0;
+  size: number = 0;
 }

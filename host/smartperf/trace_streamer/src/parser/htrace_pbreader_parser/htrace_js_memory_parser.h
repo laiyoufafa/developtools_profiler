@@ -58,6 +58,7 @@ private:
     int32_t fileId_ = 0;
     int32_t jsFileId_ = 0;
     std::list<int32_t> fileIds_ = {};
+    uint64_t selfSizeCount_ = 0;
     bool enableFileSave_ = false;
     const std::string tmpJsMemoryTimelineData_ = "ts_tmp.jsmemory_timeline.heapsnapshot";
     const std::string tmpJsMemorySnapshotData_ = "ts_tmp.jsmemory_snapshot";

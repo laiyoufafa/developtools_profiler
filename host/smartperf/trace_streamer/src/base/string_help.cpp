@@ -112,6 +112,14 @@ int GetProcessorNumFromString(char* str)
     return processorNum;
 }
 
+bool EndWith(const std::string& str, const std::string& res)
+{
+    if (res.size() > str.size()) {
+        return false;
+    }
+    return str.compare(str.size() - res.size(), res.size(), res) == 0;
+}
+
 std::vector<std::string> SplitStringToVec(const std::string& str, const std::string& pat)
 {
     std::vector<std::string> result;

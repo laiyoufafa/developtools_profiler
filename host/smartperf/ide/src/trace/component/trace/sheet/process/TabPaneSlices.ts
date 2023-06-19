@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabSlices, getTabSlicesAsyncFunc } from '../../../../database/SqlLite.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {
@@ -80,7 +80,7 @@ export class TabPaneSlices extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!,this.slicesTbl!)
+    resizeObserver(this.parentElement!, this.slicesTbl!);
   }
 
   initHtml(): string {

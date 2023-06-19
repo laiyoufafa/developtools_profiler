@@ -98,7 +98,7 @@ window.SmartEvent = {
     UploadSOFile: 'SmartEvent-UI-UploadSoFile',
     Loading: 'SmartEvent-UI-Loading',
     Error: 'SmartEvent-UI-Error',
-    CheckALL: 'SmartEvent-UI-CheckALL'
+    CheckALL: 'SmartEvent-UI-CheckALL',
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

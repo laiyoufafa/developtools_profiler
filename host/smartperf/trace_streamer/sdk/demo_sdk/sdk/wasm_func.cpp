@@ -123,7 +123,6 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperateEx(int32_t sqlLen)
 // JS calls third-party parsing interface
 EMSCRIPTEN_KEEPALIVE int32_t ParserData(int32_t len, int32_t componentId)
 {
-    TS_LOGI("wasm ParserData, len = %u", len);
     g_wasmTraceStreamer.ts_->sdkDataParser_->ParserData(g_reqBuf, len, componentId);
     return 0;
 }

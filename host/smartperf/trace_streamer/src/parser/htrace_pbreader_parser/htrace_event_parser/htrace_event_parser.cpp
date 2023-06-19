@@ -17,7 +17,7 @@
 #include "binder_filter.h"
 #include "binder.pbreader.h"
 #include "clk.pbreader.h"
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "cpu_filter.h"
 #include "ftrace.pbreader.h"
 #include "ftrace_event.pbreader.h"

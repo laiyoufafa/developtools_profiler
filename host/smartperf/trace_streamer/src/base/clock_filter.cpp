@@ -18,13 +18,11 @@
 #include <map>
 #include "log.h"
 #include "string_help.h"
+#include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-ClockFilter::ClockFilter() : primaryClock_(BuiltinClocks::TS_CLOCK_BOOTTIME)
-{
-    profilerSDKTraceFileHeader_ = std::make_unique<ProfilerTraceFileHeader>().get();
-}
+ClockFilter::ClockFilter() : hasInitSnapShot_(false) {}
 ClockFilter::~ClockFilter() {}
 
 std::string ClockFilter::GenClockKey(ClockId srcClockId, ClockId desClockId)
@@ -38,10 +36,10 @@ std::string ClockFilter::GenClockKey(ClockId srcClockId, ClockId desClockId)
 
 uint64_t ClockFilter::ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const
 {
-    if (srcClockId == primaryClock_) {
+    if (srcClockId == PRIMARY_CLOCK_ID) {
         return srcTs;
     }
-    return Convert(srcClockId, srcTs, primaryClock_);
+    return Convert(srcClockId, srcTs, PRIMARY_CLOCK_ID);
 }
 
 uint64_t ClockFilter::Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const
@@ -79,12 +77,11 @@ void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
 {
     ClockId srcId, desId;
     for (srcId = 0; srcId < snapShot.size() - 1; srcId++) {
+        ClockId srcClockId = snapShot[srcId].clockId;
+        uint64_t srcTs = snapShot[srcId].ts;
         for (desId = srcId + 1; desId < snapShot.size(); desId++) {
-            ClockId srcClockId = snapShot[srcId].clockId;
             ClockId desClockId = snapShot[desId].clockId;
-            uint64_t srcTs = snapShot[srcId].ts;
             uint64_t desTs = snapShot[desId].ts;
-
             AddConvertClockMap(srcClockId, desClockId, srcTs, desTs);
             AddConvertClockMap(desClockId, srcClockId, desTs, srcTs);
         }
@@ -94,14 +91,13 @@ void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
 
 int32_t ClockFilter::InitSnapShotTimeRange(const uint8_t* data, int32_t len)
 {
-    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
-    std::copy(data, data + len, buf.get());
-    profilerSDKTraceFileHeader_ = reinterpret_cast<ProfilerTraceFileHeader*>(buf.get());
-
     if (HasInitSnapShot()) {
         TS_LOGE("SDK already has clock snapshot!!!");
         return -1;
     }
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
+    std::copy(data, data + len, buf.get());
+    profilerSDKTraceFileHeader_ = reinterpret_cast<ProfilerTraceFileHeader*>(buf.get());
     if (!profilerSDKTraceFileHeader_->data.boottime) {
         TS_LOGE("SDK Profiler header has no clock snapshot!!!");
         return -1;
@@ -109,32 +105,32 @@ int32_t ClockFilter::InitSnapShotTimeRange(const uint8_t* data, int32_t len)
 
     std::vector<SnapShot> snapShot;
 
-    TS_LOGE("SDK clockid: TS_CLOCK_BOOTTIME, ts:%llu", profilerSDKTraceFileHeader_->data.boottime);
+    TS_LOGI("SDK clockid: TS_CLOCK_BOOTTIME, ts:%llu", profilerSDKTraceFileHeader_->data.boottime);
     if (profilerSDKTraceFileHeader_->data.boottime) {
         snapShot.push_back(SnapShot{TS_CLOCK_BOOTTIME, profilerSDKTraceFileHeader_->data.boottime});
     }
 
-    TS_LOGE("SDK clockid: TS_CLOCK_REALTIME, ts:%llu", profilerSDKTraceFileHeader_->data.realtime);
+    TS_LOGI("SDK clockid: TS_CLOCK_REALTIME, ts:%llu", profilerSDKTraceFileHeader_->data.realtime);
     if (profilerSDKTraceFileHeader_->data.realtime) {
         snapShot.push_back(SnapShot{TS_CLOCK_REALTIME, profilerSDKTraceFileHeader_->data.realtime});
     }
 
-    TS_LOGE("SDK clockid: TS_CLOCK_REALTIME_COARSE, ts:%llu", profilerSDKTraceFileHeader_->data.realtimeCoarse);
+    TS_LOGI("SDK clockid: TS_CLOCK_REALTIME_COARSE, ts:%llu", profilerSDKTraceFileHeader_->data.realtimeCoarse);
     if (profilerSDKTraceFileHeader_->data.realtimeCoarse) {
         snapShot.push_back(SnapShot{TS_CLOCK_REALTIME_COARSE, profilerSDKTraceFileHeader_->data.realtimeCoarse});
     }
 
-    TS_LOGE("SDK clockid: TS_MONOTONIC, ts:%llu", profilerSDKTraceFileHeader_->data.monotonic);
+    TS_LOGI("SDK clockid: TS_MONOTONIC, ts:%llu", profilerSDKTraceFileHeader_->data.monotonic);
     if (profilerSDKTraceFileHeader_->data.monotonic) {
         snapShot.push_back(SnapShot{TS_MONOTONIC, profilerSDKTraceFileHeader_->data.monotonic});
     }
 
-    TS_LOGE("SDK clockid: TS_MONOTONIC_COARSE, ts:%llu", profilerSDKTraceFileHeader_->data.monotonicCoarse);
+    TS_LOGI("SDK clockid: TS_MONOTONIC_COARSE, ts:%llu", profilerSDKTraceFileHeader_->data.monotonicCoarse);
     if (profilerSDKTraceFileHeader_->data.monotonicCoarse) {
         snapShot.push_back(SnapShot{TS_MONOTONIC_COARSE, profilerSDKTraceFileHeader_->data.monotonicCoarse});
     }
 
-    TS_LOGE("SDK clockid: TS_MONOTONIC_RAW, ts:%llu", profilerSDKTraceFileHeader_->data.monotonicRaw);
+    TS_LOGI("SDK clockid: TS_MONOTONIC_RAW, ts:%llu", profilerSDKTraceFileHeader_->data.monotonicRaw);
     if (profilerSDKTraceFileHeader_->data.monotonicRaw) {
         snapShot.push_back(SnapShot{TS_MONOTONIC_RAW, profilerSDKTraceFileHeader_->data.monotonicRaw});
     }

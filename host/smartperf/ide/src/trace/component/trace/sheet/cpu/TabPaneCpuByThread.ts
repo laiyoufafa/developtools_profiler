@@ -20,7 +20,7 @@ import { getTabCpuByThread } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {
@@ -52,7 +52,9 @@ export class TabPaneCpuByThread extends BaseElement {
     this.currentSelectionParam = cpuByThreadValue;
     this.cpuByThreadTbl!.innerHTML = this.getTableColumns(cpuByThreadValue.cpus);
     this.range!.textContent =
-      'Selected range: ' + parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      'Selected range: ' +
+      parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).toFixed(5)) +
+      ' ms';
     this.cpuByThreadTbl!.loading = true;
     getTabCpuByThread(cpuByThreadValue.cpus, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs).then((result) => {
       this.cpuByThreadTbl!.loading = false;
@@ -70,7 +72,10 @@ export class TabPaneCpuByThread extends BaseElement {
             thread.occurrences += e.occurrences;
             thread[`cpu${e.cpu}`] = e.wallDuration || 0;
             thread[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-            thread[`cpu${e.cpu}Ratio`] = ((100.0 * (e.wallDuration || 0)) / (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)).toFixed(2);
+            thread[`cpu${e.cpu}Ratio`] = (
+              (100.0 * (e.wallDuration || 0)) /
+              (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
+            ).toFixed(2);
           } else {
             let process = Utils.PROCESS_MAP.get(e.pid);
             let thread = Utils.THREAD_MAP.get(e.tid);
@@ -90,7 +95,10 @@ export class TabPaneCpuByThread extends BaseElement {
             }
             cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
             cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-            cpuByThreadObject[`cpu${e.cpu}Ratio`] = ((100.0 * (e.wallDuration || 0)) / (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)).toFixed(2);
+            cpuByThreadObject[`cpu${e.cpu}Ratio`] = (
+              (100.0 * (e.wallDuration || 0)) /
+              (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
+            ).toFixed(2);
             map.set(`${e.tid}`, cpuByThreadObject);
           }
         }
@@ -145,7 +153,7 @@ export class TabPaneCpuByThread extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!, this.cpuByThreadTbl!)
+    resizeObserver(this.parentElement!, this.cpuByThreadTbl!);
   }
 
   initHtml(): string {

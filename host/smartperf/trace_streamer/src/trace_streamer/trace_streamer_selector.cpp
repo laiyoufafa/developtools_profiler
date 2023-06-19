@@ -20,7 +20,7 @@
 #include <regex>
 #include "args_filter.h"
 #include "binder_filter.h"
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "cpu_filter.h"
 #include "file.h"
 #include "filter_filter.h"
@@ -29,11 +29,7 @@
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
-#ifndef IS_PBDECODER
 #include "parser/htrace_pbreader_parser/htrace_parser.h"
-#else
-#include "parser/htrace_parser/htrace_parser.h"
-#endif
 #if WITH_PERF
 #include "perf_data_filter.h"
 #endif
@@ -102,7 +98,7 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->sliceFilter_ = std::make_unique<SliceFilter>(traceDataCache_.get(), streamFilters_.get());
 
     streamFilters_->processFilter_ = std::make_unique<ProcessFilter>(traceDataCache_.get(), streamFilters_.get());
-    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>();
+    streamFilters_->clockFilter_ = std::make_unique<ClockFilterEx>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->filterFilter_ = std::make_unique<FilterFilter>(traceDataCache_.get(), streamFilters_.get());
 
     streamFilters_->threadMeasureFilter_ =
@@ -180,9 +176,7 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         fileType_ = GuessFileType(data.get(), size);
         if (fileType_ == TRACE_FILETYPE_H_TRACE) {
             htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
-#ifndef IS_PBDECODER
             htraceParser_->EnableFileSeparate(enableFileSeparate_);
-#endif
         } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
             bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
             bytraceParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
@@ -234,10 +228,7 @@ bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vecto
     for (auto file : symbolsPaths) {
         TS_LOGE("files is %s", file.c_str());
     }
-#ifndef IS_PBDECODER
     return htraceParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
-#endif
-    return false;
 }
 void TraceStreamerSelector::Clear()
 {
@@ -259,6 +250,10 @@ int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataD
 int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
+}
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, bool printf)
+{
+    return traceDataCache_->SearchDatabase(sql, printf);
 }
 int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
 {

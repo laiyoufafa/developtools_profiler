@@ -496,7 +496,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         for (let item of arr) {
           count += item.count;
         }
-        let pName = arr[0].processName + '(' + pid + ')';
+        const pName = arr[0].processName + '(' + pid + ')';
         const pidData = {
           tableName: pName,
           pid: pid,
@@ -512,6 +512,14 @@ export class TabPanePerfAnalysis extends BaseElement {
       this.progressEL!.loading = false;
       this.processPieChart(val);
     }
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight != 0) {
+        this.tableProcess!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.perfTableThread!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.tableFunction!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.tableSo!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+      }
+    }).observe(this.parentElement!);
   }
   getHiperfThread(item: any, val: any) {
     this.progressEL!.loading = true;
@@ -826,22 +834,22 @@ export class TabPanePerfAnalysis extends BaseElement {
                          <lit-chart-pie  id="chart-pie"></lit-chart-pie>
                      </div>
                      <div class="table-box" style="height:auto;overflow: auto">
-                    <lit-table id="tb-process-usage" style="max-height:565px;display: none;min-height: 350px" >
+                    <lit-table id="tb-process-usage" style="display: none;min-height: 380px" >
                         <lit-table-column width="1fr" title="ProcessName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Weight" data-index="countFormat" key="countFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-thread-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
+                    <lit-table id="tb-thread-usage" style="display: none;min-height: 380px"hideDownload>
                         <lit-table-column width="1fr" title="ThreadName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Weight" data-index="countFormat" key="countFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-so-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
+                    <lit-table id="tb-so-usage" style="display: none;min-height: 380px"hideDownload>
                         <lit-table-column width="1fr" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Weight" data-index="countFormat" key="countFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
                     </lit-table>
-                    <lit-table id="tb-function-usage" style="max-height:565px;display: none;min-height: 350px"hideDownload>
+                    <lit-table id="tb-function-usage" style="display: none;min-height: 380px"hideDownload>
                         <lit-table-column width="1fr" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
                         <lit-table-column width="1fr" title="Weight" data-index="countFormat" key="countFormat" align="flex-start" order></lit-table-column>
                         <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>

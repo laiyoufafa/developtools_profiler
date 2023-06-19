@@ -14,12 +14,12 @@
  */
 #ifndef HTRACE_PLUGIN_TIME_PARSER_H
 #define HTRACE_PLUGIN_TIME_PARSER_H
-#include "clock_filter.h"
+#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class HtracePluginTimeParser {
 public:
-    HtracePluginTimeParser(ClockFilter* ctx);
+    HtracePluginTimeParser();
     HtracePluginTimeParser(const HtracePluginTimeParser&) = delete;
     HtracePluginTimeParser& operator=(const HtracePluginTimeParser&) = delete;
     ~HtracePluginTimeParser() = default;
@@ -42,9 +42,6 @@ private:
     uint64_t asyncHtracePluginEndTime_ = 0;
     uint64_t minTs_ = std::numeric_limits<uint64_t>::max();
     uint64_t maxTs_ = 0;
-
-public:
-    ClockFilter* clockFilter_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

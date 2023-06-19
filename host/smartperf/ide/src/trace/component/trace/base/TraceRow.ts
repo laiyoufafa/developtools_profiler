@@ -287,24 +287,27 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (value === this.expansion) {
       return;
     }
+    let fragment: DocumentFragment | undefined  = document.createDocumentFragment();
     if (value) {
-      let fragment = document.createDocumentFragment();
       this.childrenList.forEach((child: any) => {
         child.rowHidden = false;
-        fragment.appendChild(child);
+        fragment!.appendChild(child);
       });
       this.insertAfter(fragment, this);
     } else {
-      let fragment = document.createDocumentFragment();
       this.childrenList.length = 0;
       this.parentElement?.querySelectorAll<any>(`[row-parent-id='${this.rowId!}']`).forEach((it) => {
         this.childrenList.push(it);
         if (it.folder) {
           it.expansion = value;
         }
-        fragment.appendChild(it);
+        fragment!.appendChild(it);
+      });
+      this.childrenList.forEach(child => {
+        fragment!.removeChild(child);
       });
     }
+    fragment = undefined;
     if (value) {
       this.setAttribute('expansion', '');
     } else {
@@ -322,11 +325,28 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     );
   }
 
-  addTemplateTypes(...type:string[]) {
+  clearMemory() {
+    this.dataList2 = [];
+    this.dataList = [];
+    this.dataListCache = [];
+    if (this.rootEL) {
+      this.rootEL.innerHTML = ''
+    }
+    if (this.folder) {
+      this.childrenList.forEach(child => {
+        if (child.clearMemory !== undefined) {
+          child.clearMemory();
+        }
+      })
+      this.childrenList = [];
+    }
+  }
+
+  addTemplateTypes(...type: string[]) {
     this.templateType.push(...type);
   }
 
-  replaceTraceRow(newNode:any, oldNode:any) {
+  replaceTraceRow(newNode: any, oldNode: any) {
     let oldIndex = this.childrenList.indexOf(oldNode);
     if (oldIndex != -1) {
       this.childrenList.splice(oldIndex, 1, newNode);
@@ -341,7 +361,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this.toParentAddTemplateType(parentRow);
       }
     }
-  }
+  };
 
   addChildTraceRow(child: TraceRow<any>) {
     TraceRowConfig.allTraceRowList.push(child);
@@ -386,7 +406,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   get frame(): Rect | any {
     if (this._frame) {
-      this._frame.width = TraceRow.FRAME_WIDTH;
+      this._frame.width = TraceRow.FRAME_WIDTH
       this._frame.height = this.clientHeight;
       return this._frame;
     } else {
@@ -431,7 +451,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       return;
     }
     if (this.folder) {
-      this.childrenList.forEach(it => it.checkType = value)
+      this.childrenList.forEach((it) => (it.checkType = value));
     }
     this.setAttribute('check-type', value);
     if (this.hasAttribute('disabled-check')) {
@@ -712,9 +732,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   setCheckBox(isCheck: boolean) {
     if (this.folder) {
       // favorite row  check change;
-      window.publish(window.SmartEvent.UI.CheckALL,{
+      window.publish(window.SmartEvent.UI.CheckALL, {
         rowId: this.rowId,
-        isCheck: isCheck
+        isCheck: isCheck,
       });
       this.childrenList!.forEach((ck) => {
         ck.setAttribute('check-type', isCheck ? '2' : '0');
@@ -1097,7 +1117,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             grid-template-rows: 100%;
             grid-template-columns: 248px 1fr;
             border-bottom: 1px solid var(--dark-border1,#dadada);
-            border-right: 15px solid var(--dark-border1,#ffffff);
+            border-right: 1px solid var(--dark-border1,#ffffff);
             box-sizing: border-box;
         }
         .root .drag{
@@ -1136,7 +1156,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             margin-left: 10px;
             font-size: .9rem;
             font-weight: normal;
-            width: 80%;
+            flex: 1;
             max-height: 100%;
             text-align: left;
             overflow: hidden;
@@ -1173,7 +1193,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             display: none;
         }
         :host(:not([folder])[children]) .icon{
-            visibility: hidden;
+            display: none;
             color:#fff
         }
 

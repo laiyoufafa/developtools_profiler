@@ -19,7 +19,7 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js'
 import { getTabCpuByProcess } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
 import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-cpu-process')
 export class TabPaneCpuByProcess extends BaseElement {
@@ -34,9 +34,12 @@ export class TabPaneCpuByProcess extends BaseElement {
     }
     this.currentSelectionParam = cpuByProcessValue;
     this.cpuByProcessRange!.textContent =
-      'Selected range: ' + parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      'Selected range: ' +
+      parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)) +
+      ' ms';
     // @ts-ignore
-    this.cpuByProcessTbl!.shadowRoot!.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.cpuByProcessTbl!.shadowRoot!.querySelector('.table')?.style?.height =
+      this.parentElement!.clientHeight - 45 + 'px';
     this.cpuByProcessTbl!.recycleDataSource = [];
     this.cpuByProcessTbl!.loading = true;
     getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {
@@ -78,7 +81,7 @@ export class TabPaneCpuByProcess extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!, this.cpuByProcessTbl!)
+    resizeObserver(this.parentElement!, this.cpuByProcessTbl!);
   }
 
   initHtml(): string {

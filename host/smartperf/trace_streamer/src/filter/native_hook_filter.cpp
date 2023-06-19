@@ -17,7 +17,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 NativeHookFilter::NativeHookFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : OfflineSymbolizationFilter(dataCache, filter)
+    : OfflineSymbolizationFilter(dataCache, filter), anonMmapData_(nullptr)
 {
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/libc++.so"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libc++.so"));
@@ -287,17 +287,21 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
     }
     // Gets the index of the mmap event's label in the data dictionary
     DataIndex subType = INVALID_UINT64;
+    auto mMapAddr = mMapEventReader.addr();
+    auto mMapSize = mMapEventReader.size();
     if (mMapEventReader.has_type()) {
         subType = traceDataCache_->dataDict_.GetStringIndex(mMapEventReader.type().ToStdString());
         // Establish a mapping of addr and size to the mmap tag index.
-        traceDataCache_->GetNativeHookData()->UpdateAddrToMemMapSubType(mMapEventReader.addr(), subType);
+        addrToMmapTag_[mMapAddr] = subType; // update addr to MemMapSubType
     }
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId, ipid_, itid, "MmapEvent", subType, timeStamp, 0, 0, mMapEventReader.addr(),
-        mMapEventReader.size());
-    addrToMmapEventRow_.insert(std::make_pair(mMapEventReader.addr(), static_cast<uint64_t>(row)));
+        callChainId, ipid_, itid, "MmapEvent", subType, timeStamp, 0, 0, mMapAddr, mMapSize);
+    if (subType == INVALID_UINT64) {
+        UpdateAnonMmapDataDbIndex(mMapAddr, mMapSize, static_cast<uint64_t>(row));
+    }
+    addrToMmapEventRow_.insert(std::make_pair(mMapAddr, static_cast<uint64_t>(row)));
     // update currentSizeDur.
-    if (mMapEventReader.size()) {
+    if (mMapSize) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, false);
     }
     // Uncompressed call stack
@@ -334,26 +338,64 @@ void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::B
     // Query for MMAP events that match the current data. If there are no matching MMAP events, the current data is not
     // written to the database.
     uint64_t row = INVALID_UINT64;
-    if (addrToMmapEventRow_.count(mUnmapEventReader.addr())) {
-        row = addrToMmapEventRow_.at(mUnmapEventReader.addr());
+    auto mUnmapAddr = mUnmapEventReader.addr();
+    if (addrToMmapEventRow_.count(mUnmapAddr)) {
+        row = addrToMmapEventRow_.at(mUnmapAddr);
     }
     if (row != INVALID_UINT64 && timeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
-        addrToMmapEventRow_.erase(mUnmapEventReader.addr());
+        addrToMmapEventRow_.erase(mUnmapAddr);
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
     } else {
-        TS_LOGD("func addr:%lu is empty", mUnmapEventReader.addr());
+        TS_LOGD("func addr:%lu is empty", mUnmapAddr);
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_DATA_INVALID);
         return;
     }
+    auto subType = GetMemMapSubTypeWithAddr(mUnmapAddr);
     row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId, ipid_, itid, "MunmapEvent", INVALID_UINT64, timeStamp, 0, 0, mUnmapEventReader.addr(),
-        mUnmapEventReader.size());
+        callChainId, ipid_, itid, "MunmapEvent", subType, timeStamp, 0, 0, mUnmapAddr, mUnmapEventReader.size());
+    addrToMmapTag_.erase(mUnmapAddr); // earse MemMapSubType with addr
     if (mUnmapEventReader.size() != 0) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, false);
     }
     // Uncompressed call stack
     if (mUnmapEventReader.has_frame_info()) {
         CompressStackAndFrames(mUnmapEventReader.frame_info());
+    }
+}
+void NativeHookFilter::ParseTagEvent(const ProtoReader::BytesView& bytesView)
+{
+    ProtoReader::MemTagEvent_Reader memTagEventReader(bytesView);
+    auto addr = memTagEventReader.addr();
+    auto size = memTagEventReader.size();
+    auto tagIndex = traceDataCache_->dataDict_.GetStringIndex(memTagEventReader.tag().ToStdString());
+    NativeHook* nativeHookPtr = traceDataCache_->GetNativeHookData();
+    std::shared_ptr<std::set<uint64_t>> indexSetPtr = anonMmapData_.Find(addr, size); // get anonMmapData dbIndex
+    if (indexSetPtr != nullptr) {
+        for (auto rowIter = indexSetPtr->begin(); rowIter != indexSetPtr->end(); rowIter++) {
+            nativeHookPtr->UpdateMemMapSubType(*rowIter, tagIndex);
+        }
+        indexSetPtr->clear();            // clear annoMmapData dbIndex
+        addrToMmapTag_[addr] = tagIndex; // update addr to MemMapSubType
+    }
+}
+inline uint64_t NativeHookFilter::GetMemMapSubTypeWithAddr(uint64_t addr)
+{
+    auto iter = addrToMmapTag_.find(addr);
+    if (iter != addrToMmapTag_.end()) {
+        return iter->second; // subType
+    } else {
+        return INVALID_UINT64;
+    }
+}
+inline void NativeHookFilter::UpdateAnonMmapDataDbIndex(uint64_t addr, uint32_t size, uint64_t row)
+{
+    auto indexPtr = anonMmapData_.Find(addr, size);
+    if (indexPtr == nullptr) {
+        std::shared_ptr<std::set<uint64_t>> rowPtr_ = std::make_shared<std::set<uint64_t>>();
+        rowPtr_->insert(row);
+        anonMmapData_.Insert(addr, size, std::move(rowPtr_));
+    } else {
+        indexPtr->insert(row);
     }
 }
 void NativeHookFilter::FilterNativeHookMainEvent(size_t num)
@@ -377,6 +419,9 @@ void NativeHookFilter::FilterNativeHookMainEvent(size_t num)
         } else if (nativeHookDataReader->has_statistics_event()) {
             streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_RECORD_STATISTICS, STAT_EVENT_RECEIVED);
             ParseStatisticEvent(timeStamp, nativeHookDataReader->statistics_event());
+        } else if (nativeHookDataReader->has_tag_event()) {
+            streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MEMTAG, STAT_EVENT_RECEIVED);
+            ParseTagEvent(nativeHookDataReader->tag_event());
         }
     }
     tsToMainEventsMap_.erase(tsToMainEventsMap_.begin(), itor);
@@ -781,7 +826,6 @@ void NativeHookFilter::FinishParseNativeHookData()
         ParseSymbolizedNativeHookFrame();
     }
 
-    traceDataCache_->GetNativeHookData()->UpdateMemMapSubType();
     // update last lib id
     GetCallIdToLastLibId();
     if (callIdToLastCallerPathIndex_.size()) {
@@ -874,8 +918,8 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(
         } else {
             filePathIdToImportSymbolTableMap_.emplace(std::make_pair(filePathIndex, elfSymbolTable));
         }
-        for (auto row  = 0; row < size; row++) {
-            if (filePathIndexs[row] !=  filePathIndex) {
+        for (auto row = 0; row < size; row++) {
+            if (filePathIndexs[row] != filePathIndex) {
                 continue;
             }
             auto symVaddr = base::StrToInt<uint32_t>(vaddrs[row], base::INTEGER_RADIX_TYPE_HEX).value();

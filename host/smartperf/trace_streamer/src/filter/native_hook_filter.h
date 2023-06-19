@@ -89,6 +89,7 @@ private:
     void ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
     void ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
     void ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void ParseTagEvent(const ProtoReader::BytesView& bytesView);
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();
@@ -111,6 +112,8 @@ private:
     std::unique_ptr<NativeHookFrameInfo> ParseFrame(const ProtoReader::DataArea& frame);
     template <class T>
     void UpdateFilePathIdAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathId);
+    uint64_t GetMemMapSubTypeWithAddr(uint64_t addr);
+    void UpdateAnonMmapDataDbIndex(uint64_t addr, uint32_t size, uint64_t row);
 
 private:
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
@@ -134,6 +137,11 @@ private:
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::deque<std::string> vaddrs_ = {};
+    // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value
+    std::unordered_map<uint64_t, uint64_t> addrToMmapTag_ = {};
+    // first key is addr, second key is size, value is set<row> in db
+    // mmap update anonymous memory tag always use the anonMmapData_ value
+    DoubleMap<uint64_t, uint32_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
     std::hash<std::string_view> hashFun_;
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;

@@ -100,7 +100,7 @@ export class TimerShaftElement extends BaseElement {
   private _totalNS: number = 10_000_000_000;
   private _startNS: number = 0;
   private _endNS: number = 10_000_000_000;
-
+  
   get sportRuler(): SportRuler | undefined {
     return this._sportRuler;
   }
@@ -378,6 +378,7 @@ export class TimerShaftElement extends BaseElement {
   setSlicesMark(startTime: null | number = null, endTime: null | number = null) {
     this._sportRuler?.setSlicesMark(startTime, endTime);
   }
+
 
   displayCollect(showCollect: boolean) {
     if (showCollect) {

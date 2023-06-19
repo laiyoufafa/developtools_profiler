@@ -21,7 +21,7 @@ import { getTabThreadStates } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { StackBar } from '../../../StackBar.js';
 import { log } from '../../../../../log/Log.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {
@@ -37,44 +37,48 @@ export class TabPaneThreadStates extends BaseElement {
     }
     this.currentSelectionParam = threadStatesParam;
     //@ts-ignore
-    this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height =
+      this.parentElement!.clientHeight - 45 + 'px';
     // // @ts-ignore
-    this.range!.textContent = 'Selected range: ' + ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    this.range!.textContent =
+      'Selected range: ' + ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.threadStatesTbl!.loading = true;
-    getTabThreadStates(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs).then((result) => {
-      if (result != null && result.length > 0) {
-        log('getTabThreadStates result size : ' + result.length);
-        let sumWall = 0.0;
-        let sumOcc = 0;
-        for (let e of result) {
-          let process = Utils.PROCESS_MAP.get(e.pid);
-          let thread = Utils.THREAD_MAP.get(e.tid);
-          e.process = process == null || process.length == 0 ? '[NULL]' : process;
-          e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
-          sumWall += e.wallDuration;
-          sumOcc += e.occurrences;
-          e.stateJX = e.state;
-          e.state = Utils.getEndState(e.stateJX);
-          e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
-          e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+    getTabThreadStates(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs).then(
+      (result) => {
+        if (result != null && result.length > 0) {
+          log('getTabThreadStates result size : ' + result.length);
+          let sumWall = 0.0;
+          let sumOcc = 0;
+          for (let e of result) {
+            let process = Utils.PROCESS_MAP.get(e.pid);
+            let thread = Utils.THREAD_MAP.get(e.tid);
+            e.process = process == null || process.length == 0 ? '[NULL]' : process;
+            e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
+            sumWall += e.wallDuration;
+            sumOcc += e.occurrences;
+            e.stateJX = e.state;
+            e.state = Utils.getEndState(e.stateJX);
+            e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
+            e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+          }
+          let targetList = result.filter((it) => threadStatesParam.processIds.includes(it.pid));
+          let count: any = {};
+          count.process = ' ';
+          count.state = ' ';
+          count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
+          count.occurrences = sumOcc;
+          targetList.splice(0, 0, count);
+          this.threadStatesTblSource = targetList;
+          this.threadStatesTbl!.recycleDataSource = targetList;
+          this.stackBar!.data = targetList;
+        } else {
+          this.threadStatesTblSource = [];
+          this.stackBar!.data = [];
+          this.threadStatesTbl!.recycleDataSource = [];
         }
-        let targetList = result.filter(it => threadStatesParam.processIds.includes(it.pid));
-        let count: any = {};
-        count.process = ' ';
-        count.state = ' ';
-        count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
-        count.occurrences = sumOcc;
-        targetList.splice(0, 0, count);
-        this.threadStatesTblSource = targetList
-        this.threadStatesTbl!.recycleDataSource =targetList
-        this.stackBar!.data = targetList;
-      } else {
-        this.threadStatesTblSource = [];
-        this.stackBar!.data = [];
-        this.threadStatesTbl!.recycleDataSource = [];
+        this.threadStatesTbl!.loading = false;
       }
-      this.threadStatesTbl!.loading = false;
-    });
+    );
   }
 
   initElements(): void {
@@ -88,7 +92,7 @@ export class TabPaneThreadStates extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!,this.threadStatesTbl!)
+    resizeObserver(this.parentElement!, this.threadStatesTbl!);
   }
 
   initHtml(): string {

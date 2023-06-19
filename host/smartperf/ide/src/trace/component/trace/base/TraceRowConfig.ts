@@ -112,7 +112,7 @@ export class TraceRowConfig extends BaseElement {
     optionCheckBox.title = templateType;
     optionCheckBox.setAttribute('search_text', row.name);
     optionCheckBox.addEventListener('change', (e) => {
-      TraceRowConfig.allTraceRowList.forEach(chartRow => {
+      TraceRowConfig.allTraceRowList.forEach((chartRow) => {
         let upParentRow = getUpParentRow(chartRow);
         if (upParentRow == row) {
           if (optionCheckBox.checked) {
@@ -134,7 +134,7 @@ export class TraceRowConfig extends BaseElement {
         getUpParentRow(newTraceRow);
       }
       return newTraceRow;
-    }
+    };
     this.chartTable!.append(...[div, optionCheckBox]);
   }
 

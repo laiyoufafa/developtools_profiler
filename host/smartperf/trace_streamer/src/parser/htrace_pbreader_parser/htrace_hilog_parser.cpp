@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "htrace_hilog_parser.h"
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "event_parser_base.h"
 #include "htrace_event_parser.h"
 #include "process_filter.h"
@@ -21,7 +21,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceHiLogParser::HtraceHiLogParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : EventParserBase(dataCache, ctx), HtracePluginTimeParser(ctx->clockFilter_.get())
+    : EventParserBase(dataCache, ctx)
 {
 }
 

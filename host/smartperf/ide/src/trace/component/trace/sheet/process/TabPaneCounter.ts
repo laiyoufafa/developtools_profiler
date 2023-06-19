@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabCounters, getTabVirtualCounters } from '../../../../database/SqlLite.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-counter')
 export class TabPaneCounter extends BaseElement {
@@ -79,7 +79,7 @@ export class TabPaneCounter extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!,this.counterTbl!)
+    resizeObserver(this.parentElement!, this.counterTbl!);
   }
 
   initHtml(): string {

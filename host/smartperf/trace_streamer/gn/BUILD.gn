@@ -62,9 +62,6 @@ config("default") {
   if (is_debug && is_win) {
     ldflags = [ "-fstack-protector" ]
   }
-  if (is_pbdecoder) {
-    cflags += [ "-D IS_PBDECODER" ]
-  }
   if (target_os == "windows") {
     cflags += [ "-D target_cpu_x86_64" ]
   } else if (is_linux || is_macx) {
@@ -147,7 +144,7 @@ config("default") {
 
 config("symbols") {
   cflags = [ "-O0" ]
-  if (is_linux || is_macx || !is_pbdecoder) {
+  if (is_linux || is_macx) {
     cflags += [ "-funwind-tables" ]
   }
 }
@@ -190,7 +187,7 @@ config("executable") {
   print("use_wasm", use_wasm)
   ldflags = []
 
-  if (is_linux || ((is_macx && !use_wasm) || !is_pbdecoder)) {
+  if (is_linux || ((is_macx && !use_wasm))) {
     ldflags += []
   }
   if (!is_macx && !use_wasm && !is_win) {

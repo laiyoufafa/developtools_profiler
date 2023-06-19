@@ -18,7 +18,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/SqlLite.js';
 import { CpuUsage, Freq } from '../../../../bean/CpuUsage.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {
@@ -111,7 +111,7 @@ export class TabPaneCpuUsage extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!, this.cpuUsageTbl!)
+    resizeObserver(this.parentElement!, this.cpuUsageTbl!);
   }
 
   sortTable(arr: any[], key: string, sort: boolean) {

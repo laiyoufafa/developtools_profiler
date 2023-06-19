@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "htrace_mem_parser.h"
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "htrace_event_parser.h"
 #include "measure_filter.h"
 #include "process_filter.h"
@@ -23,7 +23,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceMemParser::HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : EventParserBase(dataCache, ctx), HtracePluginTimeParser(ctx->clockFilter_.get())
+    : EventParserBase(dataCache, ctx)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
         memNameDictMap_.insert(

@@ -73,7 +73,11 @@ protected:
 
 private:
     template <class T>
-    void GetSymbolStartMaybeUpdateFrameInfo(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr, uint64_t ip, FrameInfo* frameInfo);
+    void GetSymbolStartMaybeUpdateFrameInfo(T* elfSym,
+                                            uint32_t& symbolStart,
+                                            uint64_t symVaddr,
+                                            uint64_t ip,
+                                            FrameInfo* frameInfo);
     bool FillFrameInfo(std::shared_ptr<FrameInfo>& frameInfo, uint64_t ip, uint64_t& vmStart, uint64_t& vmOffset);
 };
 

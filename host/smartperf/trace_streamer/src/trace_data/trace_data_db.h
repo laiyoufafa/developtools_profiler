@@ -53,6 +53,7 @@ public:
     int32_t OperateDatabase(const std::string& sql);
     int32_t SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
+    int32_t SearchDatabase(const std::string& sql, bool print);
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);
@@ -68,7 +69,6 @@ private:
     void ExecuteSql(const std::string_view& sql);
     void SendDatabase(ResultCallBack resultCallBack);
     static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
-    int32_t SearchDatabase(const std::string& sql, bool print);
     std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = true;
     bool pared_ = false;

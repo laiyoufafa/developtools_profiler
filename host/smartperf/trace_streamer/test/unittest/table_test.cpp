@@ -1295,7 +1295,7 @@ HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from stat";
     stream_.traceDataCache_->GetStatAndInfo();
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
-    EXPECT_EQ(row, 425);
+    EXPECT_EQ(row, 430);
 }
 /**
  * @tc.name: SymbolsTableTest

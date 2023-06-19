@@ -17,8 +17,10 @@
 #ifndef HTRACE_HISYSEVENT_PARSER_H
 #define HTRACE_HISYSEVENT_PARSER_H
 
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "event_parser_base.h"
+#include "hisysevent_plugin_config.pbreader.h"
+#include "hisysevent_plugin_result.pbreader.h"
 #include "htrace_plugin_time_parser.h"
 #include "json.hpp"
 #include "trace_data/trace_data_cache.h"

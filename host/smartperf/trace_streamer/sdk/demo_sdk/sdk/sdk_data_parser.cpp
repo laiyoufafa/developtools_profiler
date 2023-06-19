@@ -33,8 +33,8 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-SDKDataParser::SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilterBase* ctx)
-    : HtracePluginTimeParser(ctx->clockFilter_)
+SDKDataParser::SDKDataParser(TraceDataCache* dataCache)
+    : traceDataCache_(dataCache), clockFilter_(std::make_unique<ClockFilter>())
 {
 }
 

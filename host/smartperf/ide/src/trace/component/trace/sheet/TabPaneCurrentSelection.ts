@@ -89,6 +89,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   weakUpBean: WakeupBean | null | undefined;
   private currentSelectionTbl: LitTable | null | undefined;
   private tableObserver: MutationObserver | undefined;
+  private scrollView: HTMLDivElement | null | undefined;
   // @ts-ignore
   private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
 
@@ -101,6 +102,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
   ) {
+    this.setTableHeight('300px');
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     if (leftTitle) {
       leftTitle.innerText = 'Slice Details';
@@ -201,6 +203,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let isBinder = FuncStruct.isBinder(data);
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
     if (data.argsetid != undefined && data.argsetid != null) {
+      this.setTableHeight('550px');
       if (isAsyncBinder) {
         Promise.all([
           queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
@@ -310,6 +313,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         });
       }
     } else {
+      this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
       list.push({
         name: 'StartTime',
@@ -324,7 +328,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
   }
 
-  private tabCurrentSelectionInit(leftTitleStr:string) {
+  private tabCurrentSelectionInit(leftTitleStr: string) {
     this.initCanvas();
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
@@ -337,6 +341,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   setClockData(data: ClockStruct) {
+    this.setTableHeight('auto');
     //时钟信息
     this.tabCurrentSelectionInit('Counter Details');
     let list: any[] = [];
@@ -348,12 +353,12 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'Value',
       value: ColorUtils.formatNumberComma(data.value || 0),
     });
-    // list.push({name: 'Delta', value: ColorUtils.formatNumberComma(data.delta||0)})
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     this.currentSelectionTbl!.dataSource = list;
   }
 
   setMemData(data: ProcessMemStruct) {
+    this.setTableHeight('auto');
     //时钟信息
     this.initCanvas();
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
@@ -375,6 +380,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   setIrqData(data: IrqStruct) {
+    this.setTableHeight('300px');
     this.initCanvas();
     let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
     if (rightTitle) {
@@ -407,6 +413,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     scrollWakeUp: (d: any) => void | undefined
   ) {
     //线程信息
+    this.setTableHeight('350px');
     this.initCanvas();
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
@@ -532,6 +539,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     scrollCallback: ((d: any) => void) | undefined
   ) {
     //线程信息
+    this.setTableHeight('550px');
     this.tabCurrentSelectionInit('Slice Details');
     let list: any[] = [];
     list.push({ name: 'Name', value: data.name });
@@ -750,7 +758,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
   }
 
-  private addJankScrollCallBackEvent(scrollCallback: ((d: any) => void) | undefined, callback: ((data: Array<any>) => void) | undefined, jankJumperList: JankTreeNode[]) {
+  private setTableHeight(height: string) {
+    this.scrollView!.scrollTop = 0;
+    this.currentSelectionTbl!.style.height = height;
+  }
+
+  private addJankScrollCallBackEvent(
+    scrollCallback: ((d: any) => void) | undefined,
+    callback: ((data: Array<any>) => void) | undefined,
+    jankJumperList: JankTreeNode[]
+  ) {
     let all = this.currentSelectionTbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
     all!.forEach((a) => {
       a.addEventListener('click', () => {
@@ -932,8 +949,8 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   initElements(): void {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
+    this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
     this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
-    this.addTableObserver();
   }
 
   addTableObserver() {
@@ -964,37 +981,39 @@ export class TabPaneCurrentSelection extends BaseElement {
             }
             .scroll-area{
                 display: flex;
-                height: auto;
-                overflow-y: auto;
+                flex-direction: row;
+                flex: 1;
             }
             .table-left{
                 width: 50%;
+                height: 500px;
                 padding: 0 10px;
             }
             .table-right{
                 width: 50%;
             }
         </style>
-        <div style="width: 100%;height: auto;position: relative">
-            <div class="table-title">
-                <h2 id="leftTitle"></h2>
-                <h2 id="rightTitle">Scheduling Latency</h2>
+        <div id="scroll_view" style="display: flex;flex-direction: column;width: 100%;height: 100%;overflow: auto">
+            <div style="width: 100%;height: auto;position: relative">
+                <div class="table-title">
+                    <h2 id="leftTitle"></h2>
+                    <h2 id="rightTitle">Scheduling Latency</h2>
+                </div>
             </div>
             <div class="scroll-area">
-                <div class="table-left">
-                    <lit-table id="selectionTbl" no-head hideDownload style="height: auto">
+                <lit-table id="selectionTbl" class="table-left" no-head hideDownload>
                         <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
                             <template><div>{{name}}</div></template>
                         </lit-table-column>
                         <lit-table-column title="value" data-index="value" key="value" align="flex-start" >
                             <template><div style="display: flex;">{{value}}</div></template>
                         </lit-table-column>
-                    </lit-table>
-                </div>
+                </lit-table>
                 <div class="table-right">
                     <canvas id="rightDraw" style="width: 100%;height: 100%;"></canvas>
                 </div>
             </div>
+        </div>
         </div>
         `;
   }

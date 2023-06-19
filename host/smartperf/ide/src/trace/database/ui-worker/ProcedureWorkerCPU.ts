@@ -105,7 +105,15 @@ export class CpuRender {
 
   render(cpuReq: RequestMessage, list: Array<any>, filter: Array<any>, translateY: number) {
     if (cpuReq.lazyRefresh) {
-      this.cpu(list, filter, cpuReq.startNS, cpuReq.endNS, cpuReq.totalNS, cpuReq.frame, cpuReq.useCache || !cpuReq.range.refresh);
+      this.cpu(
+        list,
+        filter,
+        cpuReq.startNS,
+        cpuReq.endNS,
+        cpuReq.totalNS,
+        cpuReq.frame,
+        cpuReq.useCache || !cpuReq.range.refresh
+      );
     } else {
       if (!cpuReq.useCache) {
         this.cpu(list, filter, cpuReq.startNS, cpuReq.endNS, cpuReq.totalNS, cpuReq.frame, false);
@@ -171,7 +179,15 @@ export class CpuRender {
     });
   }
 
-  cpu(cpuList: Array<any>, cpuRes: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+  cpu(
+    cpuList: Array<any>,
+    cpuRes: Array<any>,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any,
+    use: boolean
+  ) {
     if (use && cpuRes.length > 0) {
       let pns = (endNS - startNS) / frame.width;
       let y = frame.y + 5;
@@ -360,7 +376,9 @@ export class CpuStruct extends BaseStruct {
     if ((cpuNode.startTime || 0) + (cpuNode.dur || 0) > endNS) {
       cpuNode.frame.width = frame.width - cpuNode.frame.x;
     } else {
-      cpuNode.frame.width = Math.ceil(((cpuNode.startTime || 0) + (cpuNode.dur || 0) - startNS) / pns - cpuNode.frame.x);
+      cpuNode.frame.width = Math.ceil(
+        ((cpuNode.startTime || 0) + (cpuNode.dur || 0) - startNS) / pns - cpuNode.frame.x
+      );
     }
     if (cpuNode.frame.width < 1) {
       cpuNode.frame.width = 1;

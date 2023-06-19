@@ -70,6 +70,7 @@ export class HeapNode {
   nodeOldIndex: number;
   type: NodeType;
   name: string;
+  nameIdx!: number;
   id: number;
   selfSize: number;
   edgeCount: number;
@@ -87,7 +88,7 @@ export class HeapNode {
 
   constructor(
     fileId: number,
-    node_index: number,
+    nodeIndex: number,
     type: number,
     name: string,
     id: number,
@@ -98,8 +99,8 @@ export class HeapNode {
     firstEdgeIndex: number
   ) {
     this.fileId = fileId;
-    this.nodeIndex = node_index;
-    this.nodeOldIndex = node_index * 7;
+    this.nodeIndex = nodeIndex;
+    this.nodeOldIndex = nodeIndex * 7;
     this.type = type;
     this.name = name;
     this.id = id;
@@ -217,16 +218,14 @@ export class HeapTraceFunctionInfo {
 export class HeapSample {
   timestamp: number;
   lastAssignedId: number;
-  size: number;
+  size: number = 0;
 
   constructor(timestamp: number, lastAssignedId: number) {
     this.timestamp = timestamp;
     this.lastAssignedId = lastAssignedId;
-    this.size = 0;
   }
 }
 export class HeapLocation {
-
   objectIndex: number;
   scriptId: number;
   line: number;
@@ -250,7 +249,6 @@ export class HeapSnapshotStruct {
   functionInfos: Array<HeapTraceFunctionInfo>;
   traceNodes: Array<AllocationFunction>;
   samples: Array<HeapSample>;
-  locations: Map<number, HeapLocation>;
   strings: Array<string>;
 
   rootNodeId: number = -1;
@@ -261,8 +259,16 @@ export class HeapSnapshotStruct {
     this.functionInfos = new Array<HeapTraceFunctionInfo>();
     this.traceNodes = new Array<AllocationFunction>();
     this.samples = new Array<HeapSample>();
-    this.locations = new Map<number, HeapLocation>();
     this.strings = new Array<string>();
+  }
+
+  public clear() {
+    this.nodeMap.clear();
+    this.edges.length = 0;
+    this.functionInfos.length = 0;
+    this.traceNodes.length = 0;
+    this.samples.length = 0;
+    this.strings.length = 0;
   }
 }
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "print_event_parser.h"
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "frame_filter.h"
 #include "stat_filter.h"
 #include "string_to_numerical.h"

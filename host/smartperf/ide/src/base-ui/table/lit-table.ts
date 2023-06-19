@@ -264,7 +264,7 @@ export class LitTable extends HTMLElement {
     return ['scroll-y', 'selectable', 'no-head', 'grid-line', 'defaultOrderColumn', 'hideDownload', 'loading'];
   }
 
-  set loading(value : boolean){
+  set loading(value: boolean) {
     this._loading = value;
     this.exportProgress!.loading = value;
   }
@@ -326,8 +326,10 @@ export class LitTable extends HTMLElement {
     if (this.rememberScrollTop) {
       this.currentScrollTop = this.tableElement!.scrollTop;
       this.tableElement!.scrollTop = 0;
+      this.tableElement!.scrollLeft = 0;
     } else {
       this.tableElement!.scrollTop = 0;
+      this.tableElement!.scrollLeft = 0;
     }
     if (this.hasAttribute('tree')) {
       this.recycleDs = this.meauseTreeRowElement(value);
@@ -362,7 +364,7 @@ export class LitTable extends HTMLElement {
   }
 
   exportData() {
-    if (this.exportLoading) {
+    if (this.exportLoading || this.ds.length === 0) {
       return;
     }
     this.exportLoading = true;
@@ -1143,6 +1145,9 @@ export class LitTable extends HTMLElement {
           td.insertBefore(btn, td.firstChild);
         }
         td.style.paddingLeft = rowData.depth * 15 + 'px';
+        if (!rowData.data.children || rowData.data.children.length === 0) {
+          td.style.paddingLeft = (15 * rowData.depth + 16) + 'px';
+        }
         if (rowData.data.rowName === 'js-memory') {
           let nodeText = document.createElement('text');
           nodeText.classList.add('nodeName');
@@ -1163,7 +1168,12 @@ export class LitTable extends HTMLElement {
             td.insertBefore(edgeNameText, nodeText);
             let span = document.createElement('span');
             span.classList.add('span');
-            span.textContent = '\xa0' + '::' + '\xa0';
+            if (rowData.data.type === ConstructorType.RetainersType) {
+              span.textContent = '\xa0' + 'in' + '\xa0';
+              nodeIdText.textContent = ` @${rowData.data.id}`;
+            } else {
+              span.textContent = '\xa0' + '::' + '\xa0';
+            }
             edgeNameText.append(span);
           }
           if (
@@ -1224,7 +1234,7 @@ export class LitTable extends HTMLElement {
         newTableElement.append(td);
       }
     });
-    let lastChild = this.treeElement?.lastChild as HTMLElement
+    let lastChild = this.treeElement?.lastChild as HTMLElement;
     if (lastChild) {
       lastChild.style.transform = `translateY(${treeTop}px)`;
     }
@@ -1467,12 +1477,16 @@ export class LitTable extends HTMLElement {
           let btn = this.createExpandBtn(rowObject);
           firstElement.insertBefore(btn, firstElement.firstChild);
         }
+        firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
+        if (!rowObject.children || rowObject.children.length === 0) {
+          firstElement.style.paddingLeft = 15 * rowObject.depth + 16 + 'px';
+        }
         if (rowObject.data.hasNext) {
           let btn = this.createBtn(rowObject);
           firstElement.title = rowObject.data.objectName;
           firstElement.insertBefore(btn, firstElement.firstChild);
+          firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
         }
-        firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
         if (rowObject.data.rowName === 'js-memory') {
           let nodeText = document.createElement('text');
           nodeText.classList.add('nodeName');
@@ -1493,7 +1507,12 @@ export class LitTable extends HTMLElement {
             firstElement.insertBefore(edgeNameText, nodeText);
             let span = document.createElement('span');
             span.classList.add('span');
-            span.textContent = '\xa0' + '::' + '\xa0';
+            if (rowObject.data.type === ConstructorType.RetainersType) {
+              span.textContent = '\xa0' + 'in' + '\xa0';
+              nodeIdText.textContent = ` @${rowObject.data.id}`;
+            } else {
+              span.textContent = '\xa0' + '::' + '\xa0';
+            }
             edgeNameText.append(span);
           }
           if (

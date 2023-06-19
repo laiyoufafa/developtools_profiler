@@ -22,9 +22,7 @@
 #include <unordered_map>
 #include <vector>
 #include "htrace_file_header.h"
-// #include "trace_data_cache.h"
 #include "ts_common.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 /*
@@ -42,7 +40,6 @@ namespace TraceStreamer {
  * any time that the system is suspended.
  */
 
-using ClockId = uint32_t;
 struct SnapShot {
     ClockId clockId;
     uint64_t ts;
@@ -57,32 +54,31 @@ public:
 
     void SetPrimaryClock(ClockId primary)
     {
-        primaryClock_ = primary;
+        PRIMARY_CLOCK_ID = static_cast<BuiltinClocks>(primary);
     }
     ClockId GetPrimaryClock() const
     {
-        return primaryClock_;
+        return PRIMARY_CLOCK_ID;
     }
     uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
     uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
-    void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp);
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
     int32_t InitSnapShotTimeRange(const uint8_t* data, int32_t len);
     bool HasInitSnapShot() const
     {
         return hasInitSnapShot_;
     }
+    void AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uint64_t srcTs, uint64_t dstTs);
+
+public:
+    bool hasInitSnapShot_ = false;
 
 private:
     static std::string GenClockKey(ClockId srcClockId, ClockId desClockId);
-    void AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uint64_t srcTs, uint64_t dstTs);
 
 private:
     std::unordered_map<std::string, ConvertClockMap> clockMaps_ = {};
-    ProfilerTraceFileHeader* profilerSDKTraceFileHeader_;
-
-    ClockId primaryClock_ = BuiltinClocks::TS_CLOCK_BOOTTIME;
-    bool hasInitSnapShot_ = false;
+    ProfilerTraceFileHeader* profilerSDKTraceFileHeader_ = nullptr;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

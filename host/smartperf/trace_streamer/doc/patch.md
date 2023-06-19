@@ -5,7 +5,7 @@
 当开发者从某个指定地址下载的文件，不能直接使用，需要略做修改，而如果直接把修改后的文件全量上传到库，涉及代码和第三方的相似度高的问题。  
 而生成patch文件，则可以避免这个问题。  
 生成patch文件  
-diff old_file.xx new_file.xx > patch.xx  
+diff -Naru old_file.xx new_file.xx > patch.xx  
 给文件打patch  
 patch old_file.xx patch.xx
 这个命令，可以把old_file.xx变成和new_file.xx一样的内容。  

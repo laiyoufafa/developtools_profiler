@@ -49,7 +49,6 @@ public:
 
 private:
     void ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    void ParseTagEvent(const ProtoReader::BytesView& bytesView);
     void ParseFileEvent(const ProtoReader::BytesView& bytesView);
     void ParseSymbolEvent(const ProtoReader::BytesView& bytesView);
     void ParseThreadEvent(const ProtoReader::BytesView& bytesView);

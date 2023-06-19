@@ -15,16 +15,4 @@ set -e
 rm -rf out/test
 ./build.sh test
 ./test.sh
-cp -R out/test/obj/src/parser/htrace_pbreader_parser htrace_pbreader_parser
-cp out/test/obj/src/parser/htrace_pbreader_parser_src.parser_base.gcda .
-cp out/test/obj/src/parser/htrace_pbreader_parser_src.parser_base.gcno .
-./build.sh testpb
-./test_pbdecoder.sh
-rm -rf out/test/obj/src/parser/htrace_pbreader_parser
-cp -R htrace_pbreader_parser out/test/obj/src/parser
-cp htrace_pbreader_parser_src.parser_base.gcda out/test/obj/src/parser
-cp htrace_pbreader_parser_src.parser_base.gcno out/test/obj/src/parser
-rm -rf htrace_pbreader_parser
-rm htrace_pbreader_parser_src.parser_base.gcda
-rm htrace_pbreader_parser_src.parser_base.gcno
 ./lcov_operator.sh

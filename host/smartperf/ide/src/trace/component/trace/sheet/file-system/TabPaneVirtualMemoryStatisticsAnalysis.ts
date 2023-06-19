@@ -602,6 +602,15 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.currentLevel = 0;
     this.vmStatisticsAnalysisProgressEL!.loading = false;
     this.processPieChart(val);
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight != 0) {
+        this.vmStatisticsAnalysisTableProcess!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.vmStatisticsAnalysisTableType!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.vmStatisticsAnalysisTableThread!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.vmStatisticsAnalysisTableSo!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.vmStatisticsAnalysisTableFunction!.style.height = this.parentElement!.clientHeight - 40 + 'px';
+      }
+    }).observe(this.parentElement!);
   }
   getVirtualMemoryType(item: any, val: any) {
     this.vmStatisticsAnalysisProgressEL!.loading = true;

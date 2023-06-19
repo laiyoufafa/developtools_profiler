@@ -609,6 +609,15 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.currentLevel = 0;
     this.fileStatisticsAnalysisProgressEL!.loading = false;
     this.processPieChart(val);
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight != 0) {
+        this.fileStatisticsAnalysisTableProcess!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.fileStatisticsAnalysisTableThread!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.fileStatisticsAnalysisTableSo!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.fileStatisticsAnalysisTableFunction!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.fileStatisticsAnalysisTableType!.style.height = this.parentElement!.clientHeight - 40 + 'px';
+      }
+    }).observe(this.parentElement!);
   }
 
   getFilesystemType(item: any, val: any) {

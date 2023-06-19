@@ -601,6 +601,15 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.currentLevel = 0;
     this.progressEL!.loading = false;
     this.processPieChart(val);
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight != 0) {
+        this.tableProcess!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.tableThread!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.tableSo!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.tableFunction!.style.height = this.parentElement!.clientHeight - 30 + 'px';
+        this.tableType!.style.height = this.parentElement!.clientHeight - 40 + 'px';
+      }
+    }).observe(this.parentElement!);
   }
   getIOTierType(item: any, val: any) {
     this.progressEL!.loading = true;

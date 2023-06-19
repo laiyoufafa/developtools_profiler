@@ -18,7 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -32,6 +32,7 @@
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parting_string.h"
 #include "rpc_server.h"
+#include "string_help.h"
 
 #include "thread_state.h"
 #include "trace_streamer/trace_streamer_selector.h"
@@ -88,6 +89,48 @@ void PrintInformation()
 void PrintVersion()
 {
     fprintf(stderr, "version %s\n", TRACE_STREAM_VERSION.c_str());
+}
+
+void LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings)
+{
+    auto fd = fopen(sqlOperator.c_str(), "r");
+    if (!fd) {
+        TS_LOGE("open file failed!");
+        fclose(fd);
+        fd = nullptr;
+        return;
+    }
+    char buffer[G_CHUNK_SIZE];
+    while (!feof(fd)) {
+        std::string sqlString;
+        while (fgets(buffer, sizeof(buffer), fd)) {
+            std::string line = buffer;
+            if (line == "\n" || line == "\r\n") {
+                break;
+            }
+            sqlString.append(buffer);
+
+            if (EndWith(line, ";") || EndWith(line, ";\r\n")) {
+                break;
+            }
+        }
+
+        if (sqlString.empty()) {
+            continue;
+        }
+        sqlStrings.push_back(sqlString);
+    }
+    fclose(fd);
+    fd = nullptr;
+}
+
+void ReadSqlFileAndPrintResult(TraceStreamerSelector& ts, const std::string& sqlOperator)
+{
+    std::vector<std::string> sqlStrings;
+    LoadQueryFile(sqlOperator, sqlStrings);
+    for (auto& str : sqlStrings) {
+        ts.SearchDatabase(str, true);
+    }
 }
 
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
@@ -185,6 +228,7 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
 struct TraceExportOption {
     std::string traceFilePath;
     std::string sqliteFilePath;
+    std::string sqlOperatorFilePath;
     bool interactiveState = false;
     bool exportMetaTable = true;
     bool separateFile = false;
@@ -207,6 +251,14 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
             continue;
         } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
             traceExportOption.interactiveState = true;
+            continue;
+        } else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--query-file")) {
+            i++;
+            if (i == argc) {
+                ShowHelpInfo(argv[0]);
+                return 1;
+            }
+            traceExportOption.sqlOperatorFilePath = std::string(argv[i]);
             continue;
         } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
             PrintInformation();
@@ -235,7 +287,7 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
     }
     if ((traceExportOption.traceFilePath.empty() ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
-        !httpOption.enable && !traceExportOption.separateFile) {
+        !httpOption.enable && !traceExportOption.separateFile && traceExportOption.sqlOperatorFilePath.empty()) {
         ShowHelpInfo(argv[0]);
         return 1;
     }
@@ -258,7 +310,6 @@ int main(int argc, char** argv)
         }
         return 0;
     }
-
     if (httpOption.enable) {
         RpcServer rpcServer;
         HttpServer httpServer;
@@ -299,6 +350,9 @@ int main(int argc, char** argv)
         if (!tsOption.sqliteFilePath.empty()) {
             ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
         }
+    }
+    if (!tsOption.sqlOperatorFilePath.empty()) {
+        ReadSqlFileAndPrintResult(ts, tsOption.sqlOperatorFilePath);
     }
     return 0;
 }

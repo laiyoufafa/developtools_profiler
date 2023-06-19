@@ -20,7 +20,7 @@ import { getTabPaneFrequencySampleData } from '../../../../database/SqlLite.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { Utils } from '../../base/Utils.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
-import { resizeObserver } from "../SheetUtils.js";
+import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-frequency-sample')
 export class TabPaneFrequencySample extends BaseElement {
@@ -43,7 +43,8 @@ export class TabPaneFrequencySample extends BaseElement {
     this.frequencyLoadingPage.style.visibility = 'visible';
     this.selectionParam = frequencySampleValue;
     // @ts-ignore
-    this.frequencySampleTbl!.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 25 + 'px';
+    this.frequencySampleTbl!.shadowRoot?.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 25 + 'px';
     this.queryDataByDB(frequencySampleValue);
   }
 
@@ -63,7 +64,7 @@ export class TabPaneFrequencySample extends BaseElement {
 
   connectedCallback() {
     super.connectedCallback();
-    resizeObserver(this.parentElement!, this.frequencySampleTbl!,25,this.frequencyLoadingPage, 24)
+    resizeObserver(this.parentElement!, this.frequencySampleTbl!, 25, this.frequencyLoadingPage, 24);
   }
 
   queryDataByDB(frqSampleParam: SelectionParam | any) {
@@ -106,7 +107,10 @@ export class TabPaneFrequencySample extends BaseElement {
     if (initFreqResult.length == 0) return;
     let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
     if (includeData !== 0) {
-      initFreqResult = initFreqResult.slice(includeData == -1 ? initFreqResult.length - 1 : includeData - 1, initFreqResult.length);
+      initFreqResult = initFreqResult.slice(
+        includeData == -1 ? initFreqResult.length - 1 : includeData - 1,
+        initFreqResult.length
+      );
     }
     if (initFreqResult[0].ts < leftStartNs && includeData !== 0) initFreqResult[0].ts = leftStartNs;
     initFreqResult.forEach((item, idx) => {

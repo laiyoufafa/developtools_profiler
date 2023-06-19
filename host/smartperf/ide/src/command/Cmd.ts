@@ -14,7 +14,6 @@
  */
 
 export class Cmd {
-
   static CmdSendPostUtils(uri: string, callback: Function, requestData: any) {
     // @ts-ignore
     if (window.useWb) {

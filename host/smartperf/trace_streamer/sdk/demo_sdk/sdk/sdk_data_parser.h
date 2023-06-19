@@ -18,15 +18,14 @@
 
 #include <functional>
 #include <mutex>
+#include <clock_filter.h>
 #include "file.h"
 #include "htrace_plugin_time_parser.h"
 #include "table/table_base.h"
 #include "trace_streamer/trace_streamer_selector.h"
-#include "trace_streamer_filter_base.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-
 enum Third_Party_Wasm_Id {
     DATA_TYPE_MOCK_PLUGIN = 0,
     DATA_TYPE_CLOCK = 100,
@@ -35,7 +34,7 @@ class SDKDataParser : public HtracePluginTimeParser {
 public:
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
     using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int32_t, int32_t)>;
-    SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilterBase* ctx);
+    SDKDataParser(TraceDataCache* dataCache);
     ~SDKDataParser(){};
 
     // third_party
@@ -91,7 +90,8 @@ public:
         "}}}";
 
 private:
-    TraceDataCache* traceDataCache_;
+    TraceDataCache* traceDataCache_ = nullptr;
+    std::unique_ptr<ClockFilter> clockFilter_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
