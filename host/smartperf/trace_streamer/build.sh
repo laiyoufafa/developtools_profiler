@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
+
+cd $(dirname ${BASH_SOURCE})
+
 PARAMS=$*
 echo $PARAMS
 echo "begin to check input"

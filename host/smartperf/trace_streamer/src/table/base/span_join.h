@@ -15,7 +15,6 @@
  */
 #ifndef SAPN_JOIN_H
 #define SAPN_JOIN_H
-#include "string_help.h"
 #include "table_base.h"
 #include "trace_data_cache.h"
 namespace SysTuning {
