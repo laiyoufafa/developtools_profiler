@@ -88,6 +88,10 @@ export class SpStatisticsHttpUtil {
   }
 
   static addUserVisitAction(requestUrl: string) {
+    // @ts-ignore
+    if (window.useWb) {
+      return;
+    }
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
       SpStatisticsHttpUtil.requestServerInfo = SpStatisticsHttpUtil.getRequestServerInfo();
     }
@@ -127,6 +131,10 @@ export class SpStatisticsHttpUtil {
   }
 
   static addOrdinaryVisitAction(requestBody: BurialPointRequestBody) {
+    // @ts-ignore
+    if (window.useWb) {
+      return;
+    }
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
       SpStatisticsHttpUtil.requestServerInfo = SpStatisticsHttpUtil.getRequestServerInfo();
     }

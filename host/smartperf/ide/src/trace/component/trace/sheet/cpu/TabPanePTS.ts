@@ -60,6 +60,7 @@ export class TabPanePTS extends BaseElement {
   }
 
   getDataBySPT(ptsLeftNs: number, ptsRightNs: number, ptsSource: Array<SPT>) {
+    this.ptsTbl!.loading = true;
     let pMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
     let ptMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
     let ptsMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
@@ -165,6 +166,7 @@ export class TabPanePTS extends BaseElement {
       }
       ptsArr.push(ptsValues!);
     }
+    this.ptsTbl!.loading = false;
     this.ptsTbl!.recycleDataSource = ptsArr;
   }
 

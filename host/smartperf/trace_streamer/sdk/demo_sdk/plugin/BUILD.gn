@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../build/ts.gni")
 OHOS_PROTO_GEN = "${THIRD_PARTY}/protogen"
 ohos_source_set("sdk_plugin") {
   subsystem_name = "trace_streamer"
@@ -21,12 +22,10 @@ ohos_source_set("sdk_plugin") {
     "sdk_plugin_data_parser.h",
   ]
   include_dirs = [
-    "base",
     "..",
     "../include",
-    "../filter",
     "../trace_data",
-    "../base",
+    "${SRC}/base",
     "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/mock_data",
     "${THIRD_PARTY}/protobuf/src",

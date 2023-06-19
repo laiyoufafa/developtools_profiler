@@ -26,14 +26,21 @@ export class TabPaneCpuByProcess extends BaseElement {
   private cpuByProcessTbl: LitTable | null | undefined;
   private cpuByProcessRange: HTMLLabelElement | null | undefined;
   private cpuByProcessSource: Array<SelectionData> = [];
+  private currentSelectionParam: SelectionParam | undefined;
 
   set data(cpuByProcessValue: SelectionParam | any) {
+    if (this.currentSelectionParam === cpuByProcessValue) {
+      return;
+    }
+    this.currentSelectionParam = cpuByProcessValue;
     this.cpuByProcessRange!.textContent =
       'Selected range: ' + parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     // @ts-ignore
     this.cpuByProcessTbl!.shadowRoot!.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.cpuByProcessTbl!.recycleDataSource = [];
+    this.cpuByProcessTbl!.loading = true;
     getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {
+      this.cpuByProcessTbl!.loading = false;
       if (result != null && result.length > 0) {
         log('getTabCpuByProcess size :' + result.length);
         let sumWall = 0.0;

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("../../src/ts.gni")
+import("../../build/ts.gni")
 OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR = "${THIRD_PARTY}/protobuf"
 proto_dir = "${THIRD_PARTY}/protogen"
 services_dir = "$proto_dir/services"

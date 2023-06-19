@@ -20,8 +20,7 @@
 #include <emscripten.h>
 #include <string>
 #include "rpc_server.h"
-#include "../trace_streamer/trace_streamer_selector.h"
-
+#include "trace_streamer/trace_streamer_selector.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

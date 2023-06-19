@@ -204,10 +204,16 @@ export class DbPool {
             if (this.cutDownTimer != undefined) {
               clearInterval(this.cutDownTimer);
             }
-            this.progress!('database ready', 40);
             let fun = thread.taskMap[event.data.id];
-            if (fun) {
-              fun(event.data);
+            if (!event.data.init && !event.data.status) {
+              if (fun) {
+                fun(['error',event.data.msg]);
+              }
+            } else {
+              this.progress!('database ready', 40);
+              if (fun) {
+                fun(event.data);
+              }
             }
             Reflect.deleteProperty(thread.taskMap, event.data.id);
           } else {
@@ -318,7 +324,12 @@ export function query<T extends any>(
       sql,
       args,
       (res: any) => {
-        resolve(res);
+        if(res[0] && res[0] === 'error'){
+          window.publish(window.SmartEvent.UI.Error,res[1]);
+          reject(res);
+        }else{
+          resolve(res);
+        }
       },
       action
     );
@@ -1417,6 +1428,22 @@ export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number
       (event_type = 'MmapEvent')
     group by
       event_type,sub_type_id;
+        `,
+    { $leftNs: leftNs, $rightNs: rightNs }
+  );
+
+export const queryNativeHookSubType = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+  query(
+    'queryNativeHookSubType',
+    `
+    select distinct sub_type_id as subTypeId,DD.data
+from
+      native_hook NH,
+      trace_range TR
+left join data_dict DD on NH.sub_type_id = DD.id
+    where
+      NH.sub_type_id not null and
+      (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
         `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );

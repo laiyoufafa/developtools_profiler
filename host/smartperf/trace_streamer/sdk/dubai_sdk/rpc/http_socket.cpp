@@ -40,14 +40,14 @@ bool HttpSocket::CreateSocket(int32_t domain)
     sockId_ = sockId;
     if (domain == AF_INET || domain == AF_INET6) {
         int32_t enable = 1;
-        if (setsockopt(sockId, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&enable),
-            sizeof(enable)) == SOCKET_ERROR) {
+        if (setsockopt(sockId, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&enable), sizeof(enable)) ==
+            SOCKET_ERROR) {
             Close();
             return false;
         }
         if (domain == AF_INET6) {
-            if (setsockopt(sockId, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char*>(&enable),
-                sizeof(enable)) == SOCKET_ERROR) {
+            if (setsockopt(sockId, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char*>(&enable), sizeof(enable)) ==
+                SOCKET_ERROR) {
                 Close();
                 return false;
             }

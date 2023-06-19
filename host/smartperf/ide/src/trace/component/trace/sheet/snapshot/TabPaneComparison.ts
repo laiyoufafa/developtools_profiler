@@ -68,7 +68,12 @@ export class TabPaneComparison extends BaseElement {
         if (this.clickRow.children.length > 0) {
           for (let item of this.clickRow.children) {
             let nodeName = item.nodeName.concat(` @${item.id}`);
-            item.objectName = nodeName;
+            item.nodeId = ` @${item.id}`;
+            if (item.isString() ) {
+              item.objectName = '"' + item.nodeName + '"' + ` @${item.id}`;
+            } else {
+              item.objectName = nodeName;
+            }
             item.deltaCount = '-';
             item.deltaSize = '-';
             if (item.edgeName != '') {
@@ -173,10 +178,12 @@ export class TabPaneComparison extends BaseElement {
     this.comparisonTableEl!.addEventListener('column-click', (e) => {
       // @ts-ignore
       this.sortComprisonByColumn(e.detail.key, e.detail.sort);
+      this.comparisonTableEl!.reMeauseHeight();
     });
     this.retainerTableEl!.addEventListener('column-click', (e) => {
       // @ts-ignore
       this.sortRetainerByColumn(e.detail.key, e.detail.sort);
+      this.retainerTableEl!.reMeauseHeight();
     });
     this.comparisonTableEl!.addEventListener('row-click', (e: any) => {
       this.rightTheadTable!.removeAttribute('sort');
@@ -296,6 +303,7 @@ export class TabPaneComparison extends BaseElement {
     } else {
       this.comparisonTableEl!.snapshotDataSource = [];
     }
+    this.comparisonTableEl!.reMeauseHeight();
   }
 
   initSelect(fileId: number, fileArr: Array<any>) {
@@ -510,6 +518,7 @@ export class TabPaneComparison extends BaseElement {
       this.comparisonTableEl!.snapshotDataSource = this.comparisonFilter;
       let summaryTable = this.comparisonTableEl!.shadowRoot?.querySelector('.table') as HTMLDivElement;
       summaryTable.scrollTop = 0;
+      this.comparisonTableEl!.reMeauseHeight();
     });
   }
 
@@ -579,7 +588,7 @@ export class TabPaneComparison extends BaseElement {
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
                         <lit-table id="tb-comparison" style="height: auto" tree>
-                            <lit-table-column width="30%" title="#Constructor" data-index="objectName" key="objectName"  align="flex-start" order>
+                            <lit-table-column width="30%" title="#Constructor" data-index="" key="objectName"  align="flex-start" order>
                             </lit-table-column>
                             <lit-table-column width="1fr" title="#New" data-index="addedCount" key="addedCount"  align="flex-start" order>
                             </lit-table-column>

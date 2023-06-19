@@ -23,7 +23,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceMemParser::HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx)
+    : EventParserBase(dataCache, ctx), HtracePluginTimeParser(ctx->clockFilter_.get())
 {
     for (auto i = 0; i < MEM_MAX; i++) {
         memNameDictMap_.insert(

@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 # Copyright (C) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +11,7 @@ set -e
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+set -e
 ext=""
 target_dir="linux"
 is_debug="$1"
@@ -23,10 +23,10 @@ gn="$6"
 ninja="$7"
 target_operator="$8"
 if [ "$#" -ge "7" ];then
-    if [ $target != "trace" ] && [ $target != "pbdecoder" ] && [ $target != "linux" ] && [ $target != "windows" ] &&
-        [ $target != "macx" ] && [ $target != "trace_streamer" ] && [ $target != "wasm" ] && [ $target != "wasmpb" ] &&
-        [ $target != "test" ] && [ $target != "testpb" ] && [ $target != "spb" ] && [ $target != "fuzz" ] &&
-        [ $target != "protoc" ] && [ $target != "sdkdemo" ] && [ $target != "dubaisdk" ] && [ $target != "sdkdemotest" ];then
+    if [ "$target" != "trace" ] && [ "$target" != "pbdecoder" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
+        [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] && [ "$target" != "wasmpb" ] &&
+        [ "$target" != "test" ] && [ "$target" != "testpb" ] && [ "$target" != "spb" ] && [ "$target" != "fuzz" ] &&
+        [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "dubaisdk" ] && [ "$target" != "sdkdemotest" ];then
         echo "failed"
         exit
     fi

@@ -28,7 +28,7 @@ class ClockFilterTest : public ::testing::Test {
 public:
     void SetUp()
     {
-        streamFilters_.clockFilter_ = std::make_unique<ClockFilter>(&traceDataCache_, &streamFilters_);
+        streamFilters_.clockFilter_ = std::make_unique<ClockFilter>();
     }
 
     void TearDown() {}

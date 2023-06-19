@@ -15,12 +15,12 @@
 
 #include "wasm_func.h"
 #include <deque>
-#include "meta.h"
 #include "sdk_data_parser.h"
 #include "sdk_plugin_data_parser.h"
 #include "table_base.h"
 #include "trace_stdtype.h"
 #include "ts_sdk_api.h"
+#include "version.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -77,7 +77,6 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerGetPluginNameEx(int32_t pluginLen)
 {
     return g_wasmTraceStreamer.WasmGetPluginNameWithCallback(g_PluginNameBuf, pluginLen);
 }
-
 
 EMSCRIPTEN_KEEPALIVE uint8_t* InitTraceRange(TraceRangeCallbackFunction traceRangeCallbackFunction,
                                              uint32_t reqBufferSize)

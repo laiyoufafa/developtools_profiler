@@ -77,7 +77,7 @@ public:
     bool NativeHookReloadElfSymbolTable(std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables);
     bool SupportImportSymbolTable()
     {
-        return isOfflineSymbolizationMode_;
+        return traceDataCache_->GetNativeHookFrameData()->Size();
     }
 
 private:
@@ -103,13 +103,14 @@ private:
     void UpdateSymbolTablePtrAndStValueToSymAddrMap(T* firstSymbolAddr,
                                                     const int size,
                                                     std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
+    void FillOfflineSymbolizationFrames(std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>>::iterator itor);
+    void ReparseStacksWithAddrRange(uint64_t start, uint64_t end);
     void ReparseStacksWithDifferentMeans();
     void CompressStackAndFrames(ProtoReader::RepeatedDataAreaIterator<ProtoReader::BytesView> frames);
     std::tuple<uint64_t, uint64_t> GetNeedUpdateProcessMapsAddrRange(uint64_t startAddr, uint64_t endAddr);
     std::unique_ptr<NativeHookFrameInfo> ParseFrame(const ProtoReader::DataArea& frame);
     template <class T>
     void UpdateFilePathIdAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathId);
-    void UpdateResymbolizationResult(const std::set<uint64_t>& ips);
 
 private:
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};

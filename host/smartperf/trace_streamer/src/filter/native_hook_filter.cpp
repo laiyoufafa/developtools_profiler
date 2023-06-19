@@ -428,7 +428,11 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
 
     // Find first item in startAddrToMapsInfoMap_, that endItor->second()->start > endAddr
     auto endItor = startAddrToMapsInfoMap_.upper_bound(endAddr);
-    if (endItor == startAddrToMapsInfoMap_.end() || endItor == startAddrToMapsInfoMap_.begin()) {
+    if (endItor == startAddrToMapsInfoMap_.end()) {
+        return std::make_tuple(start, end);
+    }
+    if (endItor == startAddrToMapsInfoMap_.begin()) {
+        start = INVALID_UINT64;
         return std::make_tuple(start, end);
     }
     // Backward query for the last item with filePathId == endItor ->filePathId()
@@ -444,6 +448,31 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     }
     return std::make_tuple(start, end);
 }
+
+inline void NativeHookFilter::FillOfflineSymbolizationFrames(
+    std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>>::iterator itor)
+{
+    stackIdToCallChainIdMap_.insert(std::make_pair(itor->first, ++callChainId_));
+    auto framesInfo = OfflineSymbolization(itor->second);
+    uint64_t depth = 0;
+    uint64_t filePathIndex = INVALID_UINT64;
+    for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
+        // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
+        auto frameInfo = itor->get();
+        if (filePathIdToFileIndex_.count(frameInfo->filePathId_)) {
+            filePathIndex = filePathIdToFileIndex_.at(frameInfo->filePathId_);
+        } else {
+            filePathIndex = INVALID_UINT64;
+        }
+        std::string vaddr = base::Uint64ToHexText(frameInfo->symVaddr_);
+
+        traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
+            callChainId_, depth, frameInfo->ip_, INVALID_UINT64, frameInfo->symbolIndex_, filePathIndex,
+            frameInfo->offset_, frameInfo->symbolOffset_, vaddr);
+        depth++;
+    }
+}
+
 void NativeHookFilter::ReparseStacksWithDifferentMeans()
 {
     for (auto itor = reparseStackIdToFramesMap_.begin(); itor != reparseStackIdToFramesMap_.end(); itor++) {
@@ -451,28 +480,34 @@ void NativeHookFilter::ReparseStacksWithDifferentMeans()
         if (stackIdToCallChainIdMap_.count(itor->first)) {
             TS_LOGE("error! The mapping of ambiguous call stack id and callChainId has not been deleted!");
         }
-        stackIdToCallChainIdMap_.insert(std::make_pair(itor->first, ++callChainId_));
-        auto framesInfo = OfflineSymbolization(itor->second);
-        uint64_t depth = 0;
-        uint64_t filePathIndex = INVALID_UINT64;
-        for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
-            // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
-            auto frameInfo = itor->get();
-            if (filePathIdToFileIndex_.count(frameInfo->filePathId_)) {
-                filePathIndex = filePathIdToFileIndex_.at(frameInfo->filePathId_);
-            } else {
-                filePathIndex = INVALID_UINT64;
-            }
-            std::string vaddr = base::Uint64ToHexText(frameInfo->symVaddr_);
-
-            traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                callChainId_, depth, frameInfo->ip_, INVALID_UINT64, frameInfo->symbolIndex_, filePathIndex,
-                frameInfo->offset_, frameInfo->symbolOffset_, vaddr);
-            depth++;
-        }
+        FillOfflineSymbolizationFrames(itor);
     }
     reparseStackIdToFramesMap_.clear();
 }
+
+inline void NativeHookFilter::ReparseStacksWithAddrRange(uint64_t start, uint64_t end)
+{
+    // Get the list of call stack ids that should be parsed again
+    for (auto itor = allStackIdToFramesMap_.begin(); itor != allStackIdToFramesMap_.end(); itor++) {
+        auto ips = itor->second;
+        for (auto ipsItor = ips->begin(); ipsItor != ips->end(); ipsItor++) {
+            if (*ipsItor >= start && *ipsItor < end) {
+                // delete the stack ids whitch should be parsed again
+                if (stackIdToCallChainIdMap_.count(itor->first)) {
+                    stackIdToCallChainIdMap_.erase(itor->first);
+                }
+                /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
+                Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
+                updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
+                if (!stackIdToFramesMap_.count(itor->first)) {
+                    reparseStackIdToFramesMap_.emplace(std::make_pair(itor->first, itor->second));
+                }
+                break;
+            }
+        }
+    }
+}
+
 // Only called in offline symbolization mode.
 void NativeHookFilter::ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
 {
@@ -485,7 +520,7 @@ void NativeHookFilter::ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativ
     uint64_t end = INVALID_UINT64;
     // Get [start, end) of ips addr range which need to update
     std::tie(start, end) = GetNeedUpdateProcessMapsAddrRange(startAddr, endAddr);
-    if (start != INVALID_UINT64) { // Conflicting
+    if (start != INVALID_UINT64 && start != end) { // Conflicting
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
         Note that when tsToMainEventsMap_.size() > MAX_CACHE_SIZE and main events need to be resolved, this logic
         should also be followed. */
@@ -510,25 +545,7 @@ void NativeHookFilter::ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativ
             startAddrToMapsInfoItor++;
             startAddrToMapsInfoMap_.erase(key);
         }
-        // Get the list of call stack ids that should be parsed again
-        for (auto itor = allStackIdToFramesMap_.begin(); itor != allStackIdToFramesMap_.end(); itor++) {
-            auto ips = itor->second;
-            for (auto ipsItor = ips->begin(); ipsItor != ips->end(); ipsItor++) {
-                if (*ipsItor >= start && *ipsItor < end) {
-                    // delete the stack ids whitch should be parsed again
-                    if (stackIdToCallChainIdMap_.count(itor->first)) {
-                        stackIdToCallChainIdMap_.erase(itor->first);
-                    }
-                    /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
-                    Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
-                    updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
-                    if (!stackIdToFramesMap_.count(itor->first)) {
-                        reparseStackIdToFramesMap_.emplace(std::make_pair(itor->first, itor->second));
-                    }
-                    break;
-                }
-            }
-        }
+        ReparseStacksWithAddrRange(start, end);
     }
     startAddrToMapsInfoMap_.insert(std::make_pair(startAddr, std::move(reader)));
 }
@@ -579,25 +596,7 @@ void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>
                 break;
             }
         }
-        // Get the list of call stack ids that should be parsed again
-        for (auto itor = allStackIdToFramesMap_.begin(); itor != allStackIdToFramesMap_.end(); itor++) {
-            auto ips = itor->second;
-            for (auto ipsItor = ips->begin(); ipsItor != ips->end(); ipsItor++) {
-                if (*ipsItor >= start && *ipsItor < end) {
-                    // delete the stack ids whitch should be parsed again
-                    if (stackIdToCallChainIdMap_.count(itor->first)) {
-                        stackIdToCallChainIdMap_.erase(itor->first);
-                    }
-                    /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
-                    Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
-                    updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
-                    if (!stackIdToFramesMap_.count(itor->first)) {
-                        reparseStackIdToFramesMap_.emplace(std::make_pair(itor->first, itor->second));
-                    }
-                    break;
-                }
-            }
-        }
+        ReparseStacksWithAddrRange(start, end);
 
         filePathIdToSymbolTableMap_.at(filePathId) = reader;
     } else {
@@ -640,27 +639,7 @@ void NativeHookFilter::ParseFramesInOfflineSymbolizationMode()
 {
     for (auto stackIdToFramesItor = stackIdToFramesMap_.begin(); stackIdToFramesItor != stackIdToFramesMap_.end();
          stackIdToFramesItor++) {
-        auto framesInfo = OfflineSymbolization(stackIdToFramesItor->second);
-        uint64_t depth = 0;
-        uint64_t filePathIndex = INVALID_UINT64;
-        ++callChainId_;
-        // In offline mode, parsing the main event depends on the updated stackIdToCallChainIdMap_ here.
-        stackIdToCallChainIdMap_.emplace(std::make_pair(stackIdToFramesItor->first, callChainId_));
-        for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
-            // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
-            auto frameInfo = itor->get();
-            if (filePathIdToFileIndex_.count(frameInfo->filePathId_)) {
-                filePathIndex = filePathIdToFileIndex_.at(frameInfo->filePathId_);
-            } else {
-                filePathIndex = INVALID_UINT64;
-            }
-            std::string vaddr = base::Uint64ToHexText(frameInfo->symVaddr_);
-
-            traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                callChainId_, depth, frameInfo->ip_, INVALID_UINT64, frameInfo->symbolIndex_, filePathIndex,
-                frameInfo->offset_, frameInfo->symbolOffset_, vaddr);
-            depth++;
-        }
+        FillOfflineSymbolizationFrames(stackIdToFramesItor);
     }
     // In offline symbolization scenarios, The updated call stack information is saved in stackIdToFramesMap_.
     // After each parsing is completed, it needs to be cleared to avoid repeated parsing.
@@ -871,71 +850,42 @@ void NativeHookFilter::UpdateFilePathIdAndStValueToSymAddrMap(T* firstSymbolAddr
         }
     }
 }
+
 bool NativeHookFilter::NativeHookReloadElfSymbolTable(
     std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables)
 {
-    std::set<uint64_t> resymbolizationIps;
+    auto nativeHookFrame = traceDataCache_->GetNativeHookFrameData();
+    auto size = nativeHookFrame->Size();
+    auto filePathIndexs = nativeHookFrame->FilePaths();
+    auto vaddrs = nativeHookFrame->Vaddrs();
     for (auto elfSymbolTable : *elfSymbolTables) {
-        auto filePathIndex = traceDataCache_->dataDict_.GetStringIndex(elfSymbolTable->filePath);
-        if (!fileIndexToFilePathId_.count(filePathIndex)) {
-            TS_LOGD("native_hook maps does not support using %s resymbolization!", elfSymbolTable->filePath.c_str());
-            continue;
-        }
-        auto filePathId = fileIndexToFilePathId_.at(filePathIndex);
-        // record ips whitch needs resymbolization
-        auto ret = GetIpsWitchNeedResymbolization(filePathId, resymbolizationIps);
-        if (!ret) {
-            continue;
-        }
+        auto filePathIndex = elfSymbolTable->filePathIndex;
         auto symEntrySize = elfSymbolTable->symEntSize;
-        auto size = elfSymbolTable->symTable.size() / symEntrySize;
+        auto totalSize = elfSymbolTable->symTable.size() / symEntrySize;
         if (symEntrySize == ELF32_SYM) {
             UpdateFilePathIdAndStValueToSymAddrMap(reinterpret_cast<const Elf32_Sym*>(elfSymbolTable->symTable.data()),
-                                                   size, filePathId);
+                                                   totalSize, filePathIndex);
         } else {
             UpdateFilePathIdAndStValueToSymAddrMap(reinterpret_cast<const Elf64_Sym*>(elfSymbolTable->symTable.data()),
-                                                   size, filePathId);
+                                                   totalSize, filePathIndex);
         }
-        if (filePathIdToImportSymbolTableMap_.count(filePathId)) {
-            filePathIdToImportSymbolTableMap_.at(filePathId) = elfSymbolTable;
+        if (filePathIdToImportSymbolTableMap_.count(filePathIndex)) {
+            filePathIdToImportSymbolTableMap_.at(filePathIndex) = elfSymbolTable;
         } else {
-            filePathIdToImportSymbolTableMap_.emplace(std::make_pair(filePathId, elfSymbolTable));
+            filePathIdToImportSymbolTableMap_.emplace(std::make_pair(filePathIndex, elfSymbolTable));
+        }
+        for (auto row  = 0; row < size; row++) {
+            if (filePathIndexs[row] !=  filePathIndex) {
+                continue;
+            }
+            auto symVaddr = base::StrToInt<uint32_t>(vaddrs[row], base::INTEGER_RADIX_TYPE_HEX).value();
+            auto symbolIndex = OfflineSymbolization(symVaddr, filePathIndex);
+            if (symbolIndex != INVALID_UINT64) {
+                nativeHookFrame->UpdateSymbolId(row, symbolIndex);
+            }
         }
     }
-    // Delete symbolization results with the same filePath
-    for (auto ip : resymbolizationIps) {
-        ipToFrameInfo_.erase(ip);
-    }
-    OfflineSymbolization(resymbolizationIps);
-    UpdateResymbolizationResult(resymbolizationIps);
     return true;
-}
-void NativeHookFilter::UpdateResymbolizationResult(const std::set<uint64_t>& ips)
-{
-    auto nativeHookFrame = traceDataCache_->GetNativeHookFrameData();
-    for (auto i = 0; i < nativeHookFrame->Size(); i++) {
-        auto ip = nativeHookFrame->Ips()[i];
-        auto itor = ips.lower_bound(ip);
-        if (itor == ips.end() || *itor != ip) {
-            continue;
-        }
-        if (!ipToFrameInfo_.count(ip)) {
-            continue;
-        }
-        auto frameInfo = ipToFrameInfo_.at(ip);
-        DataIndex filePathIndex = INVALID_DATAINDEX;
-        if (!filePathIdToFileIndex_.count(frameInfo->filePathId_)) {
-            TS_LOGE("filePathId_%u not found", frameInfo->filePathId_);
-            continue;
-        }
-        filePathIndex = filePathIdToFileIndex_.at(frameInfo->filePathId_);
-        nativeHookFrame->UpdateFrameInfo(i, frameInfo->symbolIndex_, filePathIndex, frameInfo->offset_,
-                                         frameInfo->symbolOffset_);
-    }
-    UpdateSymbolIdsForSymbolizationFailed();
-    // update vaddrs
-    GetNativeHookFrameVaddrs();
-    nativeHookFrame->UpdateVaddrs(vaddrs_);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

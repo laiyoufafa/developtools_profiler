@@ -146,6 +146,6 @@ describe('TabPaneIOTierStatistics Test', () => {
             }
         ]);
         tabPane.data = param;
-        expect(tabPane.selectionParam).not.toBeUndefined();
+        expect(tabPane.ioTierStatisticsSelectionParam).not.toBeUndefined();
     });
 });

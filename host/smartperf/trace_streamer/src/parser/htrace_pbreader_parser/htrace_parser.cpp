@@ -61,7 +61,8 @@ void HtraceParser::GetSymbols(std::unique_ptr<ElfFile> elfPtr,
                               std::shared_ptr<ElfSymbolTable> symbols,
                               const std::string& filename)
 {
-    symbols->filePath = std::move(filename);
+
+    symbols->filePathIndex = traceDataCache_->dataDict_.GetStringIndex(filename.c_str());
     symbols->textVaddr = (std::numeric_limits<uint64_t>::max)();
     for (auto& item : elfPtr->phdrs_) {
         if ((item->type_ == PT_LOAD) && (item->flags_ & PF_X)) {

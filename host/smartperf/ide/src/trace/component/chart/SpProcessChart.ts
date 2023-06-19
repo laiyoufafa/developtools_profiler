@@ -289,6 +289,7 @@ export class SpProcessChart {
           expectedRow.setAttribute('height', `${maxHeight}`);
           expectedRow.setAttribute('frame_type', expectedData[0].frame_type);
           expectedRow.name = `Expected Timeline`;
+          expectedRow.addTemplateTypes('FrameTimeline');
           expectedRow.setAttribute('children', '');
           expectedRow.supplier = () =>
             new Promise((resolve) => {
@@ -352,6 +353,7 @@ export class SpProcessChart {
             actualRow.style.height = `${maxHeight}px`;
             actualRow.setAttribute('height', `${maxHeight}`);
             actualRow.name = `Actual Timeline`;
+            actualRow.addTemplateTypes('FrameTimeline');
             actualRow.setAttribute('frame_type', actualData[0].frame_type);
             actualRow.setAttribute('children', '');
             actualRow.dataList = actualData;

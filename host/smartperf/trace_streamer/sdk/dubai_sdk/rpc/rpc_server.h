@@ -18,8 +18,8 @@
 
 #include <functional>
 #include <mutex>
-#include "../trace_streamer/trace_streamer_selector.h"
-#include "../sdk/sdk_data_parser.h"
+#include "sdk/sdk_data_parser.h"
+#include "trace_streamer/trace_streamer_selector.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class RpcServer {

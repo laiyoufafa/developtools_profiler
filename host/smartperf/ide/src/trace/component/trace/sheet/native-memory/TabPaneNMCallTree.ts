@@ -23,6 +23,7 @@ import { ChartMode } from '../../../../bean/FrameChartStruct.js';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
+import { queryNativeHookSubType } from '../../../../database/SqlLite.js';
 
 @element('tabpane-nm-calltree')
 export class TabpaneNMCalltree extends BaseElement {
@@ -51,6 +52,7 @@ export class TabpaneNMCalltree extends BaseElement {
   private filterResponseType: number = -1;
   private filterResponseSelect: string = '0';
   private responseTypes: any[] = [];
+  private subTypeArr: number[] = [];
 
   set data(nmCallTreeParam: SelectionParam | any) {
     if (nmCallTreeParam == this.currentSelection) {
@@ -194,8 +196,15 @@ export class TabpaneNMCalltree extends BaseElement {
     }
   }
 
-  initFilterTypes() {
+  async initFilterTypes() {
     let currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
+    let subTypeList = await queryNativeHookSubType(this.currentSelection!.leftNs,this.currentSelection!.rightNs);
+    let secondFilterList =  ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
+    this.subTypeArr = [];
+    for (let subType of subTypeList) {
+      secondFilterList.push(subType.data);
+      this.subTypeArr.push(subType.subTypeId);
+    }
     if (this.currentSelection!.nativeMemory.length > 0) {
       procedurePool.submitWithName('logic1', 'native-memory-get-responseType', {}, undefined, (res: any) => {
         this.responseTypes = res;
@@ -207,7 +216,7 @@ export class TabpaneNMCalltree extends BaseElement {
         }
         currentNMCallTreeFilter!.setSelectList(
           null,
-          null,
+          secondFilterList,
           'Allocation Lifespan',
           'Allocation Type',
           this.responseTypes.map((item: any) => {
@@ -226,7 +235,7 @@ export class TabpaneNMCalltree extends BaseElement {
         this.filterResponseType = -1;
       });
     } else {
-      currentNMCallTreeFilter!.setSelectList(null, null, 'Allocation Lifespan', 'Allocation Type', undefined);
+      currentNMCallTreeFilter!.setSelectList(null, secondFilterList, 'Allocation Lifespan', 'Allocation Type', undefined);
       currentNMCallTreeFilter!.setFilterModuleSelect('#first-select', 'width', '150px');
       currentNMCallTreeFilter!.setFilterModuleSelect('#second-select', 'width', '150px');
       currentNMCallTreeFilter!.firstSelect = '0';
@@ -561,6 +570,15 @@ export class TabpaneNMCalltree extends BaseElement {
     groupArgs.set('filterResponseType', this.filterResponseType);
     groupArgs.set('leftNs', this.currentSelection?.leftNs || 0);
     groupArgs.set('rightNs', this.currentSelection?.rightNs || 0);
+    let selections: Array<any> = [];
+    if (this.subTypeArr.length > 0) {
+      this.subTypeArr.map((memory) => {
+        selections.push({
+          memoryTap: memory,
+        });
+      });
+    }
+    groupArgs.set('statisticsSelection', selections);
     groupArgs.set(
       'nativeHookType',
       this.currentSelection!.nativeMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'

@@ -120,6 +120,16 @@ export let tabConfig: any = {
     type: TabPanePTS,
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
+  'box-thread-states': {
+    title: 'Thread States',
+    type: TabPaneThreadStates,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'box-thread-usage': {
+    title: 'Thread Usage',
+    type: TabPaneThreadUsage,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
   'box-slices': {
     title: 'Slices',
     type: TabPaneSlices,
@@ -245,16 +255,7 @@ export let tabConfig: any = {
     type: TabPaneCounterSample,
     require: (param: SelectionParam) => param.cpuStateFilterIds.length > 0,
   },
-  'box-thread-states': {
-    title: 'Thread States',
-    type: TabPaneThreadStates,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  },
-  'box-thread-usage': {
-    title: 'Thread Usage',
-    type: TabPaneThreadUsage,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  },
+
   'box-frequency-sample': {
     title: 'Cpu Frequency',
     type: TabPaneFrequencySample,

@@ -471,6 +471,10 @@ export class SpApplication extends BaseElement {
     };
 
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => showContent(spSystemTrace!));
+    window.subscribe(window.SmartEvent.UI.Error,(err) => {
+      litSearch.setPercent(err,-1);
+      progressEL.loading = false;
+    });
     window.subscribe(window.SmartEvent.UI.Loading, (loading) => {
         litSearch.setPercent(loading ? 'Import So File' : '', loading ? -1 : 101);
         progressEL.loading = loading

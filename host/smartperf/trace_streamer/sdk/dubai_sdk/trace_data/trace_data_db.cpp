@@ -23,17 +23,17 @@
 #include <string_view>
 #include <unistd.h>
 
-#include "ext/sqlite_ext_funcs.h"
 #include "file.h"
 #include "log.h"
 #include "sqlite3.h"
+#include "sqlite_ext/sqlite_ext_funcs.h"
 #include "string_help.h"
 
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
 namespace SysTuning {
 namespace TraceStreamer {
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 using namespace SysTuning::base;

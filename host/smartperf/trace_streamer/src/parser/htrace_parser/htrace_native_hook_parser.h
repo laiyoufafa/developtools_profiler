@@ -18,8 +18,9 @@
 #include <map>
 #include <set>
 #include <string>
-#include "double_map.h"
 #include "clock_filter.h"
+#include "double_map.h"
+#include "event_parser_base.h"
 #include "htrace_event_parser.h"
 #include "htrace_plugin_time_parser.h"
 #include "native_hook_result.pb.h"
@@ -32,7 +33,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceNativeHookParser : public HtracePluginTimeParser {
+class HtraceNativeHookParser : public EventParserBase, public HtracePluginTimeParser {
 public:
     HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceNativeHookParser();

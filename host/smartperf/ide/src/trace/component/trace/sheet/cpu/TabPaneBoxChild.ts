@@ -15,12 +15,11 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection.js';
+import {BoxJumpParam, SelectionData} from '../../../../bean/BoxSelection.js';
 import { getTabBoxChildData } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
 import { SPTChild } from '../../../../bean/StateProcessThread.js';
-import { TraceRow } from '../../base/TraceRow.js';
 import { resizeObserver } from "../SheetUtils.js";
 
 @element('tabpane-box-child')

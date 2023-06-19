@@ -14,7 +14,7 @@
  */
 #ifndef TS_SDK_API_H
 #define TS_SDK_API_H
-#include "../rpc/rpc_server.h"
+#include "rpc/rpc_server.h"
 
 #include <string>
 namespace SysTuning {

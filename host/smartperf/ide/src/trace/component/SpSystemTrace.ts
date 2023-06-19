@@ -145,6 +145,7 @@ export class SpSystemTrace extends BaseElement {
     this.linkNodes.length = 0;
   }
 
+
   initElements(): void {
     this.rowsEL = this.shadowRoot?.querySelector<HTMLDivElement>('.rows');
     this.tipEL = this.shadowRoot?.querySelector<HTMLDivElement>('.tip');
@@ -205,29 +206,9 @@ export class SpSystemTrace extends BaseElement {
         if (this.rowsEL!.contains(currentRow)) {
           this.rowsEL!.replaceChild(replaceRow, currentRow);
         } else {
-          for (let index = 0; index < currentRow.familyGenealogy.length; index++) {
-            let family = currentRow.familyGenealogy[index];
-            let parent = this.rowsEL!.querySelector<TraceRow<any>>(
-                `trace-row[row-id='${family.rowId}'][row-type='${family.rowType}']`
-            );
-            if (parent) {
-              while (
-                  parent!.folder &&
-                  index < currentRow.familyGenealogy.length &&
-                  currentRow.familyGenealogy.length > 1
-                  ) {
-                let child: TraceRow<any> = parent!.childrenList.filter((chd) => {
-                  let genealogy = currentRow.familyGenealogy[index + 1];
-                  return chd.rowId == genealogy.rowId && chd.rowType == genealogy.rowType;
-                })[0];
-                if (child) {
-                  parent = child;
-                } else {
-                  break;
-                }
-              }
-              parent!.replaceTraceRow(replaceRow, currentRow);
-            }
+          if (currentRow.hasParentRowEl) {
+            let parent = currentRow.parentRowEl;
+            parent!.replaceTraceRow(replaceRow, currentRow);
           }
         }
         this.favoriteRowsEL!.append(currentRow);
@@ -239,13 +220,14 @@ export class SpSystemTrace extends BaseElement {
             this.collectRows.splice(rowIndex, 1);
           }
         }
-        currentRow.familyGenealogy.forEach((relationship:{rowId:any, rowType:any}) => {
-          let parentRow = this.rowsEL!.querySelector<TraceRow<any>>(
-            `trace-row[row-id='${relationship.rowId}'][row-type='${relationship.rowType}'][folder]`);
-          if (parentRow) {
-            parentRow.expansion = true;
+        let row = currentRow;
+        while (row.hasParentRowEl) {
+          let parent = row.parentRowEl;
+          if (!parent.expansion && parent.hasAttribute('scene')) {
+            parent.expansion = true;
           }
-        });
+          row = parent;
+        }
         let replaceRow = this.rowsEL!.querySelector<HTMLCanvasElement>(
           `div[row-id='${currentRow.rowId}-${currentRow.rowType}']`
         );
@@ -394,6 +376,7 @@ export class SpSystemTrace extends BaseElement {
           if (!it.expansion) {
             processChildRows = [...it.childrenList];
           }
+          selection.processIds.push(parseInt(it.rowId!));
           processChildRows.forEach((th) => {
             th.rangeSelect = true;
             th.checkType = '2';
@@ -424,13 +407,17 @@ export class SpSystemTrace extends BaseElement {
             th.rangeSelect = true;
             th.checkType = '2';
             if (th.getAttribute('heap-type') === 'native_hook_statistic') {
-              selection.nativeMemoryStatistic.push(it.rowId!);
+              selection.nativeMemoryStatistic.push(th.rowId!);
             } else {
-              selection.nativeMemory.push(it.rowId!);
+              selection.nativeMemory.push(th.rowId!);
             }
           });
           info('load nativeMemory traceRow id is : ', it.rowId);
         } else if (it.rowType == TraceRow.ROW_TYPE_THREAD) {
+          let pid = parseInt(it.rowParentId!);
+          if (!selection.processIds.includes(pid)) {
+            selection.processIds.push(pid)
+          }
           selection.threadIds.push(parseInt(it.rowId!));
           info('load thread traceRow id is : ', it.rowId);
         } else if (it.rowType == TraceRow.ROW_TYPE_FUNC) {
@@ -1797,7 +1784,7 @@ export class SpSystemTrace extends BaseElement {
             endParentRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
               `trace-row[row-id='frameTime'][folder]`
             );
-            endParentRow.childrenList.forEach((item: TraceRow<JankStruct>) => {
+            endParentRow?.childrenList?.forEach((item: TraceRow<JankStruct>) => {
               if (item.rowId === 'actual frameTime' && item.rowType === 'janks') {
                 endRowStruct = item;
               }
@@ -2079,25 +2066,17 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.UploadSOFile, (data) => {
       this.chartManager?.importSoFileUpdate().then(() => {
         window.publish(window.SmartEvent.UI.Loading, false);
-        if (
-          this.selectionParam &&
-          (this.selectionParam.nativeMemory.length > 0 ||
-            this.selectionParam.nativeMemoryStatistic.length > 0 ||
-            this.selectionParam.perfSampleIds.length > 0 ||
-            this.selectionParam.fileSystemType.length > 0 ||
-            this.selectionParam.fsCount > 0 ||
-            this.selectionParam.fileSysVirtualMemory ||
-            this.selectionParam.vmCount > 0 ||
-            this.selectionParam.diskIOLatency ||
-            this.selectionParam.diskIOipids.length > 0)
-        ) {
+        let updateCanvas = this.traceSheetEL?.updateRangeSelect();
+        if (updateCanvas) {
           this.refreshCanvas(true);
-          let param: SelectionParam = new SelectionParam();
-          Object.assign(param, this.selectionParam);
-          this.traceSheetEL?.rangeSelect(param, true);
         }
       });
     });
+    window.subscribe(window.SmartEvent.UI.CheckALL,(data) => {
+      this.favoriteRowsEL?.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${data.rowId}']`).forEach((it) => {
+        it.checkType = data.isCheck ? '2' : '0'
+      });
+    })
   }
 
   scrollToProcess(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true) {
@@ -2487,31 +2466,50 @@ export class SpSystemTrace extends BaseElement {
   }
 
   scrollToActFunc(funcStract: any, highlight: boolean) {
+    const toTargetDepth = (entry: any) => {
+      this.hoverStructNull();
+      this.selectStructNull();
+      FuncStruct.hoverFuncStruct = entry;
+      FuncStruct.selectFuncStruct = entry;
+      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
+      this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, funcStract.type, true, funcStract.depth || 0);
+    };
     let funcRowID = funcStract.cookie == null ? funcStract.tid : `${funcStract.funName}-${funcStract.pid}`;
+    let targetRow = this.favoriteRowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
+    if (targetRow) {
+      //如果目标泳道图在收藏上面，则跳转至收藏
+      let searchEntry = targetRow!.dataList!.find((dat) => dat.startTs === funcStract.startTime);
+      toTargetDepth(searchEntry);
+      return;
+    }
     let parentRow = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
     if (!parentRow) {
       return;
     }
     let filterRow = parentRow.childrenList.filter((child) => child.rowId == funcRowID && child.rowType == 'func')[0];
-    if (filterRow == null) return;
+    if (filterRow == null) {
+      let funcRow = this.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
+      if (funcRow) {
+        filterRow = funcRow;
+      } else {
+        return;
+      }
+    }
     filterRow!.highlight = highlight;
     this.closeAllExpandRows(funcStract.pid);
     let row = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
     if (row && !row.expansion) {
       row.expansion = true;
     }
-    let completeEntry = () => {
-      let searchEntry = filterRow!.dataList!.find((dat) => dat.startTs === funcStract.startTime);
-      this.hoverStructNull();
-      this.selectStructNull();
-      FuncStruct.hoverFuncStruct = searchEntry;
-      FuncStruct.selectFuncStruct = searchEntry;
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
-      this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, funcStract.type, true, funcStract.depth || 0);
+    const completeEntry = () => {
+      let entry = filterRow!.dataList!.find((dat) => dat.startTs === funcStract.startTime);
+      toTargetDepth(entry);
     };
     if (filterRow!.isComplete) {
       completeEntry();
     } else {
+      this.scrollToProcess(`${funcStract.tid}`, `${funcStract.pid}`, 'process', false);
+      this.scrollToProcess(`${funcStract.tid}`, `${funcStract.pid}`, 'func', true);
       filterRow!.onComplete = completeEntry;
     }
   }

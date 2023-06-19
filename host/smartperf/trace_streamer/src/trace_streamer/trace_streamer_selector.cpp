@@ -102,7 +102,7 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->sliceFilter_ = std::make_unique<SliceFilter>(traceDataCache_.get(), streamFilters_.get());
 
     streamFilters_->processFilter_ = std::make_unique<ProcessFilter>(traceDataCache_.get(), streamFilters_.get());
-    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>();
     streamFilters_->filterFilter_ = std::make_unique<FilterFilter>(traceDataCache_.get(), streamFilters_.get());
 
     streamFilters_->threadMeasureFilter_ =
@@ -265,18 +265,7 @@ int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
     std::string traceRangeStr;
     memcpy(&traceRangeStr, data, len);
     int32_t size = traceRangeStr.size();
-    std::vector<string> vTraceRangeStr;
-    for (int32_t i = 0, pos = 0; i < size; i++) {
-        pos = traceRangeStr.find(";", i);
-        if (pos == std::string::npos) {
-            break;
-        }
-        if (pos < size) {
-            std::string s = traceRangeStr.substr(i, pos - i);
-            vTraceRangeStr.push_back(s);
-            i = pos;
-        }
-    }
+    std::vector<string> vTraceRangeStr = SplitStringToVec(traceRangeStr, ";");
     uint64_t minTs = std::stoull(vTraceRangeStr.at(0));
     uint64_t maxTs = std::stoull(vTraceRangeStr.at(1));
     traceDataCache_->UpdateTraceTime(minTs);

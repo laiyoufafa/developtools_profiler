@@ -191,9 +191,10 @@ bool EbpfBase::EBPFReloadElfSymbolTable(std::shared_ptr<std::vector<std::shared_
 {
     std::set<std::tuple<uint32_t, uint64_t>> resymbolizationPidAndIps;
     for (auto elfSymbolTable : *elfSymbolTables) {
-        auto filePathIndex = traceDataCache_->dataDict_.GetStringIndex(elfSymbolTable->filePath);
+        auto filePathIndex = elfSymbolTable->filePathIndex;
         if (!filePathIndexToPidAndIpMap_.count(filePathIndex)) {
-            TS_LOGI("ebpf do not support resymbolizaiton use %s", elfSymbolTable->filePath.c_str());
+            TS_LOGI("ebpf do not support resymbolizaiton use %s",
+                    traceDataCache_->GetDataFromDict(filePathIndex).c_str());
             continue;
         }
 

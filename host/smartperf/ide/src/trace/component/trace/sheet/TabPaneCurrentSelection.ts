@@ -124,7 +124,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (data.processId) {
       list.push({
         name: 'Thread',
-        value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+        value: `<div style="white-space: nowrap;display: flex;align-items: center">
 <div style="white-space:pre-wrap">${name || 'Process'} [${data.tid}]</div>
 <lit-icon style="cursor:pointer;margin-left: 5px" id="thread-id" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
@@ -132,7 +132,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       list.push({
         name: 'Thread',
-        value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+        value: `<div style="white-space: nowrap;display: flex;align-items: center">
 <div style="white-space:pre-wrap">${name || 'Process'} [${data.tid}]</div>
 </div>`,
       });
@@ -224,7 +224,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           if (asyncBinderStract != undefined) {
             list.unshift({
               name: 'Name',
-              value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
 <div style="white-space:pre-wrap">${name || 'binder'}</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
@@ -256,7 +256,7 @@ export class TabPaneCurrentSelection extends BaseElement {
               binderSliceId = Number(item.strValue);
               list.unshift({
                 name: 'Name',
-                value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+                value: `<div style="white-space: nowrap;display: flex;align-items: center">
 <div style="white-space:pre-wrap">${name || 'binder'}</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
@@ -470,7 +470,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (fromBean != null && fromBean != undefined && fromBean.pid != 0 && fromBean.tid != 0) {
         list.push({
           name: 'wakeup from tid',
-          value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+          value: `<div style="white-space: nowrap;display: flex;align-items: center">
             <div style="white-space:pre-wrap">${fromBean.tid}</div>
             <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-from"  class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
@@ -480,7 +480,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         wakeUps.map((e) => {
           list.push({
             name: 'wakeup tid',
-            value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+            value: `<div style="white-space: nowrap;display: flex;align-items: center">
             <div style="white-space:pre-wrap">${e.tid}</div>
             <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${e.tid}" class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,

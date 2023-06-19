@@ -445,7 +445,28 @@ export class TraceSheet extends BaseElement {
         return false;
       }
     }
+  }
 
+  updateRangeSelect() : boolean {
+    if (
+      this.selection &&
+      (this.selection.nativeMemory.length > 0 ||
+        this.selection.nativeMemoryStatistic.length > 0 ||
+        this.selection.perfSampleIds.length > 0 ||
+        this.selection.fileSystemType.length > 0 ||
+        this.selection.fsCount > 0 ||
+        this.selection.fileSysVirtualMemory ||
+        this.selection.vmCount > 0 ||
+        this.selection.diskIOLatency ||
+        this.selection.diskIOipids.length > 0)
+    ) {
+      let param: SelectionParam = new SelectionParam();
+      Object.assign(param, this.selection);
+      this.rangeSelect(param,true);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   showUploadSoBt(selection: SelectionParam | null | undefined) {

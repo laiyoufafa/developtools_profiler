@@ -286,7 +286,7 @@ const int32_t END_POS = 3;
 const int32_t CHUNK_POS = 8;
 
 HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx)
+    : EventParserBase(dataCache, ctx), HtracePluginTimeParser(ctx->clockFilter_.get())
 {
     DIR* dir = opendir(".");
     if (dir != nullptr) {

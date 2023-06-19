@@ -19,7 +19,9 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceNativeHookParser::HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx), nativeHookFilter_(std::make_unique<NativeHookFilter>(dataCache, ctx))
+    : EventParserBase(dataCache, ctx),
+      HtracePluginTimeParser(ctx->clockFilter_.get()),
+      nativeHookFilter_(std::make_unique<NativeHookFilter>(dataCache, ctx))
 {
 }
 

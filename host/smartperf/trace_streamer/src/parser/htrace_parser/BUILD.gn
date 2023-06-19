@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import("//build/ohos.gni")
-import("../../ts.gni")
+import("../../../build/ts.gni")
 ohos_source_set("htrace_parser_src") {
   subsystem_name = "trace_streamer"
   part_name = "htrace_parser_src"
@@ -41,8 +41,6 @@ ohos_source_set("htrace_parser_src") {
     "htrace_network_parser.cpp",
     "htrace_network_parser.h",
     "htrace_parser.cpp",
-    "htrace_plugin_time_parser.cpp",
-    "htrace_plugin_time_parser.h",
     "htrace_process_parser.cpp",
     "htrace_process_parser.h",
     "htrace_symbols_detail_parser.cpp",

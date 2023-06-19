@@ -14,8 +14,8 @@
  */
 
 import { HeapDataInterface } from '../HeapDataInterface.js';
-import { EdgeType } from './DatabaseStruct';
-
+import { EdgeType, NodeType } from './DatabaseStruct.js';
+const ROW_TYPE = 'js-memory';
 export enum FileType {
   SNAPSHOT,
   TIMELINE,
@@ -30,6 +30,7 @@ export enum ConstructorType {
 }
 
 export class ConstructorItem {
+  rowName = ROW_TYPE;
   fileId = -1;
   nodeName = '';
   edgeName = '';
@@ -46,6 +47,7 @@ export class ConstructorItem {
   edgeCount = 0;
   edgeType!: EdgeType;
   type!: ConstructorType;
+  nodeType!: NodeType;
   nextId: [] = [];
   id = -1;
   index = -1;
@@ -69,6 +71,10 @@ export class ConstructorItem {
         break;
     }
     return this.children;
+  }
+
+  isString(): boolean {
+    return [NodeType.STRING, NodeType.CONCATENATED_STRING, NodeType.SLICED_STRING].includes(this.nodeType);
   }
 
   clone(): ConstructorItem {

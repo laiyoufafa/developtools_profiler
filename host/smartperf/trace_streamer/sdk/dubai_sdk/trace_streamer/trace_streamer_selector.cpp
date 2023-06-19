@@ -40,9 +40,9 @@ TraceStreamerSelector::~TraceStreamerSelector() {}
 
 void TraceStreamerSelector::InitFilter()
 {
-    streamFilters_ = std::make_unique<TraceStreamerFilters>();
+    streamFilters_ = std::make_unique<TraceStreamerFilterBase>();
     traceDataCache_ = std::make_unique<TraceDataCache>();
-    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>().get();
 }
 
 MetaData* TraceStreamerSelector::GetMetaData()
@@ -50,9 +50,7 @@ MetaData* TraceStreamerSelector::GetMetaData()
     return traceDataCache_->GetMetaData();
 }
 
-void TraceStreamerSelector::WaitForParserEnd()
-{
-}
+void TraceStreamerSelector::WaitForParserEnd() {}
 
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size)
 {
@@ -84,8 +82,7 @@ int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
 {
     return traceDataCache_->OperateDatabase(sql);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql,
-    TraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }

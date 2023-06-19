@@ -24,13 +24,20 @@ export class TabPaneCounter extends BaseElement {
   private counterTbl: LitTable | null | undefined;
   private counterRange: HTMLLabelElement | null | undefined;
   private counterSource: Array<SelectionData> = [];
+  private currentSelectionParam: SelectionParam | undefined;
 
   set data(counterParam: SelectionParam | any) {
+    if (this.currentSelectionParam === counterParam) {
+      return;
+    }
+    this.currentSelectionParam = counterParam;
     //@ts-ignore
     this.counterTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.counterRange!.textContent =
       'Selected range: ' + parseFloat(((counterParam.rightNs - counterParam.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    this.counterTbl!.loading = true;
     getTabCounters(counterParam.processTrackIds, counterParam.virtualTrackIds, counterParam.rightNs).then((result) => {
+      this.counterTbl!.loading = false;
       if (result != null && result.length > 0) {
         let dataSource: Array<SelectionData> = [];
         let collect = this.groupByTrackIdToMap(result);

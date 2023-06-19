@@ -27,6 +27,7 @@ export class TabPaneCpuByThread extends BaseElement {
   private cpuByThreadTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private cpuByThreadSource: Array<SelectionData> = [];
+  private currentSelectionParam: SelectionParam | undefined;
   private pubColumns = `
             <lit-table-column order width="250px" title="Process" data-index="process" key="process" align="flex-start" order >
             </lit-table-column>
@@ -45,10 +46,16 @@ export class TabPaneCpuByThread extends BaseElement {
     `;
 
   set data(cpuByThreadValue: SelectionParam | any) {
+    if (this.currentSelectionParam === cpuByThreadValue) {
+      return;
+    }
+    this.currentSelectionParam = cpuByThreadValue;
     this.cpuByThreadTbl!.innerHTML = this.getTableColumns(cpuByThreadValue.cpus);
     this.range!.textContent =
       'Selected range: ' + parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    this.cpuByThreadTbl!.loading = true;
     getTabCpuByThread(cpuByThreadValue.cpus, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs).then((result) => {
+      this.cpuByThreadTbl!.loading = false;
       if (result != null && result.length > 0) {
         log('getTabCpuByThread size :' + result.length);
         let sumWall = 0.0;

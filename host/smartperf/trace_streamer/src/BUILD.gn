@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("../build/ohos.gni")
-import("ts.gni")
+import("../build/ts.gni")
 if (use_wasm) {
   import("//gn/wasm.gni")
 }
@@ -102,6 +102,7 @@ ohos_source_set("trace_streamer_source") {
     "trace_streamer/trace_streamer_filters.h",
     "trace_streamer/trace_streamer_selector.cpp",
     "trace_streamer/trace_streamer_selector.h",
+    "version.cpp",
   ]
   include_dirs = [
     "base",
@@ -160,14 +161,14 @@ ohos_source_set("trace_streamer_source") {
     "${THIRD_PARTY}/libunwind/src",
     "${THIRD_PARTY}/json-master/include",
     "${THIRD_PARTY}/json-master/include/nlohmann",
+    "${THIRD_PARTY}/hiperf/include",
+    "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
+    "${THIRD_PARTY}/hiperf/include/nonlinux",
   ]
 
   if (with_perf) {
     include_dirs += [
       "parser/hiperf_parser",
-      "${THIRD_PARTY}/hiperf/include",
-      "${THIRD_PARTY}/hiperf/include/nonlinux",
-      "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
       "${THIRD_PARTY}/perf_include/libbpf",
       "${THIRD_PARTY}/perf_include/musl",
     ]
@@ -175,7 +176,6 @@ ohos_source_set("trace_streamer_source") {
   deps = [
     "${THIRD_PARTY}/sqlite:sqlite",
     "base:base",
-    "ext:sqliteext",
     "filter:filter",
     "include:ibase",
     "parser:parser",
@@ -184,6 +184,8 @@ ohos_source_set("trace_streamer_source") {
   ]
   if (with_perf) {
     deps += [ "parser/hiperf_parser:hiperf_parser" ]
+  } else {
+    deps += [ "${THIRD_PARTY}/hiperf:elf" ]
   }
 
   if (use_wasm) {

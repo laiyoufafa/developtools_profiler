@@ -16,6 +16,18 @@
 import { HeapLoader } from '../logic/HeapLoader.js';
 import { AllocationFunction, FileInfo } from './UiStruct.js';
 
+export enum EdgeType {
+  CONTEXT = 0,
+  ELEMENT = 1,
+  PROPERTY = 2,
+  INTERNAL = 3,
+  HIDDEN = 4,
+  SHORTCUT = 5,
+  WEAK = 6,
+  STRING_OR_NUMBER = 6,
+  NODE = 7,
+  INVISIBLE = 8,
+}
 export enum NodeType {
   HIDDEN = 0,
   ARRAY = 1,
@@ -32,19 +44,6 @@ export enum NodeType {
   SYMBOL = 12,
   BIGINT = 13,
   OBJECT_SHAPE = 14,
-}
-
-export enum EdgeType {
-  CONTEXT = 0,
-  ELEMENT = 1,
-  PROPERTY = 2,
-  INTERNAL = 3,
-  HIDDEN = 4,
-  SHORTCUT = 5,
-  WEAK = 6,
-  STRING_OR_NUMBER = 6,
-  NODE = 7,
-  INVISIBLE = 8,
 }
 
 function getNodeTypeName(nodeType: NodeType): keyof typeof NodeType {

@@ -23,18 +23,18 @@
 #include "gpu_counter_table.h"
 #include "json.hpp"
 #include "log.h"
-#include "meta.h"
 #include "meta_table.h"
 #include "sdk_plugin_data_parser.h"
 #include "slice_object_table.h"
 #include "slice_table.h"
 #include "ts_common.h"
 #include "ts_sdk_api.h"
+#include "version.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-SDKDataParser::SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx)
+SDKDataParser::SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilterBase* ctx)
+    : HtracePluginTimeParser(ctx->clockFilter_)
 {
 }
 
@@ -74,7 +74,7 @@ int32_t SDKDataParser::ParserData(const uint8_t* data, int32_t len, int32_t comp
 
 int32_t SDKDataParser::ParserClock(const uint8_t* data, int32_t len)
 {
-    return streamFilters_->clockFilter_->InitSnapShotTimeRange(data, len);
+    return clockFilter_->InitSnapShotTimeRange(data, len);
 }
 
 int32_t SDKDataParser::SetTableName(const char* counterTableName,
@@ -178,7 +178,7 @@ int32_t SDKDataParser::AppendCounterObject(int32_t counterId, const char* column
 
 int32_t SDKDataParser::AppendCounter(int32_t counterId, uint64_t ts, int32_t value)
 {
-    auto newTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
+    auto newTs = clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, ts, newTs);
     traceDataCache_->GetGpuCounterData()->AppendNewData(newTs, counterId, value);
     return 0;
@@ -193,8 +193,8 @@ int32_t SDKDataParser::AppendSliceObject(int32_t sliceId, const char* columnName
 
 int32_t SDKDataParser::AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, int32_t value)
 {
-    auto newTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
-    auto newEndTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, endTs);
+    auto newTs = clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
+    auto newEndTs = clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, endTs);
     UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, ts, newTs);
     UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, endTs, newEndTs);
     traceDataCache_->GetSliceTableData()->AppendNewData(sliceId, newTs, newEndTs, value);

@@ -32,6 +32,7 @@ export class TabPaneThreadUsage extends BaseElement {
   private stackBar: StackBar | null | undefined;
   private threadUsageSource: Array<SelectionData> = [];
   private cpuCount = 0;
+  private currentSelectionParam: SelectionParam | undefined;
   private pubColumns = `
             <lit-table-column width="200px" title="Process" data-index="process" key="process"  align="flex-start" order>
             </lit-table-column>
@@ -46,6 +47,10 @@ export class TabPaneThreadUsage extends BaseElement {
     `;
 
   set data(threadUsageParam: SelectionParam | any) {
+    if (this.currentSelectionParam === threadUsageParam) {
+      return;
+    }
+    this.currentSelectionParam = threadUsageParam;
     if (this.cpuCount !== CpuStruct.cpuCount) {
       this.cpuCount = CpuStruct.cpuCount;
       this.threadUsageTbl!.innerHTML = this.getTableColumns();
@@ -54,11 +59,14 @@ export class TabPaneThreadUsage extends BaseElement {
     this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     // // @ts-ignore
     this.range!.textContent = 'Selected range: ' + ((threadUsageParam.rightNs - threadUsageParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    this.threadUsageTbl!.loading = true;
     getTabThreadStatesCpu(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then((result) => {
+      this.threadUsageTbl!.loading = false;
       if (result != null && result.length > 0) {
         log('getTabThreadStates result size : ' + result.length);
+        let filterArr = result.filter(it => threadUsageParam.processIds.includes(it.pid))
         let map: Map<number, any> = new Map<number, any>();
-        for (let resultEl of result) {
+        for (let resultEl of filterArr) {
           if (map.has(resultEl.tid)) {
             map.get(resultEl.tid)[`cpu${resultEl.cpu}`] = resultEl.wallDuration || 0;
             map.get(resultEl.tid)[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);

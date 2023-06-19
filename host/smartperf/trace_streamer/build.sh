@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
-
-cd $(dirname ${BASH_SOURCE})
-
 PARAMS=$*
 echo $PARAMS
 echo "begin to check input"
+SOURCE="${BASH_SOURCE[0]}"
+cd $(dirname ${SOURCE})
 ./pare_third_party.sh
 target_os="linux"
 target_dir="linux"

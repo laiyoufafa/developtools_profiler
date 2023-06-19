@@ -109,7 +109,12 @@ class SliceData : public CacheBase {
 public:
     SliceData() = default;
     ~SliceData() = default;
-    void AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs, std::string start_time, std::string end_time, double value);
+    void AppendNewData(int32_t sliceId,
+                       uint64_t startTs,
+                       uint64_t endTs,
+                       std::string start_time,
+                       std::string end_time,
+                       double value);
     const std::deque<int32_t>& SliceId() const;
     const std::deque<uint64_t>& TimeStamp() const;
     const std::deque<uint64_t>& EndTs() const;

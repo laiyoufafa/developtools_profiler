@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../build/ts.gni")
 OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR = "${THIRD_PARTY}/protobuf"
 proto_dir = "${THIRD_PARTY}/protogen"
 mock_dir = "$proto_dir/types/plugins/mock_data"

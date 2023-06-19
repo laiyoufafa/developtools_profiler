@@ -116,7 +116,6 @@ void MetaData::InitMetaData()
 void MetaData::SetParserToolVersion(const std::string& version)
 {
     values_[METADATA_ITEM_PARSERTOOL_VERSION] = version;
-
 }
 void MetaData::SetParserToolPublishDateTime(const std::string& datetime)
 {

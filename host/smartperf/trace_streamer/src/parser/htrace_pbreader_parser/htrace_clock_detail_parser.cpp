@@ -47,7 +47,6 @@ void HtraceClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket) c
     TS_LOGI("got clock snapshot");
     for (auto i = reader.clocks_detail(); i; i++) {
         ProtoReader::ClockDetailMsg_Reader clockInfo(i->ToBytes());
-        // auto clockInfo = tracePacket->mutable_clocks_detail(i);
         auto id = clockInfo.FindDataArea(ProtoReader::ClockDetailMsg_Reader::kIdDataAreaNumber).ToUint32();
         ProtoReader::ClockDetailMsg_TimeSpec_Reader time(clockInfo.time());
         TS_LOGI("clockid:%d, ts:%llu", id, static_cast<unsigned long long>(time.tv_nsec() + time.tv_sec() * SEC_TO_NS));

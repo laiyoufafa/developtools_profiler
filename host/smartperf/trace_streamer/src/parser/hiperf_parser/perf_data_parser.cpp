@@ -20,7 +20,8 @@
 namespace SysTuning {
 namespace TraceStreamer {
 PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx),
+    : EventParserBase(dataCache, ctx),
+      HtracePluginTimeParser(ctx->clockFilter_.get()),
       configNameIndex_(traceDataCache_->dataDict_.GetStringIndex("config_name")),
       workloaderIndex_(traceDataCache_->dataDict_.GetStringIndex("workload_cmd")),
       cmdlineIndex_(traceDataCache_->dataDict_.GetStringIndex("cmdline")),

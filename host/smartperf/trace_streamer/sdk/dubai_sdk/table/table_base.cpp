@@ -20,8 +20,8 @@
 
 #include "log.h"
 
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 
@@ -233,10 +233,10 @@ void TableBase::Cursor::FilterTS(unsigned char op, sqlite3_value* argv, const st
         case SQLITE_INDEX_CONSTRAINT_LT: {
             indexMap_->IntersectLessEqual(times, v, getValue);
             break;
-        case SQLITE_INDEX_CONSTRAINT_ISNOTNULL: {
-            indexMap_->RemoveNullElements(times, v);
-            break;
-        }
+            case SQLITE_INDEX_CONSTRAINT_ISNOTNULL: {
+                indexMap_->RemoveNullElements(times, v);
+                break;
+            }
             default:
                 break;
         } // end of switch (op)

@@ -18,6 +18,7 @@
 #define HTRACE_HISYSEVENT_PARSER_H
 
 #include "clock_filter.h"
+#include "event_parser_base.h"
 #include "hisysevent_plugin_config.pb.h"
 #include "hisysevent_plugin_result.pb.h"
 #include "htrace_plugin_time_parser.h"
@@ -28,7 +29,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceHisyseventParser : public HtracePluginTimeParser {
+class HtraceHisyseventParser : public EventParserBase, public HtracePluginTimeParser {
 public:
     HtraceHisyseventParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceHisyseventParser();

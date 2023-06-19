@@ -19,6 +19,7 @@
 #include <set>
 #include <string>
 #include "common_types.h"
+#include "event_parser_base.h"
 #include "htrace_event_parser.h"
 #include "htrace_plugin_time_parser.h"
 #include "native_hook_config.pbreader.h"
@@ -29,7 +30,7 @@
 #include "trace_streamer_filters.h"
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceNativeHookParser : public HtracePluginTimeParser {
+class HtraceNativeHookParser : public EventParserBase, public HtracePluginTimeParser {
 public:
     HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceNativeHookParser();

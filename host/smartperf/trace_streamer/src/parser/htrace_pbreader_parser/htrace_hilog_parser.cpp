@@ -14,13 +14,14 @@
  */
 #include "htrace_hilog_parser.h"
 #include "clock_filter.h"
+#include "event_parser_base.h"
 #include "htrace_event_parser.h"
 #include "process_filter.h"
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceHiLogParser::HtraceHiLogParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx)
+    : EventParserBase(dataCache, ctx), HtracePluginTimeParser(ctx->clockFilter_.get())
 {
 }
 

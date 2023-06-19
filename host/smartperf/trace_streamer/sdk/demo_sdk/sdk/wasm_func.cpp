@@ -15,7 +15,7 @@
 
 #include "wasm_func.h"
 #include <deque>
-#include "meta.h"
+#include "version.h"
 #include "sdk_data_parser.h"
 #include "sdk_plugin_data_parser.h"
 #include "table_base.h"

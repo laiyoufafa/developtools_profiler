@@ -28,7 +28,6 @@
 #include "filter/slice_filter.h"
 #include "http_server.h"
 #include "log.h"
-#include "meta.h"
 #include "parser/bytrace_parser/bytrace_event_parser.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parting_string.h"
@@ -37,6 +36,7 @@
 #include "thread_state.h"
 #include "trace_streamer/trace_streamer_selector.h"
 #include "trace_streamer_filters.h"
+#include "version.h"
 using namespace SysTuning::TraceStreamer;
 using namespace SysTuning;
 namespace SysTuning {

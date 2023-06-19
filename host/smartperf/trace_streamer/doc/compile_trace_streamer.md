@@ -249,13 +249,20 @@ out/linux_debug
 ```
 此命令对于windows和mac平台同样生效。  
 ___在不同的平台上，均需要gn和ninja的可执行文件来执行gn工程相关的操作，比如，windows上是gn.exe和ninja.exe。
-在 [https://gitee.com/su_ze1688/public_tools/tree/master/gn](https://gitee.com/su_ze1688/public_tools/tree/master/gn) 目录下，可以获取不同平台下可用的gn和ninja可执行文件，同时，为linux平台下提供了protoc可执行文件。可以下载并部署在本地的prebuilts目录下。也可以在linux平台下执行：___
+可以获取不同平台下可用的gn和ninja可执行文件，部署在本地的prebuilts目录下，目录结果最终如下所示：___
+```
+prebuilts/linux/gn
+prebuilts/linux/ninja
+prebuilts/macx/gn
+prebuilts/macx/ninja
+prebuilts/windows/gn.exe
+prebuilts/windws/ninja.exe
+```
+如果需要protoc命令，可以执行如下命令来生成。  
 
 ```
 ./build.sh protoc
 ```
-
-___来生成out/linux/protoc可执行文件。___
 
 ### 编译WebAssembly版本
 

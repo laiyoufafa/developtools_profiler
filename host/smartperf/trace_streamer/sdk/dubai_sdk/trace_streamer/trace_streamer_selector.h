@@ -17,9 +17,9 @@
 #define TRACE_STREAMER_SELECTOR_H
 #include <functional>
 #include <memory>
-#include "../sdk/sdk_data_parser.h"
-#include "../trace_data/trace_data_cache.h"
-#include "trace_streamer_filters.h"
+#include "sdk/sdk_data_parser.h"
+#include "trace_data/trace_data_cache.h"
+#include "trace_streamer_filter_base.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -46,7 +46,7 @@ public:
 
 private:
     void InitFilter();
-    std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
+    std::unique_ptr<TraceStreamerFilterBase> streamFilters_ = {};
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};
 };
 } // namespace TraceStreamer

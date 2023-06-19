@@ -19,9 +19,10 @@
 #include <functional>
 #include <mutex>
 #include "file.h"
-#include "../parser/htrace_plugin_time_parser.h"
-#include "../table/table_base.h"
-#include "../trace_streamer/trace_streamer_selector.h"
+#include "htrace_plugin_time_parser.h"
+#include "table/table_base.h"
+#include "trace_streamer/trace_streamer_selector.h"
+#include "trace_streamer_filter_base.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -34,7 +35,7 @@ class SDKDataParser : public HtracePluginTimeParser {
 public:
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
     using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int32_t, int32_t)>;
-    SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    SDKDataParser(TraceDataCache* dataCache, const TraceStreamerFilterBase* ctx);
     ~SDKDataParser(){};
 
     // third_party
@@ -96,6 +97,9 @@ public:
         "\"enum\":[\"ARM_Mali-TTRx_JS1_ACTIVE\",\"ARM_Mali-TTRx_JS0_ACTIVE\",\"ARM_Mali-TTRx_GPU_ACTIVE\",\"ARM_Mali-"
         "TTRx_FRAG_ACTIVE\"]},\"stop_gator\":{\"type\":\"boolean\",\"default\":\"true\",\"description\":\"stop_gator\"}"
         "}}}";
+
+private:
+    TraceDataCache* traceDataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

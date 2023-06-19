@@ -40,9 +40,9 @@ TraceStreamerSelector::~TraceStreamerSelector() {}
 
 void TraceStreamerSelector::InitFilter()
 {
-    streamFilters_ = std::make_unique<TraceStreamerFilters>();
+    streamFilters_ = std::make_unique<TraceStreamerFilterBase>();
     traceDataCache_ = std::make_unique<TraceDataCache>();
-    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->clockFilter_ = std::make_unique<ClockFilter>().get();
 }
 
 MetaData* TraceStreamerSelector::GetMetaData()

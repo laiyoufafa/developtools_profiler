@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("../../build/ohos.gni")
-import("ts.gni")
+import("../../build/ts.gni")
 if (use_wasm) {
   import("../../gn/wasm.gni")
 }
@@ -29,25 +29,26 @@ if (use_wasm) {
 ohos_source_set("lib") {
   subsystem_name = "trace_streamer"
   part_name = "lib"
-  sources = [ "main.cpp" ]
+  sources = [
+    "main.cpp",
+    "version.cpp",
+  ]
   deps = [
     ":trace_streamer_sdk",
-    "protos:ts_proto_data_cpp",
     "${THIRD_PARTY}/protobuf:protobuf",
     "${THIRD_PARTY}/protobuf:protobuf_lite",
+    "protos:ts_proto_data_cpp",
   ]
   include_dirs = [
-    "base",
+    "${SRC}/base",
     "..",
     "trace_streamer",
     "table",
     "trace_data",
     "include",
     "plugin",
-    "filter",
     "rpc",
     "./",
-    "parser",
     "cfg",
     "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/mock_data",
@@ -61,11 +62,6 @@ ohos_source_set("lib") {
 }
 source_set("trace_streamer_sdk") {
   sources = [
-    "filter/clock_filter.cpp",
-    "filter/clock_filter.h",
-    "parser/event_parser_base.cpp",
-    "parser/event_parser_base.h",
-    "parser/htrace_plugin_time_parser.cpp",
     "rpc/http_socket.cpp",
     "rpc/rpc_server.cpp",
     "rpc/rpc_server.h",
@@ -73,13 +69,10 @@ source_set("trace_streamer_sdk") {
     "sdk/sdk_data_parser.h",
     "sdk/ts_sdk_api.cpp",
     "sdk/ts_sdk_api.h",
-    "table/filter_constraints.cpp",
     "table/gpu_counter_object_table.cpp",
     "table/gpu_counter_object_table.h",
     "table/gpu_counter_table.cpp",
     "table/gpu_counter_table.h",
-    "table/index_map.cpp",
-    "table/index_map.h",
     "table/meta_table.cpp",
     "table/meta_table.h",
     "table/slice_object_table.cpp",
@@ -103,7 +96,7 @@ source_set("trace_streamer_sdk") {
     "trace_streamer/trace_streamer_selector.h",
   ]
   include_dirs = [
-    "base",
+    "${SRC}/base",
     "..",
     "trace_streamer",
     "filter",
@@ -114,7 +107,6 @@ source_set("trace_streamer_sdk") {
     "rpc",
     "sdk",
     "./",
-    "parser",
     "cfg",
     "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}",
@@ -134,12 +126,10 @@ source_set("trace_streamer_sdk") {
     include_dirs += []
   }
   deps = [
-    "base:base",
-    "ext:sqliteext",
-    "include:ibase",
+    "${SRC}/base:base",
+    "${THIRD_PARTY}/sqlite:sqlite",
     "plugin:sdk_plugin",
     "protos:ts_proto_data_cpp",
-    "${THIRD_PARTY}/sqlite:sqlite",
   ]
   if (with_perf) {
   }
@@ -171,7 +161,7 @@ if (use_wasm) {
   }
 } else {
   if (!is_test && !is_fuzz) {
-    executable("trace_streamer111") {
+    executable("trace_streamer") {
       deps = [ ":lib" ]
     }
   }

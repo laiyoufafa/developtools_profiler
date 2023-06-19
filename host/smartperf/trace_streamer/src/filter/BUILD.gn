@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("../../build/ohos.gni")
-import("../ts.gni")
+import("../../build/ts.gni")
 
 ohos_source_set("filter") {
   subsystem_name = "trace_streamer"
@@ -22,7 +22,6 @@ ohos_source_set("filter") {
     "args_filter.h",
     "binder_filter.cpp",
     "binder_filter.h",
-    "clock_filter.cpp",
     "clock_filter.h",
     "cpu_filter.cpp",
     "filter_base.cpp",

@@ -24,7 +24,7 @@
 #include "sqlite3.h"
 
 struct ElfSymbolTable {
-    std::string filePath;
+    uint64_t filePathIndex;
     uint64_t textVaddr;
     uint32_t textOffset;
     uint32_t symEntSize;

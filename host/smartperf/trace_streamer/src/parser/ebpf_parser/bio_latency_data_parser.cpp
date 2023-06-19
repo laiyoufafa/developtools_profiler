@@ -22,7 +22,7 @@ namespace TraceStreamer {
 BioLatencyDataParser::BioLatencyDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : EventParserBase(dataCache, ctx),
       EbpfBase(dataCache, ctx),
-      timeParser_(std::make_unique<HtracePluginTimeParser>(dataCache, ctx))
+      timeParser_(std::make_unique<HtracePluginTimeParser>(ctx->clockFilter_.get()))
 {
 }
 BioLatencyDataParser::~BioLatencyDataParser()

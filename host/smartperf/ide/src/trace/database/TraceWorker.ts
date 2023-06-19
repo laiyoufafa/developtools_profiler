@@ -91,24 +91,36 @@ let merged = () => {
   return mergedArray;
 };
 let convertJSON = () => {
-  let str = dec.decode(arr);
-  let jsonArray = [];
-  str = str.substring(str.indexOf('\n') + 1);
-  if (!str) {
-  } else {
-    let parse = JSON.parse(translateJsonString(str));
-    let columns = parse.columns;
-    let values = parse.values;
-    for (let i = 0; i < values.length; i++) {
-      let obj: any = {};
-      for (let j = 0; j < columns.length; j++) {
-        obj[columns[j]] = values[i][j];
+  try{
+    let str = dec.decode(arr);
+    let jsonArray = [];
+    str = str.substring(str.indexOf('\n') + 1);
+    if (!str) {
+    } else {
+      let parse = JSON.parse(translateJsonString(str));
+      let columns = parse.columns;
+      let values = parse.values;
+      for (let i = 0; i < values.length; i++) {
+        let obj: any = {};
+        for (let j = 0; j < columns.length; j++) {
+          obj[columns[j]] = values[i][j];
+        }
+        jsonArray.push(obj);
       }
-      jsonArray.push(obj);
     }
+    return jsonArray;
+  }catch (e) {
+    self.postMessage({
+      id: currentActionId,
+      action: currentAction,
+      init: false,
+      status: false,
+      msg: (e as any).message,
+    });
+    return []
   }
-  return jsonArray;
 };
+
 self.onmessage = async (e: MessageEvent) => {
   currentAction = e.data.action;
   currentActionId = e.data.id;
@@ -359,7 +371,6 @@ function uploadSoFile(files: Array<File>, callback: () => void) {
             data.length,
             fileNameBuffer.length,
             sliceLen,
-            files.length,
             uploadFileIndex === files.length - 1 ? 1 : 0
           );
         }

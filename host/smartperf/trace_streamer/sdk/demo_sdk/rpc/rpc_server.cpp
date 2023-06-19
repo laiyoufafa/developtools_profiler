@@ -20,7 +20,7 @@
 #include <functional>
 
 #include "log.h"
-#include "meta.h"
+#include "version.h"
 
 #define UNUSED(expr)             \
     do {                         \

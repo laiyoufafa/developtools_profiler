@@ -21,7 +21,7 @@
 #include <map>
 #include <string>
 
-const uint64_t INVALID_UTID = std::numeric_limits<uint32_t>::max();
+const uint64_t INVALID_ITID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint64_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
 const uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();

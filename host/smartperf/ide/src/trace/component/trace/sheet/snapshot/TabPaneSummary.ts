@@ -174,23 +174,32 @@ export class TabPaneSummary extends BaseElement {
     this.tblSummary!.addEventListener('icon-click', (evt: any) => {
       if (evt.detail.data.status) {
         evt.detail.data.getChildren();
-        evt.detail.data.children.sort(function (a: ConstructorItem, b: ConstructorItem) {
-          return b.retainedSize - a.retainedSize;
-        });
-        evt.detail.data.children.forEach((summaryDataEl: any) => {
-          let shallow = Math.round((summaryDataEl.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
-          let retained = Math.round((summaryDataEl.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
-          summaryDataEl.shallowPercent = shallow;
-          summaryDataEl.retainedPercent = retained;
-          if (summaryDataEl.distance >= 100000000 || summaryDataEl.distance === -5) {
-            summaryDataEl.distance = '-';
-          }
-          let nodeId = summaryDataEl.nodeName.concat(` @${summaryDataEl.id}`);
-          summaryDataEl.objectName = nodeId;
-          if (summaryDataEl.edgeName != '') {
-            summaryDataEl.objectName = summaryDataEl.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
-          }
-        });
+        if (evt.detail.data.children.length > 0) {
+          evt.detail.data.children.sort(function (a: ConstructorItem, b: ConstructorItem) {
+            return b.retainedSize - a.retainedSize;
+          });
+          evt.detail.data.children.forEach((summaryDataEl: any) => {
+            let shallow = Math.round((summaryDataEl.shallowSize / TabPaneSummary.fileSize) * 100) + '%';
+            let retained = Math.round((summaryDataEl.retainedSize / TabPaneSummary.fileSize) * 100) + '%';
+            summaryDataEl.shallowPercent = shallow;
+            summaryDataEl.retainedPercent = retained;
+            if (summaryDataEl.distance >= 100000000 || summaryDataEl.distance === -5) {
+              summaryDataEl.distance = '-';
+            }
+            let nodeId = summaryDataEl.nodeName.concat(` @${summaryDataEl.id}`);
+            summaryDataEl.nodeId = ` @${summaryDataEl.id}`;
+            if (evt.detail.data.isString()) {
+              summaryDataEl.objectName = '"' + summaryDataEl.nodeName + '"' + ` @${summaryDataEl.id}`;
+            } else {
+              summaryDataEl.objectName = nodeId;
+            }
+            if (summaryDataEl.edgeName != '') {
+              summaryDataEl.objectName = summaryDataEl.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
+            }
+          });
+        } else {
+          this.tblSummary!.snapshotDataSource = [];
+        }
       } else {
         evt.detail.data.status = true;
       }
@@ -215,7 +224,6 @@ export class TabPaneSummary extends BaseElement {
       }).observe(this.parentElement!);
     });
     this.tbs!.addEventListener('icon-click', (evt: any) => {
-      let that = this;
       if (evt.detail.data.status) {
         evt.detail.data.getChildren();
         let i = 0;
@@ -265,10 +273,12 @@ export class TabPaneSummary extends BaseElement {
     this.tblSummary!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByLeftTable(evt.detail.key, evt.detail.sort);
+      this.tblSummary!.reMeauseHeight();
     });
     this.tbs!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByRightTable(evt.detail.key, evt.detail.sort);
+      this.tbs!.reMeauseHeight();
     });
     this.classFilter();
   }
@@ -296,6 +306,7 @@ export class TabPaneSummary extends BaseElement {
       if (summaryEl.childCount > 1) {
         let count = summaryEl.nodeName + ` ×${summaryEl.childCount}`;
         summaryEl.objectName = count;
+        summaryEl.count = ` ×${summaryEl.childCount}`;
       } else {
         summaryEl.objectName = summaryEl.nodeName;
       }
@@ -600,6 +611,7 @@ export class TabPaneSummary extends BaseElement {
       this.tblSummary!.snapshotDataSource = this.summaryFilter;
       let summaryTable = this.tblSummary!.shadowRoot?.querySelector('.table') as HTMLDivElement;
       summaryTable.scrollTop = 0;
+      this.tblSummary!.reMeauseHeight();
     });
   }
 
@@ -739,7 +751,7 @@ export class TabPaneSummary extends BaseElement {
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
             <lit-table id="left" style="height: auto" tree>
-                <lit-table-column width="40%" title="Constructor" data-index="objectName" key="objectName" align="flex-start" order>
+                <lit-table-column width="40%" title="Constructor" data-index="" key="objectName" align="flex-start" order>
                 </lit-table-column>
                 <lit-table-column width="2fr" title="Distance" data-index="distance" key="distance" align="flex-start" order>
                 </lit-table-column>

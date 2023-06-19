@@ -29,9 +29,7 @@ if [ ! -f "sqlite/BUILD.gn" ];then
     git clone https://gitee.com/openharmony/third_party_sqlite.git
     if [ -d "third_party_sqlite" ];then
         mv third_party_sqlite sqlite
-        $cp ../prebuilts/patch_sqlite/sqlite3build.gn ../third_party/sqlite/BUILD.gn 
-    else
-        echo 'third_party_sqlite not exist'
+        $cp ../prebuilts/patch_sqlite/sqlite3build.gn ../third_party/sqlite/BUILD.gn
     fi
 fi
 if [ ! -f "protobuf/BUILD.gn" ];then
@@ -40,8 +38,6 @@ if [ ! -f "protobuf/BUILD.gn" ];then
     if [ -d "third_party_protobuf" ];then
         mv third_party_protobuf protobuf
         $cp ../prebuilts/patch_protobuf/protobufbuild.gn ../third_party/protobuf/BUILD.gn
-    else
-        echo 'third_party_protobuf not exist'
     fi
 fi
 
@@ -55,9 +51,6 @@ if [ ! -f "googletest/BUILD.gn" ];then
         $patch -p0 ../third_party/googletest/googletest/include/gtest/internal/gtest-port.h ../prebuilts/patch_googletest/gtest_port.h.patch
         $patch -p0 ../third_party/googletest/googletest/include/gtest/gtest-message.h ../prebuilts/patch_googletest/gtest-message.h.patch
         $sed -i "/using ::std::string/s/^\(.*\)$/\/\/\1/g" ../third_party/googletest/googletest/include/gtest/hwext/gtest-tag.h
-
-    else
-        echo 'third_party_googletest not exist'
     fi
 fi
 
@@ -66,8 +59,6 @@ if [ ! -f "json-master/BUILD.gn" ];then
     git clone https://gitee.com/openharmony/third_party_json.git
     if [ -d "third_party_json" ];then
         mv third_party_json json-master
-    else
-        echo 'third_party_json not exist'
     fi
 fi
 
@@ -77,8 +68,6 @@ if [ ! -f "libunwind/BUILD.gn" ];then
     if [ -d "third_party_libunwind" ];then
         mv third_party_libunwind libunwind
         $cp ../prebuilts/patch_libunwind/libunwindbuild.gn libunwind/BUILD.gn
-    else
-        echo 'third_party_libunwind not exist'
     fi
 fi
 
@@ -131,7 +120,5 @@ if [ ! -f "hiperf/BUILD.gn" ];then
         $sed -i '/namespace HiPerf {/abool UncompressFile(const std::string &gzipFile, const std::string &dataFile){return true;}' hiperf/src/utilities.cpp
         $sed -i '/namespace HiPerf {/abool CompressFile(const std::string &dataFile, const std::string &destFile){return true;}' hiperf/src/utilities.cpp
         $sed -i '/namespace HiPerf {/avoid Report::PrepareConsole(){ return;}' hiperf/src/report.cpp
-    else
-        echo 'hiperf not exist'
     fi
 fi
