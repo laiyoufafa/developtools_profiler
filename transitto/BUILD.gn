@@ -48,8 +48,8 @@ ohos_executable("transitto") {
   install_images = [ "system" ]
 
   install_enable = true
-  subsystem_name = "developtools"
-  part_name = "profiler"
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 
 ohos_executable("transitto_test") {
@@ -63,8 +63,8 @@ ohos_executable("transitto_test") {
 
   deps = []
 
-  subsystem_name = "developtools"
-  part_name = "profiler"
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 
 group("transitto_tool") {

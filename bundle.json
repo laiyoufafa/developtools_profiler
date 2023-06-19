@@ -1,5 +1,5 @@
 {
-  "name": "@ohos/profiler",
+  "name": "@ohos/hiprofiler",
   "description": "Performance profiler that provides an analytics tool for the memory, bytrace plug-in, and IDE, as well as plug-in capabilities",
   "version": "3.09",
   "license": "Apache License 2.0",
@@ -10,10 +10,10 @@
   "dirs": {},
   "scripts": {},
   "component": {
-    "name": "profiler",
+    "name": "hiprofiler",
     "subsystem": "developtools",
     "features": [
-      "profiler_SmartPerf"
+      "hiprofiler_SmartPerf"
     ],
     "syscap": [
       "SystemCapability.HiviewDFX.HiProfiler.HiDebug"
@@ -39,12 +39,22 @@
         "hilog_native",
         "napi",
         "samgr",
-        "c_utils"
+        "c_utils",
+        "faultloggerd",
+        "common_event_service",
+        "safwk",
+        "selinux"
       ],
       "third_party": [
         "googletest",
         "utils",
-        "zlib"
+        "zlib",
+        "bounds_checking_function",
+        "protobuf",
+        "openssl",
+        "libbpf",
+        "grpc",
+        "thirdparty_selinux"
       ]
     },
     "build": {
