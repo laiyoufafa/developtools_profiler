@@ -23,6 +23,7 @@
 #include "include/parse_click_complete_trace.h"
 #include "include/parse_click_response_trace.h"
 #include "include/sp_parse_fps.h"
+#include "include/parse_page_fps_trace.h"
 
 namespace OHOS {
 namespace SmartPerf {
@@ -49,6 +50,9 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         } else if (v[type] == "fps") {
             std::cout << SmartPerf::EditorCommand::SlideFps(v)<< std::endl;
             return;
+        }  else if (v[type] == "pagefps") {
+            SmartPerf::EditorCommand::PageFps();
+            return;
         } else if (v[type] == "FPS") {
             std::cout << SmartPerf::EditorCommand::SlideFPS(v)<< std::endl;
             return;
@@ -59,6 +63,19 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
             std::cout << "time:" << time << std::endl;
         }
     }
+}
+double EditorCommand::PageFps()
+{
+    OHOS::SmartPerf::StartUpDelay sd;
+    OHOS::SmartPerf::PageFpsTrace pageFpsTrace;
+    std::string cmdResult;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "fps" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("fps", traceName);
+    thGetTrace.join();
+    double fps = pageFpsTrace.ParsePageFpsTrace(traceName);
+    std::cout << "FPS:" << fps << "fps" << std::endl;
+    return fps;
 }
 std::string EditorCommand::SlideFps(std::vector<std::string> v)
 {
@@ -85,7 +102,8 @@ std::string EditorCommand::SlideFPS(std::vector<std::string> v)
     SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
     sleep(1);
     size_t position = cmdResult.find(":");
-    std::string pathJson = cmdResult.substr(position + 1);
+    size_t position2 = cmdResult.find("json");
+    std::string pathJson = cmdResult.substr(position + 1, position - position2 + typePKG);
     std::string deviceType = sd.GetDeviceType();
     sd.InitXY2(v[type], pathJson, v[typePKG]);
     std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "fps" + ".ftrace";
@@ -155,7 +173,8 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
     SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
     sleep(1);
     size_t position = cmdResult.find(":");
-    std::string pathJson = cmdResult.substr(position + 1);
+    size_t position2 = cmdResult.find("json");
+    std::string pathJson = cmdResult.substr(position + 1, position - position2 + typePKG);
     std::string deviceType = sd.GetDeviceType();
     sd.InitXY2(v[type], pathJson, v[typePKG]);
     if (sd.pointXY == "0 0") {
@@ -203,7 +222,8 @@ float EditorCommand::HotStart(std::vector<std::string> v)
         SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
         sleep(1);
         size_t position = cmdResult.find(":");
-        std::string pathJson = cmdResult.substr(position + 1);
+        size_t position2 = cmdResult.find("json");
+        std::string pathJson = cmdResult.substr(position + 1, position - position2 + typePKG);
         sd.InitXY2(v[type], pathJson, v[typePKG]);
         if (sd.pointXY == "0 0") {
             return noNameType;

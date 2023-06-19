@@ -28,6 +28,7 @@ public:
     static float ResponseTime();
     static std::string SlideFPS(std::vector<std::string> v);
     static std::string SlideFps(std::vector<std::string> v);
+    static double PageFps();
 private:
     bool isOhTest = false;
 };

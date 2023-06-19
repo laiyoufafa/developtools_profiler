@@ -221,10 +221,6 @@ FpsResult  ParseFPS::PraseFPSTrace(FilePath& filePath, float staticTime, SpStrin
         const auto complexFps1 =  rfV.frameNum / duration;
         SP_FAILED_OPERATION((duration > 0 && rfV.frameNum > 0));
         rfV.complexFps = std::to_string(complexFps1);
-        int fpsNum = 60;
-        if (complexFps1 > fpsNum) {
-            rfV.complexFps = "60";
-        }
     }
     return rfV.complexFps;
 }
