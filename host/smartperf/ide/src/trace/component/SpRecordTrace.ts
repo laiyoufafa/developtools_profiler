@@ -1576,10 +1576,19 @@ export class SpRecordTrace extends BaseElement {
     recordArgs = recordArgs + '-f ' + perfConfig?.frequency;
     if (perfConfig?.process && !perfConfig?.process.includes('ALL') && perfConfig?.process.length > 0) {
       let process = perfConfig.process;
-      if (this.isNumber(process)) {
-        recordArgs = recordArgs + ' -p ' + perfConfig?.process;
+      if (process.indexOf(',') != -1) {
+        let processIdOrName =  process.split(',');
+        if (this.isNumber(processIdOrName[0])) {
+          recordArgs = recordArgs + ' -p ' + perfConfig?.process;
+        } else {
+          recordArgs = recordArgs + ' --app ' + perfConfig?.process;
+        }
       } else {
-        recordArgs = recordArgs + ' --app ' + perfConfig?.process;
+        if (this.isNumber(process)) {
+          recordArgs = recordArgs + ' -p ' + perfConfig?.process;
+        } else {
+          recordArgs = recordArgs + ' --app ' + perfConfig?.process;
+        }
       }
     } else {
       recordArgs = recordArgs + ' -a ';
