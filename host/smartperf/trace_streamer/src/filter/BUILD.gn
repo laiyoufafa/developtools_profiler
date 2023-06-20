@@ -36,6 +36,10 @@ ohos_source_set("filter") {
     "irq_filter.h",
     "measure_filter.cpp",
     "measure_filter.h",
+    "native_hook_filter.cpp",
+    "native_hook_filter.h",
+    "offline_symbolization_filter.cpp",
+    "offline_symbolization_filter.h",
     "process_filter.cpp",
     "process_filter.h",
     "slice_filter.cpp",
@@ -46,10 +50,6 @@ ohos_source_set("filter") {
     "symbols_filter.h",
     "system_event_measure_filter.cpp",
     "system_event_measure_filter.h",
-    "native_hook_filter.cpp",
-    "native_hook_filter.h",
-    "offline_symbolization_filter.cpp",
-    "offline_symbolization_filter.h",
   ]
 
   if (enable_ts_utest && !use_wasm) {

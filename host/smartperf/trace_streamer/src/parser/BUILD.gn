@@ -64,7 +64,6 @@ ohos_source_set("parser") {
   include_dirs += [ "htrace_pbreader_parser" ]
   include_dirs += [ "../proto_reader/include" ]
 
-
   if (enable_ts_utest && !use_wasm) {
     cflags = [
       "-fprofile-arcs",
