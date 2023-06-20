@@ -59,7 +59,7 @@ void CallocFun()
     static int i = 0;
     char* ptr = static_cast<char*>(calloc(1, MALLOC_SIZE / 100));
     if (ptr == nullptr) {
-        perror("calloc err: %s", __func__);
+        fprintf(stderr, "calloc err.\n");
         return;
     }
     fprintf(stderr, "calloc %p i=%d\n", ptr, i);
@@ -72,12 +72,12 @@ void ReallocFun()
     static int i = 0;
     char* ptr = static_cast<char*>(calloc(1, MALLOC_SIZE / 10)); // 10: multiple num
     if (ptr == nullptr) {
-        perror("calloc err: %s", __func__);
+        fprintf(stderr, "calloc err.\n");
         return;
     }
     ptr = static_cast<char*>(realloc(ptr, MALLOC_SIZE * 10)); // 10: multiple num
     if (ptr == nullptr) {
-        perror("realloc err: %s", __func__);
+        fprintf(stderr, "realloc err.\n");
         return;
     }
     fprintf(stderr, "realloc %p i=%d\n", ptr, i);
@@ -93,8 +93,8 @@ bool DepthMallocFree(int depth = 0, int mallocSize = 100)
     if (depth == 0) {
         char* ptr = static_cast<char*>(malloc(mallocSize));
         if (ptr == nullptr) {
-            perror("malloc err: %s", __func__);
-            return;
+            fprintf(stderr, "malloc err.\n");
+            return false;
         }
         fprintf(stderr, "%s:%p\n", __func__, ptr);
         *ptr = 'a';
@@ -141,7 +141,7 @@ int MmapAndMunMap()
 
     char* ptr = static_cast<char*>(mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
     if (ptr == MAP_FAILED) {
-        perror("Mmap err:");
+        fprintf(stderr, "Mmap err.\n");
         ptr = nullptr;
         return 1;
     }
@@ -156,7 +156,7 @@ void Fun1()
     static int i = 0;
     char* ptr = static_cast<char*>(malloc(MALLOC_SIZE));
     if (ptr == nullptr) {
-        perror("malloc err: %s", __func__);
+        fprintf(stderr, "malloc err.\n");
         return;
     }
     fprintf(stderr, "%p i=%d\n", ptr, i);
@@ -174,7 +174,7 @@ void Fun2()
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
     if (ptr == nullptr) {
-        perror("malloc err: %s", __func__);
+        fprintf(stderr, "malloc err.\n");
         return;
     }
     fprintf(stderr, "%p i=%d\n", ptr, i);
@@ -191,7 +191,7 @@ void Fun3()
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
     if (ptr == nullptr) {
-        perror("malloc err: %s", __func__);
+        fprintf(stderr, "malloc err.\n");
         return;
     }
     fprintf(stderr, "%p i=%d\n", ptr, i);
@@ -209,7 +209,7 @@ void Fun4()
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
     if (ptr == nullptr) {
-        perror("malloc err: %s", __func__);
+        fprintf(stderr, "malloc err.\n");
         return;
     }
     fprintf(stderr, "%p i=%d\n", ptr, i);
@@ -226,7 +226,7 @@ void Fun5()
     static int i = 0;
     char *ptr = static_cast<char*>(malloc(MALLOC_SIZE));
     if (ptr == nullptr) {
-        perror("malloc err: %s", __func__);
+        fprintf(stderr, "malloc err.\n");
         return;
     }
     fprintf(stderr, "%p i=%d\n", ptr, i);
