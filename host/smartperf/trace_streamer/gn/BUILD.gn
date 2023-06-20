@@ -187,7 +187,7 @@ config("executable") {
   print("use_wasm", use_wasm)
   ldflags = []
 
-  if (is_linux || ((is_macx && !use_wasm))) {
+  if (is_linux || (is_macx && !use_wasm)) {
     ldflags += []
   }
   if (!is_macx && !use_wasm && !is_win) {
