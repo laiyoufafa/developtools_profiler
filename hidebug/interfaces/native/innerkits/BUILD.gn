@@ -30,7 +30,7 @@ ohos_shared_library("libhidebug") {
   }
 
   external_deps = [
-    "hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 

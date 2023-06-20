@@ -35,11 +35,7 @@ ohos_source_set("ipc") {
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
-    if (build_l2) {
-      external_deps += [ "shared_library:libhilog" ]
-    } else {
-      external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
-    }
+    external_deps += [ "hilog:libhilog" ]
   }
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite_static",
