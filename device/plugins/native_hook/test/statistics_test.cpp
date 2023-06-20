@@ -283,8 +283,8 @@ void TestMemoryMap()
 
 int main(int argc, char *argv[])
 {
-    int threadNum = 0;
-    int forNum = 0;
+    int threadNum = 1;
+    int forNum = 10;
     if  (argc == ARGC_NUM_MAX) {
         if (atoi(argv[1]) > 0) {
             threadNum = atoi(argv[1]);
