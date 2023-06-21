@@ -12,70 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include <algorithm>
 #include <map>
-
+#include <vector>
+#include "filter_base.h"
+#include "trace_data_cache.h"
+#include "trace_streamer_filters.h"
+#include "string_help.h"
 namespace SysTuning {
 namespace TraceStreamer {
-ClockFilter::ClockFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter), primaryClock_(BuiltinClocks::TS_CLOCK_BOOTTIME), dataCache_(dataCache)
+ClockFilterEx::ClockFilterEx(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+    : FilterBase(dataCache, filter), dataCache_(dataCache)
 {
 }
+ClockFilterEx::~ClockFilterEx() {}
 
-ClockFilter::~ClockFilter() {}
-
-std::string ClockFilter::GenClockKey(ClockId srcClockId, ClockId desClockId)
-{
-    std::string ret;
-    ret += std::to_string(srcClockId);
-    ret += ",";
-    ret += std::to_string(desClockId);
-    return ret;
-}
-
-uint64_t ClockFilter::ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const
-{
-    if (srcClockId == primaryClock_) {
-        return srcTs;
-    }
-    return Convert(srcClockId, srcTs, primaryClock_);
-}
-
-uint64_t ClockFilter::Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const
-{
-    std::string&& clockKey = GenClockKey(srcClockId, desClockId);
-    auto keyIt = clockMaps_.find(clockKey);
-    if (keyIt == clockMaps_.end()) {
-        return srcTs;
-    }
-
-    auto tsIt = keyIt->second.upper_bound(srcTs);
-    if (tsIt != keyIt->second.begin()) {
-        tsIt--;
-    }
-
-    if (tsIt->second >= 0) {
-        return srcTs + static_cast<uint64_t>(tsIt->second);
-    } else {
-        return srcTs - static_cast<uint64_t>(0 - tsIt->second);
-    }
-}
-
-void ClockFilter::AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uint64_t srcTs, uint64_t dstTs)
-{
-    std::string&& clockKey = GenClockKey(srcClockId, dstClockId);
-    auto keyIt = clockMaps_.find(clockKey);
-    if (keyIt == clockMaps_.end()) {
-        ConvertClockMap newConvertMap = {{srcTs, dstTs - srcTs}};
-        clockMaps_[clockKey] = newConvertMap;
-    } else {
-        clockMaps_[clockKey].insert(std::make_pair(srcTs, dstTs - srcTs));
-    }
-}
-
-void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
+void ClockFilterEx::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
 {
     ClockId srcId, desId;
     const int32_t theDataBeforeLast = 2;

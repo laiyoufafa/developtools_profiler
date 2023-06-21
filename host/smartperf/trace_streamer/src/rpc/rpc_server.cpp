@@ -22,8 +22,8 @@
 #include <filesystem>
 #endif
 #include "log.h"
-#include "meta.h"
 #include "string_help.h"
+#include "version.h"
 
 #define UNUSED(expr)             \
     do {                         \
@@ -71,18 +71,7 @@ int32_t RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int
     std::string thirdPartyConfig = reinterpret_cast<const char*>(data);
     TS_LOGE("thirdPartyConfig = %s", thirdPartyConfig.c_str());
     int32_t size = thirdPartyConfig.size();
-    std::vector<std::string> comPonentStr;
-    for (int32_t i = 0, pos = 0; i < size; i++) {
-        pos = thirdPartyConfig.find(";", i);
-        if (pos == std::string::npos) {
-            break;
-        }
-        if (pos < size) {
-            std::string s = thirdPartyConfig.substr(i, pos - i);
-            comPonentStr.push_back(s);
-            i = pos;
-        }
-    }
+    std::vector<std::string> comPonentStr = SplitStringToVec(thirdPartyConfig, ";");
     const int32_t EVENT_COUNT_PAIR = 2;
     if (comPonentStr.size() % EVENT_COUNT_PAIR != 0) {
         TS_LOGE("thirdPartyConfig is wrong!");
@@ -201,7 +190,6 @@ int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
                                        size_t totalLen,
                                        const uint8_t* data,
                                        size_t len,
-                                       int32_t count,
                                        int32_t finish,
                                        ParseELFFileCallBack parseELFFile)
 {

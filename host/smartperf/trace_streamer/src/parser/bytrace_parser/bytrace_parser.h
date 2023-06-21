@@ -87,6 +87,7 @@ private:
         std::vector<std::string> key;
         std::vector<json> value;
     } JsonData;
+    void AppendJsonDataToHiSysEventNewValue(JsonData jData, int32_t jIndex, DataIndex eventSourceIndex);
     void NoArrayDataParse(JsonData jData, std::vector<size_t> noArrayIndex, DataIndex eventSourceIndex);
     void ArrayDataParse(JsonData jData,
                         std::vector<size_t> arrayIndex,

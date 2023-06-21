@@ -37,6 +37,7 @@ export class SelectionParam {
   cpuFreqFilterIds: Array<number> = [];
   cpuFreqLimitDatas: Array<Array<CpuFreqLimitsStruct>> = [];
   threadIds: Array<number> = [];
+  processIds: Array<number> = [];
   processTrackIds: Array<number> = [];
   virtualTrackIds: Array<number> = [];
   clockMapData: Map<string, Array<ClockStruct>> = new Map<string, Array<ClockStruct>>();

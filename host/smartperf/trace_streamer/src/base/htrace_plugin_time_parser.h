@@ -14,15 +14,12 @@
  */
 #ifndef HTRACE_PLUGIN_TIME_PARSER_H
 #define HTRACE_PLUGIN_TIME_PARSER_H
-#include "clock_filter.h"
-#include "event_parser_base.h"
-#include "trace_data/trace_data_cache.h"
-
+#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
-class HtracePluginTimeParser : public EventParserBase {
+class HtracePluginTimeParser {
 public:
-    HtracePluginTimeParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    HtracePluginTimeParser();
     HtracePluginTimeParser(const HtracePluginTimeParser&) = delete;
     HtracePluginTimeParser& operator=(const HtracePluginTimeParser&) = delete;
     ~HtracePluginTimeParser() = default;

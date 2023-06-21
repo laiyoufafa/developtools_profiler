@@ -13,25 +13,15 @@
  * limitations under the License.
  */
 #include "htrace_plugin_time_parser.h"
+#include "clock_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-HtracePluginTimeParser::HtracePluginTimeParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : EventParserBase(dataCache, ctx)
-{
-    if (!streamFilters_) {
-        TS_LOGF("streamFilters_ should not be null");
-        return;
-    }
-    if (!traceDataCache_) {
-        TS_LOGF("traceDataCache_ should not be null");
-        return;
-    }
-}
+HtracePluginTimeParser::HtracePluginTimeParser() {}
 void HtracePluginTimeParser::UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp)
 {
     minTs_ = std::min(minTs_, asyncTimestamp);
     maxTs_ = std::max(maxTs_, asyncTimestamp);
-    if (clockId == streamFilters_->clockFilter_->GetPrimaryClock()) {
+    if (clockId == PRIMARY_CLOCK_ID) {
         syncHtracePluginStartTime_ = std::min(syncHtracePluginStartTime_, syncTimestamp);
         syncHtracePluginEndTime_ = std::max(syncHtracePluginEndTime_, syncTimestamp);
         return;

@@ -16,7 +16,7 @@
 #include <dirent.h>
 #include <memory>
 #include <regex>
-#include "clock_filter.h"
+#include "clock_filter_ex.h"
 #include "fcntl.h"
 #include "file.h"
 #include "htrace_event_parser.h"
@@ -286,7 +286,7 @@ const int32_t END_POS = 3;
 const int32_t CHUNK_POS = 8;
 
 HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx)
+    : EventParserBase(dataCache, ctx)
 {
     DIR* dir = opendir(".");
     if (dir != nullptr) {
@@ -341,7 +341,9 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
         }
         ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
         UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
-        (void)traceDataCache_->GetJsHeapFilesData()->AppendNewData(fileId_, fileName, startTime_, ts, pid_);
+        (void)traceDataCache_->GetJsHeapFilesData()->AppendNewData(fileId_, fileName, startTime_, ts, pid_,
+                                                                   selfSizeCount_);
+        selfSizeCount_ = 0;
         fileId_++;
         isFirst_ = true;
         return;
@@ -420,6 +422,7 @@ void HtraceJSMemoryParser::ParseNodes(int32_t fileId, const json& jMessage)
         auto detachedness = node.detachedness[i];
         (void)traceDataCache_->GetJsHeapNodesData()->AppendNewData(fileId, i, type, name, id, selfSize, edgeCount,
                                                                    traceNodeId, detachedness);
+        selfSizeCount_ += selfSize;
     }
     return;
 }

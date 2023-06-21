@@ -20,6 +20,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <typeinfo>
 
 namespace SysTuning {
 namespace base {
@@ -34,18 +35,6 @@ inline uint16_t GetNameASCIISumNoNum(const std::string& str)
     }
     return sum % INTEGER_RADIX_TYPE_HEX;
 }
-inline std::optional<uint32_t> StrToUInt32(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
-{
-    if (!str.empty()) {
-        char* endPtr = nullptr;
-        auto value = static_cast<uint32_t>(std::strtoul(str.c_str(), &endPtr, base));
-        if (!*endPtr) {
-            return std::make_optional(value);
-        }
-    }
-
-    return std::nullopt;
-}
 
 inline std::string number(uint64_t value, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
@@ -58,43 +47,29 @@ inline std::string number(uint64_t value, int32_t base = INTEGER_RADIX_TYPE_DEC)
     return ss.str();
 }
 
-inline std::optional<int32_t> StrToInt32(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
+template <typename T>
+inline std::optional<T> StrToInt(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         char* endPtr = nullptr;
-        auto value = static_cast<int32_t>(std::strtol(str.c_str(), &endPtr, base));
+        T value;
+        if constexpr (std::is_same_v<T, uint32_t>) {
+            value = static_cast<T>(std::strtoul(str.c_str(), &endPtr, base));
+        } else if constexpr (std::is_same_v<T, int32_t>) {
+            value = static_cast<T>(std::strtol(str.c_str(), &endPtr, base));
+        } else if constexpr (std::is_same_v<T, uint64_t>) {
+            value = static_cast<T>(std::strtoull(str.c_str(), &endPtr, base));
+        } else if constexpr (std::is_same_v<T, int64_t>) {
+            value = static_cast<T>(std::strtoll(str.c_str(), &endPtr, base));
+        }
         if (!*endPtr) {
             return std::make_optional(value);
         }
     }
-
+    TS_LOGD("Illegal value: %s", str.c_str());
     return std::nullopt;
 }
 
-inline std::optional<uint64_t> StrToUInt64(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
-{
-    if (!str.empty()) {
-        char* endPtr = nullptr;
-        auto value = static_cast<uint64_t>(std::strtoull(str.c_str(), &endPtr, base));
-        if (!*endPtr) {
-            return std::make_optional(value);
-        }
-    }
-
-    return std::nullopt;
-}
-
-inline std::optional<int64_t> StrToInt64(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
-{
-    if (!str.empty()) {
-        char* endPtr = nullptr;
-        int64_t value = static_cast<int64_t>(std::strtoll(str.c_str(), &endPtr, base));
-        if (!*endPtr) {
-            return std::make_optional(value);
-        }
-    }
-    return std::nullopt;
-}
 inline std::optional<double> StrToDouble(const std::string& str)
 {
     if (!str.empty()) {

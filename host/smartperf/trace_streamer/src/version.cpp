@@ -12,12 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef META_H
-#define META_H
-#include <string>
-#include <sys/types.h>
-extern size_t g_loadSize;
-extern std::string TRACE_STREAM_VERSION;        // version
-extern std::string TRACE_STREAM_PUBLISHVERSION; // publish datetime
-#endif
+#include "version.h"
+size_t g_loadSize = 0;
+std::string TRACE_STREAM_VERSION = "3.2.7";            // version
+std::string TRACE_STREAM_PUBLISHVERSION = "2023/6/02"; // publish datetime

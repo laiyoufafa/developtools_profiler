@@ -1,4 +1,5 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+#!/bin/bash
+# Copyright (c) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,19 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import("//build/ohos.gni")
-config("sqlite_config") {
-  include_dirs = [
-    "../../third_party/sqlite/include",
-    "../include",
-  ]
-  cflags = [
-    "-Wno-writable-strings",
-    "-std=c++17",
-  ]
-}
-source_set("sqliteext") {
-  sources = [ "sqlite_ext_funcs.cpp" ]
-  public_configs = [ ":sqlite_config" ]
-}
+set -e
+rm -rf out/test
+./build.sh test
+./test.sh
+./lcov_operator.sh

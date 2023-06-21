@@ -149,8 +149,7 @@ TSSqlValue SqliteValueToTSSqlValue(sqlite3_value* value)
     }
     return sqlValue;
 }
-class JsonBuild {
-public:
+struct JsonBuild {
     JsonBuild() = default;
     void AppendHead()
     {

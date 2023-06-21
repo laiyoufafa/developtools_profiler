@@ -13,20 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef CLOCK_FILTER_H
-#define CLOCK_FILTER_H
+#ifndef CLOCK_FILTER_EX_H
+#define CLOCK_FILTER_EX_H
 
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "filter_base.h"
-#include "trace_data_cache.h"
-#include "trace_streamer_filters.h"
+#include "htrace_file_header.h"
 #include "ts_common.h"
-
-namespace SysTuning {
-namespace TraceStreamer {
 /*
  * TS_REALTIME:  A settable system-wide clock that measures real time. Its time represents seconds and nanoseconds
  * since the Epoch.
@@ -41,47 +37,24 @@ namespace TraceStreamer {
  * TS_BOOTTIME:  A nonsettable system-wide clock that is identical to TS_MONOTONIC, except that it also includes
  * any time that the system is suspended.
  */
-
-using ClockId = uint32_t;
-struct SnapShot {
-    ClockId clockId;
-    uint64_t ts;
-};
-class ClockFilter : private FilterBase {
+#include <vector>
+#include "clock_filter.h"
+#include "filter_base.h"
+#include <string>
+namespace SysTuning {
+namespace TraceStreamer {
+class TraceDataCache;
+class TraceStreamerFilters;
+class ClockFilterEx : public FilterBase, public ClockFilter {
 public:
-    using ConvertClockMap = std::map<uint64_t, int64_t>;
-
-    ClockFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    ~ClockFilter() override;
-
-    void SetPrimaryClock(ClockId primary)
-    {
-        primaryClock_ = primary;
-    }
-    ClockId GetPrimaryClock() const
-    {
-        return primaryClock_;
-    }
-    uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
-    uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
+    ClockFilterEx(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    ~ClockFilterEx();
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
-    bool HasInitSnapShot() const
-    {
-        return hasInitSnapShot_;
-    }
 
 private:
-    static std::string GenClockKey(ClockId srcClockId, ClockId desClockId);
-    void AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uint64_t srcTs, uint64_t dstTs);
-
-private:
-    std::unordered_map<std::string, ConvertClockMap> clockMaps_ = {};
-
-    ClockId primaryClock_;
-    bool hasInitSnapShot_ = false;
     TraceDataCache* dataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
 
-#endif // CLOCK_FILTER_H
+#endif // CLOCK_FILTER_EX_H

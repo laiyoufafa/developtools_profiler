@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import("//build/ohos.gni")
-import("../../ts.gni")
+import("../../../build/ts.gni")
 ohos_source_set("htrace_pbreader_parser_src") {
   subsystem_name = "trace_streamer"
   part_name = "htrace_pbreader_parser_src"
@@ -43,8 +43,6 @@ ohos_source_set("htrace_pbreader_parser_src") {
     "htrace_network_parser.cpp",
     "htrace_network_parser.h",
     "htrace_parser.cpp",
-    "htrace_plugin_time_parser.cpp",
-    "htrace_plugin_time_parser.h",
     "htrace_process_parser.cpp",
     "htrace_process_parser.h",
     "htrace_symbols_detail_parser.cpp",
@@ -84,13 +82,13 @@ ohos_source_set("htrace_pbreader_parser_src") {
   include_dirs += [
     "${THIRD_PARTY}/libunwind/include",
     "${THIRD_PARTY}/libunwind/src",
+    "${THIRD_PARTY}/hiperf/include",
+    "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
+    "${THIRD_PARTY}/hiperf/include/nonlinux",
   ]
   if (with_perf) {
     include_dirs += [
       "${THIRD_PARTY}/perf_include/musl",
-      "${THIRD_PARTY}/hiperf/include",
-      "${THIRD_PARTY}/hiperf/include/nonlinux",
-      "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
       "${THIRD_PARTY}/perf_include/libbpf",
       "${THIRD_PARTY}/perf_include/include",
       "${THIRD_PARTY}/perf_include",
