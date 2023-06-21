@@ -36,7 +36,7 @@ bool MatchTail(const std::string& name, std::string str)
 void GetInode(const std::string& str, int64_t* iNode)
 {
     uint32_t len = 0;
-    if(sscanf_s(str.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", iNode, &len) != 1) {
+    if (sscanf_s(str.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", iNode, &len) != 1) {
         *iNode = -1;
     }
     return;
@@ -50,7 +50,7 @@ std::string GetCategory(const std::string& path, const int64_t iNode)
         return "native heap";
     } else if (MatchHead(path, "[anon:ArkTS Heap")) {
         return "ark ts heap";
-    } else if (MatchHead(path, "[stack]") || MatchHead(path, "[anon:stack_and_tls")) {
+    } else if (MatchHead(path, "[stack]") || MatchHead(path, "[anon:stack")) {
         return "stack";
     } else if (MatchHead(path, "/data/storage")) {
         return ".hap";
@@ -122,7 +122,6 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
                 smapsInfo->set_start_addr(smapsHeadInfo.startAddrStr);
                 smapsInfo->set_end_addr(smapsHeadInfo.endAddrStr);
                 smapsInfo->set_permission(smapsHeadInfo.permission);
-                smapsInfo->set_path(smapsHeadInfo.path);
                 smapsInfo->set_path(smapsHeadInfo.path);
                 smapsInfo->set_category(GetCategory(smapsHeadInfo.path, iNode));
             }
