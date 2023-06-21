@@ -26,7 +26,6 @@
     "deps": {
       "components": [
         "hilog",
-        "hiviewdfx_hilog_native",
         "ability_runtime",
         "ability_base",
         "common",
@@ -37,7 +36,6 @@
         "bounds_checking_function",
         "ipc",
         "init",
-        "hilog_native",
         "napi",
         "samgr",
         "c_utils",
