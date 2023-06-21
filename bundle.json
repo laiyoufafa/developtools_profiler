@@ -25,7 +25,6 @@
     "ram": "2000KB",
     "deps": {
       "components": [
-        "hilog",
         "hiviewdfx_hilog_native",
         "ability_runtime",
         "ability_base",
