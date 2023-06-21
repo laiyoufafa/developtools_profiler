@@ -33,10 +33,10 @@ bool MatchTail(const std::string& name, std::string str)
     return (name.substr(index) == str);
 }
 
-void GetInode(const std::string& str, int64_t* iNode)
+void GetInode(const std::string& line, int64_t* iNode)
 {
     uint32_t len = 0;
-    if (sscanf_s(str.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", iNode, &len) != 1) {
+    if (sscanf_s(line.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", iNode, &len) != 1) {
         *iNode = -1;
     }
     return;
