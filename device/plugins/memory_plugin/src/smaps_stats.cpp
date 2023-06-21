@@ -32,6 +32,49 @@ bool MatchTail(const std::string& name, std::string str)
     }
     return (name.substr(index) == str);
 }
+
+void GetInode(const std::string& str, int64_t* iNode)
+{
+    uint32_t len = 0;
+    if(sscanf_s(str.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", iNode, &len) != 1) {
+        *iNode = -1;
+    }
+    return;
+}
+
+std::string GetCategory(const std::string& path, const int64_t iNode)
+{
+    if (MatchHead(path, "[heap]") || MatchHead(path, "[anon:libc_malloc") ||
+        MatchHead(path, "[anon:native_heap") || MatchHead(path, "[anon:scudo") ||
+        MatchHead(path, "[anon:GWP-ASan")) {
+        return "native heap";
+    } else if (MatchHead(path, "[anon:ArkTS Heap")) {
+        return "ark ts heap";
+    } else if (MatchHead(path, "[stack]") || MatchHead(path, "[anon:stack_and_tls")) {
+        return "stack";
+    } else if (MatchHead(path, "/data/storage")) {
+        return ".hap";
+    } else if (MatchHead(path, "/dev/")) {
+        return "dev";
+    } else if (MatchHead(path, "[anon:guard")) {
+        return "guard";
+    } else if (MatchHead(path, "/dmabuf")) {
+        return "dmabuf";
+    } else if (MatchTail(path, ".db") || MatchTail(path, ".db-shm")) {
+        return ".db";
+    } else if (MatchTail(path, ".ttf")) {
+        return ".ttf";
+    } else if (MatchTail(path, ".so") || MatchTail(path, ".so.1")) {
+        return ".so";
+    } else {
+        if (iNode > 0) {
+            return "FilePage other";
+        } else if (iNode == 0) {
+            return "AnonPage other";
+        }
+    }
+    return "unknow";
+}
 } // namespace
 bool SmapsStats::ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps)
 {
@@ -70,14 +113,18 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
         line += '\n';
         if (!findMapHead) {
             // 00400000-00409000 r-xp 00000000 fc:00 426998  /usr/lib/gvfs/gvfsd-http
-            ParseMapHead(line, mappic, smapsHeadInfo);
+            int64_t iNode = -1;
+            ParseMapHead(line, mappic, smapsHeadInfo, iNode);
             findMapHead = true;
+            
             if (isReportSmaps) {
                 smapsInfo = processinfo.add_smapinfo();
                 smapsInfo->set_start_addr(smapsHeadInfo.startAddrStr);
                 smapsInfo->set_end_addr(smapsHeadInfo.endAddrStr);
                 smapsInfo->set_permission(smapsHeadInfo.permission);
                 smapsInfo->set_path(smapsHeadInfo.path);
+                smapsInfo->set_path(smapsHeadInfo.path);
+                smapsInfo->set_category(GetCategory(smapsHeadInfo.path, iNode));
             }
             continue;
         }
@@ -241,8 +288,9 @@ bool SmapsStats::SetMapAddrInfo(std::string& line, MapPiecesInfo& head)
     return true;
 }
 
-bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo)
+bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo, int64_t* iNode)
 {
+    GetInode(line, iNode);
     std::string newline = line;
     for (int i = 0; i < FIFTH_FIELD; i++) {
         std::string word = newline;

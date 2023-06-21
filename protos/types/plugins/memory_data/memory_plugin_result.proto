@@ -47,6 +47,7 @@ message SmapsInfo {
     uint64 shared_dirty = 14;
     uint64 swap = 15;
     uint64 swap_pss = 16;
+    string category = 17;
 };
 
 message AppSummary {

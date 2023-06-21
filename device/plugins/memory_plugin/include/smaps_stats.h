@@ -289,7 +289,7 @@ private:
 
     bool ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp,
                            bool isReportSmaps);
-    bool ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo);
+    bool ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo, int64_t* iNode);
     bool SetMapAddrInfo(std::string& line, MapPiecesInfo& head);
     bool GetMemUsageField(std::string& line, MemUsageInfo& memusage);
     void CollectVmemAreasData(const MapPiecesInfo& mempic,
