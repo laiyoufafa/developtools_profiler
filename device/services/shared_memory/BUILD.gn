@@ -41,17 +41,10 @@ ohos_source_set("shared_memory_source") {
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
-    if (build_l2) {
-      external_deps = [
-        "c_utils:utils",
-        "shared_library:libhilog",
-      ]
-    } else {
-      external_deps = [
-        "c_utils:utils",
-        "hiviewdfx_hilog_native:libhilog",
-      ]
-    }
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
   }
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
@@ -78,17 +71,10 @@ ohos_static_library("shared_memory_lite") {
 
   if (current_toolchain != host_toolchain) {
     defines += [ "HAVE_HILOG" ]
-    if (build_l2) {
-      external_deps = [
-        "c_utils:utils",
-        "shared_library::libhilog",
-      ]
-    } else {
-      external_deps = [
-        "c_utils:utils",
-        "hiviewdfx_hilog_native:libhilog",
-      ]
-    }
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
   }
 
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
