@@ -18,6 +18,7 @@ group("hiprofiler_targets") {
     deps = [
       "cmds:hiprofiler_cmd",
       "plugins/api:hiprofiler_plugins",
+      "plugins/arkts_plugin:arktsplugin",
       "plugins/cpu_plugin:cpudataplugin",
       "plugins/diskio_plugin:diskiodataplugin",
       "plugins/ftrace_plugin:ftrace_targets",
@@ -25,7 +26,6 @@ group("hiprofiler_targets") {
       "plugins/hilog_plugin:hilogplugin",
       "plugins/hiperf_plugin:hiperfplugin",
       "plugins/hisysevent_plugin:hisyseventplugin",
-      "plugins/arkts_plugin:arktsplugin",
       "plugins/memory_plugin:memdataplugin",
       "plugins/native_hook:malloctest_cpp",
       "plugins/native_hook:nativetest_c",
