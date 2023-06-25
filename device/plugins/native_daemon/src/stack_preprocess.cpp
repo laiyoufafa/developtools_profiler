@@ -548,6 +548,10 @@ inline void StackPreprocess::SetAllocStatisticsData(const RawStackPtr& rawStack,
                 record.type = RecordStatisticsEvent::MEMORY_USING_MSG;
                 break;
             }
+            default: {
+                HILOG_ERROR(LOG_CORE, "SetAllocStatisticsData event type error");
+                break;
+            }
         }
 
         auto [recordIter, stat] = recordStatisticsMap_.emplace(stackId, record);
