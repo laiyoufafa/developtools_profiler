@@ -412,7 +412,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
 
     // statistical reporting must is compressed and accurate.
     if (hookConfig_.statistics_interval() > 0) {
-        switch (rawStack->stackConext->BaseStackRawData) {
+        switch (rawStack->stackConext->type) {
             case FREE_MSG:
             case MUNMAP_MSG:
             case MEMORY_UNUSING_MSG: {
