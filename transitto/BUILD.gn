@@ -40,8 +40,8 @@ ohos_executable("transitto") {
     deps += [ "//third_party/selinux:libselinux" ]
     defines += [ "SUPPORT_SELINUX_TRANSITTO" ]
     external_deps += [
-      "selinux:libload_policy",
-      "selinux:librestorecon",
+      "selinux_adapter:libload_policy",
+      "selinux_adapter:librestorecon",
     ]
   }
 
