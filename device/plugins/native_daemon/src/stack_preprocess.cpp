@@ -412,7 +412,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
 
     // statistical reporting must is compressed and accurate.
     if (hookConfig_.statistics_interval() > 0) {
-        switch (rawStack->stackConext->type) {
+        switch (rawStack->stackConext->BaseStackRawData) {
             case FREE_MSG:
             case MUNMAP_MSG:
             case MEMORY_UNUSING_MSG: {
@@ -427,7 +427,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
                 break;
             }
             default: {
-                HILOG_ERROR(LOG_CORE, "statistics event type error");
+                HILOG_ERROR(LOG_CORE, "statistics event type:%d error", rawStack->stackConext->type);
                 break;
             }
         }
@@ -546,10 +546,6 @@ inline void StackPreprocess::SetAllocStatisticsData(const RawStackPtr& rawStack,
             }
             case MEMORY_USING_MSG: {
                 record.type = RecordStatisticsEvent::MEMORY_USING_MSG;
-                break;
-            }
-            default: {
-                HILOG_ERROR(LOG_CORE, "SetAllocStatisticsData event type error");
                 break;
             }
         }
