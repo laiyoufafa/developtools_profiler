@@ -114,7 +114,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
         if (!findMapHead) {
             // 00400000-00409000 r-xp 00000000 fc:00 426998  /usr/lib/gvfs/gvfsd-http
             int64_t iNode = -1;
-            ParseMapHead(line, mappic, smapsHeadInfo, iNode);
+            ParseMapHead(line, mappic, smapsHeadInfo, &iNode);
             findMapHead = true;
             
             if (isReportSmaps) {
