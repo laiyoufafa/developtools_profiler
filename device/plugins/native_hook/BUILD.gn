@@ -189,3 +189,25 @@ ohos_executable("perf_test_data") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
 }
+
+ohos_executable("statisticstest_cpp") {
+  output_name = "statisticstest_cpp"
+  sources = [ "test/statistics_test.cpp" ]
+
+  if (current_toolchain != host_toolchain) {
+    defines = [ "HAVE_HILOG" ]
+    external_deps = [ "hilog:libhilog" ]
+  }
+
+  cflags = [
+    "-Wno-error=inline-asm",
+    "-O3",
+  ]
+
+  deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+  include_dirs = [ "//third_party/bounds_checking_function/include" ]
+  ldflags = [ "-rdynamic" ]
+  install_enable = false
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+}
