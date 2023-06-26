@@ -230,7 +230,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
         } else {
             std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
             SPUtils::LoadCmd(cmd, cmdResult);
-			sleep(1);
+            sleep(1);
             sd.ChangeToBackground();
             std::string topPkgBefore = SPUtils::GetTopPkgName();
             if (topPkgBefore.find(v[typePKG]) != std::string::npos) {
