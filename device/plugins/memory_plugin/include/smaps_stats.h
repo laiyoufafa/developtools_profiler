@@ -306,6 +306,17 @@ private:
                      int count,
                      int32_t heapIndex[2],
                      bool& swappable);
+    const std::map<std::string, std::string> beginMap_ = {
+        {"[heap]", "native heap"}, {"[stack]", "stack"}, {"[anon:stack", "stack"},
+        {"[anon:native_heap:", "native heap"}, {"[anon:ArkTS Heap]", "ark ts heap"},
+        {"[anon:guard", "guard"}, {"/dev", "dev"}, {"[anon:signal_stack", "stack"},
+        {"/dmabuf", "dmabuf"}, {"/data/storage", ".hap"}, {"[anon:libc_malloc", "native heap"},
+        {"[anon:scudo", "native heap"},{"[anon:GWP-ASan", "native heap"},
+    };
+    const std::map<std::string, std::string> endMap_ = {
+        {".so", ".so"}, {".so.1", ".so"}, {".ttf", ".ttf"},
+        {".db", ".db"}, {".db-shm", ".db"},
+    };
 };
 
 #endif
