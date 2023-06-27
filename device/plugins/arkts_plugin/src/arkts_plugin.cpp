@@ -366,8 +366,8 @@ std::string ArkTSPlugin::Decode()
     WebSocketFrame wsFrame;
     int32_t index = 0;
     wsFrame.fin = static_cast<uint8_t>(recvbuf[index] >> 7); // 7: shift right by 7 bits to get the fin
-    wsFrame.opcode = static_cast<uint8_t>(recvbuf[index] & 0xf);
-    if (wsFrame.opcode == 0x1) { // 0x1: 0x1 means a text frame
+    wsFrame.opCode = static_cast<uint8_t>(recvbuf[index] & 0xf);
+    if (wsFrame.opCode == 0x1) { // 0x1: 0x1 means a text frame
         index++;
         wsFrame.mask = static_cast<uint8_t>((recvbuf[index] >> 7) & 0x1); // 7: to get the mask
         wsFrame.payloadLen = recvbuf[index] & 0x7f;
@@ -422,11 +422,11 @@ bool ArkTSPlugin::DecodeMessage(WebSocketFrame& wsFrame)
     }
     wsFrame.payload = std::make_unique<char[]>(wsFrame.payloadLen + 1);
     if (wsFrame.mask == 1) {
-        if (!Recv(client_, wsFrame.maskingkey, SOCKET_MASK_LEN, 0)) {
-            HILOG_ERROR(LOG_CORE, "DecodeMessage: Recv maskingkey failed");
+        if (!Recv(client_, wsFrame.maskingKey, SOCKET_MASK_LEN, 0)) {
+            HILOG_ERROR(LOG_CORE, "DecodeMessage: Recv maskingKey failed");
             return false;
         }
-        wsFrame.maskingkey[SOCKET_MASK_LEN] = '\0';
+        wsFrame.maskingKey[SOCKET_MASK_LEN] = '\0';
 
         char buf[wsFrame.payloadLen + 1];
         if (!Recv(client_, buf, wsFrame.payloadLen, 0)) {
@@ -437,7 +437,7 @@ bool ArkTSPlugin::DecodeMessage(WebSocketFrame& wsFrame)
 
         for (uint64_t i = 0; i < wsFrame.payloadLen; i++) {
             uint64_t j = i % SOCKET_MASK_LEN;
-            wsFrame.payload.get()[i] = buf[i] ^ wsFrame.maskingkey[j];
+            wsFrame.payload.get()[i] = buf[i] ^ wsFrame.maskingKey[j];
         }
     } else {
         if (!Recv(client_, wsFrame.payload.get(), wsFrame.payloadLen, 0)) {

@@ -22,9 +22,9 @@
 
 struct WebSocketFrame {
     uint8_t fin;
-    uint8_t opcode;
+    uint8_t opCode;
     uint8_t mask;
-    char maskingkey[5];
+    char maskingKey[5];
     uint64_t payloadLen;
     std::unique_ptr<char[]> payload;
 };
