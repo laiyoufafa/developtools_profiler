@@ -113,12 +113,7 @@ if [ ! -f "hiperf/BUILD.gn" ];then
         $cp ../prebuilts/patch_hiperf/file_ex.h hiperf/include/nonlinux/linux
         $cp ../prebuilts/patch_hiperf/unique_fd.h hiperf/include/nonlinux/linux
         $sed -i "/using __s8 = char;/a #define unw_word_t uint64_t" hiperf/include/nonlinux/linux/types.h
-        $sed -i "/#include <zlib.h>/s/^\(.*\)$/\/\/\1/g" hiperf/src/utilities.cpp
-        $sed -i '/^bool CompressFile(/,/^}/ s/^.*$/\/\/&/; /^bool CompressFile(/,/return true;/ s/^[[:blank:]]*/    /' hiperf/src/utilities.cpp
-        $sed -i '/^bool UncompressFile(/,/^}/ s/^.*$/\/\/&/; /^bool UncompressFile(/,/return true;/ s/^[[:blank:]]*/    /' hiperf/src/utilities.cpp
         $sed -i '/^void Report::PrepareConsole(/,/^}/ s/^.*$/\/\/&/; /^void Report::PrepareConsole(/,/return;/ s/^[[:blank:]]*/    /' hiperf/src/report.cpp
-        $sed -i '/namespace HiPerf {/abool UncompressFile(const std::string &gzipFile, const std::string &dataFile){return true;}' hiperf/src/utilities.cpp
-        $sed -i '/namespace HiPerf {/abool CompressFile(const std::string &dataFile, const std::string &destFile){return true;}' hiperf/src/utilities.cpp
         $sed -i '/namespace HiPerf {/avoid Report::PrepareConsole(){ return;}' hiperf/src/report.cpp
     fi
 fi

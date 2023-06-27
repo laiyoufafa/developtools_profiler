@@ -303,20 +303,20 @@ HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const Trac
 
 HtraceJSMemoryParser::~HtraceJSMemoryParser()
 {
-    TS_LOGI("JS memory ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
+    TS_LOGI("arkts-plugin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
 void HtraceJSMemoryParser::ParseJSMemoryConfig(ProtoReader::BytesView tracePacket)
 {
-    ProtoReader::JsHeapConfig_Reader jsHeapConfig(tracePacket.data_, tracePacket.size_);
+    ProtoReader::ArkTSConfig_Reader jsHeapConfig(tracePacket.data_, tracePacket.size_);
     type_ = jsHeapConfig.type();
     pid_ = jsHeapConfig.pid();
 }
 
 void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts)
 {
-    ProtoReader::JsHeapResult_Reader jsHeapResult(tracePacket.data_, tracePacket.size_);
+    ProtoReader::ArkTSResult_Reader jsHeapResult(tracePacket.data_, tracePacket.size_);
     auto result = jsHeapResult.result().ToStdString();
     std::string fileName = "";
     if (result == snapshotEnd_ || result == timeLineEnd_) {
@@ -324,11 +324,11 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
         std::regex strInvalid("\\\\\"");
         auto strEscape = std::regex_replace(jsMemoryString_, strEscapeInvalid, "");
         auto str = std::regex_replace(strEscape, strInvalid, "\"");
-        if (type_ == ProtoReader::JsHeapConfig_HeapType::JsHeapConfig_HeapType_SNAPSHOT) {
+        if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_SNAPSHOT) {
             fileName = "Snapshot" + std::to_string(fileId_);
             ParseSnapshot(fileId_, str);
             jsMemoryString_ = "";
-        } else if (type_ == ProtoReader::JsHeapConfig_HeapType::JsHeapConfig_HeapType_TIMELINE) {
+        } else if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_TIMELINE) {
             if (result == snapshotEnd_) {
                 ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
                 UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
@@ -350,7 +350,7 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
     }
     auto pos = result.find("chunk");
     if (pos != string::npos) {
-        if (isFirst_ && type_ == ProtoReader::JsHeapConfig_HeapType::JsHeapConfig_HeapType_SNAPSHOT) {
+        if (isFirst_ && type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_SNAPSHOT) {
             ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
             UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
             startTime_ = ts;

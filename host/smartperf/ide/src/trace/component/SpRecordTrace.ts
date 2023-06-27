@@ -32,7 +32,7 @@ import {
   HilogConfig,
   HiperfPluginConfig,
   HiSystemEventConfig,
-  JsHeapConfig,
+  ArkTSConfig,
   levelFromJSON,
   MemoryConfig,
   NativeHookConfig,
@@ -1282,9 +1282,7 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private createNetworkPlugin() {
-    let netWorkConfig: NetworkConfig = {
-      testFile: '/data/local/tmp/',
-    };
+    let netWorkConfig: NetworkConfig = {};
     let netWorkPlugin: ProfilerPluginConfig<NetworkConfig> = {
       pluginName: 'network-plugin',
       sampleInterval: 1000,
@@ -1577,7 +1575,7 @@ export class SpRecordTrace extends BaseElement {
     if (perfConfig?.process && !perfConfig?.process.includes('ALL') && perfConfig?.process.length > 0) {
       let process = perfConfig.process;
       if (process.indexOf(',') != -1) {
-        let processIdOrName =  process.split(',');
+        let processIdOrName = process.split(',');
         if (this.isNumber(processIdOrName[0])) {
           recordArgs = recordArgs + ' -p ' + perfConfig?.process;
         } else {
@@ -1800,20 +1798,20 @@ export class SpRecordTrace extends BaseElement {
     if (re.test(processId)) {
       pid = Number(processId);
     }
-    let jsHeapConfig: JsHeapConfig = {
+    let arkTSConfig: ArkTSConfig = {
       pid: pid,
       type: this.spJsHeap!.radioBoxType,
       interval: this.spJsHeap!.intervalValue,
       capture_numeric_value: this.spJsHeap!.grabNumeric,
       track_allocations: this.spJsHeap!.grabAllocations,
     };
-    let jsHeapPluginConfig: ProfilerPluginConfig<JsHeapConfig> = {
-      pluginName: 'js-memory',
+    let arkTSPluginConfig: ProfilerPluginConfig<ArkTSConfig> = {
+      pluginName: 'arkts-plugin',
       sampleInterval: 5000,
-      configData: jsHeapConfig,
+      configData: arkTSConfig,
     };
 
-    return jsHeapPluginConfig;
+    return arkTSPluginConfig;
   }
 
   private createFpsPluginConfig() {

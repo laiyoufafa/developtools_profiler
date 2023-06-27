@@ -929,6 +929,8 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(
             }
         }
     }
+    filePathIdAndStValueToSymAddr_.Clear();
+    filePathIdToImportSymbolTableMap_.clear();
     return true;
 }
 } // namespace TraceStreamer

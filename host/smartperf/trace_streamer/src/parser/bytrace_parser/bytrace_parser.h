@@ -70,6 +70,17 @@ private:
     {
         return ((buffer[0] == '#') || buffer.find("TASK-PID") != std::string::npos);
     }
+    inline static bool IsHtmlTrace(const std::string& buffer)
+    {
+        std::string lower(buffer);
+        transform(buffer.begin(), buffer.end(), lower.begin(), ::tolower);
+        return ((lower.compare(0, std::string("<!doctype html>").length(), "<!doctype html>") == 0) ||
+                (lower.compare(0, std::string("<html>").length(), "<html>") == 0));
+    }
+    inline static bool IsHtmlTraceBegin(const std::string& buffer)
+    {
+        return buffer.find(R"(<script class="trace-data" type="application/text">)") != std::string::npos;
+    }
 
     void ParseTraceDataItem(const std::string& buffer) override;
     std::string StrTrim(const std::string& input) const;
@@ -165,6 +176,9 @@ private:
     bool supportThread_ = false;
     bool isBytrace_ = true;
     bool traceBegan_ = false;
+    bool isFirstLine = true;
+    bool isHtmlTrace_ = false;
+    bool isHtmlTraceContent_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

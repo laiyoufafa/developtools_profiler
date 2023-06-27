@@ -64,6 +64,7 @@ config("default") {
   }
   if (target_os == "windows") {
     cflags += [ "-D target_cpu_x86_64" ]
+    libs += [ "z" ]
   } else if (is_linux || is_macx) {
     cflags += [
       "-Wa,--noexecstack",
@@ -88,6 +89,7 @@ config("default") {
         "-DHAVE_CONFIG_H",
         "-DCC_IS_CLANG",
       ]
+      libs += [ "z" ]
       # with_libunwind = true
     }
     if (!use_wasm && !is_win && !is_macx && !is_test) {
@@ -187,7 +189,7 @@ config("executable") {
   print("use_wasm", use_wasm)
   ldflags = []
 
-  if (is_linux || (is_macx && !use_wasm)) {
+  if (is_linux || ((is_macx && !use_wasm))) {
     ldflags += []
   }
   if (!is_macx && !use_wasm && !is_win) {
@@ -221,4 +223,5 @@ config("executable") {
   } else if (!is_debug && is_macx) {
     ldflags += [ "-dead_strip" ]
   }
+  ldflags += [ "-Wl,--gc-sections" ]
 }

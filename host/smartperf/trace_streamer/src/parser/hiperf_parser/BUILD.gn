@@ -61,7 +61,4 @@ group("hiperf_parser") {
     "${THIRD_PARTY}/protobuf:protobuf",
     "${THIRD_PARTY}/protobuf:protobuf_lite",
   ]
-  if (target != "test" && !is_openharmony) {
-    deps += [ "${PREBUILTS}/protos:ts_proto_data_cpp" ]
-  }
 }
