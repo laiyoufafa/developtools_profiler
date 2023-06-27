@@ -22,6 +22,7 @@
 #include <fstream>
 #include <inttypes.h>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <sys/mman.h>
