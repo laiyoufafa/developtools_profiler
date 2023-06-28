@@ -56,7 +56,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead1, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "", ""};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -82,7 +82,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead2, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "", ""};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -108,7 +108,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead3, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", ""};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -134,7 +134,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead4, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", ""};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -160,7 +160,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead5, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", ""};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -186,7 +186,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead6, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", "/usr/lib/gvfs/gvfsd-http"};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -212,7 +212,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead7, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", "/usr/lib/gvfs/gvfsd-htt"};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -238,7 +238,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead8, TestSize.Level1)
     SmapsHeadInfo expectSmapsHeadInfo = {"564045dbe000", "564045ddf000", "rw-", "[heap"};
     SmapsHeadInfo smapsHeadInfo = {};
     int64_t iNode = -1;
-    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, &iNode));
+    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo, iNode));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
@@ -851,7 +851,7 @@ HWTEST_F(SmapsStatsTest, TestFramework, TestSize.Level1)
         line += '\n';
         if (!findMapHead) {
             int64_t iNode = -1;
-            ASSERT_TRUE(plugin.ParseMapHead(line, mappic, smapsHeadInfo, &iNode));
+            ASSERT_TRUE(plugin.ParseMapHead(line, mappic, smapsHeadInfo, iNode));
             findMapHead = true;
             continue;
         }
@@ -972,7 +972,7 @@ HWTEST_F(SmapsStatsTest, TestCheckFramework, TestSize.Level1)
         line += '\n';
         if (!findMapHead) {
             int64_t iNode = -1;
-            ASSERT_TRUE(testPlugin.ParseMapHead(line, mappic, smapsHeadInfo, &iNode));
+            ASSERT_TRUE(testPlugin.ParseMapHead(line, mappic, smapsHeadInfo, iNode));
             findMapHead = true;
             continue;
         }

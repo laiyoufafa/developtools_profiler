@@ -33,16 +33,7 @@ bool MatchTail(const std::string& name, std::string str)
     return (name.substr(index) == str);
 }
 
-void GetInode(const std::string& line, int64_t* iNode)
-{
-    uint32_t len = 0;
-    if (sscanf_s(line.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", iNode, &len) != 1) {
-        *iNode = -1;
-    }
-    return;
-}
-
-std::string GetCategory(const std::string& path, const int64_t iNode)
+std::string SmapsStats::GetCategory(const std::string& path, const int64_t iNode)
 {
     for (const auto &p : beginMap_) {
         if (MatchHead(path, p.first)) {
@@ -101,7 +92,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
         if (!findMapHead) {
             // 00400000-00409000 r-xp 00000000 fc:00 426998  /usr/lib/gvfs/gvfsd-http
             int64_t iNode = -1;
-            ParseMapHead(line, mappic, smapsHeadInfo, &iNode);
+            ParseMapHead(line, mappic, smapsHeadInfo, iNode);
             findMapHead = true;
             if (isReportSmaps) {
                 smapsInfo = processinfo.add_smapinfo();
@@ -273,7 +264,7 @@ bool SmapsStats::SetMapAddrInfo(std::string& line, MapPiecesInfo& head)
     return true;
 }
 
-bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo, int64_t* iNode)
+bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo, int64_t& iNode)
 {
     std::string newline = line;
     for (int i = 0; i < FIFTH_FIELD; i++) {
@@ -293,8 +284,9 @@ bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadI
             }
         } else if (i == 1) {
             smapsHeadInfo.permission = word.substr(0, word.size() - 1);
+        } else if (i == 4) {
+            iNode = strtoll(word.substr(0, word.size() - 1).c_str(), nullptr, DEC_BASE);
         }
-        GetInode(newline, iNode);
         size_t newlineops = newline.find_first_not_of(" ", wordsz);
         newline = newline.substr(newlineops);
     }
