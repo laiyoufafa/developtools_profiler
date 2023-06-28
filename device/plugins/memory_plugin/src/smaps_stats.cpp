@@ -32,12 +32,11 @@ bool MatchTail(const std::string& name, std::string str)
     }
     return (name.substr(index) == str);
 }
-
+} // namespace
 std::string SmapsStats::GetCategory(const std::string& path, const int64_t iNode)
 {
     for (const auto &p : beginMap_) {
-        if (MatchHead(path, p.first)) {
-            group += p.second;
+        if (MatchHead(path, p.first.c_str())) {
             return p.second;
         }
     }
@@ -53,7 +52,7 @@ std::string SmapsStats::GetCategory(const std::string& path, const int64_t iNode
     }
     return "unknow";
 }
-} // namespace
+
 bool SmapsStats::ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps)
 {
     std::string smaps_path = std::string("/proc/") + std::to_string(pid) + std::string("/smaps");
