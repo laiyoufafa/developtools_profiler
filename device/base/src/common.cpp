@@ -72,7 +72,11 @@ bool IsProcessRunning()
         HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, fileName.c_str(), errno, buf);
         return false;
     }
-
+    if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {
+        close(fd);
+        HILOG_ERROR(LOG_CORE, "%s:set fd_cloexec failed!", __func__);
+        return false;
+    }
     if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
         // 进程正在运行，加锁失败
         close(fd);
