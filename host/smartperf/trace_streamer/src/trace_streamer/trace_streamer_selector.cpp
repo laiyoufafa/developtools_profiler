@@ -62,8 +62,10 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     if (start.find("# sysevent") != std::string::npos) {
         return TRACE_FILETYPE_SYSEVENT;
     }
-    if ((start.compare(0, std::string("<!DOCTYPE html>").length(), "<!DOCTYPE html>") == 0) ||
-        (start.compare(0, std::string("<html>").length(), "<html>") == 0)) {
+    std::string lowerStart(start);
+    transform(start.begin(), start.end(), lowerStart.begin(), ::tolower);
+    if ((lowerStart.compare(0, std::string("<!doctype html>").length(), "<!doctype html>") == 0) ||
+        (lowerStart.compare(0, std::string("<html>").length(), "<html>") == 0)) {
         return TRACE_FILETYPE_BY_TRACE;
     }
     if (start.compare(0, std::string("\x0a").length(), "\x0a") == 0) {
@@ -71,6 +73,12 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     }
     if (start.compare(0, std::string("OHOSPROF").length(), "OHOSPROF") == 0) {
         return TRACE_FILETYPE_H_TRACE;
+    }
+    if (start.compare(0, std::string("PERFILE2").length(), "PERFILE2") == 0) {
+        return TRACE_FILETYPE_PERF;
+    }
+    if (start.compare(0, std::string("\x1f\x8b").length(), "\x1f\x8b") == 0) {
+        return TRACE_FILETYPE_PERF;
     }
     const std::regex bytraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
                                                  R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
@@ -150,6 +158,10 @@ void TraceStreamerSelector::WaitForParserEnd()
     if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
         bytraceParser_->WaitForParserEnd();
     }
+    if (fileType_ == TRACE_FILETYPE_PERF) {
+        htraceParser_->TraceDataSegmentEnd();
+        htraceParser_->WaitForParserEnd();
+    }
     traceDataCache_->UpdateTraceRange();
 }
 
@@ -174,7 +186,7 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     }
     if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
         fileType_ = GuessFileType(data.get(), size);
-        if (fileType_ == TRACE_FILETYPE_H_TRACE) {
+        if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
             htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
             htraceParser_->EnableFileSeparate(enableFileSeparate_);
         } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
@@ -184,7 +196,7 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
             SetAnalysisResult(TRACE_PARSER_FILE_TYPE_ERROR);
             TS_LOGI(
-                "File type is not supported!,\nthe head content is:%s\n ---waring!!!---\n"
+                "File type is not supported!,\nthe head content is:%s\n ---warning!!!---\n"
                 "File type is not supported!,\n",
                 data.get());
             return false;
@@ -194,6 +206,8 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         htraceParser_->ParseTraceDataSegment(std::move(data), size);
     } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
         bytraceParser_->ParseTraceDataSegment(std::move(data), size);
+    } else if (fileType_ == TRACE_FILETYPE_PERF) {
+        htraceParser_->StoreTraceDataSegment(std::move(data), size);
     }
     SetAnalysisResult(TRACE_PARSER_NORMAL);
     return true;

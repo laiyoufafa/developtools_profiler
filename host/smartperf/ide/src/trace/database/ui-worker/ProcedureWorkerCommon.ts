@@ -457,7 +457,7 @@ export function drawFlagLine(
   }
 }
 
-export function drawFlagLineSegment(ctx: any, hoverFlag: any, selectFlag: any, frame: any) {
+export function drawFlagLineSegment(ctx: any, hoverFlag: any, selectFlag: any, frame: any, tse: TimerShaftElement) {
   if (ctx) {
     if (hoverFlag) {
       ctx.beginPath();
@@ -484,31 +484,22 @@ export function drawFlagLineSegment(ctx: any, hoverFlag: any, selectFlag: any, f
       ctx.stroke();
       ctx.closePath();
     }
-    if (TraceRow.range!.slicesTime && TraceRow.range!.slicesTime.startTime && TraceRow.range!.slicesTime.endTime) {
-      ctx.beginPath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = TraceRow.range!.slicesTime.color || '#dadada';
-      let x1 = ns2x(
-        TraceRow.range!.slicesTime.startTime,
-        TraceRow.range!.startNS,
-        TraceRow.range!.endNS,
-        TraceRow.range!.totalNS,
-        frame
-      );
-      let x2 = ns2x(
-        TraceRow.range!.slicesTime.endTime,
-        TraceRow.range!.startNS,
-        TraceRow.range!.endNS,
-        TraceRow.range!.totalNS,
-        frame
-      );
-      ctx.moveTo(Math.floor(x1), 0);
-      ctx.lineTo(Math.floor(x1), frame.height);
-      ctx.moveTo(Math.floor(x2), 0);
-      ctx.lineTo(Math.floor(x2), frame.height);
-      ctx.stroke();
-      ctx.closePath();
-    }
+    tse.sportRuler!.slicesTimeList.forEach((slicesTime) => {
+      if (slicesTime && slicesTime.startTime && slicesTime.endTime) {
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = slicesTime.color || '#dadada';
+        let x1 = ns2x(slicesTime.startTime, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, frame);
+        let x2 = ns2x(slicesTime.endTime, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, frame);
+        // 划线逻辑
+        ctx.moveTo(Math.floor(x1), 0);
+        ctx.lineTo(Math.floor(x1), frame.height); //左边的线
+        ctx.moveTo(Math.floor(x2), 0);
+        ctx.lineTo(Math.floor(x2), frame.height); // 右边的线
+        ctx.stroke();
+        ctx.closePath();
+      }
+    });
   }
 }
 

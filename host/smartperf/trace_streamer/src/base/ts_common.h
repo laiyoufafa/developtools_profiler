@@ -59,7 +59,13 @@ enum RefType {
     K_REF_MAX
 };
 
-enum TraceFileType { TRACE_FILETYPE_BY_TRACE, TRACE_FILETYPE_H_TRACE, TRACE_FILETYPE_SYSEVENT, TRACE_FILETYPE_UN_KNOW };
+enum TraceFileType {
+    TRACE_FILETYPE_BY_TRACE,
+    TRACE_FILETYPE_H_TRACE,
+    TRACE_FILETYPE_SYSEVENT,
+    TRACE_FILETYPE_PERF,
+    TRACE_FILETYPE_UN_KNOW
+};
 
 enum EndState {
     // (R) ready state or running state, the process is ready to run, but not necessarily occupying the CPU

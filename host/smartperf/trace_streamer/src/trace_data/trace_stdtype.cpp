@@ -2124,7 +2124,7 @@ DataSourceClockIdData::DataSourceClockIdData()
           {DATA_SOURCE_TYPE_CPU, "cpu-plugin"},
           {DATA_SOURCE_TYPE_PROCESS, "process-plugin"},
           {DATA_SOURCE_TYPE_HISYSEVENT, "hisysevent-plugin"},
-          {DATA_SOURCE_TYPE_JSMEMORY, "js-memory"},
+          {DATA_SOURCE_TYPE_JSMEMORY, "arkts-plugin"},
       })
 {
 }

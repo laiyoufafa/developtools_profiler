@@ -75,7 +75,7 @@ void ShowHelpInfo(const char* argv)
         " -e    transfer a bytrace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
         " -h    start HTTP server.\n"
-        " -s    separate js memory data, and save it in current dir with default filename.\n"
+        " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"
         " -p    Specify the port of HTTP server, default is 9001.\n"
         " -i    show information.\n"
         " -v    show version.",

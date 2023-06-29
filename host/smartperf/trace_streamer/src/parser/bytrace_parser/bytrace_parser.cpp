@@ -72,6 +72,30 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
         auto extra = *(packagesLine - 1) == '\r' ? 1 : 0;
         std::string bufferLine(packagesBegin, packagesLine - extra);
 
+        if (isFirstLine) {
+            isFirstLine = false;
+            if (IsHtmlTrace(bufferLine)) {
+                isHtmlTrace_ = true;
+                goto NEXT_LINE;
+            }
+        }
+        if (isHtmlTrace_) {
+            if (!isHtmlTraceContent_) {
+                if (IsHtmlTraceBegin(bufferLine)) {
+                    isHtmlTraceContent_ = true;
+                }
+                goto NEXT_LINE;
+            }
+            auto pos = bufferLine.find(script_.c_str());
+            if (pos != std::string::npos) {
+                isHtmlTraceContent_ = false;
+                bufferLine = bufferLine.substr(0, pos);
+                if (std::all_of(bufferLine.begin(), bufferLine.end(), isspace)) {
+                    goto NEXT_LINE;
+                }
+            }
+        }
+
         if (IsTraceComment(bufferLine)) {
             traceCommentLines_++;
             goto NEXT_LINE;
@@ -81,10 +105,6 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
             goto NEXT_LINE;
         }
 
-        if (bufferLine.find(script_.c_str()) != std::string::npos) {
-            isParsingOver_ = true;
-            break;
-        }
         if (isBytrace_) {
             if (!traceBegan_) {
                 traceBegan_ = true;

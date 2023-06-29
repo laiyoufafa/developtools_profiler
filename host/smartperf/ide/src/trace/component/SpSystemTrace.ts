@@ -26,7 +26,7 @@ import { SelectionParam } from '../bean/BoxSelection.js';
 import { procedurePool } from '../database/Procedure.js';
 import { SpApplication } from '../SpApplication.js';
 import { Flag } from './trace/timer-shaft/Flag.js';
-import { SportRuler } from './trace/timer-shaft/SportRuler.js';
+import { SportRuler, SlicesTime } from './trace/timer-shaft/SportRuler.js';
 import { SpHiPerf } from './chart/SpHiPerf.js';
 import { SearchSdkBean, SearchThreadProcessBean } from '../bean/SearchFuncBean.js';
 import { error, info } from '../../log/Log.js';
@@ -65,6 +65,9 @@ import { Utils } from './trace/base/Utils.js';
 import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq.js';
 import { JanksStruct } from '../bean/JanksStruct.js';
 import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank.js';
+import { tabConfig } from './trace/base/TraceSheetConfig.js';
+import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent.js';
+import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
 import { HeapStruct } from '../database/ui-worker/ProcedureWorkerHeap.js';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
 import { HeapSnapshotStruct } from '../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
@@ -77,6 +80,22 @@ import { TabPaneCurrentSelection } from './trace/sheet/TabPaneCurrentSelection.j
 
 function dpr() {
   return window.devicePixelRatio || 1;
+}
+//节流处理
+function throttle(fn: any, t: number, ev: any): any {
+  let timer: any = null;
+  return function () {
+    if (!timer) {
+      timer = setTimeout(function () {
+        if (ev) {
+          fn(ev);
+        } else {
+          fn();
+        }
+        timer = null;
+      }, t);
+    }
+  }
 }
 
 @element('sp-system-trace')
@@ -111,7 +130,8 @@ export class SpSystemTrace extends BaseElement {
   static btnTimer: any = null;
   isMousePointInSheet = false;
   hoverFlag: Flag | undefined | null = undefined;
-  selectFlag: Flag | undefined | null = undefined;
+  selectFlag: Flag | undefined | null;
+  slicestime: SlicesTime | undefined | null = null;
   public timerShaftEL: TimerShaftElement | null | undefined;
   private traceSheetEL: TraceSheet | undefined | null;
   private rangeSelect!: RangeSelect;
@@ -124,6 +144,7 @@ export class SpSystemTrace extends BaseElement {
   canvasPanelCtx: CanvasRenderingContext2D | undefined | null;
   linkNodes: PairPoint[][] = [];
   public currentClickRow: HTMLDivElement | undefined | null;
+  private litTabs: LitTabs | undefined | null;
   eventMap: any = {};
   private isSelectClick: boolean = false;
   private selectionParam: SelectionParam | undefined;
@@ -192,6 +213,14 @@ export class SpSystemTrace extends BaseElement {
         this.refreshCanvas(true);
       }
     });
+    document?.addEventListener('slices-change', (event: any) => {
+      this.timerShaftEL?.modifySlicesList(event.detail);
+      if (event.detail.hidden) {
+        this.slicestime = null;
+        this.traceSheetEL?.setAttribute('mode', 'hidden');
+        this.refreshCanvas(true);
+      }
+    });
     if (this.timerShaftEL?.collecBtn) {
       this.timerShaftEL.collecBtn.onclick = () => {
         if (this.timerShaftEL!.collecBtn!.hasAttribute('close')) {
@@ -234,8 +263,8 @@ export class SpSystemTrace extends BaseElement {
             `trace-row[row-id='${rowParentId}']`
           );
           parentRows?.forEach((parentRow) => {
-            if (parentRow?.name && parentRow?.name != currentRow.name && !parentRow.rowType!.startsWith('cpu') && !parentRow.rowType!.startsWith('thread')) {
-              console.log(parentRow.name);
+            if (parentRow?.name && parentRow?.name != currentRow.name && !parentRow.rowType!.startsWith('cpu')
+              && !parentRow.rowType!.startsWith('thread') && !parentRow.rowType!.startsWith('func')) {
               currentRow.name += "(" + parentRow.name + ")"
             }
           })
@@ -711,6 +740,7 @@ export class SpSystemTrace extends BaseElement {
       } else {
         this.traceSheetEL?.rangeSelect(selection);
       }
+      this.timerShaftEL!.selectionList.push(selection);// 保持选中对象，为后面的再次选中该框选区域做准备。
       this.selectionParam = selection;
     };
     // @ts-ignore
@@ -739,7 +769,8 @@ export class SpSystemTrace extends BaseElement {
             if (TraceRow.rangeSelectObject && SpSystemTrace.sliceRangeMark) {
               this.timerShaftEL?.setSlicesMark(
                 TraceRow.rangeSelectObject.startNS || 0,
-                TraceRow.rangeSelectObject.endNS || 0
+                TraceRow.rangeSelectObject.endNS || 0,
+                false
               );
               SpSystemTrace.sliceRangeMark = undefined;
               window.publish(window.SmartEvent.UI.RefreshCanvas, {});
@@ -790,7 +821,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.SliceMark, (data) => {
       this.sliceMarkEventHandler(data);
     });
-    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
     window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => {
       this.refreshCanvas(false);
     });
@@ -928,6 +959,19 @@ export class SpSystemTrace extends BaseElement {
     this.refreshCanvas(true, 'flagChange');
   };
 
+  timerShaftELRangeClick = (sliceTime: SlicesTime | undefined | null) => {
+    if (sliceTime) {
+      setTimeout(() => {
+        this.traceSheetEL?.displayCurrent(sliceTime); // 给当前pane准备数据            
+        let selection = this.timerShaftEL!.selectionMap.get(sliceTime.id);
+        if (selection) {
+          selection.isCurrentPane = true;  // 设置当前面板为可以显示的状态
+          this.traceSheetEL?.rangeSelect(selection);  // 显示选中区域对应的面板
+        }
+      }, 0);
+    }
+  };
+
   timerShaftELRangeChange = (e: any) => {
     TraceRow.range = e;
     if (TraceRow.rangeSelectObject) {
@@ -1044,14 +1088,18 @@ export class SpSystemTrace extends BaseElement {
       y: 0,
       width: this.timerShaftEL?.canvas?.clientWidth,
       height: this.canvasPanel?.clientHeight,
-    });
+    },
+      this.timerShaftEL!
+    );
     //draw flag line segment for favorite canvas
     drawFlagLineSegment(this.canvasFavoritePanelCtx, this.hoverFlag, this.selectFlag, {
       x: 0,
       y: 0,
       width: this.timerShaftEL?.canvas?.clientWidth,
       height: this.canvasFavoritePanel?.clientHeight,
-    });
+    },
+      this.timerShaftEL!
+    );
     //draw wakeup for main canvas
     drawWakeUp(
       this.canvasPanelCtx,
@@ -1139,11 +1187,15 @@ export class SpSystemTrace extends BaseElement {
         x > (TraceRow.rangeSelectObject?.startX || 0) &&
         x < (TraceRow.rangeSelectObject?.endX || 0)
       ) {
-        let time = Math.round(
-          (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
+        let findSlicestime = this.timerShaftEL!.sportRuler?.findSlicesTime(x, y); // 查找帽子  
+        if (!findSlicestime) { // 如果没有找到帽子，则绘制一个三角形的旗子
+          let time = Math.round(
+            (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) /
+            this.timerShaftEL!.canvas!.offsetWidth +
             TraceRow.range?.startNS!
-        );
-        this.timerShaftEL!.sportRuler!.drawTriangle(time, 'triangle');
+          );
+          this.timerShaftEL!.sportRuler!.drawTriangle(time, 'triangle');
+        }
       } else {
         this.rangeSelect.mouseDown(ev);
         this.rangeSelect.drag = true;
@@ -1175,17 +1227,8 @@ export class SpSystemTrace extends BaseElement {
     this.rangeSelect.isMouseDown = false;
     if ((window as any).isSheetMove) return;
     if (this.isMouseInSheet(ev)) return;
-    let x = ev.offsetX - this.timerShaftEL!.canvas!.offsetLeft;
-    let y = ev.offsetY;
-    if (
-      this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
-      x > (TraceRow.rangeSelectObject?.startX || 0) &&
-      x < (TraceRow.rangeSelectObject?.endX || 0)
-    ) {
-    } else {
-      this.rangeSelect.mouseUp(ev);
-      this.timerShaftEL?.documentOnMouseUp(ev);
-    }
+    this.rangeSelect.mouseUp(ev);
+    this.timerShaftEL?.documentOnMouseUp(ev);
     ev.preventDefault();
     ev.stopPropagation();
   };
@@ -1216,7 +1259,24 @@ export class SpSystemTrace extends BaseElement {
     this.observerScrollHeightEnable = false;
     if (this.keyboardEnable) {
       if (keyPress == 'm') {
-        this.setSLiceMark();
+        this.slicestime = this.setSLiceMark(ev.shiftKey);
+        // 设置currentPane可以显示，并且修改调色板颜色和刚刚绘制的帽子颜色保持一致。 
+        this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
+        let currentPane = this.traceSheetEL?.displayTab<TabPaneCurrent>('tabpane-current');
+        if (this.slicestime) {
+          currentPane?.setCurrentSlicesTime(this.slicestime)
+        }
+        // 显示对应的面板信息
+        this.timerShaftEL!.selectionList.forEach((selection, index) => {
+          if (this.timerShaftEL!.selectionList.length - 1 == index) {
+            // 把最新添加的 SelectionParam 对象设置为可以显示当前面板
+            selection.isCurrentPane = true;
+            this.traceSheetEL?.rangeSelect(selection);
+          } else {
+            // 其他 SelectionParam 对象设置为不显示当前面板
+            selection.isCurrentPane = false;
+          }
+        });
       }
       let keyPressWASD = keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd';
       if (keyPressWASD) {
@@ -1229,37 +1289,52 @@ export class SpSystemTrace extends BaseElement {
     }
   };
 
-  setSLiceMark() {
+  setSLiceMark(shiftKey: boolean): SlicesTime | null | undefined {
     if (CpuStruct.selectCpuStruct) {
-      this.timerShaftEL?.setSlicesMark(
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
         CpuStruct.selectCpuStruct.startTime || 0,
-        (CpuStruct.selectCpuStruct.startTime || 0) + (CpuStruct.selectCpuStruct.dur || 0)
+        (CpuStruct.selectCpuStruct.startTime || 0) +
+        (CpuStruct.selectCpuStruct.dur || 0),
+        shiftKey
       );
     } else if (ThreadStruct.selectThreadStruct) {
-      this.timerShaftEL?.setSlicesMark(
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
         ThreadStruct.selectThreadStruct.startTime || 0,
-        (ThreadStruct.selectThreadStruct.startTime || 0) + (ThreadStruct.selectThreadStruct.dur || 0)
+        (ThreadStruct.selectThreadStruct.startTime || 0) +
+        (ThreadStruct.selectThreadStruct.dur || 0),
+        shiftKey
       );
     } else if (FuncStruct.selectFuncStruct) {
-      this.timerShaftEL?.setSlicesMark(
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
         FuncStruct.selectFuncStruct.startTs || 0,
-        (FuncStruct.selectFuncStruct.startTs || 0) + (FuncStruct.selectFuncStruct.dur || 0)
+        (FuncStruct.selectFuncStruct.startTs || 0) +
+        (FuncStruct.selectFuncStruct.dur || 0),
+        shiftKey
       );
     } else if (IrqStruct.selectIrqStruct) {
-      this.timerShaftEL?.setSlicesMark(
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
         IrqStruct.selectIrqStruct.startNS || 0,
-        (IrqStruct.selectIrqStruct.startNS || 0) + (IrqStruct.selectIrqStruct.dur || 0)
+        (IrqStruct.selectIrqStruct.startNS || 0) +
+        (IrqStruct.selectIrqStruct.dur || 0),
+        shiftKey
       );
     } else if (TraceRow.rangeSelectObject) {
-      this.timerShaftEL?.setSlicesMark(TraceRow.rangeSelectObject.startNS || 0, TraceRow.rangeSelectObject.endNS || 0);
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        TraceRow.rangeSelectObject.startNS || 0,
+        TraceRow.rangeSelectObject.endNS || 0,
+        shiftKey
+      );
     } else if (JankStruct.selectJankStruct) {
-      this.timerShaftEL?.setSlicesMark(
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
         JankStruct.selectJankStruct.ts || 0,
-        (JankStruct.selectJankStruct.ts || 0) + (JankStruct.selectJankStruct.dur || 0)
+        (JankStruct.selectJankStruct.ts || 0) +
+        (JankStruct.selectJankStruct.dur || 0),
+        shiftKey
       );
     } else {
-      this.timerShaftEL?.setSlicesMark();
+      this.slicestime = this.timerShaftEL?.setSlicesMark();
     }
+    return this.slicestime;
   }
 
   stopWASD = () => {
@@ -2002,12 +2077,56 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
+  myMouseMove = (ev: MouseEvent) => {
+    if (ev.ctrlKey) {
+      ev.preventDefault();
+      SpSystemTrace.offsetMouse =
+        ev.clientX - SpSystemTrace.mouseCurrentPosition;
+      let eventA = new KeyboardEvent('keypress', {
+        key: 'a',
+        code: '65',
+        keyCode: 65,
+      });
+      let eventD = new KeyboardEvent('keypress', {
+        key: 'd',
+        code: '68',
+        keyCode: 68,
+      });
+      if (ev.button == 0) {
+        if (
+          SpSystemTrace.offsetMouse < 0 &&
+          SpSystemTrace.moveable
+        ) {
+          // 向右拖动，则泳道图右移
+          this.timerShaftEL!.documentOnKeyPress(eventD);
+          setTimeout(() => {
+            this.timerShaftEL!.documentOnKeyUp(eventD);
+          }, 350);
+        }
+        if (
+          SpSystemTrace.offsetMouse > 0 &&
+          SpSystemTrace.moveable
+        ) {
+          // 向左拖动，则泳道图左移
+          this.timerShaftEL!.documentOnKeyPress(eventA);
+          setTimeout(() => {
+            this.timerShaftEL!.documentOnKeyUp(eventA);
+          }, 350);
+        }
+      }
+      SpSystemTrace.moveable = false;
+    }
+  }
+
+
+
   connectedCallback() {
     this.initPointToEvent();
     /**
      * 监听时间轴区间变化
      */
     this.timerShaftEL!.rangeChangeHandler = this.timerShaftELRangeChange;
+    this.timerShaftEL!.rangeClickHandler = this.timerShaftELRangeClick
     this.timerShaftEL!.flagChangeHandler = this.timerShaftELFlagChange;
     this.timerShaftEL!.flagClickHandler = this.timerShaftELFlagClickHandler;
     /**
@@ -2054,39 +2173,7 @@ export class SpSystemTrace extends BaseElement {
      */
     this.addEventListener(
       'mousemove',
-      (e) => {
-        if (e.ctrlKey) {
-          e.preventDefault();
-          SpSystemTrace.offsetMouse = e.clientX - SpSystemTrace.mouseCurrentPosition;
-          let eventA = new KeyboardEvent('keypress', {
-            key: 'a',
-            code: '65',
-            keyCode: 65,
-          });
-          let eventD = new KeyboardEvent('keypress', {
-            key: 'd',
-            code: '68',
-            keyCode: 68,
-          });
-          if (e.button == 0) {
-            if (SpSystemTrace.offsetMouse < 0 && SpSystemTrace.moveable) {
-              // 向右拖动，则泳道图右移
-              this.timerShaftEL!.documentOnKeyPress(eventD);
-              setTimeout(() => {
-                this.timerShaftEL!.documentOnKeyUp(eventD);
-              }, 350);
-            }
-            if (SpSystemTrace.offsetMouse > 0 && SpSystemTrace.moveable) {
-              // 向左拖动，则泳道图左移
-              this.timerShaftEL!.documentOnKeyPress(eventA);
-              setTimeout(() => {
-                this.timerShaftEL!.documentOnKeyUp(eventA);
-              }, 350);
-            }
-          }
-          SpSystemTrace.moveable = false;
-        }
-      },
+      ev => throttle(this.myMouseMove, 350, ev)(),
       { passive: false }
     );
 	
@@ -2108,12 +2195,6 @@ export class SpSystemTrace extends BaseElement {
       { passive: false }
     );
 
-    /**
-     * 泳道图中添加ctrl+鼠标滚轮事件，对泳道图进行放大缩小。
-     * 鼠标滚轮事件转化为键盘事件，keyPress和keyUp两个事件需要配合使用，
-     * 否则泳道图会一直放大或一直缩小。
-     * setTimeout()函数中的时间参数可以控制鼠标滚轮的频率。
-     */
     document.addEventListener(
       'wheel',
       (e) => {

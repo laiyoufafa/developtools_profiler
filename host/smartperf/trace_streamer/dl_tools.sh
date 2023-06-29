@@ -28,7 +28,9 @@ if [ ! -f "prebuilts/$gn_path/gn" ] || [ ! -f "prebuilts/$gn_path/ninja" ];then
         curl https://repo.huaweicloud.com/openharmony/compiler/ninja/1.11.0/darwin/ninja-darwin-x86-1.11.0.tar.gz  --output ninja.tar.gz
         tar -xvf ninja.tar.gz --directory=prebuilts/$gn_path/
     elif [ "$gn_path" == "windows" ];then
-        echo "fix path blow to get gn.exe and ninja.exe for windows"
-        ./gettoolsforwindows.sh windows
+        curl https://repo.huaweicloud.com/openharmony/compiler/gn/1744/windows/gn-windows-amd64.zip --output gn.zip
+        unzip gn.zip -d prebuilts/$gn_path/
+        curl https://repo.huaweicloud.com/openharmony/compiler/ninja/1.9.0/windows/ninja-win.zip  --output ninja.zip
+        unzip ninja.zip -d prebuilts/$gn_path/
     fi
 fi

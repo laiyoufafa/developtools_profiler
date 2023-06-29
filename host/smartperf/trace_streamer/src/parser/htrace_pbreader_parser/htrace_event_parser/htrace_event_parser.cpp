@@ -514,9 +514,8 @@ bool HtraceEventParser::SchedWakingEvent(const ProtoReader::DataArea& event) con
     auto instants = traceDataCache_->GetInstantsData();
     auto internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimeStamp_, wakePidValue);
     auto wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimeStamp_, eventTid_);
-    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimeStamp_, internalTid, true);
-    instants->AppendInstantEventData(eventTimeStamp_, schedWakingName_, internalTid, wakeupFromPid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimeStamp_, internalTid);
+    instants->AppendInstantEventData(eventTimeStamp_, schedWakingName_, internalTid, wakeupFromPid);
     uint32_t targetCpu = msg.target_cpu();
     traceDataCache_->GetRawData()->AppendRawData(0, eventTimeStamp_, RAW_SCHED_WAKING, targetCpu, wakeupFromPid);
     return true;

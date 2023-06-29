@@ -73,8 +73,7 @@ ohos_source_set("htrace_pbreader_parser_src") {
     "../../trace_streamer",
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/sqlite/include",
-    "${THIRD_PARTY}/json-master/include",
-    "${THIRD_PARTY}/json-master/include/nlohmann",
+    "${THIRD_PARTY}/json-master/single_include/nlohmann",
     "../../filter",
     "../../base",
     "../ebpf_parser",
@@ -119,8 +118,5 @@ group("htrace_pbreader_parser") {
   ]
   if (!use_wasm && !is_win && !is_macx && !is_test) {
     deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
-  }
-  if (target != "test" && !is_openharmony) {
-    deps += [ "${PREBUILTS}/protos:ts_proto_data_cpp" ]
   }
 }

@@ -74,7 +74,6 @@ struct HtraceDataSegment {
     ProtoReader::BytesView protoData;
 };
 
-
 class TracePoint {
 public:
     TracePoint() {}

@@ -330,6 +330,8 @@ void EbpfBase::OfflineSymbolization(std::set<std::tuple<uint32_t, uint64_t>>& pi
         symbolAndFilePathIndex.symbolIndex = traceDataCache_->GetDataIndex(demangle);
         pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
     }
+    filePathIndexAndStValueToSymAddr_.Clear();
+    filePathIndexToImportSymbolTableMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -33,6 +33,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 const int32_t MAX_LEN_STR = 100;
 uint32_t g_fileLen = 0;
+FILE* g_importFileFd = nullptr;
 bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
     g_loadSize += len;
@@ -194,40 +195,48 @@ int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
                                        ParseELFFileCallBack parseELFFile)
 {
     g_fileLen += len;
-    FILE* fd;
     std::string filePath = "";
     TS_LOGI("fileName = %s", fileName.c_str());
     std::string symbolsPath = fileName.substr(0, fileName.find("/"));
     TS_LOGI("symbolsPath = %s", symbolsPath.c_str());
     filePath = fileName.substr(0, fileName.find_last_of("/"));
-    TS_LOGI("filePath = %s", filePath.c_str());
-    if (std::filesystem::create_directories(filePath)) {
-        TS_LOGI("create_directories success");
-    }
-    if (g_fileLen < totalLen) {
-        fd = fopen(fileName.c_str(), "a+");
-        if (fd == nullptr) {
-            TS_LOGE("wasm file create failed");
-            return false;
+    if (std::filesystem::exists(filePath)) {
+        TS_LOGE("%s exist", filePath.c_str());
+    } else {
+        if (std::filesystem::create_directories(filePath)) {
+            TS_LOGI("create_directories success");
+        } else {
+            TS_LOGI("create_directories failed!");
         }
-        int32_t writeLength = fwrite(data, len, 1, fd);
+    }
+    TS_LOGI("filePath = %s", filePath.c_str());
+    if (g_fileLen < totalLen) {
+        if (g_importFileFd == nullptr) {
+            g_importFileFd = fopen(fileName.c_str(), "a+");
+            if (g_importFileFd == nullptr) {
+                TS_LOGE("wasm file create failed");
+                return false;
+            }
+        }
+        int32_t writeLength = fwrite(data, len, 1, g_importFileFd);
         if (!writeLength) {
-            fclose(fd);
+            fclose(g_importFileFd);
             TS_LOGE("wasm write file failed");
             return false;
         }
-        fclose(fd);
         return false;
     }
     g_fileLen = 0;
-    fd = fopen(fileName.c_str(), "a+");
-    if (fd == nullptr) {
-        TS_LOGE("wasm file open failed");
-        return false;
+    if (g_importFileFd == nullptr) {
+        g_importFileFd = fopen(fileName.c_str(), "a+");
+        if (g_importFileFd == nullptr) {
+            TS_LOGE("wasm file create failed");
+            return false;
+        }
     }
-
-    int32_t writeLength = fwrite(data, len, 1, fd);
-    (void)fclose(fd);
+    int32_t writeLength = fwrite(data, len, 1, g_importFileFd);
+    (void)fclose(g_importFileFd);
+    g_importFileFd = nullptr;
     if (!writeLength) {
         TS_LOGE("wasm write file failed");
         return false;
@@ -238,19 +247,20 @@ int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
 
     if (finish) {
         if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
+            symbolsPathFiles_.clear();
             if (parseELFFile) {
                 parseELFFile("formaterror\r\n", SEND_FINISH);
             }
             return false;
         }
+        symbolsPathFiles_.clear();
         if (parseELFFile) {
             parseELFFile("ok\r\n", SEND_FINISH);
         }
-        std::filesystem::remove_all(filePath);
+        std::filesystem::remove_all(symbolsPath);
     }
     return true;
 }
 #endif
-
 } // namespace TraceStreamer
 } // namespace SysTuning
