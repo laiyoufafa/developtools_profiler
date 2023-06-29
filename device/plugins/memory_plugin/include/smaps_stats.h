@@ -116,6 +116,7 @@ struct SmapsHeadInfo {
     std::string endAddrStr;
     std::string permission;
     std::string path;
+    int64_t iNode = -1;
 };
 
 enum VmemifoType {
@@ -290,7 +291,7 @@ private:
 
     bool ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp,
                            bool isReportSmaps);
-    bool ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo, int64_t& iNode);
+    bool ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo);
     bool SetMapAddrInfo(std::string& line, MapPiecesInfo& head);
     bool GetMemUsageField(std::string& line, MemUsageInfo& memusage);
     void CollectVmemAreasData(const MapPiecesInfo& mempic,
@@ -307,7 +308,7 @@ private:
                      int count,
                      int32_t heapIndex[2],
                      bool& swappable);
-    std::string GetCategory(const std::string& path, const int64_t iNode);
+    std::string GetCategory(const SmapsHeadInfo& smapsHeadInfo);
     const std::map<std::string, std::string> beginMap_ = {
         {"[heap]", "native heap"}, {"[stack]", "stack"}, {"[anon:stack", "stack"},
         {"[anon:native_heap:", "native heap"}, {"[anon:ArkTS Heap]", "ark ts heap"},

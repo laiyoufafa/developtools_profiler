@@ -33,21 +33,21 @@ bool MatchTail(const std::string& name, std::string str)
     return (name.substr(index) == str);
 }
 } // namespace
-std::string SmapsStats::GetCategory(const std::string& path, const int64_t iNode)
+std::string SmapsStats::GetCategory(const SmapsHeadInfo& smapsHeadInfo)
 {
     for (const auto &p : beginMap_) {
-        if (MatchHead(path, p.first.c_str())) {
+        if (MatchHead(smapsHeadInfo.path, p.first.c_str())) {
             return p.second;
         }
     }
     for (const auto &p : endMap_) {
-        if (MatchTail(path, p.first)) {
+        if (MatchTail(smapsHeadInfo.path, p.first)) {
             return p.second;
         }
     }
-    if (iNode > 0) {
+    if (smapsHeadInfo.iNode > 0) {
         return "FilePage other";
-    } else if (iNode == 0) {
+    } else if (smapsHeadInfo.iNode == 0) {
         return "AnonPage other";
     }
     return "unknow";
@@ -90,8 +90,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
         line += '\n';
         if (!findMapHead) {
             // 00400000-00409000 r-xp 00000000 fc:00 426998  /usr/lib/gvfs/gvfsd-http
-            int64_t iNode = -1;
-            ParseMapHead(line, mappic, smapsHeadInfo, iNode);
+            ParseMapHead(line, mappic, smapsHeadInfo);
             findMapHead = true;
             if (isReportSmaps) {
                 smapsInfo = processinfo.add_smapinfo();
@@ -99,7 +98,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
                 smapsInfo->set_end_addr(smapsHeadInfo.endAddrStr);
                 smapsInfo->set_permission(smapsHeadInfo.permission);
                 smapsInfo->set_path(smapsHeadInfo.path);
-                smapsInfo->set_category(GetCategory(smapsHeadInfo.path, iNode));
+                smapsInfo->set_category(GetCategory(smapsHeadInfo));
             }
             continue;
         }
@@ -263,7 +262,7 @@ bool SmapsStats::SetMapAddrInfo(std::string& line, MapPiecesInfo& head)
     return true;
 }
 
-bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo, int64_t& iNode)
+bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo)
 {
     std::string newline = line;
     for (int i = 0; i < FIFTH_FIELD; i++) {
@@ -284,7 +283,7 @@ bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadI
         } else if (i == 1) {
             smapsHeadInfo.permission = word.substr(0, word.size() - 1);
         } else if (i == 4) { // 4: iNode index
-            iNode = strtoll(word.substr(0, word.size() - 1).c_str(), nullptr, DEC_BASE);
+            smapsHeadInfo.iNode = strtoll(word.substr(0, word.size()).c_str(), nullptr, DEC_BASE);
         }
         size_t newlineops = newline.find_first_not_of(" ", wordsz);
         newline = newline.substr(newlineops);
