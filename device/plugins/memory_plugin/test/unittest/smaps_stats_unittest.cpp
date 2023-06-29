@@ -169,7 +169,7 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead5, TestSize.Level1)
     EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
     EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
     EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
-    EXPECT_TRUE(iNode >= 0);
+    EXPECT_TRUE(iNode == -1);
 }
 
 /**
