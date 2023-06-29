@@ -313,7 +313,7 @@ private:
         {"[anon:native_heap:", "native heap"}, {"[anon:ArkTS Heap]", "ark ts heap"},
         {"[anon:guard", "guard"}, {"/dev", "dev"}, {"[anon:signal_stack", "stack"},
         {"/dmabuf", "dmabuf"}, {"/data/storage", ".hap"}, {"[anon:libc_malloc", "native heap"},
-        {"[anon:scudo", "native heap"},{"[anon:GWP-ASan", "native heap"},
+        {"[anon:scudo", "native heap"}, {"[anon:GWP-ASan", "native heap"},
     };
     const std::map<std::string, std::string> endMap_ = {
         {".so", ".so"}, {".so.1", ".so"}, {".ttf", ".ttf"},
