@@ -283,7 +283,7 @@ bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadI
             }
         } else if (i == 1) {
             smapsHeadInfo.permission = word.substr(0, word.size() - 1);
-        } else if (i == 4) {
+        } else if (i == 4) { // 4: iNode index
             iNode = strtoll(word.substr(0, word.size() - 1).c_str(), nullptr, DEC_BASE);
         }
         size_t newlineops = newline.find_first_not_of(" ", wordsz);
