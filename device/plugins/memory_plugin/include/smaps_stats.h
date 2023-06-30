@@ -268,6 +268,9 @@ public:
     SmapsStats() {}
     SmapsStats(const std::string path) : testpath_(path){};
     ~SmapsStats() {}
+
+    using MatchFunc = std::function<bool(const std::string& name, std::string str)>;
+
     bool ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps);
     int GetProcessJavaHeap();
     int GetProcessNativeHeap();
@@ -276,7 +279,6 @@ public:
     int GetProcessGraphics();
     int GetProcessPrivateOther();
     int GetProcessSystem();
-
 private:
     std::array<StatsInfo, VMHEAP_NUM_HEAP> stats_;
     bool lastline_ = false;
@@ -308,7 +310,9 @@ private:
                      int count,
                      int32_t heapIndex[2],
                      bool& swappable);
-    std::string GetCategory(const SmapsHeadInfo& smapsHeadInfo);
+    std::string ParseCategory(const SmapsHeadInfo& smapsHeadInfo);
+    bool GetGroupFromMap(const std::string &name, std::string &group,
+                         const std::map<std::string, std::string> &map, MatchFunc func);
     const std::map<std::string, std::string> beginMap_ = {
         {"[heap]", "native heap"}, {"[stack]", "stack"}, {"[anon:stack", "stack"},
         {"[anon:native_heap:", "native heap"}, {"[anon:ArkTS Heap]", "ark ts heap"},
@@ -320,6 +324,8 @@ private:
         {".so", ".so"}, {".so.1", ".so"}, {".ttf", ".ttf"},
         {".db", ".db"}, {".db-shm", ".db"},
     };
+    const std::string FILE_PAGE_TAG = "FilePage";
+    const std::string ANON_PAGE_TAG = "AnonPage";
 };
 
 #endif

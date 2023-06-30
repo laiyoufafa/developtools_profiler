@@ -19,9 +19,9 @@
 namespace {
 const int PERCENT = 100;
 
-bool MatchHead(const std::string& name, const char* str)
+bool MatchHead(const std::string& name, std::string str)
 {
-    return strncmp(name.c_str(), str, strlen(str)) == 0;
+    return strncmp(name.c_str(), str.c_str(), str.size()) == 0;
 }
 
 bool MatchTail(const std::string& name, std::string str)
@@ -33,24 +33,28 @@ bool MatchTail(const std::string& name, std::string str)
     return (name.substr(index) == str);
 }
 } // namespace
-std::string SmapsStats::GetCategory(const SmapsHeadInfo& smapsHeadInfo)
+std::string SmapsStats::ParseCategory(const SmapsHeadInfo& smapsHeadInfo)
 {
-    for (const auto &p : beginMap_) {
-        if (MatchHead(smapsHeadInfo.path, p.first.c_str())) {
-            return p.second;
+    std::string group = smapsHeadInfo.iNode > 0 ? FILE_PAGE_TAG : ANON_PAGE_TAG;
+    group += "#";
+    if (GetGroupFromMap(smapsHeadInfo.path, group, endMap_, &MatchTail) ||
+        GetGroupFromMap(smapsHeadInfo.path, group, beginMap_, &MatchHead)) {
+        return group;
+    }
+    group += "other";
+    return group;
+}
+
+bool SmapsStats::GetGroupFromMap(const std::string &name, std::string &group,
+                                 const std::map<std::string, std::string> &map, MatchFunc func)
+{
+    for (const auto &p : map) {
+        if (func(name, p.first)) {
+            group += p.second;
+            return true;
         }
     }
-    for (const auto &p : endMap_) {
-        if (MatchTail(smapsHeadInfo.path, p.first)) {
-            return p.second;
-        }
-    }
-    if (smapsHeadInfo.iNode > 0) {
-        return "FilePage other";
-    } else if (smapsHeadInfo.iNode == 0) {
-        return "AnonPage other";
-    }
-    return "unknow";
+    return false;
 }
 
 bool SmapsStats::ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps)
@@ -98,7 +102,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
                 smapsInfo->set_end_addr(smapsHeadInfo.endAddrStr);
                 smapsInfo->set_permission(smapsHeadInfo.permission);
                 smapsInfo->set_path(smapsHeadInfo.path);
-                smapsInfo->set_category(GetCategory(smapsHeadInfo));
+                smapsInfo->set_category(ParseCategory(smapsHeadInfo));
             }
             continue;
         }
