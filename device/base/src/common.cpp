@@ -51,7 +51,7 @@ const int BUFFER_SIZE = 1024;
 const int INVALID_PID = -1;
 
 
-bool IsProcessRunning()
+bool IsProcessRunning(int& lockFileFd)
 {
     setgid(SHELL_UID);
     char buffer[PATH_MAX + 1] = {0};
@@ -80,10 +80,9 @@ bool IsProcessRunning()
         HILOG_ERROR(LOG_CORE, "%s is running, please don't start it again.", processName.c_str());
         return true;
     }
-
     std::string pidStr = std::to_string(getpid());
     auto nbytes = write(fd, pidStr.data(), pidStr.size());
-    close(fd);
+    lockFileFd = fd;
     CHECK_TRUE(static_cast<size_t>(nbytes) == pidStr.size(), false, "write pid FAILED!");
     return false;
 }
@@ -172,7 +171,7 @@ int KillProcess(int pid)
         return -1;
     }
     int stat;
-    kill(pid, SIGKILL);
+    kill(pid, SIGTERM);
     if (waitpid(pid, &stat, 0) == -1) {
         if (errno != EINTR) {
             stat = -1;
