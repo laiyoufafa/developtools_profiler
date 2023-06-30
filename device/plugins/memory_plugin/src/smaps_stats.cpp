@@ -19,14 +19,14 @@
 namespace {
 const int PERCENT = 100;
 
-bool MatchHead(const std::string& name, std::string str)
+bool MatchHead(const std::string& name, const char* str)
 {
-    return strncmp(name.c_str(), str.c_str(), str.size()) == 0;
+    return strncmp(name.c_str(), str, strlen(str)) == 0;
 }
 
-bool MatchTail(const std::string& name, std::string str)
+bool MatchTail(const std::string& name, const char* str)
 {
-    int index = name.size() - str.size();
+    int index = name.size() - strlen(str);
     if (index < 0) {
         return false;
     }
@@ -35,22 +35,21 @@ bool MatchTail(const std::string& name, std::string str)
 } // namespace
 std::string SmapsStats::ParseCategory(const SmapsHeadInfo& smapsHeadInfo)
 {
-    std::string group = smapsHeadInfo.iNode > 0 ? FILE_PAGE_TAG : ANON_PAGE_TAG;
-    group += "#";
-    if (GetGroupFromMap(smapsHeadInfo.path, group, endMap_, &MatchTail) ||
-        GetGroupFromMap(smapsHeadInfo.path, group, beginMap_, &MatchHead)) {
-        return group;
+    std::string category;
+    if (GetCategoryFromMap(smapsHeadInfo.path, category, endMap_, &MatchTail) ||
+        GetCategoryFromMap(smapsHeadInfo.path, category, beginMap_, &MatchHead)) {
+        return category;
     }
-    group += "other";
-    return group;
+    category = smapsHeadInfo.iNode > 0 ? FILE_PAGE_TAG : ANON_PAGE_TAG;
+    return category;
 }
 
-bool SmapsStats::GetGroupFromMap(const std::string &name, std::string &group,
-                                 const std::map<std::string, std::string> &map, MatchFunc func)
+bool SmapsStats::GetCategoryFromMap(const std::string &name, std::string &category,
+                                    const std::map<std::string, std::string> &map, MatchFunc func)
 {
     for (const auto &p : map) {
-        if (func(name, p.first)) {
-            group += p.second;
+        if (func(name, p.first.c_str())) {
+            category = p.second;
             return true;
         }
     }
