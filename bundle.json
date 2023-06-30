@@ -49,6 +49,7 @@
         "googletest",
         "grpc",
         "libbpf",
+        "libunwind",
         "openssl",
         "protobuf",
         "thirdparty_selinux",
