@@ -41,7 +41,7 @@
         "napi",
         "safwk",
         "samgr",
-        "selinux",
+        "selinux_adapter",
         "zlib"
       ],
       "third_party": [
@@ -52,7 +52,7 @@
         "libunwind",
         "openssl",
         "protobuf",
-        "thirdparty_selinux",
+        "selinux",
         "utils",
         "zlib"
       ]
