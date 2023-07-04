@@ -27,9 +27,7 @@
       "components": [
         "ability_runtime",
         "ability_base",
-        "bounds_checking_function",
         "bundle_framework",
-        "common",
         "common_event_service",
         "c_utils",
         "faultloggerd",
@@ -40,9 +38,7 @@
         "init",
         "napi",
         "safwk",
-        "samgr",
-        "selinux_adapter",
-        "zlib"
+        "samgr"
       ],
       "third_party": [
         "bounds_checking_function",
@@ -52,8 +48,6 @@
         "libunwind",
         "openssl",
         "protobuf",
-        "selinux",
-        "utils",
         "zlib"
       ]
     },
@@ -65,7 +59,6 @@
         "//developtools/profiler/host/smartperf/client/:SmartPerf",
         "//developtools/profiler/host/smartperf/client/client_command_fps/:GP_daemon_fps",
         "//developtools/profiler/hiebpf:hiebpf_tool",
-        "//developtools/profiler/transitto:transitto_tool",
         "//developtools/profiler/timestamps:timestamps_tool"
       ],
       "inner_kits": [
