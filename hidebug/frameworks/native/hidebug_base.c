@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,8 +28,8 @@
 #include "securec.h"
 
 #ifdef HIDEBUG_IN_INIT
-#include <init_param.h>
-#include <init_log.h>
+#include "init_module_engine.h"
+#include "init_log.h"
 #define HIDEBUG_LOGE(...) INIT_LOGE(__VA_ARGS__)
 #define HIDEBUG_LOGI(...) INIT_LOGI(__VA_ARGS__)
 #define LOG_PRIV_PUBLIC ""
@@ -106,7 +106,7 @@ static int QueryParams(const char *queryName)
     char paramOutBuf[PARAM_BUF_LEN] = { 0 };
 #ifdef HIDEBUG_IN_INIT
     uint32_t size = PARAM_BUF_LEN;
-    int retLen = SystemGetParameter(queryName, paramOutBuf, &size);
+    int retLen = SystemReadParam(queryName, paramOutBuf, &size);
     if (retLen != 0 || size <= 0 || size > PARAM_BUF_LEN - 1) {
         return 0;
     }
@@ -173,7 +173,7 @@ static bool MatchMallocHookStartupProp(const char *thisName)
 
 #ifdef HIDEBUG_IN_INIT
     uint32_t size = PARAM_BUF_LEN;
-    int retLen = SystemGetParameter(LIBC_HOOK_PARAM, paramOutBuf, &size);
+    int retLen = SystemReadParam(LIBC_HOOK_PARAM, paramOutBuf, &size);
     if (retLen != 0 || size <= 0) {
         return 0;
     }
