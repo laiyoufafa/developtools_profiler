@@ -72,7 +72,18 @@ bool IsProcessRunning()
         HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, fileName.c_str(), errno, buf);
         return false;
     }
-
+    int flags = fcntl(fd, F_GETFD);
+    if (flags == -1) {
+        close(fd);
+        HILOG_ERROR(LOG_CORE, "%s: get fd flags failed!", __func__);
+        return false;
+    }
+    flags |= FD_CLOEXEC;
+    if (fcntl(fd, F_SETFD, flags) == -1) {
+        close(fd);
+        HILOG_ERROR(LOG_CORE, "%s: set fd_cloexec failed!", __func__);
+        return false;
+    }
     if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
         // 进程正在运行，加锁失败
         close(fd);
@@ -83,7 +94,6 @@ bool IsProcessRunning()
 
     std::string pidStr = std::to_string(getpid());
     auto nbytes = write(fd, pidStr.data(), pidStr.size());
-    close(fd);
     CHECK_TRUE(static_cast<size_t>(nbytes) == pidStr.size(), false, "write pid FAILED!");
     return false;
 }
@@ -520,7 +530,7 @@ clockid_t GetClockId(const std::string& clockIdStr)
 
 void AdaptSandboxPath(std::string& filePath, int pid)
 {
-    if (filePath.find("/data/storage") != std::string::npos && access(filePath.c_str(), F_OK) != 0) {
+    if (filePath.find("/data/storage") == 0 && access(filePath.c_str(), F_OK) != 0) {
         filePath = "/proc/" + std::to_string(pid) + "/root/" + filePath;
     }
 }
