@@ -92,7 +92,7 @@ namespace OHOS {
             for (size_t i = 0; i < size; i++) {
                 pos = str.find(pattern, i);
                 if (pos < size) {
-                    std::string s = str.substr(i , pos - i);
+                    std::string s = str.substr(i, pos - i);
                     result.push_back(s);
                     i = pos + pattern.size() - 1;
                 }
