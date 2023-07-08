@@ -18,25 +18,15 @@
 #include <vector>
 namespace OHOS {
     namespace SmartPerf {
-        class PageFpsTrace {
+        class StartTraceNoh {
             public:
-                double ParsePageFpsTrace(std::string file);
+                double ParseStartTraceNohe(std::string file);
                 double CalculateTime();
-                std::string getLineTime(std::string line);
+                std::string GetLineTime(std::string line);
                 std::string CutString(std::string line, std::string start, std::string end, size_t offset);
+                std::vector<std::string> Split(std::string str, std::string patten);
             private:
                 std::ifstream infile;
-                std::string startLine = "";
-                std::string responseLine = "";
-                std::string completeLine = "";
-                bool needUpdateResponseLine = false;
-                int frameNum = 0;
-                std::string pid = "";
-                int count = 0;
-                bool updateCount = false;
-                double frameStartTime = 0;
-                double frameEndTime = 0;
-                double frameStartInterval = 0;
         };
     }
 }

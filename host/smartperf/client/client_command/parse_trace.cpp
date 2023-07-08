@@ -24,10 +24,10 @@
 
 namespace OHOS {
     namespace SmartPerf {
-        float ParseTrace::ParseTraceNoh(const std::string &fileNamePath, const std::string &appPid)
+        double ParseTrace::ParseTraceNoh(const std::string &fileNamePath, const std::string &appPid)
         {
             int conversion = 1000;
-            float code = -1;
+            double code = -1;
             infile.open(fileNamePath);
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
@@ -39,11 +39,11 @@ namespace OHOS {
             infile.close();
             return code * conversion;
         }
-        float ParseTrace::ParseNohTrace(const std::string &fileNamePath, const std::string &appPid)
+        double ParseTrace::ParseNohTrace(const std::string &fileNamePath, const std::string &appPid)
         {
             std::string line;
             std::string::size_type positionPid;
-            float codeTime = -1;
+            double codeTime = -1;
             while (getline(infile, line)) {
                 startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
                 frameId = SmartPerf::ParseTrace::GetFrameId(line, appPid, frameId);
@@ -111,10 +111,10 @@ namespace OHOS {
             }
             return windowTime;
         }
-        float ParseTrace::ParseTraceCold(const std::string &fileNamePath, const std::string &appPid)
+        double ParseTrace::ParseTraceCold(const std::string &fileNamePath, const std::string &appPid)
         {
             int conversion = 1000;
-            float code = -1;
+            double code = -1;
             infile.open(fileNamePath);
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
@@ -125,10 +125,10 @@ namespace OHOS {
             infile.close();
             return code * conversion;
         }
-        float ParseTrace::ParseTraceHot(const std::string &fileNamePath)
+        double ParseTrace::ParseTraceHot(const std::string &fileNamePath)
         {
             int conversion = 1000;
-            float code = -1;
+            double code = -1;
             infile.open(fileNamePath);
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
@@ -139,12 +139,12 @@ namespace OHOS {
             infile.close();
             return code * conversion;
         }
-        float ParseTrace::ParseCodeTrace(const std::string &fileNamePath, const std::string &appPid)
+        double ParseTrace::ParseCodeTrace(const std::string &fileNamePath, const std::string &appPid)
         {
             std::string line;
             std::string::size_type tracingMarkWrite;
             std::string::size_type fourPoint;
-            float codeTime = -1;
+            double codeTime = -1;
             while (getline(infile, line)) {
                 startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
                 tracingMarkWrite = line.find("tracing_mark_write: B|"+ appPid + "|H:RSRenderThread DrawFrame:");
@@ -158,7 +158,7 @@ namespace OHOS {
                     int endFlagNum = std::stof(endTimeFlag);
                     int startNum = std::stof(startTime);
                     int timeNum = endNum - endFlagNum;
-                    float interval = 0.3;
+                    double interval = 0.3;
                     if (timeNum < interval) {
                         endTimeFlag = endTime;
                     } else {
@@ -175,11 +175,11 @@ namespace OHOS {
             codeTime = SmartPerf::ParseTrace::GetTime(startTime, endTime);
             return codeTime;
         }
-        float ParseTrace::ParseHotTrace(const std::string &fileNamePath)
+        double ParseTrace::ParseHotTrace(const std::string &fileNamePath)
         {
             std::string line;
             std::string::size_type doComposition;
-            float codeTime = -1;
+            double codeTime = -1;
             while (getline(infile, line)) {
                 startTime=SmartPerf::ParseTrace::GetStartTime(line, startTime);
                 doComposition = line.find("H:RSMainThread::DoComposition");
@@ -192,7 +192,7 @@ namespace OHOS {
                     int endFlagNum = std::stof(endTimeFlag);
                     int startNum = std::stof(startTime);
                     int timeNum = endNum - endFlagNum;
-                    float interval = 0.3;
+                    double interval = 0.3;
                     if (timeNum < interval) {
                             endTimeFlag = endTime;
                     } else {
@@ -209,13 +209,13 @@ namespace OHOS {
             codeTime = SmartPerf::ParseTrace::GetTime(startTime, endTime);
             return codeTime;
         }
-        float ParseTrace::GetTime(std::string start, std::string end)
+        double ParseTrace::GetTime(std::string start, std::string end)
         {
-            float codeTime = -1;
+            double codeTime = -1;
             if (std::stof(end) == 0 || std::stof(start) == 0) {
                 return codeTime;
             } else {
-                float displayTime = 0.040;
+                double displayTime = 0.040;
                 codeTime = std::stof(end) - std::stof(start) + displayTime;
             }
             return codeTime;
