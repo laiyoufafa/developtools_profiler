@@ -52,7 +52,7 @@ void StartUpDelay::ChangeToBackground()
 {
     std::string result;
     sleep(1);
-    SPUtils::LoadCmd("uinput -K -d 2 -u 2", result);
+    SPUtils::LoadCmd("uinput -T -m 600 2760 600 1300 200", result);
     sleep(1);
 }
 std::string StartUpDelay::GetPidByPkg(const std::string &curPkgName)
