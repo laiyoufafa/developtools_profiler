@@ -21,14 +21,15 @@ public:
     const int threeParamMore = 3;
     EditorCommand(int argc, std::vector<std::string> v);
     ~EditorCommand() {};
-    float ColdStart(std::vector<std::string> v);
-    float ColdStartHM(std::vector<std::string> v);
-    float HotStart(std::vector<std::string> v);
-    static float CompleteTime();
-    static float ResponseTime();
+    double ColdStart(std::vector<std::string> v);
+    double ColdStartHM(std::vector<std::string> v);
+    double HotStart(std::vector<std::string> v);
+    double CompleteTime();
+    double ResponseTime();
     static std::string SlideFPS(std::vector<std::string> v);
     static std::string SlideFps(std::vector<std::string> v);
-    static double PageFps();
+    double PageFps();
+    double StartFrameFps(std::vector<std::string> v);
 private:
     bool isOhTest = false;
 };

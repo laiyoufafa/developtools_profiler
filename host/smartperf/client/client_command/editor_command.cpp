@@ -16,6 +16,7 @@
 #include <thread>
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include "include/editor_command.h"
 #include "include/startup_delay.h"
 #include "include/parse_trace.h"
@@ -24,6 +25,8 @@
 #include "include/parse_click_response_trace.h"
 #include "include/sp_parse_fps.h"
 #include "include/parse_page_fps_trace.h"
+#include "include/parse_start_frame_trace.h"
+#include "include/parse_start_trace_noh.h"
 
 namespace OHOS {
 namespace SmartPerf {
@@ -32,8 +35,8 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
     if (argc >= threeParamMore) {
         int ohType = 5;
         int type = 2;
-        float time = 0.0;
-        float noNameType = -1.0;
+        double time = 0.0;
+        double noNameType = -1.0;
         if (v[ohType] == "ohtest") {
             isOhTest = true;
         }
@@ -55,6 +58,9 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
             return;
         } else if (v[type] == "FPS") {
             std::cout << SmartPerf::EditorCommand::SlideFPS(v)<< std::endl;
+            return;
+        } else if (v[type] == "startFrame") {
+            SmartPerf::EditorCommand::StartFrameFps(v);
             return;
         }
         if (time == noNameType) {
@@ -123,7 +129,7 @@ std::string EditorCommand::SlideFPS(std::vector<std::string> v)
     std::string fps = parseFPS.ParseTraceFile(traceName, v[typePKG]);
     return fps;
 }
-float EditorCommand::ResponseTime()
+double EditorCommand::ResponseTime()
 {
     OHOS::SmartPerf::ParseClickResponseTrace pcrt;
     OHOS::SmartPerf::StartUpDelay sd;
@@ -132,10 +138,10 @@ float EditorCommand::ResponseTime()
     std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "response" + ".ftrace";
     std::thread thGetTrace = sd.ThreadGetTrace("response", traceName);
     thGetTrace.join();
-    float time = pcrt.ParseResponseTrace(traceName);
+    double time = pcrt.ParseResponseTrace(traceName);
     return time;
 }
-float EditorCommand::ColdStartHM(std::vector<std::string> v)
+double EditorCommand::ColdStartHM(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseTrace parseTrace;
@@ -148,7 +154,7 @@ float EditorCommand::ColdStartHM(std::vector<std::string> v)
     std::string pid = sd.GetPidByPkg(v[typePKG]);
     return parseTrace.ParseTraceCold(traceName, pid);
 }
-float EditorCommand::CompleteTime()
+double EditorCommand::CompleteTime()
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseClickCompleteTrace pcct;
@@ -157,17 +163,45 @@ float EditorCommand::CompleteTime()
     std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "complete" + ".ftrace";
     std::thread thGetTrace = sd.ThreadGetTrace("complete", traceName);
     thGetTrace.join();
-    float time = pcct.ParseCompleteTrace(traceName);
+    double time = pcct.ParseCompleteTrace(traceName);
     return time;
 }
-float EditorCommand::ColdStart(std::vector<std::string> v)
+double EditorCommand::StartFrameFps(std::vector<std::string> v)
+{
+    OHOS::SmartPerf::StartUpDelay sd;
+    OHOS::SmartPerf::ParseTrace parseTrace;
+    OHOS::SmartPerf::StartFrameTraceNoh startFrameTraceNoh;
+    std::string cmdResult;
+    int type = 4;
+    int typePKG = 3;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
+    sleep(1);
+    size_t position = cmdResult.find(":");
+    size_t position2 = cmdResult.find("json");
+    std::string pathJson = cmdResult.substr(position + 1, position2 - position + typePKG);
+    sd.InitXY2(v[type], pathJson, v[typePKG]);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
+    std::string cmd = "uinput -T -d " + sd.pointXY + " -u " + sd.pointXY;
+    sleep(1);
+    SPUtils::LoadCmd(cmd, cmdResult);
+    sleep(1);
+    std::string topPkg = SPUtils::GetTopPkgName();
+    std::string pid = sd.GetPidByPkg(v[typePKG]);
+    thGetTrace.join();
+    double fps = startFrameTraceNoh.ParseStartFrameTraceNoh(traceName);
+    return fps;
+}
+double EditorCommand::ColdStart(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseTrace parseTrace;
     std::string cmdResult;
     int type = 4;
     int typePKG = 3;
-    float noNameType = -1.0;
+    double noNameType = -1.0;
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
     SPUtils::LoadCmd("uitest dumpLayout", cmdResult);
@@ -192,7 +226,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
         if (topPkg.find(v[typePKG]) == std::string::npos || pid == "") {
             return noNameType;
         }
-        float time = 0.0;
+        double time = 0.0;
         if (isOhTest) {
             time = parseTrace.ParseTraceCold(traceName, pid);
         } else {
@@ -201,7 +235,7 @@ float EditorCommand::ColdStart(std::vector<std::string> v)
         return time;
     }
 }
-float EditorCommand::HotStart(std::vector<std::string> v)
+double EditorCommand::HotStart(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseTrace parseTrace;
@@ -216,7 +250,7 @@ float EditorCommand::HotStart(std::vector<std::string> v)
     } else {
         int type = 4;
         int typePKG = 3;
-        float noNameType = -1.0;
+        double noNameType = -1.0;
         SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.json", cmdResult);
         SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
         SPUtils::LoadCmd("uitest dumpLayout", cmdResult);

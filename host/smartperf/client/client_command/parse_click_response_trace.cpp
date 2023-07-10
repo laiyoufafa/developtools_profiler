@@ -24,7 +24,7 @@
 #include "include/sp_utils.h"
 namespace OHOS {
     namespace SmartPerf {
-        float ParseClickResponseTrace::ParseResponseTrace(std::string fileNamePath)
+        double ParseClickResponseTrace::ParseResponseTrace(std::string fileNamePath)
         {
             int conversion = 1000;
             infile.open(fileNamePath);
@@ -37,7 +37,7 @@ namespace OHOS {
             infile.close();
             return completeTime * conversion;
         }
-        float ParseClickResponseTrace::GetLineTime()
+        double ParseClickResponseTrace::GetLineTime()
         {
             std::string line;
             std::string startTime = "0";
@@ -62,7 +62,7 @@ namespace OHOS {
             completeTime = SmartPerf::ParseClickResponseTrace::GetTime(startTime, endTime);
             return completeTime;
         }
-        float  ParseClickResponseTrace::GetTime(std::string startTime, std::string endTime)
+        double  ParseClickResponseTrace::GetTime(std::string startTime, std::string endTime)
         {
                 size_t point = endTime.find(".");
                 float subNum = 2;
@@ -70,7 +70,7 @@ namespace OHOS {
                 startTime = startTime.substr(point - subNum);
                 if (std::stof(endTime) == 0 || std::stof(startTime) == 0) {
                 } else {
-                    float displayTime = 0.032;
+                    double displayTime = 0.032;
                     completeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
                 }
                 return completeTime;

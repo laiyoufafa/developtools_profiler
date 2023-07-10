@@ -20,17 +20,17 @@ namespace OHOS {
     namespace SmartPerf {
         class ParseClickCompleteTrace {
             public:
-                float ParseCompleteTrace(std::string fileNamePath);
-                float GetTime(std::string endTime);
+                double ParseCompleteTrace(std::string fileNamePath);
+                double GetTime(std::string endTime);
                 std::string GetPid(std::string line, const std::string &pn, const std::string &pb);
                 std::string GetStartTime(std::string line, const std::string &startTimeBefore);
-                float GetLineTime();
+                double GetLineTime();
             private:
                 std::ifstream infile;
                 std::string flagTime = "0";
                 int flagTouch = 0;
                 int appPidnum = 0;
-                float completeTime = -1;
+                double completeTime = -1;
                 std::string startTime = "0";
                 std::string endTimeFlag = "0";
                 std::string appPid = "0";

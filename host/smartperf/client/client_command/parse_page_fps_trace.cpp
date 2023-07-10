@@ -33,18 +33,7 @@ namespace OHOS {
         }
         double PageFpsTrace::CalculateTime()
         {
-            std::string startLine = "";
-            std::string responseLine = "";
-            std::string completeLine = "";
-            bool needUpdateResponseLine = false;
-            int frameNum = 0;
-            std::string pid = "";
-            int count = 0;
-            bool updateCount = false;
             std::string line;
-            double frameStartTime = 0;
-            double frameEndTime = 0;
-            double frameStartInterval = 0;
             while (getline(infile, line)) {
                 if (line.find("H:touchEventDispatch") != std::string::npos) {
                     startLine = line;
@@ -70,13 +59,14 @@ namespace OHOS {
                     if (count == 0) {
                         completeLine = line;
                         frameStartInterval = frameEndTime;
+                        frameStartInterval = 0;
                         frameEndTime = std::stod(SmartPerf::PageFpsTrace::getLineTime(completeLine));
                         updateCount = false;
                     }
                 }
                 if (frameStartInterval != 0) {
-                    double frameInterval = frameStartInterval - frameStartTime;
-                    if (frameInterval < 0.05) {
+                    double frameInterval = frameStartTime - frameStartInterval;
+                    if (frameInterval > 0.05) {
                         std::cout<<"NO."<< frameNum <<"fps Time: "<< frameInterval << "s" <<std::endl;
                     }
                 }
@@ -84,7 +74,7 @@ namespace OHOS {
             if (startLine.compare("") == 0) {
                 std::cout << "can not find start point {H:touchEventDispatch}" << std::endl;
             } else if (completeLine.compare("") == 0) {
-                    std::cout << "can not find response and complete point {H:RSMainThread::DoComposition}" << std::endl;
+                std::cout << "can not find response and complete point {H:RSMainThread::DoComposition}" << std::endl;
             } else {
                 double responseTime = std::stod(SmartPerf::PageFpsTrace::getLineTime(responseLine));
                 double completeTime = std::stod(SmartPerf::PageFpsTrace::getLineTime(completeLine));

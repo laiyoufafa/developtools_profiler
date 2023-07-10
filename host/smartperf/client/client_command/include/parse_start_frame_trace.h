@@ -18,25 +18,33 @@
 #include <vector>
 namespace OHOS {
     namespace SmartPerf {
-        class PageFpsTrace {
+        class StartFrameTraceNoh {
             public:
-                double ParsePageFpsTrace(std::string file);
+                double ParseStartFrameTraceNoh(std::string file);
                 double CalculateTime();
-                std::string getLineTime(std::string line);
+                double GetFps();
+                std::string GetLineTime(std::string line);
                 std::string CutString(std::string line, std::string start, std::string end, size_t offset);
+                std::vector<std::string> Split(std::string str, std::string patten);
             private:
                 std::ifstream infile;
                 std::string startLine = "";
-                std::string responseLine = "";
-                std::string completeLine = "";
-                bool needUpdateResponseLine = false;
+                std::string fullScreenLine = "";
                 int frameNum = 0;
-                std::string pid = "";
                 int count = 0;
-                bool updateCount = false;
+                std::string pid = "";
+                bool isNeedEnd = false;
                 double frameStartTime = 0;
                 double frameEndTime = 0;
-                double frameStartInterval = 0;
+                struct FrameTimeSet {
+                    int frameId;
+                    double times;
+                };
+                FrameTimeSet startTimes;
+                FrameTimeSet endTimes;
+                std::vector<FrameTimeSet> startTimeArr;
+                std::vector<FrameTimeSet> endTimeArr;
+                std::string::size_type maxnpos = std::string::npos;
         };
     }
 }
