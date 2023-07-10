@@ -27,7 +27,8 @@ const std::string DEFAULT_SERVICE_LISTEN_URI = "0.0.0.0:";
 
 int main(int argc, char* argv[])
 {
-    if (COMMON::IsProcessRunning()) { // process is running
+    int lockFileFd = -1;
+    if (COMMON::IsProcessRunning(lockFileFd)) { // process is running
         return 0;
     }
 
@@ -45,5 +46,6 @@ int main(int argc, char* argv[])
         HILOG_INFO(LOG_CORE, "ProfilerService start SUCCESS!");
         service->WaitServiceDone();
     }
+    close(lockFileFd);
     return 0;
 }

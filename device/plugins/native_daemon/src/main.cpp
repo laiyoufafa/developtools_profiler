@@ -168,7 +168,8 @@ void GetHookedProceInfo(HookData& hookData)
 
 int main(int argc, char* argv[])
 {
-    if (COMMON::IsProcessRunning()) { // process is running
+    int lockFileFd = -1;
+    if (COMMON::IsProcessRunning(lockFileFd)) { // process is running
         return 0;
     }
 
@@ -199,5 +200,6 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_ONE_SECOND));
         }
     }
+    close(lockFileFd);
     return 0;
 }

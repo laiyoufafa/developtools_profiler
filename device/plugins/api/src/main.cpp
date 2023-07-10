@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <signal.h>
+#include <sys/file.h>
 #include <unistd.h>
 
 #include "common.h"
@@ -52,14 +54,25 @@ std::vector<std::string> presetPluginVec = {
     "libprocessplugin.z.so",
     "libarktsplugin.z.so",
 };
+static int g_lockFileFd = -1;
+static std::atomic<bool> g_isRunning = true;
+void SignalSigtermHandler(int sig)
+{
+    HILOG_INFO(LOG_CORE, "hiprofiler plugin receive sigterm signal!");
+    if (flock(g_lockFileFd, LOCK_UN) == -1) {
+        HILOG_INFO(LOG_CORE, "release lockfile failed!");
+    }
+    close(g_lockFileFd);
+    g_isRunning = false;
+}
 } // namespace
 
 int main(int argc, char* argv[])
 {
-    if (COMMON::IsProcessRunning()) { // process is running
+    if (COMMON::IsProcessRunning(g_lockFileFd)) { // process is running
         return 0;
     }
-
+    signal(SIGTERM, SignalSigtermHandler);
     const int connectRetrySeconds = 3;
     std::string pluginDir(DEFAULT_PLUGIN_PATH);
     if (argv[1] != nullptr) {
@@ -92,9 +105,8 @@ int main(int argc, char* argv[])
         }
     }
 
-    while (true) {
+    while (g_isRunning) {
         std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_ONE_SECOND));
     }
-
     return 0;
 }
