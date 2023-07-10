@@ -35,6 +35,9 @@ static int ProcessDataPluginSessionStart(const uint8_t* configData, uint32_t con
 static int ProcessPluginReportResult(uint8_t* bufferData, uint32_t bufferSize)
 {
     std::lock_guard<std::mutex> guard(g_taskMutex);
+    if (g_plugin == nullptr) {
+        return -1;
+    }
     return g_plugin->Report(bufferData, bufferSize);
 }
 
